@@ -1,0 +1,154 @@
+name = "coreflow360-v4"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "coreflow360-v4-prod"
+
+[env.staging]
+name = "coreflow360-v4-staging"
+
+[env.development]
+name = "coreflow360-v4-dev"
+
+# D1 Database bindings
+[[d1_databases]]
+binding = "DB_MAIN"
+database_name = "coreflow360-main"
+database_id = "your-database-id-here"
+
+[[d1_databases]]
+binding = "DB_ANALYTICS"
+database_name = "coreflow360-analytics"
+database_id = "your-analytics-db-id-here"
+
+# KV Namespace bindings
+[[kv_namespaces]]
+binding = "KV_CACHE"
+id = "your-kv-cache-id-here"
+
+[[kv_namespaces]]
+binding = "KV_SESSION"
+id = "your-kv-session-id-here"
+
+[[kv_namespaces]]
+binding = "KV_CONFIG"
+id = "your-kv-config-id-here"
+
+[[kv_namespaces]]
+binding = "WORKFLOW_STORAGE"
+id = "your-workflow-storage-id-here"
+
+[[kv_namespaces]]
+binding = "SSE_METRICS"
+id = "your-sse-metrics-id-here"
+
+# Durable Objects bindings
+[[durable_objects.bindings]]
+name = "USER_SESSION"
+class_name = "UserSession"
+
+[[durable_objects.bindings]]
+name = "WORKFLOW_ORCHESTRATOR"
+class_name = "WorkflowOrchestrator"
+
+[[durable_objects.bindings]]
+name = "SSE_STREAM_MANAGER"
+class_name = "SSEStreamManager"
+
+[[durable_objects.bindings]]
+name = "REALTIME_SYNC"
+class_name = "RealtimeSync"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["UserSession"]
+
+[[migrations]]
+tag = "v2"
+new_classes = ["WorkflowOrchestrator", "SSEStreamManager"]
+
+[[migrations]]
+tag = "v3"
+new_classes = ["RealtimeSync"]
+
+# Queue bindings
+[[queues.producers]]
+binding = "TASK_QUEUE"
+queue = "coreflow360-tasks"
+
+[[queues.consumers]]
+queue = "coreflow360-tasks"
+max_batch_size = 100
+max_batch_timeout = 30
+
+[[queues.producers]]
+binding = "EMAIL_QUEUE"
+queue = "coreflow360-emails"
+
+[[queues.consumers]]
+queue = "coreflow360-emails"
+max_batch_size = 50
+max_batch_timeout = 10
+
+[[queues.producers]]
+binding = "WEBHOOK_QUEUE"
+queue = "coreflow360-webhooks"
+
+[[queues.consumers]]
+queue = "coreflow360-webhooks"
+max_batch_size = 25
+max_batch_timeout = 5
+
+# R2 Bucket bindings
+[[r2_buckets]]
+binding = "R2_DOCUMENTS"
+bucket_name = "coreflow360-documents"
+
+[[r2_buckets]]
+binding = "R2_ASSETS"
+bucket_name = "coreflow360-assets"
+
+[[r2_buckets]]
+binding = "R2_BACKUPS"
+bucket_name = "coreflow360-backups"
+
+# AI binding
+[ai]
+binding = "AI"
+
+# Service bindings (for internal services)
+[[services]]
+binding = "AUTH_SERVICE"
+service = "coreflow360-auth"
+
+[[services]]
+binding = "NOTIFICATION_SERVICE"
+service = "coreflow360-notifications"
+
+# Environment variables
+[vars]
+APP_NAME = "CoreFlow360 V4"
+API_VERSION = "v4"
+LOG_LEVEL = "info"
+ENVIRONMENT = "development"
+
+# Rate limiting
+[[unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "your-ratelimit-namespace-id"
+simple = { limit = 100, period = 60 }
+
+# Analytics Engine binding
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "coreflow360_analytics"
+
+# Secrets (add via wrangler secret put)
+# AUTH_SECRET
+# ENCRYPTION_KEY
+# JWT_SECRET
+# API_KEY
+# WEBHOOK_SECRET
