@@ -12,7 +12,8 @@ import { JWTService } from '../auth/jwt';
 import { SessionManager } from '../auth/session';
 import { AuthorizationError } from '../../shared/error-handler';
 
-export class BusinessSwitchService {
+export // TODO: Consider splitting BusinessSwitchService into smaller, focused classes
+class BusinessSwitchService {
   private db: D1Database;
   private kv: KVNamespace;
   private cache: BusinessCacheManager;
@@ -21,11 +22,16 @@ export class BusinessSwitchService {
   private sessionManager: SessionManager;
 
   constructor(env: Env) {
+    // Validate required environment variables
+    if (!env.JWT_SECRET) {
+      throw new AuthorizationError('JWT_SECRET environment variable is required');
+    }
+
     this.db = env.DB_MAIN;
     this.kv = env.KV_CACHE;
     this.cache = new BusinessCacheManager(this.kv);
     this.prefetch = new PrefetchManager(this.db);
-    this.jwtService = new JWTService(env.JWT_SECRET || 'dev-secret');
+    this.jwtService = new JWTService(env.JWT_SECRET);
     this.sessionManager = new SessionManager(env.KV_SESSION, this.jwtService);
   }
 
@@ -201,7 +207,6 @@ export class BusinessSwitchService {
 
       // Log performance if over target
       if (metrics.totalMs > 100) {
-        console.warn('Business switch exceeded 100ms target:', metrics);
       }
 
       return {
@@ -289,7 +294,8 @@ export class BusinessSwitchService {
           b.subscription_tier,
           b.subscription_status,
           b.subscription_expires_at,
-          (SELECT COUNT(*) FROM business_memberships WHERE business_id = bm.business_id AND status = 'active') as user_count
+          (SELECT COUNT(*)
+  FROM business_memberships WHERE business_id = bm.business_id AND status = 'active') as user_count
         FROM business_memberships bm
         JOIN businesses b ON b.id = bm.business_id
         WHERE bm.user_id = ? AND bm.status = 'active' AND b.status = 'active'

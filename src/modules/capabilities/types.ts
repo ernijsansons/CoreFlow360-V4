@@ -325,7 +325,8 @@ export const ParameterValidationSchema = z.object({
 
 export const ParameterSpecSchema = z.object({
   name: z.string().min(1).max(128),
-  type: z.enum(['string', 'number', 'boolean', 'date', 'email', 'currency', 'percentage', 'enum', 'array', 'object', 'file', 'json']),
+  type: z.enum(['string', 'number', 'boolean', 'date',
+  'email', 'currency', 'percentage', 'enum', 'array', 'object', 'file', 'json']),
   description: z.string().min(1).max(1000),
   validation: ParameterValidationSchema,
   examples: z.array(z.unknown()).optional(),
@@ -418,7 +419,8 @@ export const CapabilitySpecSchema = z.object({
   fileOperation: FileOperationSpecSchema.optional(),
   customHandler: z.string().optional(),
   returnType: z.object({
-    type: z.enum(['string', 'number', 'boolean', 'date', 'email', 'currency', 'percentage', 'enum', 'array', 'object', 'file', 'json']),
+    type: z.enum(['string', 'number', 'boolean',
+  'date', 'email', 'currency', 'percentage', 'enum', 'array', 'object', 'file', 'json']),
     schema: z.record(z.unknown()).optional(),
     examples: z.array(z.unknown()).optional(),
   }),

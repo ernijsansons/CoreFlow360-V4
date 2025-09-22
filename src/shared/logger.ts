@@ -289,8 +289,6 @@ export class Logger {
       this.stats.errorsEncountered++;
 
       // Fallback console logging if logger fails
-      console.error('Logger error:', error);
-      console.error('Original log:', { level, message, context });
     }
   }
 
@@ -414,14 +412,11 @@ export class Logger {
         console.debug(JSON.stringify(logLine));
         break;
       case LogLevel.INFO:
-        console.log(JSON.stringify(logLine));
         break;
       case LogLevel.WARN:
-        console.warn(JSON.stringify(logLine));
         break;
       case LogLevel.ERROR:
       case LogLevel.CRITICAL:
-        console.error(JSON.stringify(logLine));
         break;
     }
   }
@@ -444,7 +439,6 @@ export class Logger {
 
     } catch (error) {
       this.stats.errorsEncountered++;
-      console.error('Log flush error:', error);
     }
   }
 

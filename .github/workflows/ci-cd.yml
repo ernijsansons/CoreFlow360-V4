@@ -1,0 +1,460 @@
+name: CoreFlow360 V4 CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run chaos tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '20'
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+
+jobs:
+  # Security scanning
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: Run SAST with Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: auto
+
+      - name: Dependency Audit
+        run: npm audit --audit-level=high
+
+  # AI-Generated Tests
+  generate-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate AI Tests
+        run: |
+          npm run test:generate
+          npm run test:mutation:generate
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+
+      - name: Upload Generated Tests
+        uses: actions/upload-artifact@v3
+        with:
+          name: generated-tests
+          path: tests/generated/
+
+  # Unit and Integration Tests
+  test-unit:
+    needs: generate-tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Download Generated Tests
+        uses: actions/download-artifact@v3
+        with:
+          name: generated-tests
+          path: tests/generated/
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Unit Tests (Shard ${{ matrix.shard }})
+        run: npm run test:unit -- --shard=${{ matrix.shard }}/4
+        env:
+          CI: true
+
+      - name: Run Integration Tests
+        run: npm run test:integration -- --shard=${{ matrix.shard }}/4
+        env:
+          CI: true
+
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          flags: unit-${{ matrix.shard }}
+
+  # Property-Based Testing
+  test-property:
+    needs: generate-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Property Tests
+        run: npm run test:property
+        timeout-minutes: 30
+
+  # Mutation Testing
+  test-mutation:
+    needs: test-unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Mutation Tests
+        run: npm run test:mutation
+
+      - name: Check Mutation Score
+        run: |
+          SCORE=$(cat mutation-report.json | jq '.mutationScore')
+          echo "Mutation Score: $SCORE%"
+          if (( $(echo "$SCORE < 95" | bc -l) )); then
+            echo "Mutation score below threshold (95%)"
+            exit 1
+          fi
+
+  # E2E Tests with Playwright
+  test-e2e:
+    needs: test-unit
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Deploy to Preview
+        run: npm run deploy:preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+
+      - name: Run E2E Tests
+        run: npm run test:e2e -- --project=${{ matrix.browser }}
+        env:
+          TEST_URL: ${{ env.PREVIEW_URL }}
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-results-${{ matrix.browser }}
+          path: test-results/
+
+  # Load Testing
+  test-load:
+    needs: test-e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup K6
+        run: |
+          curl https://github.com/grafana/k6/releases/download/v0.47.0/k6-v0.47.0-linux-amd64.tar.gz -L | tar xvz
+          sudo mv k6-v0.47.0-linux-amd64/k6 /usr/local/bin/
+
+      - name: Generate Load Test
+        run: npm run test:load:generate
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+
+      - name: Run Load Test
+        run: |
+          k6 run \
+            --out cloud \
+            --out json=results.json \
+            tests/load/generated.js
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+          TEST_URL: ${{ env.PREVIEW_URL }}
+
+      - name: Analyze Results
+        run: npm run test:load:analyze
+
+      - name: Check Performance Regression
+        run: npm run test:regression:check
+
+  # Chaos Engineering (only on main)
+  test-chaos:
+    if: github.ref == 'refs/heads/main' || github.event_name == 'schedule'
+    needs: test-load
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Chaos Environment
+        run: |
+          # Install chaos tools
+          npm install -g @gremlin/cli
+          gremlin init --api-key=${{ secrets.GREMLIN_API_KEY }}
+
+      - name: Run Chaos Experiments
+        run: npm run test:chaos
+        env:
+          GREMLIN_TEAM_ID: ${{ secrets.GREMLIN_TEAM_ID }}
+          TARGET_ENV: staging
+
+      - name: Validate System Recovery
+        run: npm run test:chaos:validate
+
+  # Visual Regression Testing
+  test-visual:
+    needs: test-e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Visual Tests
+        run: npm run test:visual
+        env:
+          PERCY_TOKEN: ${{ secrets.PERCY_TOKEN }}
+
+      - name: Check Visual Differences
+        run: npm run test:visual:check
+
+  # Contract Testing
+  test-contract:
+    needs: test-unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Contract Tests
+        run: npm run test:contract
+        env:
+          PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
+          PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+
+      - name: Publish Contracts
+        run: npm run test:contract:publish
+
+  # Accessibility Testing
+  test-accessibility:
+    needs: test-e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Accessibility Tests
+        run: npm run test:a11y
+
+      - name: Upload Accessibility Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: a11y-report
+          path: test-results/a11y/
+
+  # Build and Package
+  build:
+    needs: [test-unit, test-property, security]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: dist/
+
+  # Progressive Deployment
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: [build, test-load, test-chaos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+          path: dist/
+
+      - name: Deploy Canary (5%)
+        run: |
+          npm run deploy:canary -- --percentage=5
+          sleep 300  # Monitor for 5 minutes
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+
+      - name: Monitor Canary
+        run: npm run monitor:canary -- --duration=10m
+
+      - name: Analyze Canary Metrics
+        run: |
+          npm run analyze:canary
+          if [ $? -ne 0 ]; then
+            echo "Canary deployment failed metrics check"
+            npm run rollback:canary
+            exit 1
+          fi
+
+      - name: Promote to 25%
+        run: |
+          npm run deploy:promote -- --percentage=25
+          sleep 600  # Monitor for 10 minutes
+
+      - name: Monitor 25% Deployment
+        run: npm run monitor:production -- --duration=10m
+
+      - name: Full Deployment
+        run: npm run deploy:complete
+
+      - name: Smoke Tests
+        run: npm run test:smoke
+        env:
+          TEST_URL: https://coreflow360.com
+
+      - name: Update Status Page
+        run: npm run status:update -- --status=operational
+
+  # Post-Deployment Monitoring
+  monitor:
+    if: github.ref == 'refs/heads/main'
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Synthetic Monitoring
+        run: npm run monitor:synthetic -- --duration=30m
+
+      - name: Check SLOs
+        run: npm run slo:check
+
+      - name: Generate Performance Report
+        run: npm run report:performance
+
+      - name: Send Notifications
+        if: always()
+        run: npm run notify:deployment
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          PAGERDUTY_KEY: ${{ secrets.PAGERDUTY_KEY }}
+
+  # Rollback on Failure
+  rollback:
+    if: failure() && github.ref == 'refs/heads/main'
+    needs: [deploy, monitor]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trigger Rollback
+        run: |
+          npm run deploy:rollback
+          npm run notify:rollback
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

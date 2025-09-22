@@ -5,16 +5,27 @@ compatibility_flags = ["nodejs_compat"]
 
 [env.production]
 name = "coreflow360-v4-prod"
+routes = [
+  { pattern = "*.coreflow360.com/*", zone_id = "PROD_ZONE_ID", custom_domain = true },
+  { pattern = "api.coreflow360.com/*", zone_id = "PROD_ZONE_ID", custom_domain = true }
+]
+vars = { ENVIRONMENT = "production", LOG_LEVEL = "warn", SENTRY_ENVIRONMENT = "production" }
 
 [env.staging]
 name = "coreflow360-v4-staging"
+routes = [
+  { pattern = "staging.coreflow360.com/*", zone_id = "STAGING_ZONE_ID", custom_domain = true },
+  { pattern = "staging-api.coreflow360.com/*", zone_id = "STAGING_ZONE_ID", custom_domain = true }
+]
+vars = { ENVIRONMENT = "staging", LOG_LEVEL = "info", SENTRY_ENVIRONMENT = "staging" }
 
 [env.development]
 name = "coreflow360-v4-dev"
+vars = { ENVIRONMENT = "development", LOG_LEVEL = "debug", SENTRY_ENVIRONMENT = "development" }
 
 # D1 Database bindings
 [[d1_databases]]
-binding = "DB_MAIN"
+binding = "DB"
 database_name = "coreflow360-main"
 database_id = "your-database-id-here"
 
@@ -61,6 +72,18 @@ class_name = "SSEStreamManager"
 name = "REALTIME_SYNC"
 class_name = "RealtimeSync"
 
+[[durable_objects.bindings]]
+name = "DASHBOARD_STREAM"
+class_name = "DashboardStream"
+
+[[durable_objects.bindings]]
+name = "WORKFLOW_EXECUTOR"
+class_name = "WorkflowExecutor"
+
+[[durable_objects.bindings]]
+name = "WORKFLOW_COLLABORATION"
+class_name = "WorkflowCollaboration"
+
 [[migrations]]
 tag = "v1"
 new_classes = ["UserSession"]
@@ -72,6 +95,10 @@ new_classes = ["WorkflowOrchestrator", "SSEStreamManager"]
 [[migrations]]
 tag = "v3"
 new_classes = ["RealtimeSync"]
+
+[[migrations]]
+tag = "v4"
+new_classes = ["DashboardStream", "WorkflowExecutor", "WorkflowCollaboration"]
 
 # Queue bindings
 [[queues.producers]]
@@ -133,6 +160,16 @@ APP_NAME = "CoreFlow360 V4"
 API_VERSION = "v4"
 LOG_LEVEL = "info"
 ENVIRONMENT = "development"
+DASHBOARD_URL = "https://coreflow360.example.com"
+EMAIL_API_ENDPOINT = "https://api.resend.com"
+ORCHESTRATOR_API = "https://api.example.com/orchestrator"
+GATEWAY_API = "https://api.example.com/gateway"
+CACHE_API = "https://api.example.com/cache"
+BIGQUERY_PROJECT_ID = "your-project-id"
+BIGQUERY_DATASET_ID = "observability"
+R2_ENDPOINT = "https://your-account.r2.cloudflarestorage.com"
+R2_BUCKET = "coreflow360-exports"
+R2_PUBLIC_URL = "https://pub-your-bucket.r2.dev"
 
 # Rate limiting
 [[unsafe.bindings]]
@@ -146,9 +183,152 @@ simple = { limit = 100, period = 60 }
 binding = "ANALYTICS"
 dataset = "coreflow360_analytics"
 
+# Observability and Performance
+[observability]
+enabled = true
+head_sampling_rate = 0.1
+
+[placement]
+mode = "smart"
+
+[limits]
+cpu_ms = 50000
+memory_mb = 128
+
+# Load Balancing Configuration
+[[load_balancers]]
+name = "coreflow360-api-lb"
+description = "Production API load balancer"
+default_pools = ["api-pool-primary"]
+region_pools = { "WNAM" = ["api-pool-primary"], "ENAM" = ["api-pool-secondary"] }
+fallback_pool = "api-pool-fallback"
+session_affinity = "cookie"
+session_affinity_ttl = 1800
+
+[[pools]]
+name = "api-pool-primary"
+description = "Primary API pool"
+enabled = true
+origins = [
+  { name = "api-primary-1", address = "coreflow360-v4-prod.workers.dev", enabled = true, weight = 1 },
+  { name = "api-primary-2", address = "coreflow360-v4-prod-backup.workers.dev", enabled = true, weight = 0.5 }
+]
+monitor = "api-health-check"
+notification_email = "devops@coreflow360.com"
+
+[[monitors]]
+name = "api-health-check"
+description = "API health monitoring"
+type = "https"
+method = "GET"
+path = "/health"
+expected_codes = "200"
+interval = 60
+retries = 3
+timeout = 30
+
+# Advanced Caching Rules
+[[rules]]
+expression = "(http.request.uri.path matches \"/api/v4/.*\")"
+action = "cache"
+cache_level = "cache_everything"
+cache_ttl = 300
+cache_key = {
+  ignore_query_strings = ["timestamp", "_"],
+  include_headers = ["Authorization", "X-Business-ID"]
+}
+
+[[rules]]
+expression = "(http.request.uri.path matches \"/static/.*\")"
+action = "cache"
+cache_level = "cache_everything"
+cache_ttl = 86400
+edge_cache_ttl = 604800
+
+# Security Rules
+[[rules]]
+expression = "(http.request.method eq \"POST\" and http.request.uri.path contains \"/auth/\")"
+action = "rate_limit"
+rate_limit = {
+  threshold = 10,
+  period = 60,
+  action = "block",
+  timeout = 300
+}
+
+[[rules]]
+expression = "(cf.threat_score gt 10)"
+action = "challenge"
+challenge_type = "managed"
+
+[[rules]]
+expression = "(http.request.uri.path contains \"admin\" and not ip.src in {\"192.168.1.0/24\" \"10.0.0.0/8\"})"
+action = "block"
+
+# Transform Rules for Headers
+[[transform_rules]]
+expression = "true"
+action = "set_response_headers"
+headers = {
+  "X-Frame-Options" = "DENY",
+  "X-Content-Type-Options" = "nosniff",
+  "X-XSS-Protection" = "1; mode=block",
+  "Referrer-Policy" = "strict-origin-when-cross-origin",
+  "Permissions-Policy" = "geolocation=(), microphone=(), camera=()",
+  "Strict-Transport-Security" = "max-age=31536000; includeSubDomains; preload",
+  "Content-Security-Policy" = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.coreflow360.com; frame-ancestors 'none';"
+}
+
+# Page Rules for Performance
+[[page_rules]]
+url = "*.coreflow360.com/api/*"
+settings = {
+  cache_level = "cache_everything",
+  edge_cache_ttl = 300,
+  browser_cache_ttl = 180,
+  always_online = "on",
+  rocket_loader = "off",
+  minify = { css = "on", html = "on", js = "on" }
+}
+
+[[page_rules]]
+url = "*.coreflow360.com/static/*"
+settings = {
+  cache_level = "cache_everything",
+  edge_cache_ttl = 604800,
+  browser_cache_ttl = 86400,
+  always_online = "on"
+}
+
+# Workers Analytics
+[workers_analytics]
+enabled = true
+
+# Logpush Configuration
+[logpush]
+enabled = true
+dataset = "workers_trace_events"
+logpull_options = "fields=Event,EventTimestampMs,Outcome,ScriptName,ScriptTags&timestamps=rfc3339"
+
 # Secrets (add via wrangler secret put)
-# AUTH_SECRET
-# ENCRYPTION_KEY
-# JWT_SECRET
-# API_KEY
-# WEBHOOK_SECRET
+# AUTH_SECRET - JWT signing secret
+# ENCRYPTION_KEY - Data encryption key
+# JWT_SECRET - JWT token secret
+# API_KEY - Internal API key
+# WEBHOOK_SECRET - Webhook validation secret
+# EMAIL_API_KEY - Email service API key
+# ORCHESTRATOR_TOKEN - Workflow orchestrator token
+# GATEWAY_TOKEN - API gateway token
+# CACHE_TOKEN - Cache service token
+# BIGQUERY_TOKEN - BigQuery service account
+# R2_TOKEN - R2 storage token
+# DATADOG_API_KEY - Datadog monitoring key
+# CLICKHOUSE_ENDPOINT - ClickHouse analytics endpoint
+# CLICKHOUSE_TOKEN - ClickHouse access token
+# SENTRY_DSN - Sentry error tracking DSN
+# STRIPE_SECRET_KEY - Stripe payment processing
+# OPENAI_API_KEY - OpenAI API access
+# CLOUDFLARE_AI_TOKEN - Cloudflare AI token
+# GITHUB_TOKEN - GitHub integration token
+# SLACK_WEBHOOK_URL - Slack notifications
+# PAGERDUTY_TOKEN - PagerDuty incident management

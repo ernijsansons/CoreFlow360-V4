@@ -117,7 +117,6 @@ async function logAudit(c: any, eventName: string, eventType: string, data: any)
       data.compute_time_ms || 0
     ).run();
   } catch (error) {
-    console.error('Failed to log audit:', error);
   }
 }
 

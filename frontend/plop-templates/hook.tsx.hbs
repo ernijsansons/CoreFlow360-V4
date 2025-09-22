@@ -1,0 +1,21 @@
+import { useState, useEffect } from 'react'
+
+interface Use{{pascalCase name}}Options {
+  // Add hook options here
+}
+
+interface Use{{pascalCase name}}Return {
+  // Add return values here
+}
+
+export function use{{pascalCase name}}(options?: Use{{pascalCase name}}Options): Use{{pascalCase name}}Return {
+  const [state, setState] = useState<any>(null)
+
+  useEffect(() => {
+    // Add hook logic here
+  }, [])
+
+  return {
+    // Return values
+  }
+}

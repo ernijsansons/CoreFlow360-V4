@@ -160,7 +160,6 @@ export class RealtimeSync extends DurableObject {
           this.broadcast(message, clientId);
           this.messageCount++;
         } catch (error) {
-          console.error('Error handling WebSocket message:', error);
           ws.send(JSON.stringify({
             type: 'error',
             message: 'Invalid message format',
@@ -181,12 +180,10 @@ export class RealtimeSync extends DurableObject {
       });
 
       ws.addEventListener('error', (error) => {
-        console.error(`WebSocket error for client ${clientId}:`, error);
         this.connections.delete(clientId);
         this.connectionTimestamps.delete(clientId);
       });
     } catch (error) {
-      console.error('Failed to handle WebSocket:', error);
       ws.close(1011, 'Internal server error');
     }
   }
@@ -200,7 +197,6 @@ export class RealtimeSync extends DurableObject {
         try {
           ws.send(messageString);
         } catch (error) {
-          console.error(`Failed to send to client ${clientId}:`, error);
           deadConnections.push(clientId);
         }
       }

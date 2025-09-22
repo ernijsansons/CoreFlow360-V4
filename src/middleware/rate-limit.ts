@@ -1,5 +1,15 @@
 import { Context, Next } from 'hono';
 import { RateLimitError } from '../shared/error-handler';
+import {
+  AdvancedRateLimiter,
+  CloudflareKVRateLimitStore,
+  MemoryRateLimitStore,
+  RateLimitConfigs,
+  RateLimitConfig
+} from '../security/advanced-rate-limiter';
+import { Logger } from '../shared/logger';
+
+const logger = new Logger({ component: 'rate-limit-middleware' });
 
 interface RateLimitOptions {
   key: (c: Context) => string;
@@ -100,71 +110,176 @@ async function kvRateLimit(
   c.header('X-RateLimit-Reset', entry.resetAt.toString());
 }
 
+// Initialize advanced rate limiter
+let advancedRateLimiter: AdvancedRateLimiter;
+
 /**
- * Pre-configured rate limiters for different endpoints
+ * Initialize the advanced rate limiting system
+ */
+export function initializeRateLimiting(env: any): void {
+  const store = env.KV_CACHE
+    ? new CloudflareKVRateLimitStore(env.KV_CACHE)
+    : new MemoryRateLimitStore();
+
+  advancedRateLimiter = new AdvancedRateLimiter(store);
+
+  logger.info('Advanced rate limiting initialized', {
+    storeType: env.KV_CACHE ? 'CloudflareKV' : 'Memory'
+  });
+}
+
+/**
+ * Get or initialize rate limiter
+ */
+function getRateLimiter(env: any): AdvancedRateLimiter {
+  if (!advancedRateLimiter) {
+    initializeRateLimiting(env);
+  }
+  return advancedRateLimiter;
+}
+
+/**
+ * Create advanced rate limiting middleware
+ */
+export function createAdvancedRateLimiter(
+  limitType: string,
+  config?: Partial<RateLimitConfig>,
+  keyExtractor?: (c: Context) => string
+) {
+  return async (c: Context, next: Next) => {
+    const rateLimiter = getRateLimiter(c.env);
+
+    // Get base configuration
+    const baseConfig = {
+      ...RateLimitConfigs[limitType as keyof typeof RateLimitConfigs],
+      ...config
+    } as RateLimitConfig;
+
+    // Extract identifier
+    const identifier = keyExtractor
+      ? keyExtractor(c)
+      : c.req.header('CF-Connecting-IP') || 'unknown';
+
+    // Check rate limit
+    const result = await rateLimiter.checkLimit(identifier, baseConfig, {
+      path: c.req.path,
+      method: c.req.method,
+      userAgent: c.req.header('User-Agent'),
+      businessId: c.get('businessId'),
+      userId: c.get('userId')
+    });
+
+    // Set rate limit headers
+    c.header('X-RateLimit-Limit', baseConfig.maxRequests.toString());
+    c.header('X-RateLimit-Remaining', result.remaining.toString());
+    c.header('X-RateLimit-Reset', Math.ceil(result.resetTime / 1000).toString());
+    c.header('X-RateLimit-Algorithm', baseConfig.algorithm);
+
+    if (!result.allowed) {
+      if (result.retryAfter) {
+        c.header('Retry-After', Math.ceil(result.retryAfter / 1000).toString());
+      }
+
+      logger.warn('Rate limit exceeded', {
+        identifier,
+        limitType,
+        path: c.req.path,
+        algorithm: baseConfig.algorithm,
+        remaining: result.remaining,
+        reason: result.reason
+      });
+
+      return c.json({
+        error: 'Rate limit exceeded',
+        message: result.reason || 'Too many requests',
+        retryAfter: result.retryAfter,
+        limit: baseConfig.maxRequests,
+        remaining: result.remaining
+      }, 429);
+    }
+
+    await next();
+  };
+}
+
+/**
+ * Pre-configured advanced rate limiters
  */
 export const rateLimiters = {
-  // Strict rate limiting for auth endpoints
-  login: rateLimiter({
-    key: (c) => `login:${c.req.header('CF-Connecting-IP') || 'unknown'}`,
-    limit: 5,
-    window: 900, // 15 minutes
-    message: 'Too many login attempts. Please try again later.',
-  }),
+  // Authentication endpoints with strict limits
+  login: createAdvancedRateLimiter('auth', {
+    maxRequests: 5,
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    algorithm: 'sliding_window'
+  }, (c) => `login:${c.req.header('CF-Connecting-IP') || 'unknown'}`),
 
-  register: rateLimiter({
-    key: (c) => `register:${c.req.header('CF-Connecting-IP') || 'unknown'}`,
-    limit: 3,
-    window: 3600, // 1 hour
-    message: 'Too many registration attempts. Please try again later.',
-  }),
-
-  passwordReset: rateLimiter({
-    key: (c) => `reset:${c.req.header('CF-Connecting-IP') || 'unknown'}`,
-    limit: 3,
-    window: 3600, // 1 hour
-    message: 'Too many password reset attempts. Please try again later.',
-  }),
-
-  // API rate limiting per user
-  api: rateLimiter({
-    key: (c) => {
-      const userId = c.get('userId');
-      if (userId) {
-        return `api:user:${userId}`;
+  register: createAdvancedRateLimiter('registration', {
+    customRules: [
+      {
+        condition: (id, ctx) => ctx?.userAgent?.includes('bot'),
+        config: { maxRequests: 1, windowMs: 60 * 60 * 1000 }
       }
-      return `api:ip:${c.req.header('CF-Connecting-IP') || 'unknown'}`;
-    },
-    limit: 100,
-    window: 60, // 1 minute
-    message: 'API rate limit exceeded. Please slow down your requests.',
+    ]
+  }, (c) => `register:${c.req.header('CF-Connecting-IP') || 'unknown'}`),
+
+  passwordReset: createAdvancedRateLimiter('passwordReset', {},
+    (c) => `reset:${c.req.header('CF-Connecting-IP') || 'unknown'}`),
+
+  // API endpoints with tier-based limits
+  api: createAdvancedRateLimiter('api', {
+    customRules: [
+      {
+        condition: (id, ctx) => ctx?.businessId && ctx.businessId.includes('premium'),
+        config: { maxRequests: 500 }
+      },
+      {
+        condition: (id, ctx) => ctx?.businessId && ctx.businessId.includes('enterprise'),
+        config: { maxRequests: 2000 }
+      }
+    ]
+  }, (c) => {
+    const userId = c.get('userId');
+    return userId ? `api:user:${userId}` : `api:ip:${c.req.header('CF-Connecting-IP') || 'unknown'}`;
   }),
 
-  // Strict rate limiting for expensive operations
-  export: rateLimiter({
-    key: (c) => `export:${c.get('userId') || c.req.header('CF-Connecting-IP') || 'unknown'}`,
-    limit: 10,
-    window: 3600, // 1 hour
-    message: 'Export rate limit exceeded. Please try again later.',
-  }),
+  // AI API calls with token bucket
+  aiAPI: createAdvancedRateLimiter('aiAPI', {
+    algorithm: 'token_bucket',
+    customRules: [
+      {
+        condition: (id, ctx) => ctx?.businessId?.includes('trial'),
+        config: { maxRequests: 5, windowMs: 60 * 1000 }
+      }
+    ]
+  }, (c) => `ai:${c.get('businessId') || c.req.header('CF-Connecting-IP') || 'unknown'}`),
 
-  // WebSocket connection rate limiting
-  websocket: rateLimiter({
-    key: (c) => `ws:${c.req.header('CF-Connecting-IP') || 'unknown'}`,
-    limit: 10,
-    window: 60, // 1 minute
-    message: 'Too many WebSocket connection attempts.',
-  }),
+  // File uploads with leaky bucket
+  upload: createAdvancedRateLimiter('upload', {
+    algorithm: 'leaky_bucket'
+  }, (c) => `upload:${c.get('userId') || c.req.header('CF-Connecting-IP') || 'unknown'}`),
+
+  // Export operations
+  export: createAdvancedRateLimiter('api', {
+    maxRequests: 10,
+    windowMs: 60 * 60 * 1000, // 1 hour
+    algorithm: 'fixed_window'
+  }, (c) => `export:${c.get('userId') || c.req.header('CF-Connecting-IP') || 'unknown'}`),
+
+  // WebSocket connections
+  websocket: createAdvancedRateLimiter('api', {
+    maxRequests: 10,
+    windowMs: 60 * 1000, // 1 minute
+    algorithm: 'sliding_window'
+  }, (c) => `ws:${c.req.header('CF-Connecting-IP') || 'unknown'}`)
 };
 
 /**
- * Dynamic rate limiter based on user tier
+ * Dynamic rate limiter based on user tier with advanced algorithms
  */
 export function tierBasedRateLimiter() {
   return async (c: Context, next: Next) => {
     const businessId = c.get('businessId');
     if (!businessId) {
-      // Use default rate limiting
       return rateLimiters.api(c, next);
     }
 
@@ -176,109 +291,106 @@ export function tierBasedRateLimiter() {
 
     const tier = business?.subscription_tier || 'trial';
 
-    // Define limits based on tier
-    const limits: Record<string, { limit: number; window: number }> = {
-      trial: { limit: 50, window: 60 },
-      starter: { limit: 100, window: 60 },
-      professional: { limit: 500, window: 60 },
-      enterprise: { limit: 2000, window: 60 },
+    // Define limits and algorithms based on tier
+    const tierConfigs: Record<string, RateLimitConfig> = {
+      trial: {
+        maxRequests: 50,
+        windowMs: 60 * 1000,
+        algorithm: 'fixed_window'
+      },
+      starter: {
+        maxRequests: 100,
+        windowMs: 60 * 1000,
+        algorithm: 'sliding_window'
+      },
+      professional: {
+        maxRequests: 500,
+        windowMs: 60 * 1000,
+        algorithm: 'token_bucket'
+      },
+      enterprise: {
+        maxRequests: 2000,
+        windowMs: 60 * 1000,
+        algorithm: 'token_bucket'
+      }
     };
 
-    const tierLimit = limits[tier] || limits.trial;
+    const config = tierConfigs[tier] || tierConfigs.trial;
 
     // Apply tier-based rate limiting
-    return rateLimiter({
-      key: (c) => `api:business:${businessId}`,
-      limit: tierLimit.limit,
-      window: tierLimit.window,
-    })(c, next);
+    return createAdvancedRateLimiter('api', config,
+      (c) => `api:business:${businessId}`)(c, next);
   };
 }
 
 /**
- * Distributed rate limiter using Durable Objects
+ * Enhanced Distributed rate limiter using Durable Objects with advanced algorithms
  */
-export class RateLimiterDO {
+export class AdvancedRateLimiterDO {
   private state: DurableObjectState;
-  private entries: Map<string, RateLimitEntry> = new Map();
+  private rateLimiter: AdvancedRateLimiter;
 
   constructor(state: DurableObjectState) {
     this.state = state;
+    this.rateLimiter = new AdvancedRateLimiter(new MemoryRateLimitStore());
   }
 
   async fetch(request: Request): Promise<Response> {
-    const url = new URL(request.url);
-    const key = url.searchParams.get('key');
-    const limit = parseInt(url.searchParams.get('limit') || '100');
-    const window = parseInt(url.searchParams.get('window') || '60');
+    try {
+      const url = new URL(request.url);
+      const key = url.searchParams.get('key');
+      const algorithm = url.searchParams.get('algorithm') || 'sliding_window';
+      const limit = parseInt(url.searchParams.get('limit') || '100');
+      const window = parseInt(url.searchParams.get('window') || '60000');
 
-    if (!key) {
-      return new Response('Key required', { status: 400 });
-    }
-
-    const now = Date.now();
-    const entry = this.entries.get(key);
-
-    if (!entry || entry.resetAt < now) {
-      // New window
-      this.entries.set(key, {
-        count: 1,
-        resetAt: now + window * 1000,
-      });
-
-      // Clean up old entries
-      this.cleanup(now);
-
-      return new Response(JSON.stringify({
-        allowed: true,
-        limit,
-        remaining: limit - 1,
-        resetAt: now + window * 1000,
-      }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    if (entry.count >= limit) {
-      return new Response(JSON.stringify({
-        allowed: false,
-        limit,
-        remaining: 0,
-        resetAt: entry.resetAt,
-        retryAfter: Math.ceil((entry.resetAt - now) / 1000),
-      }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 429,
-      });
-    }
-
-    entry.count++;
-
-    return new Response(JSON.stringify({
-      allowed: true,
-      limit,
-      remaining: limit - entry.count,
-      resetAt: entry.resetAt,
-    }), {
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  private cleanup(now: number): void {
-    // Remove expired entries
-    for (const [key, entry] of this.entries) {
-      if (entry.resetAt < now) {
-        this.entries.delete(key);
+      if (!key) {
+        return new Response(JSON.stringify({
+          error: 'Key required'
+        }), { status: 400 });
       }
-    }
 
-    // Limit total entries to prevent memory issues
-    if (this.entries.size > 10000) {
-      const sorted = Array.from(this.entries.entries())
-        .sort((a, b) => a[1].resetAt - b[1].resetAt);
+      const config: RateLimitConfig = {
+        maxRequests: limit,
+        windowMs: window,
+        algorithm: algorithm as any
+      };
 
-      // Keep only the most recent 5000 entries
-      this.entries = new Map(sorted.slice(-5000));
+      const result = await this.rateLimiter.checkLimit(key, config);
+
+      const status = result.allowed ? 200 : 429;
+      const response = {
+        allowed: result.allowed,
+        limit,
+        remaining: result.remaining,
+        resetTime: result.resetTime,
+        algorithm,
+        ...(result.retryAfter && { retryAfter: result.retryAfter }),
+        ...(result.reason && { reason: result.reason })
+      };
+
+      return new Response(JSON.stringify(response), {
+        status,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-RateLimit-Limit': limit.toString(),
+          'X-RateLimit-Remaining': result.remaining.toString(),
+          'X-RateLimit-Reset': Math.ceil(result.resetTime / 1000).toString(),
+          'X-RateLimit-Algorithm': algorithm,
+          ...(result.retryAfter && {
+            'Retry-After': Math.ceil(result.retryAfter / 1000).toString()
+          })
+        },
+      });
+
+    } catch (error) {
+      logger.error('Durable Object rate limiter error', error);
+      return new Response(JSON.stringify({
+        error: 'Internal rate limiter error',
+        allowed: false
+      }), { status: 500 });
     }
   }
 }
+
+// Keep the original for backward compatibility
+export const RateLimiterDO = AdvancedRateLimiterDO;

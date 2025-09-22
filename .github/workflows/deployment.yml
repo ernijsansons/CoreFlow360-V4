@@ -1,0 +1,384 @@
+name: Production Deployment Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      strategy:
+        description: 'Deployment strategy'
+        required: true
+        default: 'blue_green'
+        type: choice
+        options:
+          - blue_green
+          - canary
+          - rolling
+          - immediate
+      rollback_version:
+        description: 'Version to rollback to (if needed)'
+        required: false
+        type: string
+
+env:
+  NODE_VERSION: '18'
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+jobs:
+  prepare-deployment:
+    name: Prepare Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.determine-env.outputs.environment }}
+      strategy: ${{ steps.determine-strategy.outputs.strategy }}
+      version: ${{ steps.version.outputs.version }}
+      should-deploy: ${{ steps.should-deploy.outputs.result }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine environment
+        id: determine-env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "environment=staging" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+          else
+            echo "environment=development" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine strategy
+        id: determine-strategy
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "strategy=${{ github.event.inputs.strategy }}" >> $GITHUB_OUTPUT
+          else
+            echo "strategy=blue_green" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(date +%Y%m%d)-${GITHUB_SHA:0:8}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check if should deploy
+        id: should-deploy
+        run: |
+          # Skip deployment for draft releases or if CI failed
+          if [[ "${{ github.event.release.draft }}" == "true" ]]; then
+            echo "result=false" >> $GITHUB_OUTPUT
+          else
+            echo "result=true" >> $GITHUB_OUTPUT
+          fi
+
+  validate-deployment:
+    name: Validate Deployment Prerequisites
+    runs-on: ubuntu-latest
+    needs: prepare-deployment
+    if: needs.prepare-deployment.outputs.should-deploy == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run pre-deployment validation
+        run: |
+          echo "🔍 Running pre-deployment validation..."
+          npm run deployment:validate
+          npm run migrations:validate
+          npm run config:validate -- --env ${{ needs.prepare-deployment.outputs.environment }}
+
+      - name: Check deployment readiness
+        run: |
+          echo "✅ Deployment validation passed"
+          echo "Environment: ${{ needs.prepare-deployment.outputs.environment }}"
+          echo "Strategy: ${{ needs.prepare-deployment.outputs.strategy }}"
+          echo "Version: ${{ needs.prepare-deployment.outputs.version }}"
+
+  build-and-package:
+    name: Build and Package for Deployment
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, validate-deployment]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: |
+          echo "🏗️ Building application for ${{ needs.prepare-deployment.outputs.environment }}"
+          NODE_ENV=production npm run build
+
+      - name: Package deployment artifacts
+        run: |
+          mkdir -p deployment-package
+          cp -r dist deployment-package/
+          cp wrangler.toml deployment-package/
+          cp package.json deployment-package/
+          cp -r src/migrations deployment-package/
+
+          # Create deployment manifest
+          cat > deployment-package/deployment-manifest.json << EOF
+          {
+            "version": "${{ needs.prepare-deployment.outputs.version }}",
+            "environment": "${{ needs.prepare-deployment.outputs.environment }}",
+            "strategy": "${{ needs.prepare-deployment.outputs.strategy }}",
+            "buildTime": "$(date -Iseconds)",
+            "commit": "${{ github.sha }}",
+            "branch": "${{ github.ref_name }}"
+          }
+          EOF
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-package-${{ needs.prepare-deployment.outputs.version }}
+          path: deployment-package/
+          retention-days: 90
+
+  deploy-database:
+    name: Deploy Database Migrations
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, build-and-package]
+    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    steps:
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-package-${{ needs.prepare-deployment.outputs.version }}
+          path: deployment-package/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      - name: Run database migrations
+        run: |
+          echo "🗄️ Running database migrations for ${{ needs.prepare-deployment.outputs.environment }}"
+          cd deployment-package
+
+          # Apply migrations with zero-downtime strategy
+          wrangler d1 migrations apply --env ${{ needs.prepare-deployment.outputs.environment }} --yes
+
+          echo "✅ Database migrations completed successfully"
+
+  deploy-application:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, deploy-database]
+    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    steps:
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-package-${{ needs.prepare-deployment.outputs.version }}
+          path: deployment-package/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      - name: Deploy to Cloudflare Workers
+        run: |
+          echo "🚀 Deploying application with ${{ needs.prepare-deployment.outputs.strategy }} strategy"
+          cd deployment-package
+
+          # Deploy with specified strategy
+          if [[ "${{ needs.prepare-deployment.outputs.strategy }}" == "blue_green" ]]; then
+            echo "Executing blue-green deployment..."
+            wrangler deploy --env ${{ needs.prepare-deployment.outputs.environment }} --name coreflow360-v4-green
+          elif [[ "${{ needs.prepare-deployment.outputs.strategy }}" == "canary" ]]; then
+            echo "Executing canary deployment..."
+            wrangler deploy --env ${{ needs.prepare-deployment.outputs.environment }} --compatibility-date $(date +%Y-%m-%d)
+          else
+            echo "Executing standard deployment..."
+            wrangler deploy --env ${{ needs.prepare-deployment.outputs.environment }}
+          fi
+
+      - name: Verify deployment
+        run: |
+          echo "🔍 Verifying deployment health..."
+          # Add health check calls here
+          sleep 30
+          curl -f "https://coreflow360-v4-${{ needs.prepare-deployment.outputs.environment }}.example.com/health" || exit 1
+          echo "✅ Deployment verification successful"
+
+  run-smoke-tests:
+    name: Run Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, deploy-application]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run smoke tests
+        env:
+          TEST_ENVIRONMENT: ${{ needs.prepare-deployment.outputs.environment }}
+        run: |
+          echo "🧪 Running smoke tests against ${{ needs.prepare-deployment.outputs.environment }}"
+          npm run test:smoke -- --env ${{ needs.prepare-deployment.outputs.environment }}
+
+      - name: Run API integration tests
+        env:
+          TEST_ENVIRONMENT: ${{ needs.prepare-deployment.outputs.environment }}
+        run: |
+          echo "🔌 Running API integration tests"
+          npm run test:api-integration -- --env ${{ needs.prepare-deployment.outputs.environment }}
+
+  progressive-rollout:
+    name: Progressive Traffic Rollout
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, run-smoke-tests]
+    if: needs.prepare-deployment.outputs.strategy == 'blue_green' || needs.prepare-deployment.outputs.strategy == 'canary'
+    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Execute progressive rollout
+        run: |
+          echo "📊 Starting progressive traffic rollout..."
+
+          # Stage 1: 1% traffic
+          npm run deployment:traffic-shift -- --percentage 1 --env ${{ needs.prepare-deployment.outputs.environment }}
+          echo "Stage 1: 1% traffic routed to new version"
+          sleep 300  # 5 minutes
+
+          # Stage 2: 10% traffic
+          npm run deployment:traffic-shift -- --percentage 10 --env ${{ needs.prepare-deployment.outputs.environment }}
+          echo "Stage 2: 10% traffic routed to new version"
+          sleep 600  # 10 minutes
+
+          # Stage 3: 50% traffic
+          npm run deployment:traffic-shift -- --percentage 50 --env ${{ needs.prepare-deployment.outputs.environment }}
+          echo "Stage 3: 50% traffic routed to new version"
+          sleep 900  # 15 minutes
+
+          # Stage 4: 100% traffic
+          npm run deployment:traffic-shift -- --percentage 100 --env ${{ needs.prepare-deployment.outputs.environment }}
+          echo "✅ Progressive rollout completed - 100% traffic on new version"
+
+      - name: Monitor deployment health
+        run: |
+          echo "📈 Monitoring deployment health during rollout..."
+          npm run deployment:monitor -- --duration 1800 --env ${{ needs.prepare-deployment.outputs.environment }}
+
+  finalize-deployment:
+    name: Finalize Deployment
+    runs-on: ubuntu-latest
+    needs: [prepare-deployment, progressive-rollout]
+    if: always() && needs.prepare-deployment.outputs.should-deploy == 'true'
+    environment: ${{ needs.prepare-deployment.outputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create Sentry release
+        if: success()
+        run: |
+          echo "📋 Creating Sentry release for version ${{ needs.prepare-deployment.outputs.version }}"
+          npx @sentry/cli releases new ${{ needs.prepare-deployment.outputs.version }}
+          npx @sentry/cli releases set-commits ${{ needs.prepare-deployment.outputs.version }} --auto
+          npx @sentry/cli releases finalize ${{ needs.prepare-deployment.outputs.version }}
+
+      - name: Update deployment status
+        run: |
+          if [[ "${{ needs.progressive-rollout.result }}" == "success" ]]; then
+            echo "✅ Deployment completed successfully"
+            npm run deployment:mark-success -- --version ${{ needs.prepare-deployment.outputs.version }}
+          else
+            echo "❌ Deployment failed or was cancelled"
+            npm run deployment:mark-failure -- --version ${{ needs.prepare-deployment.outputs.version }}
+          fi
+
+      - name: Cleanup old deployments
+        if: success()
+        run: |
+          echo "🧹 Cleaning up old deployments..."
+          npm run deployment:cleanup -- --keep 5 --env ${{ needs.prepare-deployment.outputs.environment }}
+
+      - name: Send deployment notification
+        if: always()
+        run: |
+          if [[ "${{ needs.progressive-rollout.result }}" == "success" ]]; then
+            echo "📢 Sending success notification..."
+            npm run notifications:deployment-success -- \
+              --version ${{ needs.prepare-deployment.outputs.version }} \
+              --env ${{ needs.prepare-deployment.outputs.environment }}
+          else
+            echo "📢 Sending failure notification..."
+            npm run notifications:deployment-failure -- \
+              --version ${{ needs.prepare-deployment.outputs.version }} \
+              --env ${{ needs.prepare-deployment.outputs.environment }}
+          fi

@@ -194,9 +194,14 @@ auth.post('/change-password', authenticate(), requireMFA(), asyncHandler(async (
   // Invalidate all sessions
   const { SessionManager } = await import('../modules/auth/session');
   const { JWTService } = await import('../modules/auth/jwt');
+
+  if (!c.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+
   const sessionManager = new SessionManager(
     c.env.KV_SESSION,
-    new JWTService(c.env.JWT_SECRET || 'dev-secret')
+    new JWTService(c.env.JWT_SECRET)
   );
   await sessionManager.deleteUserSessions(userId);
 
@@ -286,9 +291,14 @@ auth.post('/mfa/verify', authenticate(), asyncHandler(async (c) => {
   // Update session MFA status
   const { SessionManager } = await import('../modules/auth/session');
   const { JWTService } = await import('../modules/auth/jwt');
+
+  if (!c.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+
   const sessionManager = new SessionManager(
     c.env.KV_SESSION,
-    new JWTService(c.env.JWT_SECRET || 'dev-secret')
+    new JWTService(c.env.JWT_SECRET)
   );
   await sessionManager.updateMFAStatus(sessionId, true);
 
@@ -387,9 +397,14 @@ auth.delete('/sessions/:sessionId', authenticate(), asyncHandler(async (c) => {
   // Revoke session
   const { SessionManager } = await import('../modules/auth/session');
   const { JWTService } = await import('../modules/auth/jwt');
+
+  if (!c.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+
   const sessionManager = new SessionManager(
     c.env.KV_SESSION,
-    new JWTService(c.env.JWT_SECRET || 'dev-secret')
+    new JWTService(c.env.JWT_SECRET)
   );
   await sessionManager.deleteSession(sessionId);
 

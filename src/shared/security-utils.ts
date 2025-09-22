@@ -306,6 +306,68 @@ export class PIIRedactor {
   }
 
   /**
+   * Redact phone number for logging
+   */
+  static redactPhoneNumber(phone?: string): string {
+    if (!phone) return '[missing]';
+    // Remove all non-digits first
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 4) return '[invalid-phone]';
+
+    // Show last 4 digits only
+    const masked = '*'.repeat(digits.length - 4) + digits.slice(-4);
+    return masked;
+  }
+
+  /**
+   * Redact credit card number
+   */
+  static redactCreditCard(cardNumber?: string): string {
+    if (!cardNumber) return '[missing]';
+    const digits = cardNumber.replace(/\D/g, '');
+    if (digits.length < 4) return '[invalid-card]';
+
+    // Show last 4 digits only
+    return '*'.repeat(12) + digits.slice(-4);
+  }
+
+  /**
+   * Redact SSN/Tax ID
+   */
+  static redactSSN(ssn?: string): string {
+    if (!ssn) return '[missing]';
+    const digits = ssn.replace(/\D/g, '');
+    if (digits.length < 4) return '[invalid-ssn]';
+
+    return 'XXX-XX-' + digits.slice(-4);
+  }
+
+  /**
+   * Redact IP address (keep first two octets for IPv4, first 64 bits for IPv6)
+   */
+  static redactIpAddress(ip?: string): string {
+    if (!ip) return '[missing]';
+
+    // IPv4
+    if (ip.includes('.')) {
+      const parts = ip.split('.');
+      if (parts.length === 4) {
+        return `${parts[0]}.${parts[1]}.XXX.XXX`;
+      }
+    }
+
+    // IPv6
+    if (ip.includes(':')) {
+      const parts = ip.split(':');
+      if (parts.length >= 4) {
+        return `${parts[0]}:${parts[1]}:${parts[2]}:${parts[3]}::XXXX`;
+      }
+    }
+
+    return '[invalid-ip]';
+  }
+
+  /**
    * Redact sensitive object properties
    */
   static redactSensitiveData(data: Record<string, unknown>): Record<string, unknown> {
@@ -318,27 +380,109 @@ export class PIIRedactor {
       'hash',
       'email',
       'phone',
+      'phone_number',
+      'mobile',
       'ssn',
+      'social_security_number',
+      'tax_id',
       'credit_card',
+      'card_number',
       'api_key',
       'session_id',
       'user_id',
       'business_id',
+      'ip_address',
+      'ipAddress',
+      'first_name',
+      'last_name',
+      'full_name',
+      'address',
+      'street',
+      'zip_code',
+      'postal_code',
+      'date_of_birth',
+      'dob',
+      'bank_account',
+      'routing_number',
+      'account_number',
     ];
+
+    // Handle nested objects recursively
+    for (const [key, value] of Object.entries(redacted)) {
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        redacted[key] = this.redactSensitiveData(value as Record<string, unknown>);
+      } else if (Array.isArray(value)) {
+        redacted[key] = value.map(item =>
+          typeof item === 'object' && item !== null
+            ? this.redactSensitiveData(item as Record<string, unknown>)
+            : item
+        );
+      }
+    }
 
     for (const field of sensitiveFields) {
       if (field in redacted) {
+        const value = redacted[field];
+
         if (field === 'email') {
-          redacted[field] = this.redactEmail(String(redacted[field]));
+          redacted[field] = this.redactEmail(String(value));
         } else if (field === 'user_id') {
-          redacted[field] = this.redactUserId(String(redacted[field]));
+          redacted[field] = this.redactUserId(String(value));
         } else if (field === 'business_id') {
-          redacted[field] = BusinessIsolation.redactBusinessId(String(redacted[field]));
+          redacted[field] = BusinessIsolation.redactBusinessId(String(value));
         } else if (field === 'session_id') {
-          redacted[field] = this.redactSessionId(String(redacted[field]));
+          redacted[field] = this.redactSessionId(String(value));
+        } else if (field.includes('phone') || field === 'mobile') {
+          redacted[field] = this.redactPhoneNumber(String(value));
+        } else if (field.includes('credit_card') || field === 'card_number') {
+          redacted[field] = this.redactCreditCard(String(value));
+        } else if (field === 'ssn' || field === 'social_security_number' || field === 'tax_id') {
+          redacted[field] = this.redactSSN(String(value));
+        } else if (field === 'ip_address' || field === 'ipAddress') {
+          redacted[field] = this.redactIpAddress(String(value));
+        } else if (field.includes('name') && typeof value === 'string') {
+          // Partial redaction for names (keep first letter)
+          const name = String(value);
+          redacted[field] = name.length > 0 ? name[0] + '*'.repeat(Math.min(name.length - 1, 5)) : '[missing]';
         } else {
           redacted[field] = '[REDACTED]';
         }
+      }
+    }
+
+    // Also check for patterns in string values
+    return this.redactPatternsInData(redacted);
+  }
+
+  /**
+   * Redact known PII patterns in string data
+   */
+  private static redactPatternsInData(data: Record<string, unknown>): Record<string, unknown> {
+    const patterns = [
+      // Email pattern
+      { regex: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, replacement: '[EMAIL]' },
+      // Phone patterns
+      { regex: /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g, replacement: '[PHONE]' },
+      { regex: /\b\(\d{3}\)\s?\d{3}[-.]?\d{4}\b/g, replacement: '[PHONE]' },
+      // SSN pattern
+      { regex: /\b\d{3}-\d{2}-\d{4}\b/g, replacement: '[SSN]' },
+      // Credit card patterns (various formats)
+      { regex: /\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/g, replacement: '[CREDIT_CARD]' },
+      // IP addresses
+      { regex: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g, replacement: '[IP_ADDRESS]' },
+    ];
+
+    const redacted = { ...data };
+
+    for (const [key, value] of Object.entries(redacted)) {
+      if (typeof value === 'string') {
+        let redactedValue = value;
+        for (const pattern of patterns) {
+          redactedValue = redactedValue.replace(pattern.regex, pattern.replacement);
+        }
+        redacted[key] = redactedValue;
+      } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        redacted[key] = this.redactPatternsInData(value as Record<string, unknown>);
       }
     }
 

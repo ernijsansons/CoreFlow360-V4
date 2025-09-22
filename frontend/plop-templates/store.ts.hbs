@@ -1,0 +1,58 @@
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import { immer } from 'zustand/middleware/immer'
+
+interface {{pascalCase name}}Store {
+  // State
+  data: any
+  isLoading: boolean
+  error: string | null
+
+  // Actions
+  setData: (data: any) => void
+  setLoading: (loading: boolean) => void
+  setError: (error: string | null) => void
+  reset: () => void
+}
+
+export const use{{pascalCase name}}Store = create<{{pascalCase name}}Store>()(
+  persist(
+    immer((set) => ({
+      // Initial state
+      data: null,
+      isLoading: false,
+      error: null,
+
+      // Actions
+      setData: (data) => {
+        set((state) => {
+          state.data = data
+        })
+      },
+
+      setLoading: (loading) => {
+        set((state) => {
+          state.isLoading = loading
+        })
+      },
+
+      setError: (error) => {
+        set((state) => {
+          state.error = error
+        })
+      },
+
+      reset: () => {
+        set((state) => {
+          state.data = null
+          state.isLoading = false
+          state.error = null
+        })
+      },
+    })),
+    {
+      name: '{{dashCase name}}-store',
+      storage: createJSONStorage(() => localStorage),
+    }
+  )
+)

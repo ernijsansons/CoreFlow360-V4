@@ -22,7 +22,8 @@ import { performanceLogger, abacLogger } from '../../shared/logger';
 /**
  * Stream manager for handling multiple concurrent SSE streams
  */
-export class SSEStreamManager {
+export // TODO: Consider splitting SSEStreamManager into smaller, focused classes
+class SSEStreamManager {
   private kv: KVNamespace;
   private state: StreamManagerState;
   private cleanupTimer?: NodeJS.Timeout;

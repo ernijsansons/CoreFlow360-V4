@@ -124,7 +124,8 @@ const DEFAULT_CONFIG: AuditServiceConfig = {
 /**
  * Audit service for secure, compliant logging
  */
-export class AuditService {
+export // TODO: Consider splitting AuditService into smaller, focused classes
+class AuditService {
   private db: D1Database;
   private config: AuditServiceConfig;
   private batchBuffer: AuditEntry[] = [];
@@ -455,6 +456,17 @@ export class AuditService {
       if (immediate || !this.config.enableBatching) {
         await this.writeEntryToDB(entry);
       } else {
+        // SECURITY FIX: Prevent unbounded array growth
+        const MAX_BUFFER_SIZE = 1000;
+
+        if (this.batchBuffer.length >= MAX_BUFFER_SIZE) {
+          auditLogger.warn('Audit buffer at maximum capacity, forcing flush', {
+            bufferSize: this.batchBuffer.length,
+            maxSize: MAX_BUFFER_SIZE
+          });
+          await this.flushBatch();
+        }
+
         this.batchBuffer.push(entry);
         this.stats.entriesBatched++;
 

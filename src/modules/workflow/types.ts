@@ -264,7 +264,8 @@ export interface WorkflowAlarm {
  */
 export interface WorkflowProgressEvent {
   workflowExecutionId: string;
-  type: 'step_started' | 'step_completed' | 'step_failed' | 'approval_requested' | 'cost_updated' | 'workflow_completed' | 'workflow_failed';
+  type: 'step_started' | 'step_completed' | 'step_failed'
+  | 'approval_requested' | 'cost_updated' | 'workflow_completed' | 'workflow_failed';
   stepId?: string;
   timestamp: number;
   data: {

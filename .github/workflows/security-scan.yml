@@ -1,0 +1,364 @@
+name: Security Scanning Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: |
+          echo "🔍 Running npm security audit..."
+          npm audit --audit-level high --json > npm-audit.json || true
+          npm audit --audit-level high
+
+      - name: Run Snyk vulnerability scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --json-file-output=snyk-results.json
+
+      - name: Upload vulnerability reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnerability-reports-${{ github.sha }}
+          path: |
+            npm-audit.json
+            snyk-results.json
+
+  code-scanning:
+    name: Static Code Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+          queries: security-extended,security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+  secret-scanning:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  infrastructure-scan:
+    name: Infrastructure Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Checkov IaC scan
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: cloudformation,terraform,kubernetes,helm,dockerfile
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif
+
+      - name: Scan Dockerfile
+        if: hashFiles('**/Dockerfile') != ''
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          format: sarif
+          output-file: hadolint-results.sarif
+
+  cloudflare-security-audit:
+    name: Cloudflare Configuration Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit Wrangler configuration
+        run: |
+          echo "🔒 Auditing Cloudflare Workers configuration..."
+
+          # Check for security misconfigurations in wrangler.toml
+          npm run security:audit-wrangler-config
+
+          # Validate environment variables and secrets
+          npm run security:audit-env-vars
+
+          # Check for proper CORS configuration
+          npm run security:audit-cors
+
+          # Validate CSP headers
+          npm run security:audit-csp
+
+      - name: Check Worker security headers
+        run: |
+          echo "🛡️ Validating security headers..."
+          npm run security:validate-headers
+
+  api-security-test:
+    name: API Security Testing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run OWASP ZAP API Security Scan
+        uses: zaproxy/action-api-scan@v0.7.0
+        with:
+          target: 'http://localhost:8787'
+          format: openapi
+          cmd_options: '-a'
+
+      - name: Run custom API security tests
+        run: |
+          echo "🔐 Running custom API security tests..."
+
+          # Start local development server
+          npm run dev &
+          DEV_PID=$!
+          sleep 30
+
+          # Run security tests
+          npm run test:security:api
+
+          # Cleanup
+          kill $DEV_PID
+
+  compliance-check:
+    name: Compliance Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: GDPR compliance check
+        run: |
+          echo "🏛️ Running GDPR compliance validation..."
+          npm run compliance:gdpr
+
+      - name: SOX compliance check
+        run: |
+          echo "📊 Running SOX compliance validation..."
+          npm run compliance:sox
+
+      - name: PCI DSS compliance check
+        run: |
+          echo "💳 Running PCI DSS compliance validation..."
+          npm run compliance:pci
+
+  license-compliance:
+    name: License Compliance Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run license compliance check
+        run: |
+          echo "📄 Checking license compliance..."
+          npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC' --excludePrivatePackages
+
+      - name: Generate license report
+        run: |
+          npx license-checker --json > license-report.json
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report-${{ github.sha }}
+          path: license-report.json
+
+  security-report:
+    name: Generate Security Report
+    runs-on: ubuntu-latest
+    needs:
+      - dependency-scan
+      - code-scanning
+      - secret-scanning
+      - infrastructure-scan
+      - cloudflare-security-audit
+      - api-security-test
+      - compliance-check
+      - license-compliance
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Generate comprehensive security report
+        run: |
+          echo "📊 Generating comprehensive security report..."
+
+          npm run security:generate-report -- \
+            --dependency-scan "${{ needs.dependency-scan.result }}" \
+            --code-scanning "${{ needs.code-scanning.result }}" \
+            --secret-scanning "${{ needs.secret-scanning.result }}" \
+            --infrastructure-scan "${{ needs.infrastructure-scan.result }}" \
+            --cloudflare-audit "${{ needs.cloudflare-security-audit.result }}" \
+            --api-security "${{ needs.api-security-test.result }}" \
+            --compliance-check "${{ needs.compliance-check.result }}" \
+            --license-compliance "${{ needs.license-compliance.result }}" \
+            --output security-report.json
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-${{ github.sha }}
+          path: security-report.json
+
+      - name: Comment security report on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            try {
+              const report = JSON.parse(fs.readFileSync('security-report.json', 'utf8'));
+
+              const comment = `
+              ## 🔒 Security Scan Report
+
+              | Check | Status | Issues |
+              |-------|--------|--------|
+              | Dependency Scan | ${{ needs.dependency-scan.result == 'success' ? '✅' : '❌' }} | ${report.dependencyIssues || 0} |
+              | Code Analysis | ${{ needs.code-scanning.result == 'success' ? '✅' : '❌' }} | ${report.codeIssues || 0} |
+              | Secret Detection | ${{ needs.secret-scanning.result == 'success' ? '✅' : '❌' }} | ${report.secretIssues || 0} |
+              | Infrastructure | ${{ needs.infrastructure-scan.result == 'success' ? '✅' : '❌' }} | ${report.infraIssues || 0} |
+              | API Security | ${{ needs.api-security-test.result == 'success' ? '✅' : '❌' }} | ${report.apiIssues || 0} |
+              | Compliance | ${{ needs.compliance-check.result == 'success' ? '✅' : '❌' }} | ${report.complianceIssues || 0} |
+
+              **Overall Security Score:** ${report.overallScore || 'N/A'}/100
+
+              ${report.criticalIssues > 0 ? '⚠️ **Critical issues found - review required before merge**' : ''}
+              `;
+
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            } catch (error) {
+              console.log('Could not read security report:', error.message);
+            }
+
+      - name: Fail on critical security issues
+        run: |
+          if [ -f security-report.json ]; then
+            CRITICAL_ISSUES=$(cat security-report.json | jq -r '.criticalIssues // 0')
+            if [ "$CRITICAL_ISSUES" -gt "0" ]; then
+              echo "❌ Critical security issues found: $CRITICAL_ISSUES"
+              echo "Please review and fix security issues before proceeding."
+              exit 1
+            fi
+          fi

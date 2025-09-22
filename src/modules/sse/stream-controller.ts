@@ -201,7 +201,8 @@ export class SSEStreamController {
   /**
    * Ends the stream with completion status
    */
-  async endStream(reason: 'complete' | 'stopped' | 'error' | 'timeout' | 'cancelled' = 'complete', details?: string): Promise<void> {
+  async endStream(reason: 'complete' | 'stopped' | 'error'
+  | 'timeout' | 'cancelled' = 'complete', details?: string): Promise<void> {
     if (this.state.status === 'ended') return;
 
     this.state.status = 'ended';
