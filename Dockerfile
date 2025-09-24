@@ -26,16 +26,16 @@ WORKDIR /app
 # ============================================================================
 FROM base AS dependencies
 
-# Copy package files
+# Copy package files for better layer caching
 COPY package*.json ./
 COPY frontend/package*.json ./frontend/
 
-# Install dependencies with security audit
-RUN npm ci --only=production --audit --fund=false && \
+# Install dependencies with security audit and cache optimization
+RUN npm ci --only=production --audit --fund=false --prefer-offline && \
     npm audit --audit-level=moderate || true
 
 # Install dev dependencies for build
-RUN npm ci --include=dev
+RUN npm ci --include=dev --prefer-offline
 
 # ============================================================================
 # Stage 3: Build - TypeScript compilation and optimization

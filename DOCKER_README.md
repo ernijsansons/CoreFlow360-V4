@@ -1,356 +1,309 @@
-# CoreFlow360 V4 - Docker Enterprise Setup
+# CoreFlow360 V4 - Docker Setup Guide
 
-This document provides comprehensive instructions for deploying CoreFlow360 V4 using Docker in an enterprise environment.
+This guide provides comprehensive instructions for setting up, building, and deploying CoreFlow360 V4 using Docker and Docker Compose.
 
-## 🏗️ Architecture Overview
+## 📋 Table of Contents
 
-The Docker setup provides a complete enterprise-grade deployment with:
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Development Setup](#development-setup)
+- [Production Deployment](#production-deployment)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Troubleshooting](#troubleshooting)
+- [Best Practices](#best-practices)
 
-- **Multi-stage builds** for optimized production images
-- **Security hardening** with non-root users and minimal attack surface
-- **Comprehensive monitoring** with Prometheus, Grafana, and Loki
-- **Load balancing** with Nginx
-- **Database clustering** with PostgreSQL and Redis
-- **MCP server integration** for AI agent communication
-- **Health checks** and automatic recovery
-- **Resource limits** and scaling capabilities
+## 🚀 Prerequisites
 
-## 📋 Prerequisites
+Before you begin, ensure you have the following installed:
 
-### System Requirements
-- Docker Engine 20.10+
-- Docker Compose 2.0+
-- 4GB RAM minimum (8GB recommended for production)
-- 20GB disk space
-- Linux/macOS/Windows with WSL2
+- **Docker** (version 20.10 or higher)
+- **Docker Compose** (version 2.0 or higher)
+- **Node.js** (version 18 or higher) - for local development
+- **Git** - for version control
 
-### Required Software
+### Verify Installation
+
 ```bash
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sh get-docker.sh
+# Check Docker version
+docker --version
+docker-compose --version
 
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+# Check if Docker is running
+docker info
 ```
 
-## 🚀 Quick Start
+## ⚡ Quick Start
 
 ### 1. Clone and Setup
+
 ```bash
-git clone <repository-url>
+# Clone the repository
+git clone <your-repo-url>
 cd coreflow360-v4
-cp env.example .env
+
+# Copy environment file
+cp env.docker.example .env
+
+# Edit environment variables
+nano .env  # or use your preferred editor
 ```
 
-### 2. Configure Environment
-Edit `.env` file with your configuration:
-```bash
-# Required: Update these values
-POSTGRES_PASSWORD=your_secure_password
-REDIS_PASSWORD=your_secure_password
-JWT_SECRET=your_jwt_secret_minimum_32_characters
-ENCRYPTION_KEY=your_encryption_key_32_characters
-GRAFANA_PASSWORD=your_grafana_password
-```
-
-### 3. Deploy
-```bash
-# Development deployment
-npm run docker:deploy
-
-# Production deployment
-npm run docker:deploy:prod
-```
-
-## 🏢 Enterprise Deployment
-
-### Production Configuration
-
-For production deployments, use the production compose file:
+### 2. Start Development Environment
 
 ```bash
-# Production deployment with monitoring
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# Start all services
+docker-compose -f docker-compose.dev.yml up -d
 
-# With resource limits and scaling
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale app=3
+# View logs
+docker-compose -f docker-compose.dev.yml logs -f
+
+# Check service status
+docker-compose -f docker-compose.dev.yml ps
 ```
 
-### Security Hardening
+### 3. Access the Application
 
-The production setup includes:
+- **Backend API**: http://localhost:3000
+- **Frontend**: http://localhost:3001
+- **PostgreSQL**: localhost:5432
+- **Redis**: localhost:6379
 
-- **Non-root containers** with minimal privileges
-- **Read-only filesystems** where possible
-- **Security headers** via Nginx
-- **Rate limiting** and DDoS protection
-- **Encrypted communication** with TLS
-- **Secrets management** via environment variables
+## 🛠 Development Setup
 
-### Monitoring and Observability
+### Development Environment
 
-Access monitoring dashboards:
-
-- **Grafana**: http://localhost:3002 (admin/admin)
-- **Prometheus**: http://localhost:9090
-- **Application Health**: http://localhost:3000/health
-
-## 🔧 Service Architecture
-
-### Core Services
-
-| Service | Port | Description |
-|---------|------|-------------|
-| app | 3000 | Main application server |
-| frontend | 3001 | React frontend |
-| postgres | 5432 | PostgreSQL database |
-| redis | 6379 | Redis cache |
-| nginx | 80/443 | Load balancer & reverse proxy |
-
-### Monitoring Services
-
-| Service | Port | Description |
-|---------|------|-------------|
-| prometheus | 9090 | Metrics collection |
-| grafana | 3002 | Dashboards & visualization |
-| loki | 3100 | Log aggregation |
-
-### MCP Services
-
-| Service | Port | Description |
-|---------|------|-------------|
-| mcp-server | 8080 | MCP server for AI agents |
-
-## 📊 Monitoring & Health Checks
-
-### Health Check Endpoints
-
-```bash
-# Application health
-curl http://localhost:3000/health
-
-# Database health
-docker-compose exec postgres pg_isready -U coreflow
-
-# Redis health
-docker-compose exec redis redis-cli ping
-
-# All services status
-docker-compose ps
-```
-
-### Log Management
-
-```bash
-# View all logs
-docker-compose logs -f
-
-# View specific service logs
-docker-compose logs -f app
-docker-compose logs -f postgres
-
-# View logs with timestamps
-docker-compose logs -f -t
-```
-
-## 🔒 Security Configuration
-
-### SSL/TLS Setup
-
-1. **Generate SSL certificates**:
-```bash
-mkdir -p nginx/ssl
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout nginx/ssl/key.pem \
-  -out nginx/ssl/cert.pem
-```
-
-2. **Update environment variables**:
-```bash
-ENABLE_SSL=true
-SSL_CERT_PATH=/etc/nginx/ssl/cert.pem
-SSL_KEY_PATH=/etc/nginx/ssl/key.pem
-```
-
-### Network Security
-
-The setup uses isolated networks:
-- `frontend`: Public-facing services
-- `backend`: Internal application services
-- `monitoring`: Monitoring and observability
-- `mcp`: MCP server communication
-
-### Secrets Management
-
-For production, use a secrets management system:
-
-```bash
-# Using Docker Secrets (Swarm mode)
-echo "your_secret" | docker secret create postgres_password -
-
-# Using external secret management
-# Update docker-compose.prod.yml to use external secrets
-```
-
-## 📈 Scaling and Performance
-
-### Horizontal Scaling
-
-```bash
-# Scale application instances
-docker-compose -f docker-compose.prod.yml up -d --scale app=5
-
-# Scale with load balancer
-docker-compose -f docker-compose.prod.yml up -d --scale app=3 --scale nginx=2
-```
-
-### Resource Limits
-
-Production containers have resource limits:
-- **App**: 1GB RAM, 1 CPU
-- **PostgreSQL**: 2GB RAM, 2 CPU
-- **Redis**: 512MB RAM, 0.5 CPU
-- **Nginx**: 256MB RAM, 0.25 CPU
-
-### Performance Tuning
-
-```bash
-# Database optimization
-POSTGRES_SHARED_BUFFERS=256MB
-POSTGRES_EFFECTIVE_CACHE_SIZE=1GB
-POSTGRES_MAX_CONNECTIONS=200
-
-# Redis optimization
-REDIS_MAXMEMORY=400mb
-REDIS_MAXMEMORY_POLICY=allkeys-lru
-```
-
-## 🛠️ Development Workflow
-
-### Development Mode
+The development setup includes hot reloading, debugging support, and development tools.
 
 ```bash
 # Start development environment
-npm run docker:dev
+docker-compose -f docker-compose.dev.yml up -d
 
-# With hot reload
-docker-compose up -d dev-app
+# View logs for specific service
+docker-compose -f docker-compose.dev.yml logs -f app
 
-# View development logs
-docker-compose logs -f dev-app
+# Execute commands in running container
+docker-compose -f docker-compose.dev.yml exec app npm run test
+
+# Stop development environment
+docker-compose -f docker-compose.dev.yml down
 ```
 
-### Testing
+### Building Images Manually
 
 ```bash
-# Run tests in container
-docker-compose run --rm test-runner
+# Build main application
+docker build -t coreflow360v4-app:latest .
 
-# Integration tests
-docker-compose -f docker-compose.yml -f docker-compose.test.yml up --abort-on-container-exit
+# Build frontend
+docker build -t coreflow360v4-frontend:latest ./frontend
+
+# Build design system
+docker build -t design-system:latest ./design-system
 ```
 
-### Database Management
+### Running Tests
 
 ```bash
-# Access database
-docker-compose exec postgres psql -U coreflow -d coreflow360
+# Run all tests
+docker-compose -f docker-compose.dev.yml exec app npm test
 
-# Run migrations
-docker-compose exec app npm run db:migrate
+# Run frontend tests
+docker-compose -f docker-compose.dev.yml exec frontend npm test
 
-# Backup database
-docker-compose exec postgres pg_dump -U coreflow coreflow360 > backup.sql
-
-# Restore database
-docker-compose exec -T postgres psql -U coreflow -d coreflow360 < backup.sql
+# Run with coverage
+docker-compose -f docker-compose.dev.yml exec app npm run test:coverage
 ```
 
-## 🔄 CI/CD Integration
+## 🚀 Production Deployment
 
-### GitHub Actions Example
-
-```yaml
-name: Docker Deploy
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Deploy to production
-        run: |
-          npm run docker:deploy:prod
-```
-
-### Automated Deployment
+### Using Docker Compose
 
 ```bash
-# Deploy with health checks
-./scripts/docker-deploy.sh production
+# Start production environment
+docker-compose up -d
 
-# Rollback on failure
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale app=1
+# Scale services
+docker-compose up -d --scale app=3
+
+# Update services
+docker-compose pull
+docker-compose up -d
 ```
 
-## 🐛 Troubleshooting
+### Using Docker Images
+
+```bash
+# Pull images from registry
+docker pull ernijsansons/coreflow360v4-app:latest
+docker pull ernijsansons/coreflow360v4-frontend:latest
+
+# Run with environment variables
+docker run -d \
+  --name coreflow360-app \
+  -p 3000:3000 \
+  -e NODE_ENV=production \
+  -e DATABASE_URL=postgresql://user:pass@host:5432/db \
+  ernijsansons/coreflow360v4-app:latest
+```
+
+### Health Checks
+
+```bash
+# Check application health
+curl http://localhost:3000/health
+
+# Check all services
+docker-compose ps
+
+# View health check logs
+docker inspect coreflow360-app | grep -A 10 Health
+```
+
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Setup
+
+1. **Configure Secrets** in your GitHub repository:
+   - `DOCKER_USERNAME`: Your Docker Hub username
+   - `DOCKERHUB_TOKEN`: Your Docker Hub access token
+   - `SLACK_WEBHOOK`: (Optional) Slack webhook for notifications
+
+2. **Workflow Triggers**:
+   - **Push to `main`**: Builds and deploys to production
+   - **Push to `develop`**: Builds and deploys to staging
+   - **Pull Requests**: Runs tests and security scans
+   - **Tags**: Triggers production deployment
+
+### Manual Deployment
+
+```bash
+# Build and push to registry
+docker build -t ernijsansons/coreflow360v4-app:latest .
+docker push ernijsansons/coreflow360v4-app:latest
+
+# Deploy using docker-compose
+docker-compose pull
+docker-compose up -d
+```
+
+## 🔧 Troubleshooting
 
 ### Common Issues
 
-1. **Port conflicts**:
+#### 1. Port Already in Use
+
 ```bash
-# Check port usage
-netstat -tulpn | grep :3000
-# Kill conflicting processes
-sudo kill -9 <PID>
+# Check what's using the port
+lsof -i :3000
+
+# Stop conflicting services
+docker-compose down
 ```
 
-2. **Permission issues**:
+#### 2. Database Connection Issues
+
+```bash
+# Check database logs
+docker-compose logs postgres
+
+# Test database connection
+docker-compose exec postgres pg_isready -U coreflow
+```
+
+#### 3. Permission Issues
+
 ```bash
 # Fix file permissions
 sudo chown -R $USER:$USER .
-chmod +x scripts/docker-deploy.sh
+
+# Rebuild with no cache
+docker-compose build --no-cache
 ```
 
-3. **Memory issues**:
+#### 4. Out of Disk Space
+
 ```bash
-# Check Docker memory usage
-docker stats
-# Clean up unused resources
+# Clean up Docker resources
 docker system prune -a
+
+# Remove unused volumes
+docker volume prune
 ```
 
-### Debug Mode
+### Debugging
 
 ```bash
-# Enable debug logging
-DEBUG=* docker-compose up
-
 # Access container shell
 docker-compose exec app sh
-docker-compose exec postgres psql -U coreflow
+
+# View container logs
+docker-compose logs -f app
+
+# Inspect container
+docker inspect coreflow360-app
 ```
 
-## 📚 Additional Resources
+## 📚 Best Practices
 
-- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
-- [Docker Security](https://docs.docker.com/engine/security/)
-- [Prometheus Documentation](https://prometheus.io/docs/)
-- [Grafana Documentation](https://grafana.com/docs/)
+### Security
+
+1. **Use non-root users** in containers
+2. **Scan images** for vulnerabilities
+3. **Use secrets** for sensitive data
+4. **Keep base images** updated
+5. **Use multi-stage builds** to reduce image size
+
+### Performance
+
+1. **Use `.dockerignore`** to exclude unnecessary files
+2. **Leverage layer caching** by ordering Dockerfile commands
+3. **Use multi-stage builds** for smaller production images
+4. **Enable BuildKit** for faster builds
+
+### Development
+
+1. **Use volume mounts** for development
+2. **Separate dev/prod** configurations
+3. **Use health checks** for service dependencies
+4. **Implement proper logging**
+
+### Monitoring
+
+1. **Use structured logging**
+2. **Implement health checks**
+3. **Monitor resource usage**
+4. **Set up alerts**
+
+## 📁 File Structure
+
+```
+coreflow360-v4/
+├── .dockerignore              # Docker ignore file
+├── .github/
+│   └── workflows/
+│       ├── docker-build.yml   # Main CI/CD workflow
+│       └── pr-check.yml       # PR validation workflow
+├── docker-compose.yml         # Production compose
+├── docker-compose.dev.yml     # Development compose
+├── Dockerfile                 # Main application Dockerfile
+├── frontend/
+│   ├── Dockerfile            # Frontend Dockerfile
+│   └── nginx.conf            # Nginx configuration
+├── env.docker.example        # Environment template
+└── DOCKER_README.md          # This file
+```
 
 ## 🆘 Support
 
-For issues and questions:
-- Check the logs: `docker-compose logs -f`
-- Review health checks: `npm run docker:health`
-- Contact the CoreFlow360 team
+If you encounter issues:
+
+1. Check the [troubleshooting section](#troubleshooting)
+2. Review Docker and application logs
+3. Ensure all environment variables are set correctly
+4. Verify Docker and Docker Compose versions
+
+For additional help, please refer to the main project documentation or create an issue in the repository.
 
 ---
 
-**Note**: This setup is designed for enterprise use. Ensure you have proper security measures, backups, and monitoring in place for production deployments.
+**Happy Dockerizing! 🐳**
