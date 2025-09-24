@@ -593,7 +593,7 @@ class ZeroTrustSecretsManager {
     const requirements: Record<SecretType, SecretRequirements> = {
       api_key: { minLength: 32, maxLength:
   128, requireSpecialChars: false, requireNumbers: true, requireUppercase: true, requireLowercase: true, minEntropy: 4.0 },
-      database_password: { minLength: 16, maxLength:
+      database_password: { minLength: 32, maxLength:
   64, requireSpecialChars: true, requireNumbers: true, requireUppercase: true, requireLowercase: true, minEntropy: 4.5 },
       encryption_key: { minLength: 32, maxLength:
   64, requireSpecialChars: false, requireNumbers: true, requireUppercase: true, requireLowercase: true, minEntropy: 5.0 },
@@ -601,7 +601,7 @@ class ZeroTrustSecretsManager {
   128, requireSpecialChars: true, requireNumbers: true, requireUppercase: true, requireLowercase: true, minEntropy: 4.8 },
       oauth_secret: { minLength: 32, maxLength:
   128, requireSpecialChars: false, requireNumbers: true, requireUppercase: true, requireLowercase: true, minEntropy: 4.0 },
-      webhook_secret: { minLength: 24, maxLength:
+      webhook_secret: { minLength: 32, maxLength:
   64, requireSpecialChars: true, requireNumbers: true, requireUppercase: true, requireLowercase: true, minEntropy: 4.2 },
       service_account: { minLength: 64, maxLength:
   256, requireSpecialChars: false, requireNumbers: true, requireUppercase: true, requireLowercase: true, minEntropy: 4.5 },

@@ -11,7 +11,8 @@
       "Bash(claude mcp:*)",
       "Bash(dir:*)",
       "Bash(findstr:*)",
-      "Bash(tasklist)"
+      "Bash(tasklist)",
+      "WebFetch(domain:127.0.0.1)"
     ],
     "deny": [],
     "ask": []

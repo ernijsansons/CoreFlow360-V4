@@ -293,7 +293,10 @@ export class ThreatDetectionEngine {
     let probability = 0;
 
     // Check URL and query parameters
-    const urlString = features.url + '?' + new URLSearchParams(features.queryParams).toString();
+    // Check both raw and encoded versions of query parameters
+    const rawQueryString = Object.entries(features.queryParams).map(([k,v]) => `${k}=${v}`).join("&");
+    const urlString = features.url + "?" + rawQueryString;
+    const encodedUrlString = features.url + "?" + new URLSearchParams(features.queryParams).toString();
 
     // SQL keywords and patterns
     const sqlPatterns = [
@@ -310,8 +313,8 @@ export class ThreatDetectionEngine {
     ];
 
     for (const pattern of sqlPatterns) {
-      if (pattern.test(urlString) || (features.body && pattern.test(JSON.stringify(features.body)))) {
-        probability += 0.3;  // Increased from 0.15 to make detection more sensitive
+      if (pattern.test(urlString) || pattern.test(encodedUrlString) || (features.body && pattern.test(JSON.stringify(features.body)))) {
+        probability += 0.8;  // Much higher probability to ensure blocking
         indicators.push(pattern.source);
       }
     }
@@ -324,7 +327,7 @@ export class ThreatDetectionEngine {
     ];
 
     for (const pattern of encodedPatterns) {
-      if (pattern.test(urlString) || (features.body && pattern.test(JSON.stringify(features.body)))) {
+      if (pattern.test(urlString) || pattern.test(encodedUrlString) || (features.body && pattern.test(JSON.stringify(features.body)))) {
         probability += 0.1;
         indicators.push('Encoded payload detected');
       }
@@ -343,9 +346,9 @@ export class ThreatDetectionEngine {
     ];
 
     for (const payload of commonPayloads) {
-      if (urlString.includes(payload) ||
+      if (urlString.includes(payload) || encodedUrlString.includes(payload) ||
           (features.body && JSON.stringify(features.body).includes(payload))) {
-        probability += 0.5;  // Increased from 0.25 to make it more likely to block
+        probability += 0.9;  // Very high probability to ensure blocking
         indicators.push(`Known payload: ${payload}`);
       }
     }
@@ -829,17 +832,24 @@ export class ThreatDetectionEngine {
   private calculateThreatScore(predictions: MLModelPrediction[]): number {
     if (predictions.length === 0) return 0;
 
-    // Weighted average based on confidence
-    let weightedSum = 0;
-    let weightSum = 0;
+    // Security-first approach: Use maximum of high-confidence predictions
+    // If any model has high confidence and high probability, prioritize it
+    let maxScore = 0;
+    let maxConfidenceScore = 0;
 
     for (const prediction of predictions) {
-      const weight = prediction.confidence;
-      weightedSum += prediction.probability * weight;
-      weightSum += weight;
+      // For high-confidence predictions (>0.7), use their probability directly
+      if (prediction.confidence > 0.7 && prediction.probability > 0.8) {
+        maxScore = Math.max(maxScore, prediction.probability);
+      }
+      
+      // Also track confidence-weighted score for backup
+      const confidenceWeightedScore = prediction.probability * prediction.confidence;
+      maxConfidenceScore = Math.max(maxConfidenceScore, confidenceWeightedScore);
     }
 
-    return weightSum > 0 ? weightedSum / weightSum : 0;
+    // Return the higher of max direct score or confidence-weighted score
+    return Math.min(Math.max(maxScore, maxConfidenceScore), 1);
   }
 
   /**
