@@ -1,14 +1,14 @@
 # Cloudflare Workers Configuration
 name = "future-enterprise-design-system"
-main = "src/index.ts"
+main = "workers/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Account details
-account_id = "YOUR_ACCOUNT_ID"
+# Account details - will be set via environment variables
+# account_id = set via CLOUDFLARE_ACCOUNT_ID env var
 workers_dev = true
 route = "design-system.coreflow360.com/*"
-zone_id = "YOUR_ZONE_ID"
+# zone_id = set via CLOUDFLARE_ZONE_ID env var
 
 # Build configuration
 [build]
@@ -22,22 +22,43 @@ format = "service-worker"
 [env.production]
 vars = { ENVIRONMENT = "production" }
 kv_namespaces = [
-  { binding = "CACHE", id = "YOUR_KV_NAMESPACE_ID", preview_id = "YOUR_PREVIEW_KV_ID" }
+  { binding = "CACHE", id = "KV_CACHE_PROD" },
+  { binding = "TOKENS", id = "KV_TOKENS_PROD" }
 ]
 durable_objects = [
-  { binding = "SESSIONS", class_name = "SessionManager", script_name = "session-manager" }
+  { binding = "SESSIONS", class_name = "SessionManager" }
+]
+queues = [
+  { binding = "ANALYTICS_QUEUE", queue = "analytics-prod" }
 ]
 
 [env.staging]
 vars = { ENVIRONMENT = "staging" }
+kv_namespaces = [
+  { binding = "CACHE", id = "KV_CACHE_STAGING" },
+  { binding = "TOKENS", id = "KV_TOKENS_STAGING" }
+]
+durable_objects = [
+  { binding = "SESSIONS", class_name = "SessionManager" }
+]
+queues = [
+  { binding = "ANALYTICS_QUEUE", queue = "analytics-staging" }
+]
 
 [env.development]
 vars = { ENVIRONMENT = "development" }
+kv_namespaces = [
+  { binding = "CACHE", id = "KV_CACHE_DEV" },
+  { binding = "TOKENS", id = "KV_TOKENS_DEV" }
+]
+durable_objects = [
+  { binding = "SESSIONS", class_name = "SessionManager" }
+]
 
 # Sites configuration for static assets
-[site]
-bucket = "./dist"
-entry-point = "workers-site"
+# [site]
+# bucket = "./dist"
+# Removed entry-point to avoid conflict with main
 
 # Triggers and crons
 [triggers]
@@ -53,18 +74,36 @@ cpu_ms = 50
 memory_mb = 128
 
 # D1 Database bindings
-[[d1_databases]]
-binding = "DB"
-database_name = "design-system-analytics"
-database_id = "YOUR_D1_DATABASE_ID"
+# Note: database_id must be set after creating the database
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "design-system-analytics"
+# database_id = "YOUR_DATABASE_ID_HERE"
+
+# [[env.production.d1_databases]]
+# binding = "DB"
+# database_name = "design-system-analytics-prod"
+# database_id = "YOUR_PROD_DB_ID"
+
+# [[env.staging.d1_databases]]
+# binding = "DB"
+# database_name = "design-system-analytics-staging"
+# database_id = "YOUR_STAGING_DB_ID"
 
 # R2 Storage bindings
 [[r2_buckets]]
 binding = "ASSETS"
 bucket_name = "design-system-assets"
-preview_bucket_name = "design-system-assets-preview"
 
-# Queues
+[[env.production.r2_buckets]]
+binding = "ASSETS"
+bucket_name = "design-system-assets-prod"
+
+[[env.staging.r2_buckets]]
+binding = "ASSETS"
+bucket_name = "design-system-assets-staging"
+
+# Queue configuration
 [[queues.producers]]
 binding = "ANALYTICS_QUEUE"
 queue = "analytics"
@@ -76,28 +115,44 @@ max_batch_timeout = 30
 max_retries = 3
 dead_letter_queue = "analytics-dlq"
 
-# Service bindings
-[services]
-  [services.figma_webhook]
-  binding = "FIGMA_SERVICE"
-  service = "figma-webhook-processor"
+# Durable Objects configuration
+[[durable_objects.bindings]]
+name = "SESSIONS"
+class_name = "SessionManager"
+script_name = "workers/index"
 
-  [services.auth]
-  binding = "AUTH_SERVICE"
-  service = "auth-service"
+# Service bindings
+[[services]]
+binding = "FIGMA_SERVICE"
+service = "figma-webhook-processor"
+
+[[services]]
+binding = "AUTH_SERVICE"
+service = "auth-service"
 
 # Analytics Engine
-[analytics_engine_datasets]
-  [[analytics_engine_datasets.ANALYTICS]]
-  binding = "ANALYTICS"
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+
+# Define custom domains
+[env.production.routes]
+pattern = "design-system.coreflow360.com/*"
+
+[env.staging.routes]
+pattern = "staging-design-system.coreflow360.com/*"
 
 # Tail Workers for logging
-[tail_consumers]
-  [[tail_consumers]]
-  service = "logging-service"
+[[tail_consumers]]
+service = "logging-service"
 
-# Secrets (use wrangler secret put)
-# FIGMA_TOKEN
-# API_KEY
-# JWT_SECRET
-# CLOUDFLARE_API_TOKEN
+# Secrets - Configure using wrangler secret put or GitHub Actions
+# Required secrets:
+# - FIGMA_TOKEN: Your Figma API token
+# - API_KEY: Internal API key for authentication
+# - JWT_SECRET: Secret for JWT token generation (min 32 chars)
+# - CLOUDFLARE_API_TOKEN: For deployment automation
+#
+# Commands to set secrets:
+# wrangler secret put FIGMA_TOKEN --env production
+# wrangler secret put API_KEY --env production
+# wrangler secret put JWT_SECRET --env production

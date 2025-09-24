@@ -56,16 +56,35 @@
     "release": "semantic-release",
     "figma:sync": "node scripts/sync-figma-tokens.js",
     "mcp:start": "node mcp-templates/server.js",
-    "playground": "vite dev --config vite.playground.config.ts"
+    "playground": "vite dev --config vite.playground.config.ts",
+    "wrangler": "wrangler",
+    "wrangler:dev": "wrangler dev --env development",
+    "wrangler:deploy": "wrangler deploy --env production",
+    "wrangler:deploy:staging": "wrangler deploy --env staging",
+    "wrangler:tail": "wrangler tail --env production",
+    "wrangler:setup": "bash scripts/wrangler-setup.sh",
+    "wrangler:login": "wrangler login",
+    "wrangler:whoami": "wrangler whoami",
+    "wrangler:kv:list": "wrangler kv:namespace list",
+    "wrangler:d1:list": "wrangler d1 list",
+    "wrangler:r2:list": "wrangler r2 bucket list",
+    "wrangler:secret:list": "wrangler secret list",
+    "deploy": "bash ../scripts/deploy-design-system.sh",
+    "deploy:production": "bash ../scripts/deploy-design-system.sh production",
+    "deploy:staging": "bash ../scripts/deploy-design-system.sh staging",
+    "deploy:rollback": "bash ../scripts/deploy-design-system.sh production rollback"
   },
   "dependencies": {
     "clsx": "^2.1.0",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.400.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "itty-router": "^4.0.0",
+    "itty-cors": "^0.3.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.0.0",
     "@storybook/addon-a11y": "^7.6.0",
     "@storybook/addon-designs": "^7.0.0",
     "@storybook/addon-essentials": "^7.6.0",
@@ -103,7 +122,7 @@
     "jest-axe": "^8.0.0",
     "jest-environment-jsdom": "^29.7.0",
     "lint-staged": "^15.2.0",
-    "percy": "^1.27.0",
+    "@percy/cli": "^1.27.0",
     "postcss": "^8.4.32",
     "prettier": "^3.1.0",
     "prettier-plugin-tailwindcss": "^0.5.9",
@@ -114,7 +133,8 @@
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.10",
-    "vite-bundle-visualizer": "^0.11.0"
+    "vite-bundle-visualizer": "^0.11.0",
+    "wrangler": "^3.0.0"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
