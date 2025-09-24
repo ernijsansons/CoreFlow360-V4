@@ -5,9 +5,29 @@
       "WebSearch",
       "mcp__ide__getDiagnostics",
       "Bash(./FigmaSetup.exe)",
-      "WebFetch(domain:stackoverflow.com)"
+      "WebFetch(domain:stackoverflow.com)",
+      "WebFetch(domain:forum.figma.com)",
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(tasklist)"
     ],
     "deny": [],
     "ask": []
+  },
+  "mcpServers": {
+    "TalkToFigma": {
+      "command": "bunx",
+      "args": [
+        "cursor-talk-to-figma-mcp@latest"
+      ]
+    },
+    "ClaudeCodeFigma": {
+      "command": "bunx",
+      "args": [
+        "claude-talk-to-figma-mcp@latest"
+      ]
+    }
   }
 }

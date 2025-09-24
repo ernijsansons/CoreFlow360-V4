@@ -35,6 +35,7 @@ export type ThreatType =
   | 'account_takeover'
   | 'api_abuse'
   | 'bot_activity'
+  | 'automated_tool'
   | 'credential_stuffing'
   | 'session_hijacking'
   | 'path_traversal'
@@ -275,6 +276,9 @@ export class ThreatDetectionEngine {
     // Bot Detection
     predictions.push(await this.detectBotActivity(features));
 
+    // Automated Tool Detection
+    predictions.push(await this.detectAutomatedTool(features));
+
     // API Abuse Detection
     predictions.push(await this.detectAPIAbuse(features));
 
@@ -301,12 +305,13 @@ export class ThreatDetectionEngine {
       /(\bSLEEP\s*\()/gi,
       /(CHAR|NCHAR|VARCHAR|NVARCHAR)\s*\(/gi,
       /xp_cmdshell/gi,
-      /(\b(sys\.|\binformation_schema\b))/gi
+      /(\b(sys\.|\binformation_schema\b))/gi,
+      /('.*OR.*'.*=.*')/gi  // Additional pattern for OR injection
     ];
 
     for (const pattern of sqlPatterns) {
       if (pattern.test(urlString) || (features.body && pattern.test(JSON.stringify(features.body)))) {
-        probability += 0.15;
+        probability += 0.3;  // Increased from 0.15 to make detection more sensitive
         indicators.push(pattern.source);
       }
     }
@@ -340,7 +345,7 @@ export class ThreatDetectionEngine {
     for (const payload of commonPayloads) {
       if (urlString.includes(payload) ||
           (features.body && JSON.stringify(features.body).includes(payload))) {
-        probability += 0.25;
+        probability += 0.5;  // Increased from 0.25 to make it more likely to block
         indicators.push(`Known payload: ${payload}`);
       }
     }
@@ -390,7 +395,7 @@ export class ThreatDetectionEngine {
 
     for (const pattern of xssPatterns) {
       if (pattern.test(content)) {
-        probability += 0.2;
+        probability += 0.4;  // Increased from 0.2 to make XSS detection more sensitive
         indicators.push(pattern.source);
       }
     }
@@ -685,6 +690,21 @@ export class ThreatDetectionEngine {
       /go-http-client/i, /postman/i
     ];
 
+    // Security/hacking tool detection
+    const securityToolAgents = [
+      /sqlmap/i, /nikto/i, /nessus/i, /openvas/i,
+      /burpsuite/i, /zap/i, /w3af/i, /skipfish/i,
+      /masscan/i, /nmap/i, /dirb/i, /dirbuster/i
+    ];
+
+    for (const pattern of securityToolAgents) {
+      if (pattern.test(features.userAgent)) {
+        probability += 0.9;  // High probability for security tools
+        indicators.push('Security/hacking tool detected');
+        break;
+      }
+    }
+
     for (const pattern of botUserAgents) {
       if (pattern.test(features.userAgent)) {
         probability += 0.3;
@@ -724,6 +744,38 @@ export class ThreatDetectionEngine {
       threat: 'bot_activity',
       probability: Math.min(probability, 1),
       confidence: indicators.length > 0 ? 0.8 : 0.1,
+      features: indicators
+    };
+  }
+
+  /**
+   * Automated Tool Detection
+   * Specifically detects security tools and automated hacking tools
+   */
+  private async detectAutomatedTool(features: RequestFeatures): Promise<MLModelPrediction> {
+    const indicators: string[] = [];
+    let probability = 0;
+
+    // Security/hacking tool user agents
+    const securityToolAgents = [
+      /sqlmap/i, /nikto/i, /nessus/i, /openvas/i,
+      /burpsuite/i, /zap/i, /w3af/i, /skipfish/i,
+      /masscan/i, /nmap/i, /dirb/i, /dirbuster/i,
+      /gobuster/i, /wfuzz/i, /hydra/i, /medusa/i
+    ];
+
+    for (const pattern of securityToolAgents) {
+      if (pattern.test(features.userAgent)) {
+        probability = 0.95;  // Very high probability for security tools
+        indicators.push('Security/hacking tool detected');
+        break;
+      }
+    }
+
+    return {
+      threat: 'automated_tool',
+      probability: Math.min(probability, 1),
+      confidence: indicators.length > 0 ? 0.95 : 0.05,
       features: indicators
     };
   }
@@ -808,8 +860,8 @@ export class ThreatDetectionEngine {
     threats: ThreatType[],
     features: RequestFeatures
   ): ThreatAnalysis {
-    if (score > 0.9) {
-      // High confidence attack - block immediately
+    if (score > 0.8) {
+      // High confidence attack - block immediately  
       return {
         action: 'BLOCK',
         reason: `High-risk ${threats[0]} attack detected`,
@@ -818,7 +870,7 @@ export class ThreatDetectionEngine {
         score,
         threats
       };
-    } else if (score > 0.7) {
+    } else if (score > 0.6) {
       // Medium confidence - challenge
       return {
         action: 'CHALLENGE',
