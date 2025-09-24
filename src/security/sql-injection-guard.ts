@@ -24,6 +24,8 @@ export interface ValidationResult {
   evidence?: any;
   sanitized?: string;
   risk?: 'low' | 'medium' | 'high' | 'critical';
+  confidence?: number;
+  threats?: string[];
 }
 
 interface SemanticAnalysis {
@@ -175,14 +177,15 @@ export class SQLInjectionGuard {
       if (!context.isParameterized && context.expectedType !== 'other') {
         return {
           valid: false,
-          reason: 'Non-parameterized queries are not allowed',
-          risk: 'critical'
+          reason: 'SQL injection risk: Non-parameterized queries are not allowed',
+          risk: 'critical',
+          confidence: 0.9
         };
       }
 
       // Layer 2: Whitelist check for simple values
       if (this.whitelist.has(input.toLowerCase())) {
-        return { valid: true, risk: 'low' };
+        return { valid: true, risk: 'low', confidence: 0.1 };
       }
 
       // Layer 3: Blacklist check
@@ -318,7 +321,7 @@ export class SQLInjectionGuard {
       };
     }
 
-    return { valid: true, risk: 'low' };
+    return { valid: true, risk: 'low', confidence: 0.1 };
   }
 
   /**
@@ -372,7 +375,7 @@ export class SQLInjectionGuard {
       };
     }
 
-    return { valid: true, risk: 'low' };
+    return { valid: true, risk: 'low', confidence: 0.1 };
   }
 
   /**
@@ -445,7 +448,7 @@ export class SQLInjectionGuard {
         return this.validateDeleteContext(input);
 
       default:
-        return { valid: true, risk: 'low' };
+        return { valid: true, risk: 'low', confidence: 0.1 };
     }
   }
 
@@ -463,7 +466,7 @@ export class SQLInjectionGuard {
       };
     }
 
-    return { valid: true, risk: 'low' };
+    return { valid: true, risk: 'low', confidence: 0.1 };
   }
 
   /**
@@ -479,7 +482,7 @@ export class SQLInjectionGuard {
       };
     }
 
-    return { valid: true, risk: 'low' };
+    return { valid: true, risk: 'low', confidence: 0.1 };
   }
 
   /**
@@ -495,7 +498,7 @@ export class SQLInjectionGuard {
       };
     }
 
-    return { valid: true, risk: 'low' };
+    return { valid: true, risk: 'low', confidence: 0.1 };
   }
 
   /**
@@ -512,7 +515,7 @@ export class SQLInjectionGuard {
       };
     }
 
-    return { valid: true, risk: 'low' };
+    return { valid: true, risk: 'low', confidence: 0.1 };
   }
 
   /**
@@ -547,7 +550,7 @@ export class SQLInjectionGuard {
       };
     }
 
-    return { valid: true, risk: 'low' };
+    return { valid: true, risk: 'low', confidence: 0.1 };
   }
 
   /**

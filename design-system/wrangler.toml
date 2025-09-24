@@ -1,0 +1,103 @@
+# Cloudflare Workers Configuration
+name = "future-enterprise-design-system"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Account details
+account_id = "YOUR_ACCOUNT_ID"
+workers_dev = true
+route = "design-system.coreflow360.com/*"
+zone_id = "YOUR_ZONE_ID"
+
+# Build configuration
+[build]
+command = "pnpm build"
+watch_paths = ["src/**/*.{ts,tsx,js,jsx}"]
+
+[build.upload]
+format = "service-worker"
+
+# Environment variables
+[env.production]
+vars = { ENVIRONMENT = "production" }
+kv_namespaces = [
+  { binding = "CACHE", id = "YOUR_KV_NAMESPACE_ID", preview_id = "YOUR_PREVIEW_KV_ID" }
+]
+durable_objects = [
+  { binding = "SESSIONS", class_name = "SessionManager", script_name = "session-manager" }
+]
+
+[env.staging]
+vars = { ENVIRONMENT = "staging" }
+
+[env.development]
+vars = { ENVIRONMENT = "development" }
+
+# Sites configuration for static assets
+[site]
+bucket = "./dist"
+entry-point = "workers-site"
+
+# Triggers and crons
+[triggers]
+crons = ["0 */6 * * *"]
+
+# Observability
+[observability]
+enabled = true
+
+# Performance limits
+[limits]
+cpu_ms = 50
+memory_mb = 128
+
+# D1 Database bindings
+[[d1_databases]]
+binding = "DB"
+database_name = "design-system-analytics"
+database_id = "YOUR_D1_DATABASE_ID"
+
+# R2 Storage bindings
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "design-system-assets"
+preview_bucket_name = "design-system-assets-preview"
+
+# Queues
+[[queues.producers]]
+binding = "ANALYTICS_QUEUE"
+queue = "analytics"
+
+[[queues.consumers]]
+queue = "analytics"
+max_batch_size = 25
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "analytics-dlq"
+
+# Service bindings
+[services]
+  [services.figma_webhook]
+  binding = "FIGMA_SERVICE"
+  service = "figma-webhook-processor"
+
+  [services.auth]
+  binding = "AUTH_SERVICE"
+  service = "auth-service"
+
+# Analytics Engine
+[analytics_engine_datasets]
+  [[analytics_engine_datasets.ANALYTICS]]
+  binding = "ANALYTICS"
+
+# Tail Workers for logging
+[tail_consumers]
+  [[tail_consumers]]
+  service = "logging-service"
+
+# Secrets (use wrangler secret put)
+# FIGMA_TOKEN
+# API_KEY
+# JWT_SECRET
+# CLOUDFLARE_API_TOKEN
