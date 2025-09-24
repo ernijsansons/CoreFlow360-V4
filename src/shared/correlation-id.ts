@@ -49,8 +49,8 @@ export interface TracingConfig {
   spanRetentionMs: number;
 }
 
-export // TODO: Consider splitting CorrelationIdManager into smaller, focused classes
-class CorrelationIdManager {
+// TODO: Consider splitting CorrelationIdManager into smaller, focused classes
+export class CorrelationIdManager {
   private static instance: CorrelationIdManager;
   private logger: Logger;
   private config: TracingConfig;
@@ -470,6 +470,16 @@ export function createCorrelationMiddleware(config?: Partial<TracingConfig>) {
 
 // Global correlation manager instance
 export const correlationManager = CorrelationIdManager.getInstance();
+
+// Static utility class for backwards compatibility
+export class CorrelationId {
+  /**
+   * Generate a new correlation ID
+   */
+  static generate(): string {
+    return correlationManager.generateCorrelationId();
+  }
+}
 
 // Export types and utilities
 export type { TraceContext, TraceSpan, TracingConfig };

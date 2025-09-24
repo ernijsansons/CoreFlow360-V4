@@ -1,4 +1,4 @@
-import { ProgressTracking } from '../types/index.js';
+import { ProgressTracking } from '../types/index';
 
 export class ProgressTracker {
   private tracking = new Map<string, ProgressTracking>();

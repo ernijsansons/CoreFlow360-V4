@@ -67,13 +67,13 @@ export class CloudflareIntegration {
     } catch (error) {
 
       await this.analytics.track('cloudflare_init_error', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         duration: Date.now() - startTime
       });
 
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         initializationTime: Date.now() - startTime
       };
     }

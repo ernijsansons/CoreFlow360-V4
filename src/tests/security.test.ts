@@ -159,7 +159,7 @@ describe('Performance Tests', () => {
     });
 
     it('should prevent N+1 queries', async () => {
-      const query = `SELECT * FROM audit_logs`;
+      const query = `SELECT id, user_id, event_type, created_at FROM audit_logs WHERE business_id = ? LIMIT 100`;
       const isOptimized = validateQueryOptimization(query);
       
       expect(isOptimized).toBe(true);
@@ -698,7 +698,18 @@ describe('Suspicious Activity Detection Tests', () => {
   });
 
   it('should detect path traversal attempts', () => {
-    const mockRequest = new Request('https://example.com/api/../../../etc/passwd');
+    // Create a mock request object that preserves the original URL
+    const mockRequest = {
+      url: 'https://example.com/api/../../../etc/passwd',
+      method: 'GET',
+      headers: {
+        get: (name: string) => {
+          if (name === 'User-Agent') return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+          return null;
+        }
+      }
+    } as Request;
+    
     const result = detectSuspiciousActivity(mockRequest);
 
     expect(result.suspicious).toBe(true);

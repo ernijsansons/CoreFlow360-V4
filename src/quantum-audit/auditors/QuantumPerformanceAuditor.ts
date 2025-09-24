@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { PerformanceAuditResult, Issue } from '../types/index.js';
+import { PerformanceAuditResult, Issue } from '../types/index';
 
 export class QuantumPerformanceAuditor {
   async auditPerformance(): Promise<PerformanceAuditResult> {

@@ -379,9 +379,9 @@ export class RequestLogger {
       method: request.method,
       path: url.pathname,
       query: url.search,
-      ip: request.headers.get('CF-Connecting-IP'),
-      userAgent: request.headers.get('User-Agent'),
-      referer: request.headers.get('Referer')
+      ip: request.headers.get('CF-Connecting-IP') || undefined,
+      userAgent: request.headers.get('User-Agent') || undefined,
+      referer: request.headers.get('Referer') || undefined
     });
 
     return { requestId, startTime };

@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { ProductionLaunchOrchestrator } from './orchestrator/ProductionLaunchOrchestrator.js';
+import { ProductionLaunchOrchestrator } from './orchestrator/ProductionLaunchOrchestrator';
 
 async function main() {
   try {

@@ -177,6 +177,10 @@ export class CustomReportBuilder {
     parameters: ReportParameters,
     businessId: string
   ): SqlQuery {
+    if (!definition.dataSource) {
+      throw new Error('Report definition must specify a data source');
+    }
+    
     const { baseQuery, params } = this.getBaseQuery(definition.dataSource, businessId);
 
     // Build SELECT clause
@@ -261,6 +265,10 @@ export class CustomReportBuilder {
    */
   private getBaseQuery(dataSource: ReportDataSource, businessId: string):
   { baseQuery: string; params: QueryParameter[] } {
+    if (!dataSource) {
+      throw new Error('Data source is required');
+    }
+    
     switch (dataSource) {
       case ReportDataSource.CHART_OF_ACCOUNTS:
         return {

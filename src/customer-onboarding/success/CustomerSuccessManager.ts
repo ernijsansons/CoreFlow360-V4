@@ -1,4 +1,4 @@
-import { CustomerSuccess, Touchpoint, CustomerGoal, Initiative } from '../types/index.js';
+import { CustomerSuccess, Touchpoint, CustomerGoal, Initiative } from '../types/index';
 
 export // TODO: Consider splitting CustomerSuccessManager into smaller, focused classes
 class CustomerSuccessManager {

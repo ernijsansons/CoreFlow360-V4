@@ -4,41 +4,35 @@
  */
 
 import { setupServer } from 'msw/node'
-import { rest } from 'msw'
+import { http, HttpResponse } from 'msw'
 
 // Define request handlers
 export const handlers = [
   // Auth endpoints
-  rest.post('/api/v1/auth/login', (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        success: true,
-        data: {
-          token: 'mock-jwt-token',
-          refreshToken: 'mock-refresh-token',
-          user: {
-            id: 'user-1',
-            email: 'test@example.com',
-            name: 'Test User',
-            roles: ['user']
-          }
+  http.post('/api/v1/auth/login', () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        token: 'mock-jwt-token',
+        refreshToken: 'mock-refresh-token',
+        user: {
+          id: 'user-1',
+          email: 'test@example.com',
+          name: 'Test User',
+          roles: ['user']
         }
-      })
-    )
+      }
+    })
   }),
 
-  rest.post('/api/v1/auth/refresh', (req, res, ctx) => {
-    return res(
-      ctx.status(200),
-      ctx.json({
-        success: true,
-        data: {
-          token: 'new-mock-jwt-token',
-          refreshToken: 'new-mock-refresh-token'
-        }
-      })
-    )
+  http.post('/api/v1/auth/refresh', () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        token: 'new-mock-jwt-token',
+        refreshToken: 'new-mock-refresh-token'
+      }
+    })
   }),
 
   // Invoice endpoints

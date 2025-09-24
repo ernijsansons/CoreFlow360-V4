@@ -2,6 +2,21 @@
 import type { Ai } from '@cloudflare/ai';
 import type { KVNamespace } from '../cloudflare/types/cloudflare';
 
+// Type fixes for Workers AI responses
+interface WorkersAIResponse {
+  response?: string;
+  text?: string;
+  data?: any[];
+}
+
+interface AnthropicResponse {
+  content?: Array<{ text?: string }>;
+  usage?: {
+    input_tokens?: number;
+    output_tokens?: number;
+  };
+}
+
 export interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -31,8 +46,8 @@ export interface AIResponse {
   cost?: number;
 }
 
-export // TODO: Consider splitting AIService into smaller, focused classes
-class AIService {
+// TODO: Consider splitting AIService into smaller, focused classes
+export class AIService {
   constructor(
     private ai: Ai,
     private anthropicKey: string,
@@ -48,7 +63,7 @@ class AIService {
       const cached = await this.cache.get(cacheKey, { type: 'json' });
       if (cached) {
         return {
-          ...cached as AIResponse,
+          ...JSON.parse(cached as string) as AIResponse,
           cached: true
         };
       }
@@ -62,7 +77,7 @@ class AIService {
           max_tokens: maxTokens,
           temperature: 0.7
         }
-      ) as any;
+      ) as WorkersAIResponse;
 
       const result: AIResponse = {
         content: response.response || response.text || '',
@@ -97,7 +112,7 @@ class AIService {
       const cached = await this.cache.get(cacheKey, { type: 'json' });
       if (cached) {
         return {
-          ...cached as AIResponse,
+          ...JSON.parse(cached as string) as AIResponse,
           cached: true
         };
       }
@@ -124,10 +139,10 @@ class AIService {
         throw new Error(`Anthropic API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as AnthropicResponse;
 
       const result: AIResponse = {
-        content: data.content[0]?.text || '',
+        content: data.content?.[0]?.text || '',
         model: 'claude-3-sonnet',
         tokens: data.usage?.output_tokens || 0,
         cost: this.calculateAnthropicCost(data.usage?.input_tokens || 0, data.usage?.output_tokens || 0)
@@ -154,7 +169,7 @@ class AIService {
     if (this.cache) {
       const cached = await this.cache.get(cacheKey, { type: 'json' });
       if (cached) {
-        return cached as number[];
+        return JSON.parse(cached as string) as number[];
       }
     }
 
@@ -162,9 +177,9 @@ class AIService {
       const response = await this.ai.run(
         '@cf/baai/bge-base-en-v1.5',
         { text }
-      );
+      ) as { data: number[][] };
 
-      const embedding = response.data[0];
+      const embedding = response.data?.[0] || [];
 
       // Cache embeddings for 24 hours
       if (this.cache) {
@@ -191,7 +206,7 @@ class AIService {
 
       // Complex queries -> Anthropic
       if (complexity === 'complex') {
-        const messages: Message[] = request.messages || [{ role: 'user', content: request.prompt }];
+        const messages: Message[] = request.messages || [{ role: 'user' as const, content: request.prompt }];
         return await this.complexResponse(messages, request.context, request.maxTokens);
       }
 
@@ -201,11 +216,11 @@ class AIService {
           return await this.quickResponse(request.prompt, request.maxTokens);
         } catch (error) {
           // Fallback to Anthropic on Workers AI failure
-          const messages = [{ role: 'user', content: request.prompt }];
+          const messages = [{ role: 'user' as const, content: request.prompt }];
           return await this.complexResponse(messages, request.context, request.maxTokens);
         }
       } else {
-        const messages: Message[] = request.messages || [{ role: 'user', content: request.prompt }];
+        const messages: Message[] = request.messages || [{ role: 'user' as const, content: request.prompt }];
         return await this.complexResponse(messages, request.context, request.maxTokens);
       }
     } catch (error) {
@@ -313,7 +328,7 @@ Consider the business context in your answers.`;
       compliance: 'Review this document for compliance and regulatory considerations:'
     };
 
-    return `${prompts[analysisType] || prompts.summary}
+    return `${(prompts as any)[analysisType] || prompts.summary}
 
 Business Context: ${context.businessId} (${context.industry || 'General'})
 

@@ -1,4 +1,4 @@
-import { RollbackPlan, RollbackCondition, RollbackStep } from '../types/index.js';
+import { RollbackPlan, RollbackCondition, RollbackStep } from '../types/index';
 
 export // TODO: Consider splitting RollbackManager into smaller, focused classes
 class RollbackManager {

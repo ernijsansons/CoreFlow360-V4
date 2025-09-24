@@ -1,4 +1,4 @@
-import { LaunchStage, LaunchStageConfig, ProgressiveRolloutConfig } from '../types/index.js';
+import { LaunchStage, LaunchStageConfig, ProgressiveRolloutConfig } from '../types/index';
 
 export class ProgressiveRolloutEngine {
   private isPaused = false;

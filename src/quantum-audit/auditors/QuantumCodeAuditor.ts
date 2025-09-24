@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { CodeQualityAuditResult, Issue } from '../types/index.js';
+import { CodeQualityAuditResult, Issue } from '../types/index';
 
 export class QuantumCodeAuditor {
   async auditCodeQuality(): Promise<CodeQualityAuditResult> {

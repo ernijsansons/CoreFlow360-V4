@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { AISystemsAuditResult, Issue } from '../types/index.js';
+import { AISystemsAuditResult, Issue } from '../types/index';
 
 export class QuantumAIAuditor {
   async auditAISystems(): Promise<AISystemsAuditResult> {

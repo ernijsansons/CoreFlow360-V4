@@ -147,7 +147,13 @@ describe('Security Integration Tests', () => {
         grouping: JSON.stringify(reportDefinition.grouping),
         aggregations: JSON.stringify(reportDefinition.aggregations),
         id: 'test_report_def',
-        dataSource: reportDefinition.dataSource // Ensure dataSource is preserved
+        data_source: reportDefinition.dataSource, // Use snake_case as expected by database
+        business_id: reportDefinition.businessId,
+        created_by: reportDefinition.createdBy,
+        created_at: reportDefinition.createdAt,
+        updated_at: reportDefinition.updatedAt,
+        is_template: reportDefinition.isTemplate ? 1 : 0,
+        is_public: reportDefinition.isPublic ? 1 : 0
       };
 
       // Add mock report definition to database

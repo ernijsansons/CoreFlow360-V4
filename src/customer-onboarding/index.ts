@@ -1,8 +1,8 @@
-export { CustomerOnboardingEngine } from './engine/CustomerOnboardingEngine.js';
-export { DemoEnvironmentManager } from './demo/DemoEnvironmentManager.js';
-export { OnboardingAIAssistant } from './ai-assistant/OnboardingAIAssistant.js';
-export { CustomerSuccessManager } from './success/CustomerSuccessManager.js';
-export { ProgressTracker } from './analytics/ProgressTracker.js';
+export { CustomerOnboardingEngine } from './engine/CustomerOnboardingEngine';
+export { DemoEnvironmentManager } from './demo/DemoEnvironmentManager';
+export { OnboardingAIAssistant } from './ai-assistant/OnboardingAIAssistant';
+export { CustomerSuccessManager } from './success/CustomerSuccessManager';
+export { ProgressTracker } from './analytics/ProgressTracker';
 
-export * from './types/index.js';
-export { runCustomerOnboarding } from './customer-onboarding.js';
+export * from './types/index';
+export { runCustomerOnboarding } from './customer-onboarding';

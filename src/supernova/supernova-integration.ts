@@ -356,4 +356,4 @@ export interface ValidationResult {
 // SUPERNOVA INTEGRATION EXPORT
 // ============================================================================
 
-export const SupernovaIntegration = SupernovaIntegration.getInstance();
+// Export the class directly - singleton instance handled internally

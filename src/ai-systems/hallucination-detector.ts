@@ -181,7 +181,7 @@ export class HallucinationDetector {
     // Group instances by type and category
     const groupedInstances = this.groupInstancesByPattern(historicalInstances);
 
-    for (const [patternKey, instances] of groupedInstances.entries()) {
+    for (const [patternKey, instances] of Array.from(groupedInstances.entries())) {
       const pattern = await this.analyzePattern(patternKey, instances);
       if (pattern.frequency >= 3) { // Only include patterns with sufficient frequency
         patterns.push(pattern);
@@ -251,7 +251,7 @@ export class HallucinationDetector {
       }
     }
 
-    return [...new Set(claims)]; // Remove duplicates
+    return Array.from(new Set(claims)); // Remove duplicates
   }
 
   private hasHighFactualClaimProbability(sentence: string): boolean {
@@ -771,7 +771,7 @@ export class HallucinationDetector {
     const frequency = instances.length;
     const confidence = instances.reduce((sum, inst) => sum + inst.confidence, 0) / frequency;
 
-    const contexts = [...new Set(instances.map(inst => inst.category))];
+    const contexts = Array.from(new Set(instances.map(inst => inst.category)));
     const triggerWords = this.extractCommonWords(instances.map(inst => inst.input));
 
     const avgSeverity = this.calculateAverageSeverity(instances);
@@ -828,7 +828,7 @@ export class HallucinationDetector {
       ['temporal_', 'Verify dates and temporal references']
     ]);
 
-    for (const [prefix, strategy] of strategies) {
+    for (const [prefix, strategy] of Array.from(strategies.entries())) {
       if (patternKey.startsWith(prefix)) {
         return strategy;
       }

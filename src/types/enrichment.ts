@@ -1,7 +1,7 @@
 // Enrichment Pipeline Types for CoreFlow360 AI-Native CRM
 // Multi-source data enrichment with AI analysis
 
-import type { Lead, Contact, Company } from './crm';
+import type { Lead } from './crm';
 
 export interface EnrichmentRequest {
   lead_id?: string;

@@ -139,51 +139,86 @@ function getRateLimiter(env: any): AdvancedRateLimiter {
 }
 
 /**
- * Create advanced rate limiting middleware
+ * High-performance advanced rate limiting middleware with O(1) operations
  */
 export function createAdvancedRateLimiter(
   limitType: string,
   config?: Partial<RateLimitConfig>,
   keyExtractor?: (c: Context) => string
 ) {
+  // Cache configuration to avoid repeated object creation
+  const cachedConfigs = new Map<string, RateLimitConfig>();
+  
   return async (c: Context, next: Next) => {
-    const rateLimiter = getRateLimiter(c.env);
-
-    // Get base configuration
-    const baseConfig = {
-      ...RateLimitConfigs[limitType as keyof typeof RateLimitConfigs],
-      ...config
-    } as RateLimitConfig;
-
-    // Extract identifier
     const identifier = keyExtractor
       ? keyExtractor(c)
       : c.req.header('CF-Connecting-IP') || 'unknown';
+      
+    // Use cached configuration or create new one
+    const configKey = `${limitType}:${JSON.stringify(config || {})}`;
+    let baseConfig = cachedConfigs.get(configKey);
+    
+    if (!baseConfig) {
+      baseConfig = {
+        ...RateLimitConfigs[limitType as keyof typeof RateLimitConfigs],
+        ...config
+      } as RateLimitConfig;
+      cachedConfigs.set(configKey, baseConfig);
+      
+      // Limit cache size
+      if (cachedConfigs.size > 100) {
+        const oldestKey = cachedConfigs.keys().next().value;
+        cachedConfigs.delete(oldestKey);
+      }
+    }
 
-    // Check rate limit
-    const result = await rateLimiter.checkLimit(identifier, baseConfig, {
+    const rateLimiter = getRateLimiter(c.env);
+    
+    // Optimized context extraction
+    const context = {
       path: c.req.path,
       method: c.req.method,
       userAgent: c.req.header('User-Agent'),
       businessId: c.get('businessId'),
       userId: c.get('userId')
-    });
+    };
 
-    // Set rate limit headers
-    c.header('X-RateLimit-Limit', baseConfig.maxRequests.toString());
-    c.header('X-RateLimit-Remaining', result.remaining.toString());
-    c.header('X-RateLimit-Reset', Math.ceil(result.resetTime / 1000).toString());
-    c.header('X-RateLimit-Algorithm', baseConfig.algorithm);
+    // Single rate limit check with timeout
+    const checkPromise = rateLimiter.checkLimit(identifier, baseConfig, context);
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Rate limit check timeout')), 100);
+    });
+    
+    let result;
+    try {
+      result = await Promise.race([checkPromise, timeoutPromise]);
+    } catch (error) {
+      // Fail open on timeout to maintain availability
+      console.warn('Rate limit check timed out, allowing request:', error);
+      await next();
+      return;
+    }
+
+    // Batch header setting for better performance
+    const headers: Record<string, string> = {
+      'X-RateLimit-Limit': baseConfig.maxRequests.toString(),
+      'X-RateLimit-Remaining': result.remaining.toString(),
+      'X-RateLimit-Reset': Math.ceil(result.resetTime / 1000).toString(),
+      'X-RateLimit-Algorithm': baseConfig.algorithm
+    };
+    
+    if (!result.allowed && result.retryAfter) {
+      headers['Retry-After'] = Math.ceil(result.retryAfter / 1000).toString();
+    }
+    
+    // Set all headers at once
+    Object.entries(headers).forEach(([key, value]) => c.header(key, value));
 
     if (!result.allowed) {
-      if (result.retryAfter) {
-        c.header('Retry-After', Math.ceil(result.retryAfter / 1000).toString());
-      }
-
       logger.warn('Rate limit exceeded', {
         identifier,
         limitType,
-        path: c.req.path,
+        path: context.path,
         algorithm: baseConfig.algorithm,
         remaining: result.remaining,
         reason: result.reason

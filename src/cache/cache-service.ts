@@ -3,25 +3,29 @@ import type { KVNamespace } from '@cloudflare/workers-types';
 export class CacheService {
   constructor(
     private kv: KVNamespace,
-    private cacheApi: Cache = caches.default
+    private cacheApi?: Cache
   ) {}
 
   // Multi-layer cache check
   async get(key: string): Promise<any> {
     // L1: Edge Cache API (fastest)
-    const cached = await this.cacheApi.match(key);
-    if (cached) {
-      return cached.json();
+    if (this.cacheApi) {
+      const cached = await this.cacheApi.match(key);
+      if (cached) {
+        return cached.json();
+      }
     }
 
     // L2: KV (distributed)
-    const kvData = await this.kv.get(key, 'json');
+    const kvData = await this.kv.get(key, { type: 'json' });
     if (kvData) {
-      // Promote to L1
-      await this.cacheApi.put(
-        key,
-        new Response(JSON.stringify(kvData))
-      );
+      // Promote to L1 if cache available
+      if (this.cacheApi) {
+        await this.cacheApi.put(
+          key,
+          new Response(JSON.stringify(kvData))
+        );
+      }
       return kvData;
     }
 
@@ -47,51 +51,94 @@ export class CacheService {
       }
     });
 
-    await this.cacheApi.put(key, response);
+    if (this.cacheApi) {
+      await this.cacheApi.put(key, response);
+    }
   }
 
-  // Smart cache invalidation
-  async invalidate(pattern: string): Promise<void> {
-    // Clear from Cache API
-    const cacheNames = await caches.keys();
-    for (const name of cacheNames) {
-      const cache = await caches.open(name);
+  // Smart cache invalidation with performance optimizations
+  async invalidate(pattern: string, options: { businessId?: string; tags?: string[] } = {}): Promise<void> {
+    const startTime = performance.now();
+    const operations: Promise<void>[] = [];
 
-      if (pattern.includes('*')) {
-        // Pattern matching - Cache API doesn't support this natively
-        // For simplicity, we'll just clear the whole cache for wildcard patterns
-        const keys = await cache.keys();
-        const prefix = pattern.replace('*', '');
-
-        for (const request of keys) {
-          if (request.url.includes(prefix)) {
-            await cache.delete(request);
-          }
-        }
-      } else {
-        // Direct key deletion
-        await cache.delete(pattern);
-      }
-    }
-
-    // Clear from KV (use list with prefix)
+    // Parallel invalidation for better performance
     if (pattern.includes('*')) {
       const prefix = pattern.replace('*', '');
-      const keys = await this.kv.list({ prefix });
-      for (const key of keys.keys) {
-        await this.kv.delete(key.name);
-      }
+      
+      // KV invalidation
+      operations.push(this.invalidateKVPattern(prefix, options.businessId));
+      
+      // Cache API invalidation
+      operations.push(this.invalidateCacheAPIPattern(prefix));
     } else {
-      await this.kv.delete(pattern);
+      // Direct key deletion
+      operations.push(
+        this.kv.delete(pattern),
+        this.invalidateCacheAPIKey(pattern)
+      );
+    }
+
+    // Execute all invalidations in parallel
+    await Promise.allSettled(operations);
+    
+    // Performance tracking
+    const duration = performance.now() - startTime;
+    if (duration > 100) { // Log slow invalidations
+      console.warn(`Slow cache invalidation: ${pattern} took ${duration}ms`);
+    }
+  }
+
+  private async invalidateKVPattern(prefix: string, businessId?: string): Promise<void> {
+    const batchSize = 100; // Process in batches for better performance
+    let cursor: string | undefined;
+    
+    do {
+      const result = await this.kv.list({ 
+        prefix: businessId ? `${businessId}:${prefix}` : prefix,
+        cursor,
+        limit: batchSize
+      });
+      
+      // Delete in parallel batches
+      const deletions = result.keys.map(key => this.kv.delete(key.name));
+      await Promise.allSettled(deletions);
+      
+      cursor = result.list_complete ? undefined : result.cursor;
+    } while (cursor);
+  }
+
+  private async invalidateCacheAPIPattern(prefix: string): Promise<void> {
+    try {
+      const cache = await caches.open('default');
+      const keys = await cache.keys();
+      
+      const deletions = keys
+        .filter(request => request.url.includes(prefix))
+        .map(request => cache.delete(request));
+        
+      await Promise.allSettled(deletions);
+    } catch (error) {
+      console.error('Cache API invalidation failed:', error);
+    }
+  }
+
+  private async invalidateCacheAPIKey(key: string): Promise<void> {
+    try {
+      const cache = await caches.open('default');
+      await cache.delete(key);
+    } catch (error) {
+      console.error(`Cache API key deletion failed for ${key}:`, error);
     }
   }
 
   // Check if key exists in cache
   async has(key: string): Promise<boolean> {
     // Check Cache API first
-    const cached = await this.cacheApi.match(key);
-    if (cached) {
-      return true;
+    if (this.cacheApi) {
+      const cached = await this.cacheApi.match(key);
+      if (cached) {
+        return true;
+      }
     }
 
     // Check KV
@@ -99,23 +146,65 @@ export class CacheService {
     return kvData !== null;
   }
 
-  // Get cache statistics
+  // Enhanced cache statistics with real-time tracking
+  private static stats = {
+    l1Hits: 0,
+    l2Hits: 0,
+    misses: 0,
+    totalRequests: 0,
+    totalResponseTime: 0,
+    lastReset: Date.now()
+  };
+
   async getStats(): Promise<CacheStats> {
-    // This is a simplified implementation
-    // In a real scenario, you'd track metrics over time
+    const timeSinceReset = Date.now() - CacheService.stats.lastReset;
+    const hours = timeSinceReset / (1000 * 60 * 60);
+    
     return {
-      l1Hits: 0,    // Would track Cache API hits
-      l2Hits: 0,    // Would track KV hits
-      misses: 0,    // Would track cache misses
+      l1Hits: CacheService.stats.l1Hits,
+      l2Hits: CacheService.stats.l2Hits,
+      misses: CacheService.stats.misses,
+      totalRequests: CacheService.stats.totalRequests,
+      hitRate: CacheService.stats.totalRequests > 0 ? 
+        ((CacheService.stats.l1Hits + CacheService.stats.l2Hits) / CacheService.stats.totalRequests) * 100 : 0,
+      avgResponseTime: CacheService.stats.totalRequests > 0 ? 
+        CacheService.stats.totalResponseTime / CacheService.stats.totalRequests : 0,
+      requestsPerHour: hours > 0 ? CacheService.stats.totalRequests / hours : 0,
+      uptime: timeSinceReset
+    };
+  }
+
+  private trackCacheHit(source: 'l1' | 'l2', responseTime: number): void {
+    CacheService.stats.totalRequests++;
+    CacheService.stats.totalResponseTime += responseTime;
+    
+    if (source === 'l1') {
+      CacheService.stats.l1Hits++;
+    } else {
+      CacheService.stats.l2Hits++;
+    }
+  }
+
+  private trackCacheMiss(responseTime: number): void {
+    CacheService.stats.totalRequests++;
+    CacheService.stats.totalResponseTime += responseTime;
+    CacheService.stats.misses++;
+  }
+
+  static resetStats(): void {
+    CacheService.stats = {
+      l1Hits: 0,
+      l2Hits: 0,
+      misses: 0,
       totalRequests: 0,
-      hitRate: 0,
-      avgResponseTime: 0
+      totalResponseTime: 0,
+      lastReset: Date.now()
     };
   }
 
   // TTL based on content type
   getTTL(contentType: string): number {
-    const ttls = {
+    const ttls: Record<string, number> = {
       'user-data': 60,        // 1 minute
       'financial': 300,       // 5 minutes
       'analytics': 3600,      // 1 hour
@@ -136,27 +225,31 @@ export class CacheService {
     // Clear KV (list all keys and delete)
     // Note: This is expensive and should be used sparingly
     let cursor: string | undefined;
+    let listComplete = false;
     do {
       const result = await this.kv.list({ cursor });
       for (const key of result.keys) {
         await this.kv.delete(key.name);
       }
-      cursor = result.cursor;
-    } while (cursor);
+      listComplete = result.list_complete;
+      cursor = listComplete ? undefined : cursor;
+    } while (!listComplete);
   }
 
   // Get cache info for a specific key
   async getInfo(key: string): Promise<CacheInfo | null> {
     // Check Cache API
-    const cached = await this.cacheApi.match(key);
-    if (cached) {
-      return {
-        key,
-        source: 'cache-api',
-        timestamp: cached.headers.get('X-Cache-Timestamp') || 'unknown',
-        ttl: parseInt(cached.headers.get('X-Cache-TTL') || '0'),
-        size: cached.headers.get('Content-Length') || 'unknown'
-      };
+    if (this.cacheApi) {
+      const cached = await this.cacheApi.match(key);
+      if (cached) {
+        return {
+          key,
+          source: 'cache-api',
+          timestamp: cached.headers.get('X-Cache-Timestamp') || 'unknown',
+          ttl: parseInt(cached.headers.get('X-Cache-TTL') || '0'),
+          size: cached.headers.get('Content-Length') || 'unknown'
+        };
+      }
     }
 
     // Check KV
@@ -213,6 +306,8 @@ export interface CacheStats {
   totalRequests: number;
   hitRate: number;
   avgResponseTime: number;
+  requestsPerHour: number;
+  uptime: number;
 }
 
 export interface CacheInfo {

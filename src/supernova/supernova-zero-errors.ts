@@ -102,7 +102,7 @@ export class SupernovaZeroErrors {
       return errorMatches ? errorMatches.length : 0;
     } catch (error) {
       // TypeScript compilation failed, count errors from stderr
-      const errorOutput = error.stdout || error.stderr || '';
+      const errorOutput = (error as any).stdout || (error as any).stderr || '';
       const errorMatches = errorOutput.match(/error TS\d+/g);
       return errorMatches ? errorMatches.length : 0;
     }
@@ -129,11 +129,11 @@ export class SupernovaZeroErrors {
     try {
       const result = execSync('npx tsc --noEmit 2>&1', { encoding: 'utf-8' });
       const fileMatches = result.match(/src\/[^:]+\.ts/g);
-      return fileMatches ? [...new Set(fileMatches)] : [];
+      return fileMatches ? [...new Set(fileMatches as string[])] : [];
     } catch (error) {
-      const errorOutput = error.stdout || error.stderr || '';
+      const errorOutput = (error as any).stdout || (error as any).stderr || '';
       const fileMatches = errorOutput.match(/src\/[^:]+\.ts/g);
-      return fileMatches ? [...new Set(fileMatches)] : [];
+      return fileMatches ? [...new Set(fileMatches as string[])] : [];
     }
   }
 
@@ -353,8 +353,8 @@ export class SupernovaZeroErrors {
     let fixed = content;
     
     // Add missing type annotations
-    fixed = fixed.replace(/function\s+(\w+)\s*\(([^)]*)\)\s*{/g, (match, funcName, params) => {
-      const typedParams = params.split(',').map(param => {
+    fixed = fixed.replace(/function\s+(\w+)\s*\(([^)]*)\)\s*{/g, (_match, funcName, params) => {
+      const typedParams = params.split(',').map((param: string) => {
         const trimmed = param.trim();
         if (trimmed.includes(':')) return trimmed;
         return `${trimmed}: any`;
@@ -383,7 +383,7 @@ export class SupernovaZeroErrors {
     let fixed = content;
     
     // Fix object literal syntax
-    fixed = fixed.replace(/(\w+)\s*:\s*([^,}]+)(?=\s*[,}])/g, (match, key, value) => {
+    fixed = fixed.replace(/(\w+)\s*:\s*([^,}]+)(?=\s*[,}])/g, (_match, key, value) => {
       const trimmedValue = value.trim();
       if (trimmedValue.includes('"') || trimmedValue.includes("'") || trimmedValue.includes('{') || trimmedValue.includes('[')) {
         return `${key}: ${trimmedValue}`;
@@ -398,8 +398,8 @@ export class SupernovaZeroErrors {
     let fixed = content;
     
     // Fix function declarations
-    fixed = fixed.replace(/async\s+(\w+)\s*\(([^)]*)\)\s*{/g, (match, funcName, params) => {
-      const typedParams = params.split(',').map(param => {
+    fixed = fixed.replace(/async\s+(\w+)\s*\(([^)]*)\)\s*{/g, (_match, funcName, params) => {
+      const typedParams = params.split(',').map((param: string) => {
         const trimmed = param.trim();
         if (trimmed.includes(':')) return trimmed;
         return `${trimmed}: any`;
@@ -414,7 +414,7 @@ export class SupernovaZeroErrors {
     let fixed = content;
     
     // Fix unterminated string literals
-    fixed = fixed.replace(/['"]([^'"]*)$/gm, (match, content) => {
+    fixed = fixed.replace(/['"]([^'"]*)$/gm, (match, _content) => {
       if (!match.endsWith('"') && !match.endsWith("'")) {
         return match + '"';
       }
@@ -428,7 +428,7 @@ export class SupernovaZeroErrors {
     let fixed = content;
     
     // Fix unterminated template literals
-    fixed = fixed.replace(/`([^`]*)$/gm, (match, content) => {
+    fixed = fixed.replace(/`([^`]*)$/gm, (match, _content) => {
       if (!match.endsWith('`')) {
         return match + '`';
       }
@@ -645,4 +645,4 @@ export interface ZeroErrorsReport {
 // SUPERNOVA ZERO ERRORS EXPORT
 // ============================================================================
 
-export const SupernovaZeroErrors = SupernovaZeroErrors.getInstance();
+// Class is already exported above, no need for duplicate export

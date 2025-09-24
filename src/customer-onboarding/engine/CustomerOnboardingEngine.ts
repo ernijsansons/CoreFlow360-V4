@@ -5,11 +5,11 @@ import {
   DemoEnvironment,
   AIAssistantConfig,
   SuccessCriteria
-} from '../types/index.js';
-import { DemoEnvironmentManager } from '../demo/DemoEnvironmentManager.js';
-import { OnboardingAIAssistant } from '../ai-assistant/OnboardingAIAssistant.js';
-import { CustomerSuccessManager } from '../success/CustomerSuccessManager.js';
-import { ProgressTracker } from '../analytics/ProgressTracker.js';
+} from '../types/index';
+import { DemoEnvironmentManager } from '../demo/DemoEnvironmentManager';
+import { OnboardingAIAssistant } from '../ai-assistant/OnboardingAIAssistant';
+import { CustomerSuccessManager } from '../success/CustomerSuccessManager';
+import { ProgressTracker } from '../analytics/ProgressTracker';
 
 export class CustomerOnboardingEngine {
   private demoManager: DemoEnvironmentManager;

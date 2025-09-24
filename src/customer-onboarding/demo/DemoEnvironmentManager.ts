@@ -4,7 +4,7 @@ import {
   DemoData,
   DemoScenario,
   DemoRestriction
-} from '../types/index.js';
+} from '../types/index';
 
 export // TODO: Consider splitting DemoEnvironmentManager into smaller, focused classes
 class DemoEnvironmentManager {

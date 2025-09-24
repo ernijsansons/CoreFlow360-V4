@@ -1,505 +1,510 @@
-/**;
- * Security Utilities for Agent System;
- * Provides validation, sanitization, and security functions;/
+/**
+ * Security Utilities for Agent System
+ * Provides validation, sanitization, and security functions
  */
-;
-import { z } from 'zod';"/
-import { ValidationError } from './types';"/
+import { z } from 'zod';
+import { ValidationError } from './types';
 import { Logger } from '../../shared/logger';
 
 const logger = new Logger();
-/
-// ============================================================================;/
-// VALIDATION PATTERNS;/
+
 // ============================================================================
-;/
-/**;
- * Business ID validation pattern;
- * - 8-64 characters;
- * - Alphanumeric with hyphens and underscores;
- * - Must start with letter or number;/
- */;/
+// VALIDATION PATTERNS
+// ============================================================================
+
+/**
+ * Business ID validation pattern
+ * - 8-64 characters
+ * - Alphanumeric with hyphens and underscores
+ * - Must start with letter or number
+ */
 const BUSINESS_ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9\-_]{7,63}$/;
-/
-/**;
- * User ID validation pattern;
- * Similar to business ID but allows email format;/
- */;/
+
+/**
+ * User ID validation pattern
+ * Similar to business ID but allows email format
+ */
 const USER_ID_PATTERN = /^([a-zA-Z0-9][a-zA-Z0-9\-_]{7,63}|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
-/
-/**;/
- * SQL identifier pattern for table/column names;/
- */;/
+
+/**
+ * SQL identifier pattern for table/column names
+ */
 const SQL_IDENTIFIER_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]{0,63}$/;
-/
-/**;
- * Patterns that indicate potential prompt injection;/
- */;
-const PROMPT_INJECTION_PATTERNS = [;/
-  /system\s*:/gi,;/
-  /assistant\s*:/gi,;/
-  /human\s*:/gi,;/
-  /\[INST\]/gi,;/
-  /\[\/INST\]/gi,;/
-  /<<<.*>>>/g,;/
-  /ignore\s+previous\s+instructions/gi,;/
-  /disregard\s+all\s+prior/gi,;/
-  /forget\s+everything/gi,;/
-  /new\s+instructions\s*:/gi,;/
-  /you\s+are\s+now/gi,;/
-  /act\s+as\s+if/gi,;/
-  /pretend\s+to\s+be/gi;
+
+/**
+ * Patterns that indicate potential prompt injection
+ */
+const PROMPT_INJECTION_PATTERNS = [
+  /system\s*:/gi,
+  /assistant\s*:/gi,
+  /human\s*:/gi,
+  /\[INST\]/gi,
+  /\[\/INST\]/gi,
+  /<<<.*>>>/g,
+  /ignore\s+previous\s+instructions/gi,
+  /disregard\s+all\s+prior/gi,
+  /forget\s+everything/gi,
+  /new\s+instructions\s*:/gi,
+  /you\s+are\s+now/gi,
+  /act\s+as\s+if/gi,
+  /pretend\s+to\s+be/gi,
+  /roleplay\s+as/gi,
+  /jailbreak/gi,
+  /DAN\s+mode/gi,
+  /developer\s+mode/gi,
+  /admin\s+override/gi,
+  /bypass\s+security/gi,
+  /ignore\s+safety/gi,
+  /unrestricted\s+mode/gi
 ];
-/
-/**;
- * PII patterns for detection and redaction;/
- */;
-const PII_PATTERNS = {/
-  email: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,;/
-  phone: /(\+?1?\s?)?(\([0-9]{3}\)|[0-9]{3})[\s.-]?[0-9]{3}[\s.-]?[0-9]{4}/g,;/
-  ssn: /\b\d{3}-\d{2}-\d{4}\b|\b\d{9}\b/g,;/
-  creditCard: /\b(?:\d[ -]*?){13,16}\b/g,;/
-  ipAddress: /\b(?:\d{1,3}\.){3}\d{1,3}\b/g,;/
-  apiKey: /\b(sk-|pk-|api[_-]?key[_-]?)[a-zA-Z0-9]{20,}\b/gi,;/
-  jwt: /eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/g,;
-};
-/
-// ============================================================================;/
-// VALIDATION FUNCTIONS;/
+
+/**
+ * Patterns that indicate potential SQL injection
+ */
+const SQL_INJECTION_PATTERNS = [
+  /union\s+select/gi,
+  /drop\s+table/gi,
+  /delete\s+from/gi,
+  /insert\s+into/gi,
+  /update\s+set/gi,
+  /alter\s+table/gi,
+  /create\s+table/gi,
+  /exec\s*\(/gi,
+  /execute\s*\(/gi,
+  /sp_executesql/gi,
+  /xp_cmdshell/gi,
+  /--/g,
+  /\/\*/g,
+  /\*\//g,
+  /'/g,
+  /"/g,
+  /;/g
+];
+
+/**
+ * Patterns that indicate potential XSS
+ */
+const XSS_PATTERNS = [
+  /<script[^>]*>.*?<\/script>/gi,
+  /<iframe[^>]*>.*?<\/iframe>/gi,
+  /<object[^>]*>.*?<\/object>/gi,
+  /<embed[^>]*>.*?<\/embed>/gi,
+  /<link[^>]*>.*?<\/link>/gi,
+  /<meta[^>]*>.*?<\/meta>/gi,
+  /javascript:/gi,
+  /vbscript:/gi,
+  /onload\s*=/gi,
+  /onerror\s*=/gi,
+  /onclick\s*=/gi,
+  /onmouseover\s*=/gi,
+  /onfocus\s*=/gi,
+  /onblur\s*=/gi,
+  /onchange\s*=/gi,
+  /onsubmit\s*=/gi,
+  /onreset\s*=/gi,
+  /onselect\s*=/gi,
+  /onkeydown\s*=/gi,
+  /onkeyup\s*=/gi,
+  /onkeypress\s*=/gi
+];
+
 // ============================================================================
-;/
-/**;
- * Validate business ID format;/
- */;
-export function validateBusinessId(businessId: string): boolean {"
-  if (!businessId || typeof businessId !== 'string') {
-    return false;}
-  return BUSINESS_ID_PATTERN.test(businessId);
-}
-/
-/**;
- * Validate user ID format;/
- */;
-export function validateUserId(userId: string): boolean {"
-  if (!userId || typeof userId !== 'string') {
-    return false;}
-  return USER_ID_PATTERN.test(userId);
-}
-/
-/**;/
- * Validate SQL identifier (table/column names);/
- */;
-export function validateSqlIdentifier(identifier: string): boolean {"
-  if (!identifier || typeof identifier !== 'string') {
-    return false;}
-  return SQL_IDENTIFIER_PATTERN.test(identifier);
-}
-/
-/**;
- * Validate and sanitize business ID with strict checking;/
- */;
-export function sanitizeBusinessId(businessId: string): string {
-  if (!validateBusinessId(businessId)) {
-    throw new ValidationError(`Invalid business ID format: ${businessId?.substring(0, 10)}...`);
-  }
-  return businessId.trim();
-}
-/
-/**;
- * Validate and sanitize user ID;/
- */;
-export function sanitizeUserId(userId: string): string {
-  if (!validateUserId(userId)) {`
-    throw new ValidationError(`Invalid user ID format: ${userId?.substring(0, 10)}...`);
-  }
-  return userId.trim();
-}
-/
-// ============================================================================;/
-// INPUT SANITIZATION;/
+// VALIDATION SCHEMAS
 // ============================================================================
-;/
-/**;
- * Sanitize input for AI models to prevent prompt injection;/
- */;"
-export function sanitizeAIInput(input: "unknown", maxLength: number = 50000): string {"
-  let sanitized = '';
-/
-  // Convert to string safely;"
-  if (typeof input === 'string') {"
-    sanitized = input;} else if (typeof input === 'object' && input !== null) {
-    const obj = input as Record<string, unknown>;
-    sanitized = obj.prompt || obj.message || obj.content || JSON.stringify(input);
-    sanitized = String(sanitized);
-  } else {
-    sanitized = String(input);
+
+const BusinessIdSchema = z.string()
+  .min(8, 'Business ID must be at least 8 characters')
+  .max(64, 'Business ID must be at most 64 characters')
+  .regex(BUSINESS_ID_PATTERN, 'Business ID must be alphanumeric with hyphens and underscores');
+
+const UserIdSchema = z.string()
+  .min(1, 'User ID is required')
+  .max(255, 'User ID must be at most 255 characters')
+  .regex(USER_ID_PATTERN, 'User ID must be valid format');
+
+const SqlIdentifierSchema = z.string()
+  .min(1, 'SQL identifier is required')
+  .max(64, 'SQL identifier must be at most 64 characters')
+  .regex(SQL_IDENTIFIER_PATTERN, 'SQL identifier must be valid');
+
+const SessionIdSchema = z.string()
+  .min(1, 'Session ID is required')
+  .max(255, 'Session ID must be at most 255 characters')
+  .regex(/^[a-zA-Z0-9\-_]+$/, 'Session ID must be alphanumeric with hyphens and underscores');
+
+// ============================================================================
+// VALIDATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Validate business ID
+ */
+export function validateBusinessId(businessId: unknown): string {
+  try {
+    return BusinessIdSchema.parse(businessId);
+  } catch (error) {
+    logger.error('Business ID validation failed', {
+      businessId: sanitizeForLogging(businessId),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    throw new ValidationError('Invalid business ID format');
   }
-/
-  // Remove potential prompt injection patterns;
-  for (const pattern of PROMPT_INJECTION_PATTERNS) {"
-    sanitized = sanitized.replace(pattern, '[BLOCKED]');
+}
+
+/**
+ * Validate user ID
+ */
+export function validateUserId(userId: unknown): string {
+  try {
+    return UserIdSchema.parse(userId);
+  } catch (error) {
+    logger.error('User ID validation failed', {
+      userId: sanitizeForLogging(userId),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    throw new ValidationError('Invalid user ID format');
   }
-/
-  // Remove HTML/script tags;
-  sanitized = sanitized;"/
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '[SCRIPT_REMOVED]');"/
-    .replace(/<\/?[^>]+(>|$)/g, '');
-/
-  // Remove control characters except newlines and tabs;"/
+}
+
+/**
+ * Validate SQL identifier
+ */
+export function validateSqlIdentifier(identifier: unknown): string {
+  try {
+    return SqlIdentifierSchema.parse(identifier);
+  } catch (error) {
+    logger.error('SQL identifier validation failed', {
+      identifier: sanitizeForLogging(identifier),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    throw new ValidationError('Invalid SQL identifier format');
+  }
+}
+
+/**
+ * Validate session ID
+ */
+export function validateSessionId(sessionId: unknown): string {
+  try {
+    return SessionIdSchema.parse(sessionId);
+  } catch (error) {
+    logger.error('Session ID validation failed', {
+      sessionId: sanitizeForLogging(sessionId),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    throw new ValidationError('Invalid session ID format');
+  }
+}
+
+// ============================================================================
+// SANITIZATION FUNCTIONS
+// ============================================================================
+
+/**
+ * Sanitize business ID
+ */
+export function sanitizeBusinessId(businessId: unknown): string {
+  if (typeof businessId !== 'string') {
+    throw new ValidationError('Business ID must be a string');
+  }
+  
+  const sanitized = businessId.trim().toLowerCase();
+  return validateBusinessId(sanitized);
+}
+
+/**
+ * Sanitize user ID
+ */
+export function sanitizeUserId(userId: unknown): string {
+  if (typeof userId !== 'string') {
+    throw new ValidationError('User ID must be a string');
+  }
+  
+  const sanitized = userId.trim().toLowerCase();
+  return validateUserId(sanitized);
+}
+
+/**
+ * Sanitize SQL parameter
+ */
+export function sanitizeSqlParam(param: unknown): string {
+  if (typeof param !== 'string') {
+    throw new ValidationError('SQL parameter must be a string');
+  }
+  
+  // Remove potential SQL injection characters
+  let sanitized = param.trim();
+  
+  // Remove null bytes
+  sanitized = sanitized.replace(/\0/g, '');
+  
+  // Remove control characters except newlines and tabs
   sanitized = sanitized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-/
-  // Enforce length limit;
-  if (sanitized.length > maxLength) {"
-    sanitized = sanitized.substring(0, maxLength) + '... [TRUNCATED]';
-  }
-/
-  // Log if injection was detected;"
-  if (sanitized.includes('[BLOCKED]') || sanitized.includes('[SCRIPT_REMOVED]')) {"
-    logger.warn('Potential prompt injection detected and blocked', {"
-      originalLength: "String(input).length",;"
-      sanitizedLength: "sanitized.length",;"
-      blocked: "true;"});
+  
+  // Limit length
+  if (sanitized.length > 1000) {
+    sanitized = sanitized.substring(0, 1000);
   }
 
   return sanitized;
 }
-/
-/**;
- * Sanitize SQL query parameters;/
- */;
-export function sanitizeSqlParam(param: unknown): string | number | null {
-  if (param === null || param === undefined) {
-    return null;}
-"
-  if (typeof param === 'number') {/
-    // Validate number is not NaN or Infinity;
-    if (!isFinite(param)) {"
-      throw new ValidationError('Invalid numeric parameter');
-    }
-    return param;
-  }
-"
-  if (typeof param === 'boolean') {"
-    return param ? 1: "0;"}
-"
-  if (typeof param === 'string') {/
-    // Remove any SQL comment syntax;
-    let sanitized = param;"/
-      .replace(/--.*$/gm, '');"/
-      .replace(/\/\*[\s\S]*?\*\//g, '');"/
-      .replace(/;.*$/g, ''); // Remove anything after semicolon
-;/
-    // Escape single quotes by doubling them (SQL standard);"/
-    sanitized = sanitized.replace(/'/g, "''");
 
+/**
+ * Sanitize SQL identifier
+ */
+export function sanitizeSqlIdentifier(identifier: unknown): string {
+  if (typeof identifier !== 'string') {
+    throw new ValidationError('SQL identifier must be a string');
+  }
+  
+  const sanitized = identifier.trim();
+  return validateSqlIdentifier(sanitized);
+}
+
+/**
+ * Sanitize text for logging (remove sensitive data)
+ */
+export function sanitizeForLogging(data: unknown): unknown {
+  if (data === null || data === undefined) {
+    return data;
+  }
+  
+  if (typeof data === 'string') {
+    // Remove potential sensitive patterns
+    return data
+      .replace(/password["\s]*[:=]["\s]*[^"'\s,}]+/gi, 'password: [REDACTED]')
+      .replace(/token["\s]*[:=]["\s]*[^"'\s,}]+/gi, 'token: [REDACTED]')
+      .replace(/key["\s]*[:=]["\s]*[^"'\s,}]+/gi, 'key: [REDACTED]')
+      .replace(/secret["\s]*[:=]["\s]*[^"'\s,}]+/gi, 'secret: [REDACTED]')
+      .replace(/api[_-]?key["\s]*[:=]["\s]*[^"'\s,}]+/gi, 'api_key: [REDACTED]')
+      .replace(/access[_-]?token["\s]*[:=]["\s]*[^"'\s,}]+/gi, 'access_token: [REDACTED]')
+      .replace(/refresh[_-]?token["\s]*[:=]["\s]*[^"'\s,}]+/gi, 'refresh_token: [REDACTED]')
+      .substring(0, 1000); // Limit length
+  }
+  
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeForLogging(item));
+  }
+  
+  if (typeof data === 'object') {
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      const sanitizedKey = sanitizeForLogging(key) as string;
+      const sanitizedValue = sanitizeForLogging(value);
+      sanitized[sanitizedKey] = sanitizedValue;
+    }
     return sanitized;
   }
-/
-  // For objects/arrays, stringify and sanitize;
-  return sanitizeSqlParam(JSON.stringify(param));
+  
+  return data;
 }
-/
-// ============================================================================;/
-// PII DETECTION AND REDACTION;/
+
 // ============================================================================
-;/
-/**;
- * Detect if text contains PII;/
- */;
-export function containsPII(text: string): boolean {
-  for (const [type, pattern] of Object.entries(PII_PATTERNS)) {
+// SECURITY DETECTION FUNCTIONS
+// ============================================================================
+
+/**
+ * Detect prompt injection attempts
+ */
+export function detectPromptInjection(text: string): {
+  detected: boolean;
+  patterns: string[];
+  severity: 'low' | 'medium' | 'high' | 'critical';
+} {
+  const detectedPatterns: string[] = [];
+  
+  for (const pattern of PROMPT_INJECTION_PATTERNS) {
     if (pattern.test(text)) {
-      return true;
+      detectedPatterns.push(pattern.source);
     }
   }
-  return false;
-}
-/
-/**;
- * Redact PII from text;/
- */;"
-export function redactPII(text: "string", replaceWith: string = '[REDACTED]'): string {
-  let redacted = text;
-
-  for (const [type, pattern] of Object.entries(PII_PATTERNS)) {`
-    redacted = redacted.replace(pattern, `${replaceWith}_${type.toUpperCase()}`);
-  }
-
-  return redacted;
-}
-/
-/**;
- * Sanitize object for logging (redact PII from all string values);/
- */;"
-export function sanitizeForLogging(obj: "any", depth: number = 0): any {"/
-  if (depth > 10) return '[MAX_DEPTH]'; // Prevent infinite recursion
-;
-  if (obj === null || obj === undefined) {
-    return obj;}
-"
-  if (typeof obj === 'string') {
-    return redactPII(obj);
-  }
-"
-  if (typeof obj === 'number' || typeof obj === 'boolean') {
-    return obj;
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(item => sanitizeForLogging(item, depth + 1));
-  }
-"
-  if (typeof obj === 'object') {"
-    const sanitized: "Record<string", any> = {};"
-    const sensitiveKeys = ['password', 'token', 'secret', 'apiKey', 'api_key', 'authorization', 'cookie', 'session'];
-
-    for (const [key, value] of Object.entries(obj)) {/
-      // Completely redact sensitive keys;
-      if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {"
-        sanitized[key] = '[REDACTED]';
-      } else {
-        sanitized[key] = sanitizeForLogging(value, depth + 1);
-      }
-    }
-
-    return sanitized;
-  }
-"
-  return '[UNKNOWN_TYPE]';
-}
-/
-// ============================================================================;/
-// API KEY SECURITY;/
-// ============================================================================
-;/
-/**;
- * Validate API key format without exposing it;/
- */;"
-export function validateApiKeyFormat(apiKey: "string", prefix: string = 'sk-'): boolean {"
-  if (!apiKey || typeof apiKey !== 'string') {
-    return false;}
-/
-  // Check prefix and minimum length;
-  if (!apiKey.startsWith(prefix) || apiKey.length < 20) {
-    return false;
-  }
-"/
-  // Ensure it doesn't contain invalid characters;/
-  const validPattern = /^[a-zA-Z0-9\-_]+$/;
-  return validPattern.test(apiKey.substring(prefix.length));
-}
-/
-/**;
- * Mask API key for display (show only prefix and last 4 chars);/
- */;
-export function maskApiKey(apiKey: string): string {
-  if (!apiKey || apiKey.length < 10) {"
-    return '[INVALID_KEY]';}
-
-  const prefix = apiKey.substring(0, 3);
-  const suffix = apiKey.substring(apiKey.length - 4);`
-  return `${prefix}...${suffix}`;
-}
-/
-// ============================================================================;/
-// ERROR SANITIZATION;/
-// ============================================================================
-;/
-/**;
- * Sanitize error messages for user display;/
- */;
-export function sanitizeErrorForUser(error: Error | string): string {
-  const errorMessage = error instanceof Error ? error.message : String(error);
-/
-  // Remove stack traces;"
-  let sanitized = errorMessage.split('\n')[0];
-/
-  // Remove file paths;"/
-  sanitized = sanitized.replace(/([A-Z]:)?[\\/][\w\s\-\.]+[\\/]/gi, '[PATH]/');
-/
-  // Remove potential PII;
-  sanitized = redactPII(sanitized);
-/
-  // Remove internal service names;"/
-  sanitized = sanitized.replace(/\b(localhost|127\.0\.0\.1|internal|staging|dev)\b/gi, '[SERVICE]');
-/
-  // Categorize common errors with user-friendly messages;"
-  const errorMappings: "Record<string", string> = {"
-    'rate limit': 'The service is temporarily busy. Please try again in a moment.',;"
-    'timeout': 'The operation took too long. Please try again.',;"
-    'network error': 'Connection issue detected. Please check your internet connection.',;"
-    'unauthorized': 'You don\'t have permission to perform this action.',;"
-    'not found': 'The requested resource was not found.',;"
-    'validation': 'The provided data is invalid. Please check and try again.',;"
-    'server error': 'An unexpected error occurred. Our team has been notified.',;
-  };
-
-  for (const [pattern, message] of Object.entries(errorMappings)) {
-    if (sanitized.toLowerCase().includes(pattern)) {
-      return message;
+  
+  const detected = detectedPatterns.length > 0;
+  let severity: 'low' | 'medium' | 'high' | 'critical' = 'low';
+  
+  if (detected) {
+    if (detectedPatterns.length >= 5) {
+      severity = 'critical';
+    } else if (detectedPatterns.length >= 3) {
+      severity = 'high';
+    } else if (detectedPatterns.length >= 2) {
+      severity = 'medium';
     }
   }
-/
-  // Default sanitized message if no pattern matches;"
-  return 'An error occurred while processing your request. Please try again.';
-}
-/
-// ============================================================================;/
-// SECURITY HEADERS;/
-// ============================================================================
-;/
-/**;
- * Generate secure response headers;/
- */;
-export function getSecurityHeaders(): Record<string, string> {
-  return {"
-    'X-Content-Type-Options': 'nosniff',;"
-    'X-Frame-Options': 'DENY',;"
-    'X-XSS-Protection': '1; mode=block',;"
-    'Referrer-Policy': 'strict-origin-when-cross-origin',;"
-    'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',;"
-    'Content-Security-Policy': "default-src;"
-  'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",;
+  
+  return {
+    detected,
+    patterns: detectedPatterns,
+    severity
   };
 }
-/
-// ============================================================================;/
-// RATE LIMITING;/
-// ============================================================================
-;
-interface RateLimitEntry {"
-  count: "number;"
-  resetAt: number;"}
 
-const rateLimitMap = new Map<string, RateLimitEntry>();
-/
-/**;
- * Check if request should be rate limited;/
- */;
-export function checkRateLimit(;"
-  identifier: "string",;"
-  maxRequests: "number = 100",;
-  windowMs: number = 60000;
-): { allowed: boolean; remaining: number; resetAt: number} {
-  const now = Date.now();
-  const entry = rateLimitMap.get(identifier);
-/
-  // Clean up old entries periodically;
-  if (rateLimitMap.size > 10000) {
-    for (const [key, value] of rateLimitMap.entries()) {
-      if (value.resetAt < now) {
-        rateLimitMap.delete(key);
-      }
+/**
+ * Detect SQL injection attempts
+ */
+export function detectSqlInjection(text: string): {
+  detected: boolean;
+  patterns: string[];
+  severity: 'low' | 'medium' | 'high' | 'critical';
+} {
+  const detectedPatterns: string[] = [];
+  
+  for (const pattern of SQL_INJECTION_PATTERNS) {
+    if (pattern.test(text)) {
+      detectedPatterns.push(pattern.source);
     }
   }
-
-  if (!entry || entry.resetAt < now) {/
-    // Create new entry;
-    rateLimitMap.set(identifier, {"
-      count: "1",;"
-      resetAt: "now + windowMs;"});
-
-    return {"
-      allowed: "true",;"
-      remaining: "maxRequests - 1",;"
-      resetAt: "now + windowMs;"};
+  
+  const detected = detectedPatterns.length > 0;
+  let severity: 'low' | 'medium' | 'high' | 'critical' = 'low';
+  
+  if (detected) {
+    if (detectedPatterns.length >= 5) {
+      severity = 'critical';
+    } else if (detectedPatterns.length >= 3) {
+      severity = 'high';
+    } else if (detectedPatterns.length >= 2) {
+      severity = 'medium';
+    }
   }
-/
-  // Check existing entry;
-  if (entry.count >= maxRequests) {
-    return {"
-      allowed: "false",;"
-      remaining: "0",;"
-      resetAt: "entry.resetAt;"};
+  
+  return {
+    detected,
+    patterns: detectedPatterns,
+    severity
+  };
+}
+
+/**
+ * Detect XSS attempts
+ */
+export function detectXss(text: string): {
+  detected: boolean;
+  patterns: string[];
+  severity: 'low' | 'medium' | 'high' | 'critical';
+} {
+  const detectedPatterns: string[] = [];
+  
+  for (const pattern of XSS_PATTERNS) {
+    if (pattern.test(text)) {
+      detectedPatterns.push(pattern.source);
+    }
   }
-/
-  // Increment count;
-  entry.count++;
+  
+  const detected = detectedPatterns.length > 0;
+  let severity: 'low' | 'medium' | 'high' | 'critical' = 'low';
+  
+  if (detected) {
+    if (detectedPatterns.length >= 5) {
+      severity = 'critical';
+    } else if (detectedPatterns.length >= 3) {
+      severity = 'high';
+    } else if (detectedPatterns.length >= 2) {
+      severity = 'medium';
+    }
+  }
+  
+  return {
+    detected,
+    patterns: detectedPatterns,
+    severity
+  };
+}
 
-  return {"
-    allowed: "true",;"
-    remaining: "maxRequests - entry.count",;"
-    resetAt: "entry.resetAt;"};
+/**
+ * Comprehensive security scan
+ */
+export function securityScan(text: string): {
+  promptInjection: ReturnType<typeof detectPromptInjection>;
+  sqlInjection: ReturnType<typeof detectSqlInjection>;
+  xss: ReturnType<typeof detectXss>;
+  overallRisk: 'low' | 'medium' | 'high' | 'critical';
+} {
+  const promptInjection = detectPromptInjection(text);
+  const sqlInjection = detectSqlInjection(text);
+  const xss = detectXss(text);
+  
+  const risks = [promptInjection.severity, sqlInjection.severity, xss.severity];
+  const riskLevels = { low: 1, medium: 2, high: 3, critical: 4 };
+  const maxRisk = Math.max(...risks.map(risk => riskLevels[risk]));
+  
+  let overallRisk: 'low' | 'medium' | 'high' | 'critical' = 'low';
+  if (maxRisk >= 4) overallRisk = 'critical';
+  else if (maxRisk >= 3) overallRisk = 'high';
+  else if (maxRisk >= 2) overallRisk = 'medium';
+  
+  return {
+    promptInjection,
+    sqlInjection,
+    xss,
+    overallRisk
+  };
 }
-/
-// ============================================================================;/
-// ENCRYPTION HELPERS;/
-// ============================================================================
-;/
-/**;
- * Hash sensitive data for storage (one-way);/
- */;
-export async function hashSensitiveData(data: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const dataBuffer = encoder.encode(data);"
-  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));"
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-/
-/**;
- * Generate secure random token;/
- */;
-export function generateSecureToken(length: number = 32): string {
-  const array = new Uint8Array(length);
-  crypto.getRandomValues(array);"
-  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-}
-/
-// ============================================================================;/
-// AUDIT HELPERS;/
-// ============================================================================
-;/
-/**;
- * Create audit-safe log entry;/
- */;
-export function createAuditEntry(;"
-  action: "string",;"
-  businessId: "string",;"
-  userId: "string",;"
-  details: "any;"
-): Record<string", any> {
-  return {"
-    id: "generateSecureToken(16)",;"
-    timestamp: "new Date().toISOString()",;
-    action,;"
-    businessId: "sanitizeBusinessId(businessId)",;"
-    userId: "sanitizeUserId(userId)",;"
-    details: "sanitizeForLogging(details)",;"
-    environment: process.env.NODE_ENV || 'development',;"
-    version: process.env.APP_VERSION || 'unknown';};
-}
-/
-// ============================================================================;/
-// EXPORT VALIDATION SCHEMAS;/
-// ============================================================================
-;
-export const SecureBusinessContextSchema = z.object({"
-  businessId: "z.string().refine(validateBusinessId", 'Invalid business ID format'),;"
-  userId: "z.string().refine(validateUserId", 'Invalid user ID format'),;"
-  sessionId: "z.string().optional()",;"
-  department: "z.string().optional()",;"
-  timezone: z.string().default('UTC'),;"
-  currency: z.string().default('USD'),;"
-  locale: z.string().default('en-US'),;
-  permissions: z.array(z.string()).default([]),;
-});
 
-export const SecureTaskInputSchema = z.object({"
-  id: "z.string().min(1)",;"
-  capability: "z.string().min(1)",;"
-  input: "z.unknown().transform(val => sanitizeAIInput(val))",;"
-  context: "SecureBusinessContextSchema",;
-  constraints: z.object({
-    maxCost: z.number().positive().optional(),;"
-    maxLatency: "z.number().positive().optional()",;"
-    requiredAccuracy: "z.number().min(0).max(1).optional()",;"
-    timeout: "z.number().positive().optional()",;"
-    retryLimit: "z.number().int().min(0).max(5).optional()",;
-  }).optional(),;"
-  metadata: "z.record(z.unknown()).optional()",;"
-  priority: z.enum(['low', 'normal', 'high', 'critical']).optional(),;
-});
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
 
-export type SecureBusinessContext = z.infer<typeof SecureBusinessContextSchema>;
-export type SecureTaskInput = z.infer<typeof SecureTaskInputSchema>;"`/
+/**
+ * Generate secure random string
+ */
+export function generateSecureRandom(length: number = 32): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  return result;
+}
+
+/**
+ * Hash string for consistent comparison
+ */
+export function hashString(input: string): string {
+  let hash = 0;
+  if (input.length === 0) return hash.toString();
+  
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  return Math.abs(hash).toString(36);
+}
+
+/**
+ * Check if string contains only safe characters
+ */
+export function isSafeString(input: string): boolean {
+  // Allow alphanumeric, spaces, and common punctuation
+  const safePattern = /^[a-zA-Z0-9\s.,!?;:()\-_@#$%&*+=<>[\]{}|\\\/~`"']+$/;
+  return safePattern.test(input);
+}
+
+/**
+ * Escape HTML entities
+ */
+export function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Unescape HTML entities
+ */
+export function unescapeHtml(input: string): string {
+  return input
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+

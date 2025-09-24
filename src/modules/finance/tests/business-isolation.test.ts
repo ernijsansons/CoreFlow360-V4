@@ -3,7 +3,7 @@
  * Comprehensive testing to ensure strict multi-tenant data isolation
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MockDatabase } from './security-integration.test';
 import { FinancialReportingEngine } from '../financial-reporting-engine';
 import { AgingReportsGenerator } from '../aging-reports-generator';

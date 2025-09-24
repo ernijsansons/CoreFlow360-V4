@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { DataIntegrityAuditResult, Issue } from '../types/index.js';
+import { DataIntegrityAuditResult, Issue } from '../types/index';
 
 export class QuantumDataAuditor {
   async auditDataIntegrity(): Promise<DataIntegrityAuditResult> {

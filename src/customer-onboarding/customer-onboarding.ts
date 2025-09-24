@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 
-import { CustomerOnboardingEngine } from './engine/CustomerOnboardingEngine.js';
-import { OnboardingMetadata } from './types/index.js';
+import { CustomerOnboardingEngine } from './engine/CustomerOnboardingEngine';
+import { OnboardingMetadata } from './types/index';
 
 async function main() {
   try {

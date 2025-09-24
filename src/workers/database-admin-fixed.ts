@@ -4,18 +4,9 @@ import type { Env } from '../types/env';
 import { MigrationRunner, type MigrationFile } from '../modules/database/migration-runner';
 import { createErrorResponse } from '../shared/utils';
 
+import { loadMigrations, loadRollbacks } from './migration-sql';
 // Import migration files (in production, these would be loaded from R2 or KV)
-import migration001 from '../../database/migrations/001_core_tenant_users.sql?raw';
-import migration002 from '../../database/migrations/002_rbac_departments.sql?raw';
-import migration003 from '../../database/migrations/003_double_entry_ledger.sql?raw';
-import migration004 from '../../database/migrations/004_audit_workflows.sql?raw';
-import migration005 from '../../database/migrations/005_additional_indexes.sql?raw';
 
-import rollback001 from '../../database/rollbacks/rollback_001_core_tenant_users.sql?raw';
-import rollback002 from '../../database/rollbacks/rollback_002_rbac_departments.sql?raw';
-import rollback003 from '../../database/rollbacks/rollback_003_double_entry_ledger.sql?raw';
-import rollback004 from '../../database/rollbacks/rollback_004_audit_workflows.sql?raw';
-import rollback005 from '../../database/rollbacks/rollback_005_additional_indexes.sql?raw';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -78,7 +69,7 @@ const adminAuthMiddleware = async (c: any, next: any) => {
 app.use('*', adminAuthMiddleware);
 
 // Audit logging helper
-async function logAudit(c: any, eventName: string, eventType: string, data: any) {
+async function logAudit(c: any, eventName: string, eventType: string, data: any): Promise<void> {
   const auditEntry = {
     id: crypto.randomUUID(),
     business_id: 'SYSTEM',
@@ -117,6 +108,7 @@ async function logAudit(c: any, eventName: string, eventType: string, data: any)
       data.compute_time_ms || 0
     ).run();
   } catch (error) {
+    // Silently ignore audit failures to not break main functionality
   }
 }
 
@@ -139,217 +131,88 @@ app.get('/migrations/status', async (c) => {
       failed: status.filter((m: any) => m.status === 'failed').length,
     });
   } catch (error) {
-    await logAudit(c, 'migration_status_error', 'error', {
+    await logAudit(c, 'migration_status_error', 'error', { 
       error: String(error),
       compute_time_ms: Date.now() - startTime
     });
-    return createErrorResponse('INTERNAL_ERROR', 'Failed to get migration status', 500);
+    return createErrorResponse('MIGRATION_ERROR', 'Failed to get migration status', 500);
   }
 });
 
-// Run migrations with proper error handling
+// Run migrations
 app.post('/migrations/run', async (c) => {
   const startTime = Date.now();
   try {
-    const migrations: MigrationFile[] = [
-      {
-        version: '001',
-        name: 'core_tenant_users',
-        sql: migration001,
-        checksum: await MigrationRunner.calculateChecksum(migration001),
-      },
-      {
-        version: '002',
-        name: 'rbac_departments',
-        sql: migration002,
-        checksum: await MigrationRunner.calculateChecksum(migration002),
-      },
-      {
-        version: '003',
-        name: 'double_entry_ledger',
-        sql: migration003,
-        checksum: await MigrationRunner.calculateChecksum(migration003),
-      },
-      {
-        version: '004',
-        name: 'audit_workflows',
-        sql: migration004,
-        checksum: await MigrationRunner.calculateChecksum(migration004),
-      },
-      {
-        version: '005',
-        name: 'additional_indexes',
-        sql: migration005,
-        checksum: await MigrationRunner.calculateChecksum(migration005),
-      },
-    ];
+    const runner = new MigrationRunner(c.env.DB_MAIN);
+    const migrations = await loadMigrations();
+    const results = await runner.runMigrations(migrations);
 
-    const runner = new MigrationRunner(c.env.DB_MAIN, 'admin');
-    const results = await runner.executeMigrations(migrations);
-
-    const hasFailures = results.some(r => r.status === 'failed');
-
-    await logAudit(c, 'migrations_executed', hasFailures ? 'error' : 'create', {
-      results: results.map(r => ({ version: r.version, status: r.status })),
-      compute_time_ms: Date.now() - startTime
-    });
-
-    return c.json({
-      success: !hasFailures,
-      results,
-      summary: {
-        total: results.length,
-        successful: results.filter(r => r.status === 'success').length,
-        skipped: results.filter(r => r.status === 'skipped').length,
-        failed: results.filter(r => r.status === 'failed').length,
-      },
-    }, hasFailures ? 500 : 200);
-  } catch (error) {
-    await logAudit(c, 'migrations_error', 'error', {
-      error: String(error),
-      compute_time_ms: Date.now() - startTime
-    });
-    return createErrorResponse('INTERNAL_ERROR', 'Failed to run migrations', 500);
-  }
-});
-
-// Rollback with validation
-app.post('/migrations/rollback/:version', async (c) => {
-  const startTime = Date.now();
-  try {
-    const version = c.req.param('version');
-
-    // Validate version format
-    if (!/^\d{3}$/.test(version)) {
-      return createErrorResponse('VALIDATION_ERROR', 'Invalid version format', 400);
-    }
-
-    const rollbacks: Record<string, string> = {
-      '001': rollback001,
-      '002': rollback002,
-      '003': rollback003,
-      '004': rollback004,
-      '005': rollback005,
-    };
-
-    if (!rollbacks[version]) {
-      await logAudit(c, 'rollback_not_found', 'error', {
-        version,
-        compute_time_ms: Date.now() - startTime
-      });
-      return createErrorResponse('NOT_FOUND', `Rollback script not found for version ${version}`, 404);
-    }
-
-    const runner = new MigrationRunner(c.env.DB_MAIN, 'admin');
-    const result = await runner.rollbackMigration(version, rollbacks[version]);
-
-    await logAudit(c, 'migration_rollback', result.status === 'success' ? 'delete' : 'error', {
-      version,
-      result,
-      compute_time_ms: Date.now() - startTime
-    });
-
-    return c.json({
-      success: result.status === 'success',
-      result,
-    }, result.status === 'success' ? 200 : 500);
-  } catch (error) {
-    await logAudit(c, 'rollback_error', 'error', {
-      error: String(error),
-      compute_time_ms: Date.now() - startTime
-    });
-    return createErrorResponse('INTERNAL_ERROR', 'Failed to rollback migration', 500);
-  }
-});
-
-// Database statistics - FIXED: Now properly isolated
-app.get('/database/stats/:businessId?', async (c) => {
-  const startTime = Date.now();
-  try {
-    const businessId = c.req.param('businessId');
-
-    // System-wide stats only if no businessId provided (admin only)
-    if (!businessId) {
-      const systemStats = await c.env.DB_MAIN.prepare(`
-        SELECT
-          'total_businesses' as metric,
-          COUNT(*) as value
-        FROM businesses
-        WHERE status != 'deleted'
-
-        UNION ALL
-
-        SELECT
-          'total_users' as metric,
-          COUNT(*) as value
-        FROM users
-        WHERE status != 'deleted'
-      `).all();
-
-      await logAudit(c, 'system_stats_viewed', 'view', {
-        compute_time_ms: Date.now() - startTime
-      });
-
-      return c.json({
-        success: true,
-        type: 'system',
-        statistics: systemStats.results,
-      });
-    }
-
-    // Business-specific stats with proper isolation
-    const businessStats = await c.env.DB_MAIN.prepare(`
-      SELECT
-        'active_users' as metric,
-        COUNT(*) as value
-      FROM business_memberships
-      WHERE business_id = ? AND status = 'active'
-
-      UNION ALL
-
-      SELECT
-        'journal_entries' as metric,
-        COUNT(*) as value
-      FROM journal_entries
-      WHERE business_id = ? AND status = 'posted'
-
-      UNION ALL
-
-      SELECT
-        'recent_audits' as metric,
-        COUNT(*) as value
-      FROM audit_logs
-      WHERE business_id = ? AND created_at > datetime('now', '-30 days')
-    `).bind(businessId, businessId, businessId).all();
-
-    await logAudit(c, 'business_stats_viewed', 'view', {
-      business_id: businessId,
+    await logAudit(c, 'migrations_executed', 'action', {
+      migrations_count: migrations.length,
       compute_time_ms: Date.now() - startTime
     });
 
     return c.json({
       success: true,
-      type: 'business',
-      businessId,
-      statistics: businessStats.results,
+      results,
+      executed: results.filter(r => r.status === 'completed').length,
+      failed: results.filter(r => r.status === 'failed').length,
     });
   } catch (error) {
-    await logAudit(c, 'stats_error', 'error', {
+    await logAudit(c, 'migrations_execution_error', 'error', { 
       error: String(error),
       compute_time_ms: Date.now() - startTime
     });
-    return createErrorResponse('INTERNAL_ERROR', 'Failed to get statistics', 500);
+    return createErrorResponse('MIGRATION_ERROR', 'Failed to run migrations', 500);
+  }
+});
+
+// Rollback migrations
+app.post('/migrations/rollback', async (c) => {
+  const startTime = Date.now();
+  try {
+    const body = await c.req.json();
+    const { steps = 1 } = body;
+
+    const runner = new MigrationRunner(c.env.DB_MAIN);
+    const rollbacks = await loadRollbacks();
+    const results = await runner.rollbackMigrations(rollbacks, steps);
+
+    await logAudit(c, 'migrations_rollback', 'action', {
+      rollback_steps: steps,
+      compute_time_ms: Date.now() - startTime
+    });
+
+    return c.json({
+      success: true,
+      results,
+      rolledBack: results.filter(r => r.status === 'completed').length,
+      failed: results.filter(r => r.status === 'failed').length,
+    });
+  } catch (error) {
+    await logAudit(c, 'migrations_rollback_error', 'error', { 
+      error: String(error),
+      compute_time_ms: Date.now() - startTime
+    });
+    return createErrorResponse('MIGRATION_ERROR', 'Failed to rollback migrations', 500);
   }
 });
 
 // Health check
-app.get('/health', (c) => {
-  return c.json({
-    status: 'healthy',
-    service: 'database-admin',
-    timestamp: new Date().toISOString(),
-    requestId: c.get('requestId'),
-  });
+app.get('/health', async (c) => {
+  try {
+    // Test database connection
+    await c.env.DB_MAIN.prepare('SELECT 1').first();
+
+    return c.json({
+      success: true,
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      environment: c.env.ENVIRONMENT || 'development'
+    });
+  } catch (error) {
+    return createErrorResponse('HEALTH_CHECK_FAILED', 'Database connection failed', 503);
+  }
 });
 
 export default app;

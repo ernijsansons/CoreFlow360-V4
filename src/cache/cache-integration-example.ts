@@ -2,26 +2,27 @@ import { createCacheService, CacheService } from './cache-service';
 import { SmartCaching } from '../cloudflare/performance/SmartCaching';
 import type { KVNamespace } from '@cloudflare/workers-types';
 
+// Define a compatible interface that works with both systems
+interface CacheEnv {
+  CACHE: KVNamespace;
+  ANALYTICS?: any;
+  R2_CACHE?: any;
+  ENVIRONMENT?: string;
+}
+
 /**
  * Example integration showing how to use both caching systems
  * Simple CacheService for basic needs, SmartCaching for advanced scenarios
  */
 
-interface Env {
-  CACHE: KVNamespace;
-  ANALYTICS: any;
-  R2_CACHE: any;
-  ENVIRONMENT: string;
-}
-
 export class HybridCacheManager {
   private simpleCache: CacheService;
   private smartCache: SmartCaching;
 
-  constructor(env: Env) {
+  constructor(env: CacheEnv) {
     // Initialize both caching systems
     this.simpleCache = createCacheService(env.CACHE);
-    this.smartCache = new SmartCaching(env);
+    this.smartCache = new SmartCaching(env as any); // Type assertion for compatibility
   }
 
   /**
@@ -201,7 +202,7 @@ export class HybridCacheManager {
 export class CacheUsageExamples {
   private cacheManager: HybridCacheManager;
 
-  constructor(env: Env) {
+  constructor(env: CacheEnv) {
     this.cacheManager = new HybridCacheManager(env);
   }
 
@@ -308,10 +309,10 @@ export class CacheUsageExamples {
 }
 
 // Factory function for easy integration
-export function createHybridCacheManager(env: Env): HybridCacheManager {
+export function createHybridCacheManager(env: CacheEnv): HybridCacheManager {
   return new HybridCacheManager(env);
 }
 
-export function createCacheUsageExamples(env: Env): CacheUsageExamples {
+export function createCacheUsageExamples(env: CacheEnv): CacheUsageExamples {
   return new CacheUsageExamples(env);
 }

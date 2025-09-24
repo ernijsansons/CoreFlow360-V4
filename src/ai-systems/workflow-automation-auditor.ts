@@ -1172,7 +1172,7 @@ export class WorkflowAutomationAuditor {
 
   private findDuplicateStepTypes(workflow: WorkflowDefinition): string[] {
     const stepTypes = workflow.steps.map(s => s.type);
-    return [...new Set(stepTypes.filter((type, index) => stepTypes.indexOf(type) !== index))];
+    return Array.from(new Set(stepTypes.filter((type, index) => stepTypes.indexOf(type) !== index)));
   }
 
   private findParallelizableSteps(workflow: WorkflowDefinition): string[] {

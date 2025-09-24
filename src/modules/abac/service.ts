@@ -16,8 +16,8 @@ import { PerformanceMonitor } from './performance-monitor';
  * Main ABAC service that orchestrates all components
  * Provides the primary interface for permission checks
  */
-export // TODO: Consider splitting ABACService into smaller, focused classes
-class ABACService {
+// TODO: Consider splitting ABACService into smaller, focused classes
+export class ABACService {
   private resolver: PermissionResolver;
   private cache: PermissionCache;
   private monitor: PerformanceMonitor;
