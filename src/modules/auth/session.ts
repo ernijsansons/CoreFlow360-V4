@@ -7,7 +7,8 @@ const MAX_SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours absolute max
 const SESSION_PREFIX = 'session:';
 const USER_SESSIONS_PREFIX = 'user_sessions:';
 
-export class SessionManager {
+export // TODO: Consider splitting SessionManager into smaller, focused classes
+class SessionManager {
   private kv: KVNamespace;
   private jwtService: JWTService;
 
@@ -263,7 +264,6 @@ export class SessionManager {
         mfaVerified: session.mfaVerified,
       };
     } catch (error) {
-      console.error('Session verification error:', error);
       return null;
     }
   }
@@ -320,7 +320,6 @@ export class SessionManager {
         expiresIn: 900, // 15 minutes
       };
     } catch (error) {
-      console.error('Token refresh error:', error);
       return null;
     }
   }

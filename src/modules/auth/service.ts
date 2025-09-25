@@ -13,19 +13,34 @@ import {
 import { hashPassword, verifyPassword, generateSecureToken, generateOTPCode, generateTOTPSecret } from './crypto';
 import { JWTService } from './jwt';
 import { SessionManager } from './session';
+import { MFAService } from './mfa-service';
 import { AuthenticationError, ValidationError, ConflictError, BusinessLogicError } from '../../shared/error-handler';
+import { withTracing, correlationManager } from '../../shared/correlation-id';
+import { monitoringService, withMonitoring } from '../../shared/monitoring-service';
+import { Logger } from '../../shared/logger';
 
-export class AuthService {
+export // TODO: Consider splitting AuthService into smaller, focused classes
+class AuthService {
   private db: D1Database;
   private kv: KVNamespace;
   private jwtService: JWTService;
   private sessionManager: SessionManager;
+  private mfaService: MFAService;
+  private logger: Logger;
 
   constructor(env: Env) {
+    this.logger = new Logger();
+
+    // Validate required environment variables
+    if (!env.JWT_SECRET) {
+      throw new AuthenticationError('JWT_SECRET environment variable is required');
+    }
+
     this.db = env.DB_MAIN;
     this.kv = env.KV_SESSION;
-    this.jwtService = new JWTService(env.JWT_SECRET || 'dev-secret');
+    this.jwtService = new JWTService(env.JWT_SECRET);
     this.sessionManager = new SessionManager(this.kv, this.jwtService);
+    this.mfaService = new MFAService(this.kv, this.db);
   }
 
   /**
@@ -36,126 +51,123 @@ export class AuthService {
     ipAddress: string,
     userAgent: string
   ): Promise<AuthResponse> {
-    // Validate input
-    const validated = RegisterRequestSchema.parse(data);
+    return withTracing('auth.register', async () => {
+      try {
+        // Validate input
+        const validatedData = RegisterRequestSchema.parse(data);
 
-    // Check if user already exists
-    const existingUser = await this.db
-      .prepare('SELECT id FROM users WHERE email = ?')
-      .bind(validated.email)
-      .first();
+        // Check if user already exists
+        const existingUser = await this.db.prepare(`
+          SELECT id FROM users WHERE email = ?
+        `).bind(validatedData.email).first();
 
-    if (existingUser) {
-      throw new ConflictError('User with this email already exists');
-    }
+        if (existingUser) {
+          throw new ConflictError('User with this email already exists');
+        }
 
-    // Begin transaction (simulate with try-catch)
-    const userId = crypto.randomUUID();
-    const businessId = crypto.randomUUID();
+        // Hash password
+        const hashedPassword = await hashPassword(validatedData.password);
 
-    try {
-      // Hash password
-      const { hash, salt } = await hashPassword(validated.password);
+        // Generate business ID
+        const businessId = `biz_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      // Create business if business name provided
-      if (validated.businessName) {
-        await this.db
-          .prepare(`
+        // Create user and business in transaction
+        await this.db.batch([
+          this.db.prepare(`
+            INSERT INTO users (
+              id, email, password_hash, first_name, last_name, 
+              phone, business_id, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            validatedData.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            validatedData.email,
+            hashedPassword,
+            validatedData.firstName,
+            validatedData.lastName,
+            validatedData.phone,
+            businessId,
+            new Date().toISOString(),
+            new Date().toISOString()
+          ),
+          this.db.prepare(`
             INSERT INTO businesses (
-              id, name, email, subscription_tier, subscription_status,
-              created_at, updated_at
-            ) VALUES (?, ?, ?, 'trial', 'active', datetime('now'), datetime('now'))
-          `)
-          .bind(businessId, validated.businessName, validated.email)
-          .run();
-      }
+              id, name, domain, industry, size_range, 
+              created_at, updated_at, created_by
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            businessId,
+            validatedData.businessName,
+            validatedData.businessDomain,
+            validatedData.industry,
+            validatedData.sizeRange,
+            new Date().toISOString(),
+            new Date().toISOString(),
+            validatedData.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+          )
+        ]);
 
-      // Create user
-      await this.db
-        .prepare(`
-          INSERT INTO users (
-            id, email, password_hash, first_name, last_name,
-            status, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, 'active', datetime('now'), datetime('now'))
-        `)
-        .bind(
-          userId,
-          validated.email,
-          `${salt}:${hash}`, // Store salt with hash
-          validated.firstName,
-          validated.lastName
-        )
-        .run();
-
-      // Create business membership
-      if (validated.businessName) {
-        await this.db
-          .prepare(`
-            INSERT INTO business_memberships (
-              id, business_id, user_id, role, is_primary, status,
-              joined_at, created_at, updated_at
-            ) VALUES (?, ?, ?, 'owner', 1, 'active', datetime('now'), datetime('now'), datetime('now'))
-          `)
-          .bind(crypto.randomUUID(), businessId, userId)
-          .run();
-      }
-
-      // Create session
-      const session = await this.sessionManager.createSession(
-        userId,
-        businessId,
-        validated.email,
-        'owner',
-        ['*'], // Full permissions for owner
-        ipAddress,
-        userAgent,
-        validated.businessName || ''
-      );
-
-      // Log registration
-      await this.logAuthEvent({
-        id: crypto.randomUUID(),
-        userId,
-        businessId,
-        event: 'register',
-        success: true,
-        ipAddress,
-        userAgent,
-        timestamp: Date.now(),
-      });
-
-      return {
-        success: true,
-        accessToken: session.accessToken,
-        refreshToken: session.refreshToken,
-        expiresIn: 900, // 15 minutes
-        user: {
-          id: userId,
-          email: validated.email,
-          firstName: validated.firstName,
-          lastName: validated.lastName,
+        // Generate JWT tokens
+        const accessToken = await this.jwtService.generateAccessToken({
+          userId: validatedData.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           businessId,
-          businessName: validated.businessName || '',
-          role: 'owner',
-        },
-      };
-    } catch (error) {
-      // Rollback - delete created records
-      await this.db.prepare('DELETE FROM users WHERE id = ?').bind(userId).run();
-      await this.db.prepare('DELETE FROM businesses WHERE id = ?').bind(businessId).run();
+          email: validatedData.email
+        });
 
-      await this.logAuthEvent({
-        id: crypto.randomUUID(),
-        event: 'register',
-        success: false,
-        ipAddress,
-        userAgent,
-        metadata: { email: validated.email, error: String(error) },
-        timestamp: Date.now(),
-      });
+        const refreshToken = await this.jwtService.generateRefreshToken({
+          userId: validatedData.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          businessId
+        });
 
-      throw error;
-    }
+        // Create session
+        await this.sessionManager.createSession({
+          userId: validatedData.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          businessId,
+          accessToken,
+          refreshToken,
+          ipAddress,
+          userAgent
+        });
+
+        // Log audit entry
+        await this.logAuthEvent({
+          userId: validatedData.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          businessId,
+          action: 'register',
+          ipAddress,
+          userAgent,
+          success: true
+        });
+
+        return {
+          success: true,
+          accessToken,
+          refreshToken,
+          user: {
+            id: validatedData.id || `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            email: validatedData.email,
+            firstName: validatedData.firstName,
+            lastName: validatedData.lastName,
+            businessId
+          }
+        };
+
+      } catch (error) {
+        this.logger.error('Registration failed', { error: error.message, email: data.email });
+        
+        // Log audit entry
+        await this.logAuthEvent({
+          userId: data.id,
+          businessId: undefined,
+          action: 'register',
+          ipAddress,
+          userAgent,
+          success: false,
+          error: error.message
+        });
+
+        throw error;
+      }
+    });
   }
 
   /**
@@ -166,387 +178,493 @@ export class AuthService {
     ipAddress: string,
     userAgent: string
   ): Promise<AuthResponse> {
-    // Validate input
-    const validated = LoginRequestSchema.parse(data);
+    return withTracing('auth.login', async () => {
+      try {
+        // Validate input
+        const validatedData = LoginRequestSchema.parse(data);
 
-    // Get user with password hash
-    const user = await this.db
-      .prepare(`
-        SELECT id, email, password_hash, first_name, last_name,
-               two_factor_enabled, status, failed_login_attempts, locked_until
-        FROM users
-        WHERE email = ? AND status != 'deleted'
-      `)
-      .bind(validated.email)
-      .first<any>();
+        // Get user from database
+        const user = await this.db.prepare(`
+          SELECT u.*, b.name as business_name, b.domain as business_domain
+          FROM users u
+          LEFT JOIN businesses b ON u.business_id = b.id
+          WHERE u.email = ?
+        `).bind(validatedData.email).first();
 
-    if (!user) {
-      await this.logAuthEvent({
-        id: crypto.randomUUID(),
-        event: 'login',
-        success: false,
-        ipAddress,
-        userAgent,
-        metadata: { email: validated.email, reason: 'user_not_found' },
-        timestamp: Date.now(),
-      });
-      throw new AuthenticationError('Invalid email or password');
-    }
+        if (!user) {
+          throw new AuthenticationError('Invalid email or password');
+        }
 
-    // Check if account is locked
-    if (user.locked_until && new Date(user.locked_until) > new Date()) {
-      throw new AuthenticationError('Account is temporarily locked. Please try again later.');
-    }
+        // Verify password
+        const isValidPassword = await verifyPassword(validatedData.password, user.password_hash);
+        if (!isValidPassword) {
+          throw new AuthenticationError('Invalid email or password');
+        }
 
-    // Verify password
-    const [salt, hash] = user.password_hash.split(':');
-    const isValidPassword = await verifyPassword(validated.password, hash, salt);
+        // Check if MFA is required
+        const mfaConfig = await this.mfaService.getMFAConfig(user.id);
+        if (mfaConfig && mfaConfig.enabled) {
+          // Generate MFA challenge
+          const challenge = await this.mfaService.generateChallenge(user.id, mfaConfig.type);
+          
+          return {
+            success: true,
+            requiresMFA: true,
+            mfaChallenge: challenge,
+            user: {
+              id: user.id,
+              email: user.email,
+              firstName: user.first_name,
+              lastName: user.last_name,
+              businessId: user.business_id
+            }
+          };
+        }
 
-    if (!isValidPassword) {
-      // Increment failed login attempts
-      const attempts = (user.failed_login_attempts || 0) + 1;
-      const lockUntil = attempts >= 5
-        ? new Date(Date.now() + 15 * 60 * 1000).toISOString() // Lock for 15 minutes
-        : null;
+        // Generate JWT tokens
+        const accessToken = await this.jwtService.generateAccessToken({
+          userId: user.id,
+          businessId: user.business_id,
+          email: user.email
+        });
 
-      await this.db
-        .prepare(`
-          UPDATE users
-          SET failed_login_attempts = ?,
-              locked_until = ?,
-              updated_at = datetime('now')
-          WHERE id = ?
-        `)
-        .bind(attempts, lockUntil, user.id)
-        .run();
+        const refreshToken = await this.jwtService.generateRefreshToken({
+          userId: user.id,
+          businessId: user.business_id
+        });
 
-      await this.logAuthEvent({
-        id: crypto.randomUUID(),
-        userId: user.id,
-        event: 'login',
-        success: false,
-        ipAddress,
-        userAgent,
-        metadata: { reason: 'invalid_password', attempts },
-        timestamp: Date.now(),
-      });
+        // Create session
+        await this.sessionManager.createSession({
+          userId: user.id,
+          businessId: user.business_id,
+          accessToken,
+          refreshToken,
+          ipAddress,
+          userAgent
+        });
 
-      throw new AuthenticationError('Invalid email or password');
-    }
+        // Log audit entry
+        await this.logAuthEvent({
+          userId: user.id,
+          businessId: user.business_id,
+          action: 'login',
+          ipAddress,
+          userAgent,
+          success: true
+        });
 
-    // Reset failed login attempts on successful login
-    await this.db
-      .prepare(`
-        UPDATE users
-        SET failed_login_attempts = 0,
-            locked_until = NULL,
-            last_login_at = datetime('now'),
-            last_login_ip = ?,
-            updated_at = datetime('now')
-        WHERE id = ?
-      `)
-      .bind(ipAddress, user.id)
-      .run();
+        return {
+          success: true,
+          accessToken,
+          refreshToken,
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            businessId: user.business_id
+          }
+        };
 
-    // Get primary business membership
-    const membership = await this.db
-      .prepare(`
-        SELECT bm.business_id, bm.role, b.name as business_name
-        FROM business_memberships bm
-        JOIN businesses b ON b.id = bm.business_id
-        WHERE bm.user_id = ? AND bm.is_primary = 1 AND bm.status = 'active'
-        LIMIT 1
-      `)
-      .bind(user.id)
-      .first<any>();
+      } catch (error) {
+        this.logger.error('Login failed', { error: error.message, email: data.email });
+        
+        // Log audit entry
+        await this.logAuthEvent({
+          userId: undefined,
+          businessId: undefined,
+          action: 'login',
+          ipAddress,
+          userAgent,
+          success: false,
+          error: error.message
+        });
 
-    if (!membership) {
-      throw new BusinessLogicError('No active business membership found');
-    }
-
-    // Check if MFA is required
-    if (user.two_factor_enabled && !validated.mfaCode) {
-      const mfaToken = await this.jwtService.generateMFAToken(user.id, user.email);
-
-      return {
-        success: true,
-        mfaRequired: true,
-        mfaToken: mfaToken.token,
-      };
-    }
-
-    // Verify MFA code if provided
-    if (user.two_factor_enabled && validated.mfaCode) {
-      const isValidMFA = await this.verifyMFACode(user.id, validated.mfaCode);
-      if (!isValidMFA) {
-        throw new AuthenticationError('Invalid MFA code');
+        throw error;
       }
-    }
-
-    // Get user permissions
-    const permissions = await this.getUserPermissions(user.id, membership.business_id);
-
-    // Create session
-    const session = await this.sessionManager.createSession(
-      user.id,
-      membership.business_id,
-      user.email,
-      membership.role,
-      permissions,
-      ipAddress,
-      userAgent,
-      membership.business_name
-    );
-
-    // Update MFA status if verified
-    if (user.two_factor_enabled) {
-      await this.sessionManager.updateMFAStatus(session.id, true);
-    }
-
-    await this.logAuthEvent({
-      id: crypto.randomUUID(),
-      userId: user.id,
-      businessId: membership.business_id,
-      event: 'login',
-      success: true,
-      ipAddress,
-      userAgent,
-      timestamp: Date.now(),
     });
-
-    return {
-      success: true,
-      accessToken: session.accessToken,
-      refreshToken: session.refreshToken,
-      expiresIn: 900,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        businessId: membership.business_id,
-        businessName: membership.business_name,
-        role: membership.role,
-      },
-    };
   }
 
   /**
-   * Logout user
+   * Verify MFA and complete login
    */
-  async logout(sessionId: string): Promise<void> {
-    const session = await this.sessionManager.getSession(sessionId);
-    if (session) {
-      await this.logAuthEvent({
-        id: crypto.randomUUID(),
-        userId: session.userId,
-        businessId: session.businessId,
-        event: 'logout',
-        success: true,
-        ipAddress: session.ipAddress,
-        userAgent: session.userAgent,
-        timestamp: Date.now(),
-      });
-    }
+  async verifyMFA(
+    challengeId: string,
+    code: string,
+    ipAddress: string,
+    userAgent: string
+  ): Promise<AuthResponse> {
+    return withTracing('auth.verifyMFA', async () => {
+      try {
+        // Verify MFA code
+        const verification = await this.mfaService.verifyChallenge(challengeId, code);
+        if (!verification.success) {
+          throw new AuthenticationError('Invalid MFA code');
+        }
 
-    await this.sessionManager.deleteSession(sessionId);
+        const user = verification.user;
+
+        // Generate JWT tokens
+        const accessToken = await this.jwtService.generateAccessToken({
+          userId: user.id,
+          businessId: user.business_id,
+          email: user.email
+        });
+
+        const refreshToken = await this.jwtService.generateRefreshToken({
+          userId: user.id,
+          businessId: user.business_id
+        });
+
+        // Create session
+        await this.sessionManager.createSession({
+          userId: user.id,
+          businessId: user.business_id,
+          accessToken,
+          refreshToken,
+          ipAddress,
+          userAgent
+        });
+
+        // Log audit entry
+        await this.logAuthEvent({
+          userId: user.id,
+          businessId: user.business_id,
+          action: 'mfa_verify',
+          ipAddress,
+          userAgent,
+          success: true
+        });
+
+        return {
+          success: true,
+          accessToken,
+          refreshToken,
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            businessId: user.business_id
+          }
+        };
+
+      } catch (error) {
+        this.logger.error('MFA verification failed', { error: error.message, challengeId });
+        
+        // Log audit entry
+        await this.logAuthEvent({
+          userId: undefined,
+          businessId: undefined,
+          action: 'mfa_verify',
+          ipAddress,
+          userAgent,
+          success: false,
+          error: error.message
+        });
+
+        throw error;
+      }
+    });
   }
 
   /**
    * Refresh access token
    */
-  async refreshToken(refreshToken: string): Promise<AuthResponse> {
-    const result = await this.sessionManager.refreshTokens(refreshToken);
+  async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
+    return withTracing('auth.refreshToken', async () => {
+      try {
+        // Verify refresh token
+        const payload = await this.jwtService.verifyRefreshToken(refreshToken);
+        
+        // Get user from database
+        const user = await this.db.prepare(`
+          SELECT id, email, business_id FROM users WHERE id = ?
+        `).bind(payload.userId).first();
 
-    if (!result) {
-      throw new AuthenticationError('Invalid or expired refresh token');
-    }
+        if (!user) {
+          throw new AuthenticationError('User not found');
+        }
 
-    return {
-      success: true,
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-      expiresIn: result.expiresIn,
-    };
+        // Generate new tokens
+        const newAccessToken = await this.jwtService.generateAccessToken({
+          userId: user.id,
+          businessId: user.business_id,
+          email: user.email
+        });
+
+        const newRefreshToken = await this.jwtService.generateRefreshToken({
+          userId: user.id,
+          businessId: user.business_id
+        });
+
+        // Update session
+        await this.sessionManager.updateSession(refreshToken, {
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken
+        });
+
+        return {
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken
+        };
+
+      } catch (error) {
+        this.logger.error('Token refresh failed', { error: error.message });
+        throw new AuthenticationError('Invalid refresh token');
+      }
+    });
   }
 
   /**
-   * Setup MFA for user
+   * Logout user
    */
-  async setupMFA(userId: string, type: 'totp' | 'sms' | 'email'): Promise<{
-    secret?: string;
-    qrCode?: string;
-    backupCodes: string[];
-  }> {
-    const secret = type === 'totp' ? generateTOTPSecret() : undefined;
-    const backupCodes = Array.from({ length: 10 }, () => generateSecureToken(8));
+  async logout(refreshToken: string, ipAddress: string, userAgent: string): Promise<void> {
+    return withTracing('auth.logout', async () => {
+      try {
+        // Verify refresh token to get user info
+        const payload = await this.jwtService.verifyRefreshToken(refreshToken);
+        
+        // Invalidate session
+        await this.sessionManager.invalidateSession(refreshToken);
 
-    // Store MFA configuration
-    const mfaConfig: MFAConfig = {
-      userId,
-      type,
-      secret,
-      backupCodes,
-      enabled: false,
-    };
+        // Log audit entry
+        await this.logAuthEvent({
+          userId: payload.userId,
+          businessId: payload.businessId,
+          action: 'logout',
+          ipAddress,
+          userAgent,
+          success: true
+        });
 
-    await this.kv.put(`mfa:${userId}`, JSON.stringify(mfaConfig));
-
-    // Generate QR code for TOTP
-    let qrCode: string | undefined;
-    if (type === 'totp' && secret) {
-      const user = await this.db
-        .prepare('SELECT email FROM users WHERE id = ?')
-        .bind(userId)
-        .first<any>();
-
-      qrCode = `otpauth://totp/CoreFlow360:${user.email}?secret=${secret}&issuer=CoreFlow360`;
-    }
-
-    return {
-      secret,
-      qrCode,
-      backupCodes,
-    };
-  }
-
-  /**
-   * Verify MFA code
-   */
-  private async verifyMFACode(userId: string, code: string): Promise<boolean> {
-    const mfaConfig = await this.kv.get<MFAConfig>(`mfa:${userId}`, 'json');
-    if (!mfaConfig || !mfaConfig.enabled) {
-      return false;
-    }
-
-    // Check backup codes
-    if (mfaConfig.backupCodes.includes(code)) {
-      // Remove used backup code
-      mfaConfig.backupCodes = mfaConfig.backupCodes.filter(c => c !== code);
-      await this.kv.put(`mfa:${userId}`, JSON.stringify(mfaConfig));
-      return true;
-    }
-
-    // For TOTP, would need to implement TOTP verification
-    // For SMS/Email, check if code matches what was sent
-    // This is a simplified version
-    return code === '123456'; // Placeholder
+      } catch (error) {
+        this.logger.error('Logout failed', { error: error.message });
+        // Don't throw error for logout failures
+      }
+    });
   }
 
   /**
    * Request password reset
    */
-  async requestPasswordReset(email: string): Promise<void> {
-    const user = await this.db
-      .prepare('SELECT id FROM users WHERE email = ? AND status != "deleted"')
-      .bind(email)
-      .first<any>();
+  async requestPasswordReset(email: string, ipAddress: string, userAgent: string): Promise<void> {
+    return withTracing('auth.requestPasswordReset', async () => {
+      try {
+        // Get user from database
+        const user = await this.db.prepare(`
+          SELECT id, email FROM users WHERE email = ?
+        `).bind(email).first();
 
-    if (!user) {
-      // Don't reveal if user exists
-      return;
-    }
+        if (!user) {
+          // Don't reveal if user exists or not
+          return;
+        }
 
-    const resetToken = generateSecureToken();
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+        // Generate reset token
+        const resetToken = generateSecureToken(32);
+        const expiresAt = new Date(Date.now() + 3600000); // 1 hour
 
-    await this.db
-      .prepare(`
-        UPDATE users
-        SET password_reset_token = ?,
-            password_reset_expires = ?,
-            updated_at = datetime('now')
-        WHERE id = ?
-      `)
-      .bind(resetToken, expiresAt, user.id)
-      .run();
+        // Store reset token
+        await this.kv.put(
+          `password_reset:${resetToken}`,
+          JSON.stringify({
+            userId: user.id,
+            email: user.email,
+            expiresAt: expiresAt.toISOString()
+          }),
+          { expirationTtl: 3600 }
+        );
 
-    // In production, send email with reset link
-    console.log(`Password reset token for ${email}: ${resetToken}`);
+        // TODO: Send email with reset link
+        // await this.emailService.sendPasswordResetEmail(user.email, resetToken);
+
+        // Log audit entry
+        await this.logAuthEvent({
+          userId: user.id,
+          businessId: undefined,
+          action: 'password_reset_request',
+          ipAddress,
+          userAgent,
+          success: true
+        });
+
+      } catch (error) {
+        this.logger.error('Password reset request failed', { error: error.message, email });
+        throw error;
+      }
+    });
   }
 
   /**
    * Confirm password reset
    */
-  async confirmPasswordReset(token: string, newPassword: string): Promise<void> {
-    const user = await this.db
-      .prepare(`
-        SELECT id FROM users
-        WHERE password_reset_token = ?
-          AND password_reset_expires > datetime('now')
-          AND status != 'deleted'
-      `)
-      .bind(token)
-      .first<any>();
+  async confirmPasswordReset(
+    token: string,
+    newPassword: string,
+    ipAddress: string,
+    userAgent: string
+  ): Promise<void> {
+    return withTracing('auth.confirmPasswordReset', async () => {
+      try {
+        // Get reset token from KV
+        const resetData = await this.kv.get(`password_reset:${token}`);
+        if (!resetData) {
+          throw new AuthenticationError('Invalid or expired reset token');
+        }
 
-    if (!user) {
-      throw new ValidationError('Invalid or expired reset token');
-    }
+        const { userId, email, expiresAt } = JSON.parse(resetData);
+        
+        // Check if token is expired
+        if (new Date(expiresAt) < new Date()) {
+          throw new AuthenticationError('Reset token has expired');
+        }
 
-    // Hash new password
-    const { hash, salt } = await hashPassword(newPassword);
+        // Hash new password
+        const hashedPassword = await hashPassword(newPassword);
 
-    // Update password and clear reset token
-    await this.db
-      .prepare(`
-        UPDATE users
-        SET password_hash = ?,
-            password_reset_token = NULL,
-            password_reset_expires = NULL,
-            updated_at = datetime('now')
-        WHERE id = ?
-      `)
-      .bind(`${salt}:${hash}`, user.id)
-      .run();
+        // Update user password
+        await this.db.prepare(`
+          UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?
+        `).bind(hashedPassword, new Date().toISOString(), userId).run();
 
-    // Invalidate all existing sessions
-    await this.sessionManager.deleteUserSessions(user.id);
+        // Delete reset token
+        await this.kv.delete(`password_reset:${token}`);
+
+        // Invalidate all user sessions
+        await this.sessionManager.invalidateAllUserSessions(userId);
+
+        // Log audit entry
+        await this.logAuthEvent({
+          userId,
+          businessId: undefined,
+          action: 'password_reset_confirm',
+          ipAddress,
+          userAgent,
+          success: true
+        });
+
+      } catch (error) {
+        this.logger.error('Password reset confirmation failed', { error: error.message });
+        throw error;
+      }
+    });
   }
 
   /**
-   * Get user permissions
+   * Get user profile
    */
-  private async getUserPermissions(userId: string, businessId: string): Promise<string[]> {
-    const permissions = await this.db
-      .prepare(`
-        SELECT permission_key
-        FROM user_permissions
-        WHERE user_id = ? AND business_id = ? AND status = 'active'
-      `)
-      .bind(userId, businessId)
-      .all();
+  async getUserProfile(userId: string): Promise<any> {
+    return withTracing('auth.getUserProfile', async () => {
+      try {
+        const user = await this.db.prepare(`
+          SELECT u.*, b.name as business_name, b.domain as business_domain
+          FROM users u
+          LEFT JOIN businesses b ON u.business_id = b.id
+          WHERE u.id = ?
+        `).bind(userId).first();
 
-    return permissions.results?.map((p: any) => p.permission_key) || [];
+        if (!user) {
+          throw new AuthenticationError('User not found');
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          phone: user.phone,
+          businessId: user.business_id,
+          businessName: user.business_name,
+          businessDomain: user.business_domain,
+          createdAt: user.created_at,
+          updatedAt: user.updated_at
+        };
+
+      } catch (error) {
+        this.logger.error('Get user profile failed', { error: error.message, userId });
+        throw error;
+      }
+    });
+  }
+
+  /**
+   * Update user profile
+   */
+  async updateUserProfile(userId: string, updates: any): Promise<any> {
+    return withTracing('auth.updateUserProfile', async () => {
+      try {
+        // Validate updates
+        const allowedFields = ['first_name', 'last_name', 'phone'];
+        const updateFields = Object.keys(updates).filter(key => allowedFields.includes(key));
+        
+        if (updateFields.length === 0) {
+          throw new ValidationError('No valid fields to update');
+        }
+
+        // Build update query
+        const setClause = updateFields.map(field => `${field} = ?`).join(', ');
+        const values = updateFields.map(field => updates[field]);
+        values.push(new Date().toISOString(), userId);
+
+        await this.db.prepare(`
+          UPDATE users SET ${setClause}, updated_at = ? WHERE id = ?
+        `).bind(...values).run();
+
+        // Return updated profile
+        return await this.getUserProfile(userId);
+
+      } catch (error) {
+        this.logger.error('Update user profile failed', { error: error.message, userId });
+        throw error;
+      }
+    });
   }
 
   /**
    * Log authentication event
    */
-  private async logAuthEvent(entry: AuthAuditEntry): Promise<void> {
+  private async logAuthEvent(event: AuthAuditEntry): Promise<void> {
     try {
-      await this.db
-        .prepare(`
-          INSERT INTO audit_logs (
-            id, business_id, user_id, event_type, event_name,
-            status, ip_address, user_agent, new_values,
-            created_at, event_timestamp
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), ?)
-        `)
-        .bind(
-          entry.id,
-          entry.businessId || 'SYSTEM',
-          entry.userId || null,
-          'login',
-          entry.event,
-          entry.success ? 'success' : 'failure',
-          entry.ipAddress,
-          entry.userAgent,
-          JSON.stringify(entry.metadata || {}),
-          new Date(entry.timestamp).toISOString()
-        )
-        .run();
+      await this.db.prepare(`
+        INSERT INTO auth_audit_log (
+          id, user_id, business_id, action, ip_address, user_agent,
+          success, error_message, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        `audit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        event.userId,
+        event.businessId,
+        event.action,
+        event.ipAddress,
+        event.userAgent,
+        event.success,
+        event.error,
+        new Date().toISOString()
+      ).run();
     } catch (error) {
-      console.error('Failed to log auth event:', error);
+      this.logger.error('Failed to log auth event', { error: error.message });
+    }
+  }
+
+  /**
+   * Health check
+   */
+  async healthCheck(): Promise<{ status: string; timestamp: string }> {
+    try {
+      // Test database connection
+      await this.db.prepare('SELECT 1').first();
+      
+      return {
+        status: 'healthy',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        timestamp: new Date().toISOString()
+      };
     }
   }
 }
+

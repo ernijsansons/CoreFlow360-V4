@@ -2,7 +2,6 @@
  * Example Capability Definitions
  * Demonstrates safe AI tool use for invoice creation and ledger posting
  */
-
 import {
   CapabilitySpec,
   ParameterSpec,
@@ -48,290 +47,286 @@ export const InvoiceCreationCapability: CapabilitySpec = {
     {
       name: 'invoiceNumber',
       type: 'string',
-      description: 'Human-readable invoice number',
+      description: 'Unique invoice number',
       validation: {
         required: true,
-        pattern: '^INV-[0-9]{4}-[0-9]+$',
-        minLength: 8,
-        maxLength: 20,
+        pattern: '^INV-[0-9]{6}$',
+        minLength: 10,
+        maxLength: 10,
       },
-      examples: ['INV-2024-001234'],
+      examples: ['INV-123456'],
       aiUsage: {
         includeInPrompt: true,
         sanitize: true,
-        maxTokens: 10,
-      },
-    },
-    {
-      name: 'issueDate',
-      type: 'date',
-      description: 'Invoice issue date in ISO 8601 format',
-      validation: {
-        required: true,
-        format: 'iso8601',
-      },
-      examples: ['2024-03-15T00:00:00.000Z'],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
-        maxTokens: 15,
-      },
-    },
-    {
-      name: 'dueDate',
-      type: 'date',
-      description: 'Payment due date in ISO 8601 format',
-      validation: {
-        required: true,
-        format: 'iso8601',
-      },
-      examples: ['2024-04-15T00:00:00.000Z'],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
         maxTokens: 15,
       },
     },
     {
       name: 'lineItems',
       type: 'array',
-      description: 'Array of invoice line items with descriptions, quantities, and pricing',
+      description: 'Array of invoice line items',
       validation: {
         required: true,
-        minLength: 1,
-        maxLength: 50,
-        customValidator: 'validateInvoiceLineItems',
+        minItems: 1,
+        maxItems: 100,
+        items: {
+          type: 'object',
+          properties: {
+            description: { type: 'string', minLength: 1, maxLength: 500 },
+            quantity: { type: 'number', minimum: 0.01, maximum: 10000 },
+            unitPrice: { type: 'number', minimum: 0, maximum: 1000000 },
+            taxRate: { type: 'number', minimum: 0, maximum: 1 },
+          },
+          required: ['description', 'quantity', 'unitPrice', 'taxRate'],
+        },
       },
-      examples: [[
-        {
-          description: 'Professional Services - Q1 2024',
-          quantity: 40,
-          unitPrice: 125.00,
-          taxRate: 0.08,
-          lineTotal: 5000.00
-        }
-      ]],
+      examples: [
+        [
+          {
+            description: 'Software License',
+            quantity: 1,
+            unitPrice: 1000.00,
+            taxRate: 0.10,
+          },
+        ],
+      ],
       aiUsage: {
         includeInPrompt: true,
-        sanitize: true,
-        maxTokens: 500,
-      },
-    },
-    {
-      name: 'currency',
-      type: 'enum',
-      description: 'Invoice currency code',
-      validation: {
-        required: true,
-        enum: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
-      },
-      examples: ['USD'],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
-        maxTokens: 5,
-      },
-    },
-    {
-      name: 'taxCalculationMode',
-      type: 'enum',
-      description: 'Method for calculating taxes',
-      validation: {
-        required: false,
-        enum: ['inclusive', 'exclusive', 'exempt'],
-      },
-      examples: ['exclusive'],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
-        maxTokens: 10,
-      },
-    },
-    {
-      name: 'paymentTerms',
-      type: 'object',
-      description: 'Payment terms and conditions',
-      validation: {
-        required: false,
-        customValidator: 'validatePaymentTerms',
-      },
-      examples: [{
-        net: 30,
-        discountPercentage: 2.0,
-        discountDays: 10,
-        lateFeePercentage: 1.5
-      }],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
-        maxTokens: 100,
-      },
-    },
-    {
-      name: 'notes',
-      type: 'string',
-      description: 'Additional notes or comments for the invoice',
-      validation: {
-        required: false,
-        maxLength: 2000,
-        customValidator: 'validateNoSQLInjection',
-      },
-      examples: ['Thank you for your business. Payment is due within 30 days.'],
-      aiUsage: {
-        includeInPrompt: false, // Don't include in AI prompts for security
         sanitize: true,
         maxTokens: 200,
       },
     },
     {
-      name: 'internalReference',
+      name: 'dueDate',
       type: 'string',
-      description: 'Internal reference or project code',
+      description: 'Invoice due date in ISO format',
+      validation: {
+        required: true,
+        format: 'date',
+        minDate: 'today',
+        maxDate: '+1y',
+      },
+      examples: ['2024-12-31'],
+      aiUsage: {
+        includeInPrompt: true,
+        sanitize: true,
+        maxTokens: 15,
+      },
+    },
+    {
+      name: 'paymentTerms',
+      type: 'string',
+      description: 'Payment terms description',
       validation: {
         required: false,
-        maxLength: 100,
-        pattern: '^[a-zA-Z0-9_-]*$',
+        maxLength: 200,
+        enum: ['Net 30', 'Net 15', 'Due on Receipt', 'Custom'],
       },
-      examples: ['PROJECT-2024-Q1-ABC'],
-      sensitive: true, // Mark as sensitive business data
+      examples: ['Net 30'],
       aiUsage: {
-        includeInPrompt: false,
+        includeInPrompt: true,
         sanitize: true,
         maxTokens: 20,
       },
     },
   ],
 
-  // SQL Operation with safety constraints
-  sqlOperation: {
-    type: 'insert',
-    table: 'invoices',
-    allowedColumns: [
-      'id', 'customer_id', 'invoice_number', 'issue_date', 'due_date',
-      'currency', 'subtotal', 'tax_amount', 'total_amount', 'status',
-      'payment_terms', 'notes', 'internal_reference', 'created_at', 'created_by'
-    ],
-    maxRows: 1, // Only insert one invoice at a time
-    timeout: 30000, // 30 second timeout
-    readOnly: false,
-  },
-
-  // Return type specification
-  returnType: {
-    type: 'object',
-    schema: {
-      type: 'object',
-      properties: {
-        invoiceId: { type: 'string' },
-        invoiceNumber: { type: 'string' },
-        totalAmount: { type: 'number' },
-        taxAmount: { type: 'number' },
-        status: { type: 'string' },
-        createdAt: { type: 'string' },
-        lineItemsCreated: { type: 'number' },
+  // SQL operations with safety checks
+  sqlOperations: [
+    {
+      id: 'validate_customer',
+      description: 'Validate customer exists and is active',
+      query: 'SELECT id, name, status FROM customers WHERE id = ? AND status = "active"',
+      parameters: ['customerId'],
+      timeout: 5000,
+      retries: 3,
+      validation: {
+        requiredRows: 1,
+        maxRows: 1,
       },
-      required: ['invoiceId', 'invoiceNumber', 'totalAmount'],
     },
-    examples: [{
-      invoiceId: 'inv_123e4567-e89b-12d3-a456-426614174000',
-      invoiceNumber: 'INV-2024-001234',
-      totalAmount: 5400.00,
-      taxAmount: 400.00,
-      status: 'draft',
-      createdAt: '2024-03-15T10:30:00.000Z',
-      lineItemsCreated: 1,
-    }],
-  },
-
-  // Validation functions
-  validation: {
-    preExecution: [
-      'validateCustomerExists',
-      'validateInvoiceNumberUnique',
-      'validateDateOrder',
-      'validateLineItemTotals',
-    ],
-    postExecution: [
-      'validateInvoiceCreated',
-      'validateTaxCalculations',
-    ],
-    crossParameterValidation: 'validateInvoiceBusinessRules',
-  },
-
-  // Cost estimation
-  costEstimation: {
-    baseComputeUnits: 10, // Base cost for invoice creation
-    perParameterUnits: 1,
-    perRowUnits: 5, // Cost per line item
-    customCostFactors: {
-      lineItemCount: 2, // Additional cost per line item
-      taxCalculation: 3, // Cost for tax calculations
+    {
+      id: 'check_invoice_number',
+      description: 'Check if invoice number already exists',
+      query: 'SELECT id FROM invoices WHERE invoice_number = ?',
+      parameters: ['invoiceNumber'],
+      timeout: 5000,
+      retries: 3,
+      validation: {
+        requiredRows: 0,
+        maxRows: 0,
+      },
     },
-    maxCostUSD: 0.50, // Maximum $0.50 per invoice creation
+    {
+      id: 'create_invoice',
+      description: 'Create the invoice record',
+      query: `
+        INSERT INTO invoices (
+          id, customer_id, invoice_number, due_date, payment_terms,
+          subtotal, tax_amount, total_amount, status, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)
+      `,
+      parameters: [
+        'invoiceId',
+        'customerId',
+        'invoiceNumber',
+        'dueDate',
+        'paymentTerms',
+        'subtotal',
+        'taxAmount',
+        'totalAmount',
+        'createdAt',
+        'updatedAt',
+      ],
+      timeout: 10000,
+      retries: 3,
+      validation: {
+        requiredRows: 1,
+        maxRows: 1,
+      },
+    },
+    {
+      id: 'create_line_items',
+      description: 'Create invoice line items',
+      query: `
+        INSERT INTO invoice_line_items (
+          id, invoice_id, description, quantity, unit_price, tax_rate,
+          line_total, tax_amount, total_amount, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      parameters: [
+        'lineItemId',
+        'invoiceId',
+        'description',
+        'quantity',
+        'unitPrice',
+        'taxRate',
+        'lineTotal',
+        'taxAmount',
+        'totalAmount',
+        'createdAt',
+      ],
+      timeout: 15000,
+      retries: 3,
+      validation: {
+        requiredRows: 1,
+        maxRows: 1,
+      },
+    },
+  ],
+
+  // API operations for external integrations
+  apiOperations: [
+    {
+      id: 'notify_customer',
+      description: 'Send invoice notification to customer',
+      method: 'POST',
+      url: 'https://api.example.com/notifications/invoice',
+      headers: {
+        'Authorization': 'Bearer ${apiKey}',
+        'Content-Type': 'application/json',
+      },
+      body: {
+        customerId: '${customerId}',
+        invoiceNumber: '${invoiceNumber}',
+        totalAmount: '${totalAmount}',
+        dueDate: '${dueDate}',
+      },
+      timeout: 10000,
+      retries: 2,
+      validation: {
+        successStatus: [200, 201],
+        errorStatus: [400, 401, 403, 404, 500],
+      },
+    },
+  ],
+
+  // Cost tracking
+  cost: {
+    baseCost: 0.01, // $0.01 per invoice
+    perLineItem: 0.005, // $0.005 per line item
+    maxCost: 1.00, // Maximum $1.00 per operation
+    currency: 'USD',
   },
 
   // Permission requirements
   permissions: {
-    requiredCapabilities: [
-      'invoices:create',
-      'customers:read',
-      'financial:write',
+    required: ['invoices:create', 'customers:read'],
+    optional: ['invoices:approve', 'notifications:send'],
+    businessRules: [
+      'User must have access to customer data',
+      'Invoice must be within business credit limits',
+      'All line items must be valid and approved',
     ],
-    resourceTypes: ['invoice', 'customer'],
-    businessContextRequired: true,
-    userContextRequired: true,
-    elevatedPrivileges: false,
   },
 
-  // Audit configuration
+  // Audit requirements
   audit: {
-    severity: 'high', // Financial operations are high severity
-    eventType: 'invoice_creation',
-    sensitiveDataHandling: {
-      redactParameters: ['internalReference', 'notes'],
-      redactResults: false,
-      retentionDays: 2555, // 7 years for SOX compliance
-    },
-    complianceFlags: ['SOX', 'GAAP'],
-    customMetadata: {
-      category: 'financial_transaction',
-      impactLevel: 'high',
-    },
+    enabled: true,
+    logLevel: 'info',
+    requiredFields: ['userId', 'businessId', 'customerId', 'invoiceNumber'],
+    retentionDays: 2555, // 7 years
+    sensitiveFields: ['customerId', 'invoiceNumber'],
   },
 
-  // Metadata
-  tags: ['financial', 'invoice', 'accounting', 'high-value'],
-  deprecated: false,
-  owner: 'financial-systems-team',
-  createdAt: 1710504000000, // 2024-03-15
-  updatedAt: 1710504000000,
+  // AI safety measures
+  aiSafety: {
+    maxTokens: 500,
+    temperature: 0.1,
+    topP: 0.9,
+    frequencyPenalty: 0.1,
+    presencePenalty: 0.1,
+    stopSequences: ['<|endoftext|>', '<|stop|>'],
+    contentFilter: true,
+    biasDetection: true,
+    hallucinationCheck: true,
+  },
 
-  // AI-specific configuration
-  aiConfiguration: {
-    promptTemplate: `Create an invoice with the following details:
-- Customer: {customerId}
-- Invoice Number: {invoiceNumber}
-- Issue Date: {issueDate}
-- Due Date: {dueDate}
-- Line Items: {lineItems}
-- Currency: {currency}
+  // Rate limiting
+  rateLimit: {
+    requestsPerMinute: 60,
+    requestsPerHour: 1000,
+    requestsPerDay: 10000,
+    burstLimit: 10,
+  },
 
-Validate all calculations and ensure compliance with tax regulations.`,
-    responseProcessing: 'parseInvoiceCreationResult',
-    fallbackBehavior: 'error',
-    confidenceThreshold: 0.95, // High confidence required for financial operations
+  // Error handling
+  errorHandling: {
+    retryableErrors: ['TIMEOUT', 'NETWORK_ERROR', 'RATE_LIMIT'],
+    nonRetryableErrors: ['VALIDATION_ERROR', 'PERMISSION_DENIED', 'INVALID_CUSTOMER'],
+    maxRetries: 3,
+    backoffMultiplier: 2,
+    maxBackoffMs: 30000,
+  },
+
+  // Monitoring and alerting
+  monitoring: {
+    enabled: true,
+    metrics: ['success_rate', 'response_time', 'error_rate', 'cost_per_operation'],
+    alerts: [
+      {
+        metric: 'error_rate',
+        threshold: 0.05, // 5%
+        severity: 'warning',
+      },
+      {
+        metric: 'response_time',
+        threshold: 5000, // 5 seconds
+        severity: 'warning',
+      },
+    ],
   },
 };
 
 /**
  * Ledger Posting Capability
- * Safely posts accounting entries to the general ledger
+ * Safely posts transactions to the general ledger
  */
 export const LedgerPostingCapability: CapabilitySpec = {
   // Identity
   id: 'ledger:post',
-  name: 'Post to General Ledger',
-  description: 'Posts double-entry accounting transactions to the general ledger with automatic validation and balancing checks.',
+  name: 'Post to Ledger',
+  description: 'Posts accounting transactions to the general ledger with double-entry validation and audit trail.',
   version: '1.1.0',
   category: 'database',
 
@@ -340,355 +335,273 @@ export const LedgerPostingCapability: CapabilitySpec = {
     {
       name: 'transactionId',
       type: 'string',
-      description: 'Unique identifier for the transaction',
+      description: 'Unique transaction identifier',
       validation: {
         required: true,
-        format: 'uuid',
-        minLength: 36,
-        maxLength: 36,
+        pattern: '^TXN-[0-9]{8}$',
+        minLength: 12,
+        maxLength: 12,
       },
-      examples: ['txn_123e4567-e89b-12d3-a456-426614174000'],
+      examples: ['TXN-12345678'],
       aiUsage: {
         includeInPrompt: true,
         sanitize: true,
-        maxTokens: 10,
+        maxTokens: 15,
       },
     },
     {
-      name: 'journalEntries',
+      name: 'entries',
       type: 'array',
-      description: 'Array of journal entries with account codes, amounts, and descriptions',
+      description: 'Array of ledger entries (must balance)',
       validation: {
         required: true,
-        minLength: 2, // Must have at least 2 entries (debit and credit)
-        maxLength: 20, // Maximum 20 entries per transaction
-        customValidator: 'validateJournalEntries',
+        minItems: 2,
+        maxItems: 50,
+        items: {
+          type: 'object',
+          properties: {
+            accountCode: { type: 'string', pattern: '^[0-9]{4}$' },
+            description: { type: 'string', minLength: 1, maxLength: 200 },
+            debitAmount: { type: 'number', minimum: 0 },
+            creditAmount: { type: 'number', minimum: 0 },
+          },
+          required: ['accountCode', 'description', 'debitAmount', 'creditAmount'],
+        },
       },
-      examples: [[
-        {
-          accountCode: '1200', // Accounts Receivable
-          debitAmount: 5400.00,
-          creditAmount: 0,
-          description: 'Invoice INV-2024-001234',
-          referenceNumber: 'INV-2024-001234'
-        },
-        {
-          accountCode: '4000', // Revenue
-          debitAmount: 0,
-          creditAmount: 5000.00,
-          description: 'Professional Services Revenue',
-          referenceNumber: 'INV-2024-001234'
-        },
-        {
-          accountCode: '2200', // Sales Tax Payable
-          debitAmount: 0,
-          creditAmount: 400.00,
-          description: 'Sales Tax on Invoice',
-          referenceNumber: 'INV-2024-001234'
-        }
-      ]],
+      examples: [
+        [
+          {
+            accountCode: '1000',
+            description: 'Cash received from customer',
+            debitAmount: 1000.00,
+            creditAmount: 0.00,
+          },
+          {
+            accountCode: '2000',
+            description: 'Revenue from sales',
+            debitAmount: 0.00,
+            creditAmount: 1000.00,
+          },
+        ],
+      ],
       aiUsage: {
         includeInPrompt: true,
         sanitize: true,
-        maxTokens: 800,
+        maxTokens: 300,
       },
     },
     {
-      name: 'transactionDate',
-      type: 'date',
-      description: 'Date of the transaction for ledger posting',
-      validation: {
-        required: true,
-        format: 'iso8601',
-      },
-      examples: ['2024-03-15T00:00:00.000Z'],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
-        maxTokens: 15,
-      },
-    },
-    {
-      name: 'description',
+      name: 'reference',
       type: 'string',
-      description: 'General description of the transaction',
+      description: 'Reference document (invoice, receipt, etc.)',
       validation: {
-        required: true,
-        minLength: 5,
-        maxLength: 255,
-        customValidator: 'validateNoSQLInjection',
+        required: false,
+        maxLength: 100,
       },
-      examples: ['Invoice posting for customer services'],
+      examples: ['INV-123456'],
       aiUsage: {
         includeInPrompt: true,
         sanitize: true,
-        maxTokens: 50,
+        maxTokens: 20,
       },
     },
     {
-      name: 'referenceType',
-      type: 'enum',
-      description: 'Type of source document',
-      validation: {
-        required: true,
-        enum: ['invoice', 'payment', 'adjustment', 'accrual', 'reversal', 'transfer'],
-      },
-      examples: ['invoice'],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
-        maxTokens: 10,
-      },
-    },
-    {
-      name: 'referenceNumber',
+      name: 'postingDate',
       type: 'string',
-      description: 'Reference number of the source document',
+      description: 'Date of the transaction',
       validation: {
         required: true,
-        minLength: 3,
-        maxLength: 50,
-        pattern: '^[a-zA-Z0-9_-]+$',
+        format: 'date',
+        maxDate: 'today',
       },
-      examples: ['INV-2024-001234'],
+      examples: ['2024-01-15'],
       aiUsage: {
         includeInPrompt: true,
         sanitize: true,
         maxTokens: 15,
-      },
-    },
-    {
-      name: 'fiscalPeriod',
-      type: 'string',
-      description: 'Fiscal period for the transaction (YYYY-MM format)',
-      validation: {
-        required: true,
-        pattern: '^[0-9]{4}-[0-9]{2}$',
-      },
-      examples: ['2024-03'],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
-        maxTokens: 10,
-      },
-    },
-    {
-      name: 'autoBalance',
-      type: 'boolean',
-      description: 'Whether to automatically check that debits equal credits',
-      validation: {
-        required: false,
-      },
-      examples: [true],
-      aiUsage: {
-        includeInPrompt: false,
-        sanitize: false,
-      },
-    },
-    {
-      name: 'approvalRequired',
-      type: 'boolean',
-      description: 'Whether this posting requires additional approval',
-      validation: {
-        required: false,
-      },
-      examples: [false],
-      aiUsage: {
-        includeInPrompt: false,
-        sanitize: false,
-      },
-    },
-    {
-      name: 'metadata',
-      type: 'object',
-      description: 'Additional metadata for the ledger posting',
-      validation: {
-        required: false,
-        customValidator: 'validateMetadataObject',
-      },
-      examples: [{
-        department: 'sales',
-        project: 'Q1-2024-initiatives',
-        costCenter: 'CC-1001'
-      }],
-      sensitive: true, // Business-specific metadata
-      aiUsage: {
-        includeInPrompt: false,
-        sanitize: true,
-        maxTokens: 100,
       },
     },
   ],
 
-  // SQL Operation for ledger posting
-  sqlOperation: {
-    type: 'insert',
-    table: 'general_ledger',
-    allowedColumns: [
-      'id', 'transaction_id', 'account_code', 'debit_amount', 'credit_amount',
-      'transaction_date', 'description', 'reference_type', 'reference_number',
-      'fiscal_period', 'created_at', 'created_by', 'metadata'
-    ],
-    maxRows: 20, // Maximum 20 journal entries per transaction
-    timeout: 45000, // 45 second timeout for complex transactions
-    readOnly: false,
-  },
-
-  // Return type
-  returnType: {
-    type: 'object',
-    schema: {
-      type: 'object',
-      properties: {
-        transactionId: { type: 'string' },
-        entriesPosted: { type: 'number' },
-        totalDebits: { type: 'number' },
-        totalCredits: { type: 'number' },
-        balanced: { type: 'boolean' },
-        fiscalPeriod: { type: 'string' },
-        postedAt: { type: 'string' },
-        ledgerEntryIds: { type: 'array', items: { type: 'string' } },
+  // SQL operations
+  sqlOperations: [
+    {
+      id: 'validate_accounts',
+      description: 'Validate all account codes exist',
+      query: 'SELECT code FROM chart_of_accounts WHERE code IN (?)',
+      parameters: ['accountCodes'],
+      timeout: 5000,
+      retries: 3,
+      validation: {
+        requiredRows: 'all',
+        maxRows: 50,
       },
-      required: ['transactionId', 'entriesPosted', 'balanced'],
     },
-    examples: [{
-      transactionId: 'txn_123e4567-e89b-12d3-a456-426614174000',
-      entriesPosted: 3,
-      totalDebits: 5400.00,
-      totalCredits: 5400.00,
-      balanced: true,
-      fiscalPeriod: '2024-03',
-      postedAt: '2024-03-15T10:35:00.000Z',
-      ledgerEntryIds: [
-        'entry_001', 'entry_002', 'entry_003'
+    {
+      id: 'check_balance',
+      description: 'Verify entries balance (debits = credits)',
+      query: 'SELECT SUM(debit_amount) as total_debits, SUM(credit_amount) as total_credits FROM temp_entries',
+      parameters: [],
+      timeout: 5000,
+      retries: 3,
+      validation: {
+        custom: 'total_debits === total_credits',
+      },
+    },
+    {
+      id: 'create_transaction',
+      description: 'Create the transaction record',
+      query: `
+        INSERT INTO transactions (
+          id, transaction_id, reference, posting_date, total_debits, total_credits,
+          status, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, 'posted', ?, ?)
+      `,
+      parameters: [
+        'transactionUuid',
+        'transactionId',
+        'reference',
+        'postingDate',
+        'totalDebits',
+        'totalCredits',
+        'createdAt',
+        'updatedAt',
       ],
-    }],
-  },
-
-  // Validation functions
-  validation: {
-    preExecution: [
-      'validateAccountCodes',
-      'validateFiscalPeriodOpen',
-      'validateBalancingEntries',
-      'validateTransactionLimits',
-    ],
-    postExecution: [
-      'validateLedgerBalance',
-      'validateTrialBalance',
-      'validateAuditTrail',
-    ],
-    crossParameterValidation: 'validateLedgerPostingRules',
-  },
-
-  // Cost estimation
-  costEstimation: {
-    baseComputeUnits: 15, // Higher base cost for accounting operations
-    perParameterUnits: 1,
-    perRowUnits: 3, // Cost per journal entry
-    customCostFactors: {
-      entryCount: 2,
-      balanceValidation: 5,
-      auditTrail: 3,
+      timeout: 10000,
+      retries: 3,
+      validation: {
+        requiredRows: 1,
+        maxRows: 1,
+      },
     },
-    maxCostUSD: 1.00, // Maximum $1.00 per ledger posting
+    {
+      id: 'create_entries',
+      description: 'Create ledger entries',
+      query: `
+        INSERT INTO ledger_entries (
+          id, transaction_id, account_code, description, debit_amount, credit_amount,
+          created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      `,
+      parameters: [
+        'entryId',
+        'transactionUuid',
+        'accountCode',
+        'description',
+        'debitAmount',
+        'creditAmount',
+        'createdAt',
+      ],
+      timeout: 15000,
+      retries: 3,
+      validation: {
+        requiredRows: 1,
+        maxRows: 1,
+      },
+    },
+  ],
+
+  // Cost tracking
+  cost: {
+    baseCost: 0.02, // $0.02 per transaction
+    perEntry: 0.01, // $0.01 per entry
+    maxCost: 2.00, // Maximum $2.00 per operation
+    currency: 'USD',
   },
 
   // Permission requirements
   permissions: {
-    requiredCapabilities: [
-      'ledger:post',
-      'accounting:write',
-      'financial:transactions',
+    required: ['ledger:post', 'accounts:read'],
+    optional: ['ledger:approve', 'accounts:write'],
+    businessRules: [
+      'All entries must balance (debits = credits)',
+      'Account codes must exist in chart of accounts',
+      'Posting date cannot be in the future',
+      'Transaction must be approved before posting',
     ],
-    resourceTypes: ['ledger', 'account'],
-    businessContextRequired: true,
-    userContextRequired: true,
-    elevatedPrivileges: true, // Ledger posting requires elevated privileges
-    approvalRequired: {
-      minApprovers: 1,
-      approverRoles: ['accounting_manager', 'controller'],
-      timeoutMinutes: 60,
-    },
   },
 
-  // Audit configuration
+  // Audit requirements
   audit: {
-    severity: 'critical', // Ledger operations are critical
-    eventType: 'ledger_posting',
-    sensitiveDataHandling: {
-      redactParameters: ['metadata'],
-      redactResults: false,
-      retentionDays: 2555, // 7 years for SOX compliance
-    },
-    complianceFlags: ['SOX', 'GAAP', 'IFRS'],
-    customMetadata: {
-      category: 'accounting_transaction',
-      impactLevel: 'critical',
-      auditRequired: true,
-    },
+    enabled: true,
+    logLevel: 'info',
+    requiredFields: ['userId', 'businessId', 'transactionId', 'postingDate'],
+    retentionDays: 2555, // 7 years
+    sensitiveFields: ['transactionId', 'accountCode'],
   },
 
-  // Metadata
-  tags: ['accounting', 'ledger', 'financial', 'critical', 'sox-compliance'],
-  deprecated: false,
-  owner: 'accounting-systems-team',
-  createdAt: 1710504000000,
-  updatedAt: 1710504000000,
+  // AI safety measures
+  aiSafety: {
+    maxTokens: 400,
+    temperature: 0.05,
+    topP: 0.8,
+    frequencyPenalty: 0.2,
+    presencePenalty: 0.2,
+    stopSequences: ['<|endoftext|>', '<|stop|>'],
+    contentFilter: true,
+    biasDetection: true,
+    hallucinationCheck: true,
+  },
 
-  // AI configuration
-  aiConfiguration: {
-    promptTemplate: `Post the following journal entries to the general ledger:
-- Transaction ID: {transactionId}
-- Date: {transactionDate}
-- Description: {description}
-- Reference: {referenceType} {referenceNumber}
-- Fiscal Period: {fiscalPeriod}
+  // Rate limiting
+  rateLimit: {
+    requestsPerMinute: 30,
+    requestsPerHour: 500,
+    requestsPerDay: 5000,
+    burstLimit: 5,
+  },
 
-Journal Entries:
-{journalEntries}
+  // Error handling
+  errorHandling: {
+    retryableErrors: ['TIMEOUT', 'NETWORK_ERROR', 'RATE_LIMIT'],
+    nonRetryableErrors: ['VALIDATION_ERROR', 'PERMISSION_DENIED', 'UNBALANCED_ENTRIES'],
+    maxRetries: 3,
+    backoffMultiplier: 2,
+    maxBackoffMs: 30000,
+  },
 
-Ensure all entries are balanced and comply with accounting standards.`,
-    responseProcessing: 'parseLedgerPostingResult',
-    fallbackBehavior: 'error',
-    confidenceThreshold: 0.99, // Very high confidence required for ledger operations
+  // Monitoring and alerting
+  monitoring: {
+    enabled: true,
+    metrics: ['success_rate', 'response_time', 'error_rate', 'cost_per_operation'],
+    alerts: [
+      {
+        metric: 'error_rate',
+        threshold: 0.02, // 2%
+        severity: 'critical',
+      },
+      {
+        metric: 'response_time',
+        threshold: 3000, // 3 seconds
+        severity: 'warning',
+      },
+    ],
   },
 };
 
 /**
- * Customer Payment Processing Capability
- * Safely processes customer payments with fraud detection
+ * Customer Lookup Capability
+ * Safely retrieves customer information
  */
-export const PaymentProcessingCapability: CapabilitySpec = {
-  id: 'payment:process',
-  name: 'Process Customer Payment',
-  description: 'Processes customer payments with fraud detection, validation, and automatic ledger posting.',
+export const CustomerLookupCapability: CapabilitySpec = {
+  // Identity
+  id: 'customer:lookup',
+  name: 'Lookup Customer',
+  description: 'Retrieves customer information with privacy controls and access logging.',
   version: '1.0.0',
-  category: 'api',
+  category: 'database',
 
+  // Parameters
   parameters: [
-    {
-      name: 'paymentId',
-      type: 'string',
-      description: 'Unique payment identifier',
-      validation: {
-        required: true,
-        format: 'uuid',
-      },
-      examples: ['pay_123e4567-e89b-12d3-a456-426614174000'],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: true,
-        maxTokens: 10,
-      },
-    },
     {
       name: 'customerId',
       type: 'string',
-      description: 'Customer making the payment',
+      description: 'Customer identifier',
       validation: {
         required: true,
-        format: 'uuid',
+        pattern: '^[a-zA-Z0-9_-]+$',
+        minLength: 3,
+        maxLength: 50,
       },
       examples: ['cust_123e4567-e89b-12d3-a456-426614174000'],
       aiUsage: {
@@ -698,75 +611,17 @@ export const PaymentProcessingCapability: CapabilitySpec = {
       },
     },
     {
-      name: 'amount',
-      type: 'currency',
-      description: 'Payment amount',
-      validation: {
-        required: true,
-        min: 0.01,
-        max: 100000.00,
-      },
-      examples: [1250.00],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
-        maxTokens: 10,
-      },
-    },
-    {
-      name: 'currency',
-      type: 'enum',
-      description: 'Payment currency',
-      validation: {
-        required: true,
-        enum: ['USD', 'EUR', 'GBP', 'CAD'],
-      },
-      examples: ['USD'],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
-        maxTokens: 5,
-      },
-    },
-    {
-      name: 'paymentMethod',
-      type: 'enum',
-      description: 'Method of payment',
-      validation: {
-        required: true,
-        enum: ['credit_card', 'bank_transfer', 'ach', 'check', 'cash'],
-      },
-      examples: ['credit_card'],
-      aiUsage: {
-        includeInPrompt: true,
-        sanitize: false,
-        maxTokens: 15,
-      },
-    },
-    {
-      name: 'paymentToken',
-      type: 'string',
-      description: 'Tokenized payment information',
-      validation: {
-        required: true,
-        pattern: '^tok_[a-zA-Z0-9]{24}$',
-      },
-      examples: ['tok_1234567890abcdef12345678'],
-      sensitive: true, // Payment tokens are sensitive
-      aiUsage: {
-        includeInPrompt: false, // Never include payment tokens in AI prompts
-        sanitize: true,
-      },
-    },
-    {
-      name: 'invoiceIds',
+      name: 'fields',
       type: 'array',
-      description: 'Invoices this payment applies to',
+      description: 'Specific fields to retrieve',
       validation: {
         required: false,
-        maxLength: 10,
+        items: {
+          type: 'string',
+          enum: ['id', 'name', 'email', 'phone', 'address', 'status', 'created_at'],
+        },
       },
-      examples: [['INV-2024-001234', 'INV-2024-001235']],
+      examples: [['id', 'name', 'email']],
       aiUsage: {
         includeInPrompt: true,
         sanitize: true,
@@ -775,276 +630,95 @@ export const PaymentProcessingCapability: CapabilitySpec = {
     },
   ],
 
-  // API Operation for payment processing
-  apiOperation: {
-    method: 'POST',
-    endpoint: '/payments/process',
-    baseUrl: 'https://api.payments.coreflow360.com',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer {API_TOKEN}',
-    },
-    timeout: 30000,
-    retries: 3,
-    rateLimitPerMinute: 100,
-  },
-
-  returnType: {
-    type: 'object',
-    schema: {
-      type: 'object',
-      properties: {
-        paymentId: { type: 'string' },
-        status: { type: 'string' },
-        transactionId: { type: 'string' },
-        processedAmount: { type: 'number' },
-        fees: { type: 'number' },
-        fraudScore: { type: 'number' },
-        processedAt: { type: 'string' },
+  // SQL operations
+  sqlOperations: [
+    {
+      id: 'lookup_customer',
+      description: 'Retrieve customer information',
+      query: 'SELECT ${fields} FROM customers WHERE id = ? AND status = "active"',
+      parameters: ['customerId'],
+      timeout: 5000,
+      retries: 3,
+      validation: {
+        requiredRows: 1,
+        maxRows: 1,
       },
-      required: ['paymentId', 'status', 'processedAmount'],
     },
+  ],
+
+  // Cost tracking
+  cost: {
+    baseCost: 0.001, // $0.001 per lookup
+    maxCost: 0.10, // Maximum $0.10 per operation
+    currency: 'USD',
   },
 
-  validation: {
-    preExecution: [
-      'validateCustomerPaymentMethod',
-      'validatePaymentLimits',
-      'runFraudDetection',
-      'validateInvoiceAmounts',
-    ],
-    postExecution: [
-      'validateProcessingResult',
-      'updateCustomerBalance',
-    ],
-  },
-
-  costEstimation: {
-    baseComputeUnits: 20,
-    perRequestUnits: 10,
-    customCostFactors: {
-      fraudDetection: 5,
-      paymentProcessing: 15,
-    },
-    maxCostUSD: 2.00,
-  },
-
+  // Permission requirements
   permissions: {
-    requiredCapabilities: [
-      'payments:process',
-      'customers:read',
-      'financial:write',
+    required: ['customers:read'],
+    optional: ['customers:read_sensitive'],
+    businessRules: [
+      'User must have customer access permissions',
+      'Sensitive fields require additional permissions',
+      'Customer must be active',
     ],
-    resourceTypes: ['payment', 'customer', 'invoice'],
-    businessContextRequired: true,
-    userContextRequired: true,
-    elevatedPrivileges: true,
   },
 
+  // Audit requirements
   audit: {
-    severity: 'critical',
-    eventType: 'payment_processing',
-    sensitiveDataHandling: {
-      redactParameters: ['paymentToken'],
-      redactResults: true,
-      retentionDays: 2555,
-    },
-    complianceFlags: ['PCI-DSS', 'SOX', 'AML'],
+    enabled: true,
+    logLevel: 'info',
+    requiredFields: ['userId', 'businessId', 'customerId'],
+    retentionDays: 365, // 1 year
+    sensitiveFields: ['customerId'],
   },
 
-  tags: ['payment', 'financial', 'fraud-detection', 'pci-compliance'],
-  owner: 'payments-team',
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-
-  aiConfiguration: {
-    promptTemplate: 'Process payment of {amount} {currency} for customer {customerId} using {paymentMethod}. Validate against invoices: {invoiceIds}',
-    fallbackBehavior: 'error',
-    confidenceThreshold: 0.98,
-  },
-};
-
-/**
- * Example capability registry
- */
-export const ExampleCapabilities = {
-  invoice_create: InvoiceCreationCapability,
-  ledger_post: LedgerPostingCapability,
-  payment_process: PaymentProcessingCapability,
-};
-
-/**
- * Custom validation functions for the example capabilities
- */
-export const ExampleValidators = {
-  /**
-   * Validate invoice line items structure and calculations
-   */
-  validateInvoiceLineItems: (lineItems: any[]): boolean => {
-    if (!Array.isArray(lineItems) || lineItems.length === 0) {
-      return false;
-    }
-
-    for (const item of lineItems) {
-      // Validate required fields
-      if (!item.description || !item.quantity || !item.unitPrice) {
-        return false;
-      }
-
-      // Validate numeric values
-      if (typeof item.quantity !== 'number' || item.quantity <= 0) {
-        return false;
-      }
-
-      if (typeof item.unitPrice !== 'number' || item.unitPrice < 0) {
-        return false;
-      }
-
-      // Validate calculated total
-      const expectedTotal = item.quantity * item.unitPrice;
-      if (item.lineTotal && Math.abs(item.lineTotal - expectedTotal) > 0.01) {
-        return false;
-      }
-    }
-
-    return true;
+  // AI safety measures
+  aiSafety: {
+    maxTokens: 200,
+    temperature: 0.1,
+    topP: 0.9,
+    frequencyPenalty: 0.1,
+    presencePenalty: 0.1,
+    stopSequences: ['<|endoftext|>', '<|stop|>'],
+    contentFilter: true,
+    biasDetection: false,
+    hallucinationCheck: false,
   },
 
-  /**
-   * Validate payment terms structure
-   */
-  validatePaymentTerms: (terms: any): boolean => {
-    if (typeof terms !== 'object' || terms === null) {
-      return false;
-    }
-
-    // Validate net days
-    if (terms.net && (typeof terms.net !== 'number' || terms.net < 0 || terms.net > 365)) {
-      return false;
-    }
-
-    // Validate discount percentage
-    if (terms.discountPercentage && (typeof terms.discountPercentage !== 'number' || terms.discountPercentage < 0 || terms.discountPercentage > 100)) {
-      return false;
-    }
-
-    return true;
+  // Rate limiting
+  rateLimit: {
+    requestsPerMinute: 120,
+    requestsPerHour: 2000,
+    requestsPerDay: 20000,
+    burstLimit: 20,
   },
 
-  /**
-   * Validate journal entries for double-entry bookkeeping
-   */
-  validateJournalEntries: (entries: any[]): boolean => {
-    if (!Array.isArray(entries) || entries.length < 2) {
-      return false;
-    }
-
-    let totalDebits = 0;
-    let totalCredits = 0;
-
-    for (const entry of entries) {
-      // Validate required fields
-      if (!entry.accountCode || (!entry.debitAmount && !entry.creditAmount)) {
-        return false;
-      }
-
-      // Validate account code format
-      if (!/^[0-9]{4}$/.test(entry.accountCode)) {
-        return false;
-      }
-
-      // Validate amounts
-      const debit = entry.debitAmount || 0;
-      const credit = entry.creditAmount || 0;
-
-      if (typeof debit !== 'number' || typeof credit !== 'number') {
-        return false;
-      }
-
-      if (debit < 0 || credit < 0) {
-        return false;
-      }
-
-      // An entry should have either debit or credit, not both (or none)
-      if ((debit > 0 && credit > 0) || (debit === 0 && credit === 0)) {
-        return false;
-      }
-
-      totalDebits += debit;
-      totalCredits += credit;
-    }
-
-    // Validate that debits equal credits (within 1 cent tolerance)
-    return Math.abs(totalDebits - totalCredits) < 0.01;
+  // Error handling
+  errorHandling: {
+    retryableErrors: ['TIMEOUT', 'NETWORK_ERROR'],
+    nonRetryableErrors: ['VALIDATION_ERROR', 'PERMISSION_DENIED', 'CUSTOMER_NOT_FOUND'],
+    maxRetries: 2,
+    backoffMultiplier: 1.5,
+    maxBackoffMs: 5000,
   },
 
-  /**
-   * Cross-parameter validation for invoice business rules
-   */
-  validateInvoiceBusinessRules: (params: Record<string, unknown>): boolean => {
-    const issueDate = new Date(params.issueDate as string);
-    const dueDate = new Date(params.dueDate as string);
-
-    // Due date must be after issue date
-    if (dueDate <= issueDate) {
-      return false;
-    }
-
-    // Due date shouldn't be more than 1 year in the future
-    const oneYearFromNow = new Date();
-    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-    if (dueDate > oneYearFromNow) {
-      return false;
-    }
-
-    return true;
-  },
-
-  /**
-   * Validate ledger posting business rules
-   */
-  validateLedgerPostingRules: (params: Record<string, unknown>): boolean => {
-    const entries = params.journalEntries as any[];
-    const transactionDate = new Date(params.transactionDate as string);
-
-    // Transaction date shouldn't be more than 30 days in the future
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-    if (transactionDate > thirtyDaysFromNow) {
-      return false;
-    }
-
-    // Validate fiscal period matches transaction date
-    const fiscalPeriod = params.fiscalPeriod as string;
-    const expectedPeriod = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
-    if (fiscalPeriod !== expectedPeriod) {
-      return false;
-    }
-
-    return true;
-  },
-
-  /**
-   * Validate metadata object structure
-   */
-  validateMetadataObject: (metadata: any): boolean => {
-    if (typeof metadata !== 'object' || metadata === null || Array.isArray(metadata)) {
-      return false;
-    }
-
-    // Check for dangerous keys
-    const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
-    for (const key of Object.keys(metadata)) {
-      if (dangerousKeys.includes(key)) {
-        return false;
-      }
-    }
-
-    // Limit metadata size
-    if (JSON.stringify(metadata).length > 10000) {
-      return false;
-    }
-
-    return true;
+  // Monitoring and alerting
+  monitoring: {
+    enabled: true,
+    metrics: ['success_rate', 'response_time', 'error_rate', 'cost_per_operation'],
+    alerts: [
+      {
+        metric: 'error_rate',
+        threshold: 0.10, // 10%
+        severity: 'warning',
+      },
+      {
+        metric: 'response_time',
+        threshold: 2000, // 2 seconds
+        severity: 'warning',
+      },
+    ],
   },
 };
+

@@ -1,0 +1,356 @@
+name: Emergency Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      rollback_version:
+        description: 'Version to rollback to'
+        required: true
+        type: string
+      rollback_reason:
+        description: 'Reason for rollback'
+        required: true
+        type: choice
+        options:
+          - critical_bug
+          - performance_degradation
+          - security_incident
+          - data_corruption
+          - service_unavailable
+          - planned_rollback
+      rollback_strategy:
+        description: 'Rollback strategy'
+        required: true
+        default: 'instant'
+        type: choice
+        options:
+          - instant
+          - gradual
+          - stateful
+          - partial
+
+env:
+  NODE_VERSION: '18'
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+jobs:
+  validate-rollback:
+    name: Validate Rollback Request
+    runs-on: ubuntu-latest
+    outputs:
+      rollback-approved: ${{ steps.validation.outputs.approved }}
+      rollback-plan: ${{ steps.validation.outputs.plan }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate rollback request
+        id: validation
+        run: |
+          echo "🔍 Validating rollback request..."
+          echo "Environment: ${{ github.event.inputs.environment }}"
+          echo "Target Version: ${{ github.event.inputs.rollback_version }}"
+          echo "Reason: ${{ github.event.inputs.rollback_reason }}"
+          echo "Strategy: ${{ github.event.inputs.rollback_strategy }}"
+
+          # Validate target version exists
+          if ! npm run deployment:validate-version -- --version ${{ github.event.inputs.rollback_version }}; then
+            echo "❌ Invalid rollback version: ${{ github.event.inputs.rollback_version }}"
+            echo "approved=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # Generate rollback plan
+          npm run rollback:plan -- \
+            --env ${{ github.event.inputs.environment }} \
+            --version ${{ github.event.inputs.rollback_version }} \
+            --strategy ${{ github.event.inputs.rollback_strategy }} \
+            --reason ${{ github.event.inputs.rollback_reason }} \
+            --output rollback-plan.json
+
+          echo "approved=true" >> $GITHUB_OUTPUT
+          echo "plan=$(cat rollback-plan.json | jq -c .)" >> $GITHUB_OUTPUT
+
+      - name: Upload rollback plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: rollback-plan
+          path: rollback-plan.json
+
+  execute-rollback:
+    name: Execute Rollback
+    runs-on: ubuntu-latest
+    needs: validate-rollback
+    if: needs.validate-rollback.outputs.rollback-approved == 'true'
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download rollback plan
+        uses: actions/download-artifact@v4
+        with:
+          name: rollback-plan
+
+      - name: Execute instant rollback
+        if: github.event.inputs.rollback_strategy == 'instant'
+        run: |
+          echo "⚡ Executing instant rollback..."
+
+          # Capture current state for analysis
+          npm run deployment:capture-state -- --output current-state.json
+
+          # Switch traffic immediately
+          npm run rollback:instant -- \
+            --env ${{ github.event.inputs.environment }} \
+            --version ${{ github.event.inputs.rollback_version }} \
+            --reason "${{ github.event.inputs.rollback_reason }}"
+
+          echo "✅ Instant rollback completed"
+
+      - name: Execute gradual rollback
+        if: github.event.inputs.rollback_strategy == 'gradual'
+        run: |
+          echo "📉 Executing gradual rollback..."
+
+          # Stage 1: Reduce new version traffic to 75%
+          npm run deployment:traffic-shift -- --percentage 75 --env ${{ github.event.inputs.environment }}
+          sleep 120  # 2 minutes
+
+          # Stage 2: Reduce to 50%
+          npm run deployment:traffic-shift -- --percentage 50 --env ${{ github.event.inputs.environment }}
+          sleep 180  # 3 minutes
+
+          # Stage 3: Reduce to 25%
+          npm run deployment:traffic-shift -- --percentage 25 --env ${{ github.event.inputs.environment }}
+          sleep 180  # 3 minutes
+
+          # Stage 4: Complete rollback to target version
+          npm run rollback:complete -- \
+            --env ${{ github.event.inputs.environment }} \
+            --version ${{ github.event.inputs.rollback_version }}
+
+          echo "✅ Gradual rollback completed"
+
+      - name: Execute stateful rollback
+        if: github.event.inputs.rollback_strategy == 'stateful'
+        run: |
+          echo "🗄️ Executing stateful rollback..."
+
+          # Handle data migration rollback
+          npm run rollback:stateful -- \
+            --env ${{ github.event.inputs.environment }} \
+            --version ${{ github.event.inputs.rollback_version }} \
+            --preserve-data true \
+            --merge-strategy timestamp-based
+
+          echo "✅ Stateful rollback completed"
+
+      - name: Execute partial rollback
+        if: github.event.inputs.rollback_strategy == 'partial'
+        run: |
+          echo "🔄 Executing partial rollback..."
+
+          # Rollback specific components only
+          npm run rollback:partial -- \
+            --env ${{ github.event.inputs.environment }} \
+            --version ${{ github.event.inputs.rollback_version }} \
+            --components $(echo '${{ needs.validate-rollback.outputs.rollback-plan }}' | jq -r '.affectedComponents | join(",")')
+
+          echo "✅ Partial rollback completed"
+
+  verify-rollback:
+    name: Verify Rollback Success
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, execute-rollback]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run post-rollback health checks
+        run: |
+          echo "🏥 Running post-rollback health checks..."
+
+          # Wait for services to stabilize
+          sleep 60
+
+          # Comprehensive health check
+          npm run health:check -- --env ${{ github.event.inputs.environment }} --detailed
+
+          # Verify target version is active
+          npm run deployment:verify-version -- \
+            --env ${{ github.event.inputs.environment }} \
+            --expected-version ${{ github.event.inputs.rollback_version }}
+
+      - name: Run smoke tests
+        run: |
+          echo "🧪 Running post-rollback smoke tests..."
+          npm run test:smoke -- --env ${{ github.event.inputs.environment }}
+
+      - name: Validate business metrics
+        run: |
+          echo "📊 Validating business metrics restoration..."
+          npm run metrics:validate -- \
+            --env ${{ github.event.inputs.environment }} \
+            --baseline-version ${{ github.event.inputs.rollback_version }}
+
+  generate-incident-report:
+    name: Generate Incident Report
+    runs-on: ubuntu-latest
+    needs: [validate-rollback, execute-rollback, verify-rollback]
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate incident report
+        run: |
+          echo "📋 Generating incident report..."
+
+          npm run incident:generate-report -- \
+            --rollback-reason "${{ github.event.inputs.rollback_reason }}" \
+            --rollback-strategy "${{ github.event.inputs.rollback_strategy }}" \
+            --target-version "${{ github.event.inputs.rollback_version }}" \
+            --environment "${{ github.event.inputs.environment }}" \
+            --rollback-success "${{ needs.verify-rollback.result == 'success' }}" \
+            --timestamp "$(date -Iseconds)" \
+            --triggered-by "${{ github.actor }}" \
+            --output incident-report.json
+
+      - name: Upload incident report
+        uses: actions/upload-artifact@v4
+        with:
+          name: incident-report-${{ github.run_id }}
+          path: incident-report.json
+
+      - name: Create incident tracking issue
+        if: github.event.inputs.rollback_reason != 'planned_rollback'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('incident-report.json', 'utf8'));
+
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Production Incident: Rollback to v${{ github.event.inputs.rollback_version }}`,
+              body: `
+              ## Incident Summary
+
+              **Environment:** ${{ github.event.inputs.environment }}
+              **Rollback Reason:** ${{ github.event.inputs.rollback_reason }}
+              **Rollback Strategy:** ${{ github.event.inputs.rollback_strategy }}
+              **Target Version:** ${{ github.event.inputs.rollback_version }}
+              **Triggered By:** ${{ github.actor }}
+              **Timestamp:** ${report.timestamp}
+
+              ## Rollback Status
+              **Execution:** ${{ needs.execute-rollback.result }}
+              **Verification:** ${{ needs.verify-rollback.result }}
+
+              ## Next Steps
+              - [ ] Root cause analysis
+              - [ ] Fix implementation
+              - [ ] Testing validation
+              - [ ] Re-deployment planning
+
+              ## Incident Report
+              [Download full report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              `,
+              labels: ['incident', 'production', 'rollback', 'high-priority']
+            });
+
+            console.log('Created incident tracking issue:', issue.data.html_url);
+
+  notify-stakeholders:
+    name: Notify Stakeholders
+    runs-on: ubuntu-latest
+    needs: [execute-rollback, verify-rollback, generate-incident-report]
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Send rollback notification
+        run: |
+          if [[ "${{ needs.verify-rollback.result }}" == "success" ]]; then
+            echo "📢 Sending rollback success notification..."
+            npm run notifications:rollback-success -- \
+              --env "${{ github.event.inputs.environment }}" \
+              --version "${{ github.event.inputs.rollback_version }}" \
+              --reason "${{ github.event.inputs.rollback_reason }}" \
+              --strategy "${{ github.event.inputs.rollback_strategy }}"
+          else
+            echo "📢 Sending rollback failure notification..."
+            npm run notifications:rollback-failure -- \
+              --env "${{ github.event.inputs.environment }}" \
+              --version "${{ github.event.inputs.rollback_version }}" \
+              --reason "${{ github.event.inputs.rollback_reason }}"
+          fi
+
+      - name: Update status page
+        if: github.event.inputs.environment == 'production'
+        run: |
+          if [[ "${{ needs.verify-rollback.result }}" == "success" ]]; then
+            npm run status-page:update -- \
+              --status "operational" \
+              --message "Service restored via rollback to v${{ github.event.inputs.rollback_version }}"
+          else
+            npm run status-page:update -- \
+              --status "major_outage" \
+              --message "Rollback failed - investigating issue"
+          fi

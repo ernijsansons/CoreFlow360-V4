@@ -266,7 +266,8 @@ export class DatabaseStepHandler implements StepHandler {
     }
   }
 
-  private async simulateDbOperation(operation: string, table: string, data: any, where: any, transaction: boolean): Promise<void> {
+  private async simulateDbOperation(operation: string, table: string,
+  data: any, where: any, transaction: boolean): Promise<void> {
     // Simulate database latency
     await new Promise(resolve => setTimeout(resolve, 10 + Math.random() * 90));
 
@@ -399,7 +400,8 @@ export class EmailStepHandler implements StepHandler {
     }
   }
 
-  private async simulateEmailSend(to: string | string[], subject: string, template?: string, templateData?: any, priority?: string): Promise<void> {
+  private async simulateEmailSend(to: string | string[], subject:
+  string, template?: string, templateData?: any, priority?: string): Promise<void> {
     // Simulate email service latency
     const delay = priority === 'high' ? 500 : 1000 + Math.random() * 2000;
     await new Promise(resolve => setTimeout(resolve, delay));
@@ -543,7 +545,8 @@ export class FileProcessingStepHandler implements StepHandler {
     }
   }
 
-  private async simulateFileProcessing(operation: string, inputPath: string, outputPath?: string, options?: any): Promise<any> {
+  private async simulateFileProcessing(operation: string, inputPath:
+  string, outputPath?: string, options?: any): Promise<any> {
     // Simulate processing time based on operation
     const processingTime = {
       compress: 2000,

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "mcp-filesystem-server",
+      "args": ["C:\\Users\\ernij\\OneDrive\\Documents\\CoreFlow360 V4"]
+    }
+  }
+}

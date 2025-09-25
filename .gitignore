@@ -63,3 +63,43 @@ temp/
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yaml
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+docker-compose.local.yml
+.docker/
+
+# Docker volumes and data
+postgres_data/
+redis_data/
+prometheus_data/
+grafana_data/
+postgres_dev_data/
+redis_dev_data/
+
+# Docker build cache
+.docker-cache/
+
+# Environment files for Docker
+.env.docker
+.env.docker.local
+.env.docker.*.local
+
+# Docker secrets
+docker-secrets/
+secrets/
+
+# Kubernetes
+k8s/secrets/
+*.kubeconfig
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# CI/CD artifacts
+.github/workflows/secrets/
+.gitlab-ci-local/

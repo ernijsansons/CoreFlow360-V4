@@ -1,0 +1,121 @@
+# CoreFlow360 V4 - Development Docker Compose
+# Simplified setup for local development
+
+version: '3.8'
+
+services:
+  # ========================================================================
+  # Core Application
+  # ========================================================================
+  
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: coreflow360-dev-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Debug port
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DATABASE_URL=postgresql://coreflow:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/coreflow360
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-dev-encryption-key}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/frontend/node_modules
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["npm", "run", "dev:watch"]
+
+  # ========================================================================
+  # Frontend Service
+  # ========================================================================
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: coreflow360-dev-frontend
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:3000
+      - REACT_APP_WS_URL=ws://localhost:3000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - app-network
+    depends_on:
+      - app
+
+  # ========================================================================
+  # Database Services
+  # ========================================================================
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: coreflow360-dev-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=coreflow360
+      - POSTGRES_USER=coreflow
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-devpassword}
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coreflow -d coreflow360"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: coreflow360-dev-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  app-network:
+    driver: bridge
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local

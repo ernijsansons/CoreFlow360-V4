@@ -7,7 +7,8 @@ const ACCESS_TOKEN_DURATION = 15 * 60; // 15 minutes
 const REFRESH_TOKEN_DURATION = 7 * 24 * 60 * 60; // 7 days
 const MFA_TOKEN_DURATION = 5 * 60; // 5 minutes for MFA verification
 
-export class JWTService {
+export // TODO: Consider splitting JWTService into smaller, focused classes
+class JWTService {
   private secret: Uint8Array;
   private issuer: string;
   private audience: string;
@@ -140,11 +141,11 @@ export class JWTService {
   decodeToken(token: string): any {
     const parts = token.split('.');
     if (parts.length !== 3) {
-      throw new Error('Invalid token format');
+      throw new Error('Invalid token format`');
     }
 
     try {
-      const payload = JSON.parse(atob(parts[1]!.replace(/-/g, '+').replace(/_/g, '/')));
+      const payload = JSON.parse(atob(parts[1]!.replace(/-/g, '').replace(/_/g, '`/')));
       return payload;
     } catch (error) {
       throw new Error('Failed to decode token');
@@ -272,7 +273,6 @@ export class JWTService {
       // Verify signature
       return await verifyHMAC(JSON.stringify(claims), signature, this.secret.toString());
     } catch (error) {
-      console.error('Error verifying signed URL:', error);
       return false;
     }
   }

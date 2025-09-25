@@ -1,0 +1,375 @@
+# CoreFlow360 V4 - Enterprise Docker Compose Configuration
+# Multi-environment setup with security, monitoring, and scalability
+
+# Docker Compose configuration for CoreFlow360 V4
+
+# ============================================================================
+# Networks - Isolated network segments for security
+# ============================================================================
+networks:
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+  mcp:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+
+# ============================================================================
+# Volumes - Persistent data storage
+# ============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  logs:
+    driver: local
+
+# ============================================================================
+# Services - Enterprise-grade service architecture
+# ============================================================================
+services:
+  # ========================================================================
+  # Core Application Services
+  # ========================================================================
+  
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: coreflow360-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - LOG_LEVEL=info
+      - DATABASE_URL=postgresql://coreflow:${POSTGRES_PASSWORD}@postgres:5432/coreflow360
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+    volumes:
+      - ./config:/app/config:ro
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/logs
+
+  # ========================================================================
+  # Frontend Service
+  # ========================================================================
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: coreflow360-frontend
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=http://app:3000
+      - REACT_APP_WS_URL=ws://app:3000
+    networks:
+      - frontend
+    depends_on:
+      - app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # ========================================================================
+  # Database Services
+  # ========================================================================
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: coreflow360-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=coreflow360
+      - POSTGRES_USER=coreflow
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - backend
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coreflow -d coreflow360"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:7-alpine
+    container_name: coreflow360-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+    security_opt:
+      - no-new-privileges:true
+
+  # ========================================================================
+  # MCP Server Services
+  # ========================================================================
+  
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: coreflow360-mcp
+    restart: unless-stopped
+    command: ["python3", "cloudflare_proxy.py"]
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MCP_LOG_LEVEL=info
+    volumes:
+      - ./mcp-coreflow.json.txt:/app/mcp-config.json:ro
+      - logs:/app/logs
+    networks:
+      - mcp
+      - backend
+    depends_on:
+      - app
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests; requests.get('http://app:3000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.1'
+
+  # ========================================================================
+  # Monitoring & Observability
+  # ========================================================================
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: coreflow360-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - monitoring
+      - backend
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: coreflow360-grafana
+    restart: unless-stopped
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # ========================================================================
+  # Log Management
+  # ========================================================================
+  
+  loki:
+    image: grafana/loki:latest
+    container_name: coreflow360-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki.yml:/etc/loki/local-config.yaml:ro
+    networks:
+      - monitoring
+    command: -config.file=/etc/loki/local-config.yaml
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # ========================================================================
+  # Security & Compliance
+  # ========================================================================
+  
+  nginx:
+    image: nginx:alpine
+    container_name: coreflow360-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - logs:/var/log/nginx
+    networks:
+      - frontend
+    depends_on:
+      - app
+      - frontend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.1'
+
+  # ========================================================================
+  # Development Services (only in development mode)
+  # ========================================================================
+  
+  dev-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: coreflow360-dev-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    environment:
+      - NODE_ENV=development
+      - DEBUG=*
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - frontend
+      - backend
+    profiles:
+      - dev
+    command: ["npm", "run", "dev:watch"]
+
+  # ========================================================================
+  # Testing Services
+  # ========================================================================
+  
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: testing
+    container_name: coreflow360-test
+    networks:
+      - backend
+    profiles:
+      - test
+    command: ["npm", "test"]
+    depends_on:
+      - postgres
+      - redis

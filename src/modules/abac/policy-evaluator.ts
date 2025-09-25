@@ -103,7 +103,6 @@ export class PolicyEvaluator {
       this.indexPolicy(policy);
     });
 
-    console.log(`Loaded ${policies.length} policies`);
   }
 
   /**

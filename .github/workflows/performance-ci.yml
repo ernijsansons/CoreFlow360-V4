@@ -1,0 +1,410 @@
+name: Performance CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run performance regression tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '18'
+  PERFORMANCE_BUDGET_LCP: 2500
+  PERFORMANCE_BUDGET_FID: 100
+  PERFORMANCE_BUDGET_CLS: 0.1
+  PERFORMANCE_BUDGET_BUNDLE_SIZE: 800 # KB
+
+jobs:
+  # === PERFORMANCE ANALYSIS ===
+  performance-analysis:
+    name: Performance Analysis & Benchmarking
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    outputs:
+      performance-score: ${{ steps.lighthouse.outputs.score }}
+      bundle-size: ${{ steps.bundle-analysis.outputs.size }}
+      api-latency: ${{ steps.api-benchmark.outputs.p95-latency }}
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        
+    - name: Build optimized production bundle
+      run: |
+        npm run build:production
+        cd frontend && npm run build
+        
+    - name: Bundle Size Analysis
+      id: bundle-analysis
+      run: |
+        # Analyze main bundle sizes
+        MAIN_BUNDLE_SIZE=$(stat -c%s "frontend/dist/assets/index-*.js" | awk '{sum+=$1} END {print int(sum/1024)}')
+        VENDOR_BUNDLE_SIZE=$(stat -c%s "frontend/dist/assets/vendor-*.js" | awk '{sum+=$1} END {print int(sum/1024)}')
+        TOTAL_JS_SIZE=$((MAIN_BUNDLE_SIZE + VENDOR_BUNDLE_SIZE))
+        
+        echo "main-bundle=${MAIN_BUNDLE_SIZE}KB" >> $GITHUB_OUTPUT
+        echo "vendor-bundle=${VENDOR_BUNDLE_SIZE}KB" >> $GITHUB_OUTPUT  
+        echo "size=${TOTAL_JS_SIZE}" >> $GITHUB_OUTPUT
+        
+        # Performance budget check
+        if [ $TOTAL_JS_SIZE -gt ${{ env.PERFORMANCE_BUDGET_BUNDLE_SIZE }} ]; then
+          echo "❌ Bundle size budget exceeded: ${TOTAL_JS_SIZE}KB > ${{ env.PERFORMANCE_BUDGET_BUNDLE_SIZE }}KB"
+          exit 1
+        else
+          echo "✅ Bundle size within budget: ${TOTAL_JS_SIZE}KB ≤ ${{ env.PERFORMANCE_BUDGET_BUNDLE_SIZE }}KB"
+        fi
+        
+    - name: API Performance Benchmarking
+      id: api-benchmark
+      run: |
+        # Start the backend server
+        npm run build
+        timeout 300s npm start &
+        sleep 10
+        
+        # Run Artillery load test
+        npx artillery run tests/performance/api-load-test.yml --output /tmp/artillery-report.json
+        
+        # Extract P95 latency
+        P95_LATENCY=$(cat /tmp/artillery-report.json | jq '.aggregate.latency.p95')
+        echo "p95-latency=${P95_LATENCY}" >> $GITHUB_OUTPUT
+        
+        # Performance budget check
+        if (( $(echo "$P95_LATENCY > 200" | bc -l) )); then
+          echo "❌ API latency budget exceeded: ${P95_LATENCY}ms > 200ms"
+          exit 1
+        else
+          echo "✅ API latency within budget: ${P95_LATENCY}ms ≤ 200ms"
+        fi
+        
+    - name: Lighthouse Performance Audit
+      id: lighthouse
+      uses: treosh/lighthouse-ci-action@v10
+      with:
+        configPath: './lighthouse.config.js'
+        uploadArtifacts: true
+        temporaryPublicStorage: true
+        
+    - name: Performance Regression Detection
+      run: |
+        # Compare with baseline performance metrics
+        node scripts/performance-regression-check.js \
+          --current-lcp ${{ steps.lighthouse.outputs.lcp }} \
+          --current-fid ${{ steps.lighthouse.outputs.fid }} \
+          --current-cls ${{ steps.lighthouse.outputs.cls }} \
+          --bundle-size ${{ steps.bundle-analysis.outputs.size }} \
+          --api-latency ${{ steps.api-benchmark.outputs.p95-latency }}
+          
+    - name: Upload Performance Artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-reports
+        path: |
+          /tmp/lighthouse
+          /tmp/artillery-report.json
+          frontend/dist/stats.html
+
+  # === DATABASE PERFORMANCE TESTING ===
+  database-performance:
+    name: Database Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Database Performance Benchmarks
+      run: |
+        # Run database-specific performance tests
+        npm run test:db-performance
+        
+    - name: Cache Performance Tests  
+      run: |
+        # Test cache hit rates and performance
+        npm run test:cache-performance
+        
+    - name: Memory Leak Tests
+      run: |
+        # Check for memory leaks in long-running operations
+        npm run test:memory-leaks
+
+  # === FRONTEND PERFORMANCE TESTING ===
+  frontend-performance:
+    name: Frontend Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        
+    - name: Build frontend
+      run: cd frontend && npm run build
+      
+    - name: Visual Regression Tests
+      run: |
+        # Run visual regression tests with Percy or similar
+        cd frontend && npm run test:visual
+        
+    - name: Core Web Vitals Testing
+      run: |
+        # Measure Core Web Vitals in CI environment
+        cd frontend && npm run test:web-vitals
+        
+    - name: Bundle Analysis & Optimization Check
+      run: |
+        cd frontend && npm run analyze:bundle
+        # Check for unused dependencies and code
+        npm run analyze:unused
+
+  # === INTEGRATION PERFORMANCE TESTS ===
+  integration-performance:
+    name: Integration Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [performance-analysis]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: AI Integration Performance Tests
+      run: |
+        # Test Claude API integration performance
+        npm run test:ai-integration
+        
+    - name: Workflow Engine Performance Tests
+      run: |
+        # Test workflow execution performance
+        npm run test:workflow-performance
+        
+    - name: End-to-End Performance Tests
+      run: |
+        # Full system performance test
+        npm run test:e2e-performance
+
+  # === DEPLOYMENT WITH PERFORMANCE GATES ===
+  deploy:
+    name: Deploy with Performance Gates
+    runs-on: ubuntu-latest
+    needs: [performance-analysis, database-performance, frontend-performance, integration-performance]
+    if: github.ref == 'refs/heads/main' && needs.performance-analysis.outputs.performance-score >= 90
+    
+    environment:
+      name: production
+      url: https://api.coreflow360.com
+      
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd frontend && npm ci
+        
+    - name: Build optimized production assets
+      run: |
+        npm run optimize:production
+        cd frontend && npm run build
+        
+    - name: Pre-deployment Performance Validation
+      run: |
+        echo "✅ Performance Score: ${{ needs.performance-analysis.outputs.performance-score }}/100"
+        echo "✅ Bundle Size: ${{ needs.performance-analysis.outputs.bundle-size }}KB"
+        echo "✅ API P95 Latency: ${{ needs.performance-analysis.outputs.api-latency }}ms"
+        
+    - name: Deploy Backend to Cloudflare Workers
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      run: |
+        npx wrangler deploy --config wrangler.production.toml
+        
+    - name: Deploy Frontend to Cloudflare Pages
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      run: |
+        cd frontend
+        npx wrangler pages publish dist --project-name coreflow360-frontend
+        
+    - name: Post-deployment Health Check
+      run: |
+        # Wait for deployment to be ready
+        sleep 30
+        
+        # Verify deployment health
+        npm run test:production-health
+        
+    - name: Post-deployment Performance Validation
+      run: |
+        # Run smoke tests on production
+        npm run test:production-comprehensive
+        
+        # Verify performance metrics are maintained
+        node scripts/post-deployment-performance-check.js
+
+  # === PERFORMANCE MONITORING SETUP ===
+  setup-monitoring:
+    name: Setup Performance Monitoring
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: needs.deploy.result == 'success'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure Production Monitoring
+      env:
+        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+      run: |
+        # Setup Sentry performance monitoring
+        npm run monitoring:setup-staging
+        
+        # Activate production monitoring
+        npm run monitoring:activate-production
+        
+        # Validate monitoring dashboards
+        npm run validate:monitoring-dashboards
+        
+    - name: Configure Performance Alerts
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        # Configure alerting for performance regressions
+        npm run alerting:configure-production
+        
+    - name: Performance Monitoring Health Check
+      run: |
+        # Verify monitoring is working correctly
+        npm run monitoring:validate-production
+
+  # === PERFORMANCE REPORT GENERATION ===
+  performance-report:
+    name: Generate Performance Report
+    runs-on: ubuntu-latest
+    needs: [performance-analysis, database-performance, frontend-performance, integration-performance]
+    if: always()
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Generate Performance Report
+      run: |
+        # Generate comprehensive performance report
+        node scripts/generate-performance-report.js \
+          --lighthouse-score "${{ needs.performance-analysis.outputs.performance-score }}" \
+          --bundle-size "${{ needs.performance-analysis.outputs.bundle-size }}" \
+          --api-latency "${{ needs.performance-analysis.outputs.api-latency }}" \
+          --output "performance-report.md"
+          
+    - name: Comment Performance Report on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('performance-report.md', 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## 📊 Performance Report\n\n${report}`
+          });
+          
+    - name: Upload Performance Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-report
+        path: performance-report.md
+
+# === PERFORMANCE BUDGET ENFORCEMENT ===
+  performance-budget-check:
+    name: Performance Budget Enforcement
+    runs-on: ubuntu-latest
+    needs: [performance-analysis]
+    if: always()
+    
+    steps:
+    - name: Enforce Performance Budgets
+      run: |
+        SCORE=${{ needs.performance-analysis.outputs.performance-score }}
+        BUNDLE_SIZE=${{ needs.performance-analysis.outputs.bundle-size }}
+        API_LATENCY=${{ needs.performance-analysis.outputs.api-latency }}
+        
+        echo "📊 Performance Metrics:"
+        echo "  Lighthouse Score: ${SCORE}/100"
+        echo "  Bundle Size: ${BUNDLE_SIZE}KB"
+        echo "  API P95 Latency: ${API_LATENCY}ms"
+        echo ""
+        
+        BUDGET_VIOLATIONS=0
+        
+        if [ "$SCORE" -lt "90" ]; then
+          echo "❌ Lighthouse score below budget: ${SCORE} < 90"
+          BUDGET_VIOLATIONS=$((BUDGET_VIOLATIONS + 1))
+        fi
+        
+        if [ "$BUNDLE_SIZE" -gt "${{ env.PERFORMANCE_BUDGET_BUNDLE_SIZE }}" ]; then
+          echo "❌ Bundle size exceeds budget: ${BUNDLE_SIZE}KB > ${{ env.PERFORMANCE_BUDGET_BUNDLE_SIZE }}KB"
+          BUDGET_VIOLATIONS=$((BUDGET_VIOLATIONS + 1))
+        fi
+        
+        if (( $(echo "$API_LATENCY > 200" | bc -l) )); then
+          echo "❌ API latency exceeds budget: ${API_LATENCY}ms > 200ms"
+          BUDGET_VIOLATIONS=$((BUDGET_VIOLATIONS + 1))
+        fi
+        
+        if [ $BUDGET_VIOLATIONS -gt 0 ]; then
+          echo "❌ Performance budget check failed with $BUDGET_VIOLATIONS violation(s)"
+          exit 1
+        else
+          echo "✅ All performance budgets passed!"
+        fi

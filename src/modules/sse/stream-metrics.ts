@@ -322,7 +322,8 @@ export class StreamMetricsCollector {
     const latency = metrics.averageTokenLatency;
     const jitter = Math.abs(metrics.averageTokenLatency - (metrics.timeToFirstToken || 0));
     const packetLoss = metrics.droppedEventCount / Math.max(1, metrics.totalTokens + metrics.totalChunks);
-    const bandwidth = metrics.totalBytes / Math.max(1, (metrics.endTime || Date.now()) - metrics.startTime) * 1000; // bytes/sec
+    const bandwidth = metrics.totalBytes /
+  Math.max(1, (metrics.endTime || Date.now()) - metrics.startTime) * 1000; // bytes/sec
 
     let stability: ConnectionQuality['stability'];
     if (latency < 50 && jitter < 20 && packetLoss < 0.01) {

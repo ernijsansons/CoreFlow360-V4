@@ -104,7 +104,8 @@ export class WorkflowOrchestrator implements DurableObject {
 
       if (userWorkflows.length >= this.orchestratorState.config.maxConcurrentWorkflows) {
         throw new WorkflowError(
-          `User has reached maximum concurrent workflows limit (${this.orchestratorState.config.maxConcurrentWorkflows})`,
+        
+   `User has reached maximum concurrent workflows limit (${this.orchestratorState.config.maxConcurrentWorkflows})`,
           'CONCURRENT_LIMIT_EXCEEDED'
         );
       }
@@ -500,7 +501,8 @@ export class WorkflowOrchestrator implements DurableObject {
     }
   }
 
-  private async executeSteps(definition: WorkflowDefinition, execution: WorkflowExecution, stepIds: string[]): Promise<void> {
+  private async executeSteps(definition: WorkflowDefinition,
+  execution: WorkflowExecution, stepIds: string[]): Promise<void> {
     const steps = stepIds.map(id => definition.steps.find(s => s.id === id)).filter(Boolean) as WorkflowStep[];
 
     // Group steps by parallel groups
@@ -533,7 +535,8 @@ export class WorkflowOrchestrator implements DurableObject {
     await Promise.allSettled(parallelPromises);
   }
 
-  private async executeParallelGroup(definition: WorkflowDefinition, execution: WorkflowExecution, groupId: string, steps: WorkflowStep[]): Promise<void> {
+  private async executeParallelGroup(definition: WorkflowDefinition, execution:
+  WorkflowExecution, groupId: string, steps: WorkflowStep[]): Promise<void> {
     const groupState = {
       groupId,
       stepIds: steps.map(s => s.id),
@@ -558,7 +561,8 @@ export class WorkflowOrchestrator implements DurableObject {
     }
   }
 
-  private async executeStep(definition: WorkflowDefinition, execution: WorkflowExecution, step: WorkflowStep): Promise<void> {
+  private async executeStep(definition: WorkflowDefinition,
+  execution: WorkflowExecution, step: WorkflowStep): Promise<void> {
     const stepResult: StepExecutionResult = {
       stepId: step.id,
       status: 'running',
@@ -612,7 +616,8 @@ export class WorkflowOrchestrator implements DurableObject {
     }
   }
 
-  private async executeStepWithRetry(execution: WorkflowExecution, step: WorkflowStep, stepResult: StepExecutionResult): Promise<void> {
+  private async executeStepWithRetry(execution: WorkflowExecution,
+  step: WorkflowStep, stepResult: StepExecutionResult): Promise<void> {
     const maxRetries = step.retryPolicy?.maxRetries || 0;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -698,7 +703,8 @@ export class WorkflowOrchestrator implements DurableObject {
     }
   }
 
-  private async handleApprovalStep(execution: WorkflowExecution, step: WorkflowStep, stepResult: StepExecutionResult): Promise<void> {
+  private async handleApprovalStep(execution: WorkflowExecution,
+  step: WorkflowStep, stepResult: StepExecutionResult): Promise<void> {
     if (!step.approvalConfig) {
       throw new WorkflowError('Approval step missing approval configuration', 'MISSING_APPROVAL_CONFIG');
     }
@@ -992,7 +998,8 @@ export class WorkflowOrchestrator implements DurableObject {
     }
   }
 
-  private async emitProgressEvent(execution: WorkflowExecution, type: WorkflowProgressEvent['type'], stepId?: string): Promise<void> {
+  private async emitProgressEvent(execution: WorkflowExecution,
+  type: WorkflowProgressEvent['type'], stepId?: string): Promise<void> {
     if (!this.orchestratorState.config.enableSSEUpdates) return;
 
     const event: WorkflowProgressEvent = {
@@ -1005,7 +1012,8 @@ export class WorkflowOrchestrator implements DurableObject {
         progress: {
           completed: execution.completedSteps.length,
           total: execution.completedSteps.length + execution.currentSteps.length + execution.failedSteps.length,
-          percentage: Math.round((execution.completedSteps.length / Math.max(1, execution.completedSteps.length + execution.currentSteps.length + execution.failedSteps.length)) * 100),
+         
+  percentage: Math.round((execution.completedSteps.length / Math.max(1, execution.completedSteps.length + execution.currentSteps.length + execution.failedSteps.length)) * 100),
         },
         totalCost: execution.totalCost,
       },
@@ -1031,7 +1039,8 @@ export class WorkflowOrchestrator implements DurableObject {
     return `id: ${event.workflowExecutionId}-${event.timestamp}\nevent: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`;
   }
 
-  private evaluateCondition(condition: { expression: string; variables: Record<string, unknown> }, workflowVariables: Record<string, unknown>): boolean {
+  private evaluateCondition(condition: { expression: string; variables:
+  Record<string, unknown> }, workflowVariables: Record<string, unknown>): boolean {
     try {
       // Simple expression evaluation (in production, use a proper expression engine)
       const allVariables = { ...condition.variables, ...workflowVariables };
@@ -1087,7 +1096,8 @@ export class WorkflowOrchestrator implements DurableObject {
     if (totalExecutions === 1) {
       metrics.averageExecutionTime = duration;
     } else {
-      metrics.averageExecutionTime = (metrics.averageExecutionTime * (totalExecutions - 1) + duration) / totalExecutions;
+      metrics.averageExecutionTime =
+  (metrics.averageExecutionTime * (totalExecutions - 1) + duration) / totalExecutions;
     }
   }
 

@@ -1,0 +1,447 @@
+name: Design System - Complete CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, comprehensive-testing]
+    paths:
+      - 'design-system/**'
+      - '.github/workflows/design-system-deploy.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'design-system/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/design-system
+  PNPM_VERSION: 8.14.0
+  NODE_VERSION: 18
+
+jobs:
+  # ============================================================================
+  # Security Scanning
+  # ============================================================================
+  security:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: './design-system'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Dependency audit
+        working-directory: ./design-system
+        run: |
+          corepack enable
+          pnpm audit --audit-level moderate
+
+  # ============================================================================
+  # Code Quality
+  # ============================================================================
+  quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./design-system
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: './design-system/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type checking
+        run: pnpm type-check
+
+      - name: Linting
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+  # ============================================================================
+  # Testing Suite
+  # ============================================================================
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./design-system
+    strategy:
+      matrix:
+        test-type: [unit, a11y, visual]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: './design-system/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ${{ matrix.test-type }} tests
+        run: pnpm test:${{ matrix.test-type }}
+        env:
+          CI: true
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-type }}
+          path: ./design-system/test-results/
+
+  # ============================================================================
+  # Build Docker Images
+  # ============================================================================
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [security, quality, test]
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker images
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./design-system
+          file: ./design-system/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ steps.meta.outputs.version }}
+
+  # ============================================================================
+  # Performance Testing
+  # ============================================================================
+  performance:
+    name: Performance Analysis
+    runs-on: ubuntu-latest
+    needs: docker-build
+    defaults:
+      run:
+        working-directory: ./design-system
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: './design-system/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build production bundle
+        run: pnpm build
+
+      - name: Analyze bundle size
+        run: |
+          pnpm bundle:analyze > bundle-report.txt
+          if [ $(stat -c%s "dist/index.js") -gt 102400 ]; then
+            echo "Bundle size exceeds 100KB limit!"
+            exit 1
+          fi
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          configPath: './design-system/.lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  # ============================================================================
+  # Deploy to Cloudflare
+  # ============================================================================
+  cloudflare-deploy:
+    name: Deploy to Cloudflare
+    runs-on: ubuntu-latest
+    needs: [docker-build, performance]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/comprehensive-testing'
+    environment:
+      name: ${{ github.event.inputs.environment || 'staging' }}
+      url: https://design-system.coreflow360.com
+    defaults:
+      run:
+        working-directory: ./design-system
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: './design-system/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build for production
+        run: |
+          pnpm build
+          pnpm build:lib
+          pnpm storybook:build
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: './design-system'
+          command: deploy --env ${{ github.event.inputs.environment || 'staging' }}
+          secrets: |
+            FIGMA_TOKEN
+            API_KEY
+            JWT_SECRET
+        env:
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+          API_KEY: ${{ secrets.API_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: './design-system'
+          command: pages deploy ./dist --project-name=design-system
+
+      - name: Setup Cloudflare KV namespaces
+        run: |
+          npx wrangler kv:namespace create CACHE --env ${{ github.event.inputs.environment || 'staging' }}
+          npx wrangler kv:namespace create TOKENS --env ${{ github.event.inputs.environment || 'staging' }}
+
+      - name: Setup Cloudflare D1 database
+        run: |
+          npx wrangler d1 create design-system-analytics --env ${{ github.event.inputs.environment || 'staging' }} || true
+          npx wrangler d1 migrations apply design-system-analytics --env ${{ github.event.inputs.environment || 'staging' }}
+
+      - name: Setup R2 buckets
+        run: |
+          npx wrangler r2 bucket create design-system-assets || true
+
+  # ============================================================================
+  # Deploy Storybook
+  # ============================================================================
+  storybook-deploy:
+    name: Deploy Storybook
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main'
+    defaults:
+      run:
+        working-directory: ./design-system
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: './design-system/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Storybook
+        run: pnpm storybook:build
+
+      - name: Deploy to Chromatic
+        uses: chromaui/action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: './design-system'
+          storybookBuildDir: 'storybook-static'
+
+  # ============================================================================
+  # Release and Publish
+  # ============================================================================
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [cloudflare-deploy, storybook-deploy]
+    if: github.ref == 'refs/heads/main'
+    defaults:
+      run:
+        working-directory: ./design-system
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build library
+        run: pnpm build:lib
+
+      - name: Create changelog
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: './design-system'
+          skip-version-file: false
+          output-file: 'CHANGELOG.md'
+
+      - name: Create GitHub Release
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: design-system-v${{ steps.changelog.outputs.version }}
+          name: Design System v${{ steps.changelog.outputs.version }}
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+          artifacts: './design-system/dist/*'
+
+      - name: Publish to NPM
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        run: |
+          npm config set //registry.npmjs.org/:_authToken ${NODE_AUTH_TOKEN}
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # ============================================================================
+  # Notification
+  # ============================================================================
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [cloudflare-deploy, storybook-deploy, release]
+    if: always()
+    steps:
+      - name: Notify success
+        if: needs.cloudflare-deploy.result == 'success'
+        run: |
+          echo "✅ Design System deployment successful!"
+          echo "🌐 Workers: https://design-system.coreflow360.workers.dev"
+          echo "📚 Storybook: https://design-system-storybook.coreflow360.com"
+          echo "🐳 Docker: ghcr.io/${{ github.repository }}/design-system"
+          echo "📦 NPM: https://www.npmjs.com/package/@future-enterprise/design-system"
+
+      - name: Notify failure
+        if: needs.cloudflare-deploy.result == 'failure'
+        run: |
+          echo "❌ Deployment failed!"
+          echo "Please check the workflow logs for details"

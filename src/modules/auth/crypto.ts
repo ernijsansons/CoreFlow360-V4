@@ -78,7 +78,6 @@ export async function verifyPassword(password: string, hash: string, salt: strin
 
     return result === 0;
   } catch (error) {
-    console.error('Password verification error:', error);
     return false;
   }
 }
@@ -154,7 +153,6 @@ export async function verifyHMAC(data: string, signature: string, secret: string
 
     return result === 0;
   } catch (error) {
-    console.error('HMAC verification error:', error);
     return false;
   }
 }

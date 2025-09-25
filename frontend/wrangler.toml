@@ -1,0 +1,29 @@
+name = "coreflow360-frontend"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "./dist"
+
+[vars]
+NODE_ENV = "production"
+
+[[kv_namespaces]]
+binding = "FEATURE_FLAGS"
+id = "feature-flags-kv"
+
+[[kv_namespaces]]
+binding = "APP_CACHE"
+id = "app-cache-kv"
+
+[env.production.vars]
+API_URL = "https://api.coreflow360.com"
+SENTRY_DSN = ""
+CLOUDFLARE_ANALYTICS_TOKEN = ""
+
+[env.staging.vars]
+API_URL = "https://staging-api.coreflow360.com"
+SENTRY_DSN = ""
+CLOUDFLARE_ANALYTICS_TOKEN = ""
+
+[env.development.vars]
+API_URL = "http://localhost:8787"
+SENTRY_DSN = ""
+CLOUDFLARE_ANALYTICS_TOKEN = ""

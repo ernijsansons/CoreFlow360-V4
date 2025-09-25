@@ -1,480 +1,544 @@
-import type { KVNamespace } from '@cloudflare/workers-types';
-
 /**
- * Performance monitoring for ABAC operations
- * Tracks evaluation times, cache hit rates, and system health
+ * ABAC Performance Monitor
+ * Monitors and optimizes performance of Attribute-Based Access Control system
  */
-export class PerformanceMonitor {
-  private kv: KVNamespace;
-  private metrics: {
-    evaluations: Array<{
-      timestamp: number;
-      duration: number;
-      cacheHit: boolean;
-      fastPath: string | null;
-      allowed: boolean;
-    }>;
-    hourlyStats: Map<string, {
-      count: number;
-      totalDuration: number;
-      cacheHits: number;
-      slowQueries: number;
-    }>;
-  } = {
-    evaluations: [],
-    hourlyStats: new Map(),
-  };
+import { Logger } from '../../shared/logger';
 
-  private readonly MAX_BUFFER_SIZE = 1000;
-  private readonly SLOW_QUERY_THRESHOLD = 10; // ms
-  private readonly TARGET_EVALUATION_TIME = 10; // ms
+interface PerformanceMetrics {
+  totalRequests: number;
+  averageResponseTime: number;
+  p95ResponseTime: number;
+  p99ResponseTime: number;
+  errorRate: number;
+  cacheHitRate: number;
+  memoryUsage: number;
+  cpuUsage: number;
+  throughput: number;
+  latency: number;
+}
 
-  constructor(kv: KVNamespace) {
-    this.kv = kv;
+interface PerformanceThresholds {
+  maxResponseTime: number;
+  maxErrorRate: number;
+  minCacheHitRate: number;
+  maxMemoryUsage: number;
+  maxCpuUsage: number;
+  minThroughput: number;
+  maxLatency: number;
+}
+
+interface PerformanceAlert {
+  id: string;
+  type: 'response_time' | 'error_rate' | 'cache_hit_rate' | 'memory_usage' | 'cpu_usage' | 'throughput' | 'latency';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  value: number;
+  threshold: number;
+  timestamp: Date;
+  resolved: boolean;
+  resolvedAt?: Date;
+}
+
+interface PerformanceReport {
+  timestamp: Date;
+  metrics: PerformanceMetrics;
+  alerts: PerformanceAlert[];
+  recommendations: string[];
+  healthScore: number;
+  trends: PerformanceTrends;
+}
+
+interface PerformanceTrends {
+  responseTime: 'improving' | 'stable' | 'degrading';
+  errorRate: 'improving' | 'stable' | 'degrading';
+  cacheHitRate: 'improving' | 'stable' | 'degrading';
+  memoryUsage: 'improving' | 'stable' | 'degrading';
+  throughput: 'improving' | 'stable' | 'degrading';
+}
+
+interface RequestMetrics {
+  requestId: string;
+  startTime: number;
+  endTime: number;
+  duration: number;
+  success: boolean;
+  error?: string;
+  cacheHit: boolean;
+  memoryUsed: number;
+  cpuUsed: number;
+}
+
+export class ABACPerformanceMonitor {
+  private logger: Logger;
+  private metrics: PerformanceMetrics;
+  private thresholds: PerformanceThresholds;
+  private alerts: Map<string, PerformanceAlert> = new Map();
+  private requestHistory: RequestMetrics[] = [];
+  private maxHistorySize: number = 10000;
+  private isMonitoring: boolean = false;
+  private monitoringInterval?: NodeJS.Timeout;
+
+  constructor(config?: Partial<PerformanceThresholds>) {
+    this.logger = new Logger({ component: 'abac-performance-monitor' });
+    
+    this.thresholds = {
+      maxResponseTime: 1000, // 1 second
+      maxErrorRate: 0.05, // 5%
+      minCacheHitRate: 0.8, // 80%
+      maxMemoryUsage: 100 * 1024 * 1024, // 100MB
+      maxCpuUsage: 0.8, // 80%
+      minThroughput: 100, // 100 requests per second
+      maxLatency: 500, // 500ms
+      ...config
+    };
+
+    this.metrics = {
+      totalRequests: 0,
+      averageResponseTime: 0,
+      p95ResponseTime: 0,
+      p99ResponseTime: 0,
+      errorRate: 0,
+      cacheHitRate: 0,
+      memoryUsage: 0,
+      cpuUsage: 0,
+      throughput: 0,
+      latency: 0
+    };
   }
 
-  /**
-   * Record permission evaluation metrics
-   */
-  recordEvaluation(
-    duration: number,
-    cacheHit: boolean,
-    fastPath: string | null,
-    allowed: boolean,
-    metadata?: {
-      userId?: string;
-      businessId?: string;
-      capability?: string;
+  startMonitoring(intervalMs: number = 60000): void {
+    if (this.isMonitoring) {
+      this.logger.warn('Performance monitoring already started');
+      return;
     }
-  ): void {
-    const timestamp = Date.now();
 
-    // Add to in-memory buffer
-    this.metrics.evaluations.push({
-      timestamp,
-      duration,
-      cacheHit,
-      fastPath,
-      allowed,
+    this.isMonitoring = true;
+    this.monitoringInterval = setInterval(() => {
+      this.updateMetrics();
+      this.checkThresholds();
+    }, intervalMs);
+
+    this.logger.info('Performance monitoring started', { intervalMs });
+  }
+
+  stopMonitoring(): void {
+    if (!this.isMonitoring) {
+      this.logger.warn('Performance monitoring not started');
+      return;
+    }
+
+    this.isMonitoring = false;
+    
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = undefined;
+    }
+
+    this.logger.info('Performance monitoring stopped');
+  }
+
+  recordRequest(metrics: Omit<RequestMetrics, 'duration'>): void {
+    const requestMetrics: RequestMetrics = {
+      ...metrics,
+      duration: metrics.endTime - metrics.startTime
+    };
+
+    this.requestHistory.push(requestMetrics);
+
+    // Keep history size manageable
+    if (this.requestHistory.length > this.maxHistorySize) {
+      this.requestHistory = this.requestHistory.slice(-this.maxHistorySize);
+    }
+
+    this.logger.debug('Request metrics recorded', {
+      requestId: requestMetrics.requestId,
+      duration: requestMetrics.duration,
+      success: requestMetrics.success,
+      cacheHit: requestMetrics.cacheHit
     });
-
-    // Trim buffer if too large
-    if (this.metrics.evaluations.length > this.MAX_BUFFER_SIZE) {
-      this.metrics.evaluations = this.metrics.evaluations.slice(-this.MAX_BUFFER_SIZE);
-    }
-
-    // Update hourly stats
-    this.updateHourlyStats(timestamp, duration, cacheHit);
-
-    // Alert on slow queries
-    if (duration > this.SLOW_QUERY_THRESHOLD) {
-      this.recordSlowQuery(duration, metadata);
-    }
-
-    // Periodic persistence to KV
-    if (this.metrics.evaluations.length % 100 === 0) {
-      this.persistMetrics().catch(console.error);
-    }
   }
 
-  /**
-   * Get current performance statistics
-   */
-  getStatistics(): {
-    current: {
-      averageEvaluationTime: number;
-      cacheHitRate: number;
-      slowQueryCount: number;
-      totalEvaluations: number;
-      healthStatus: 'healthy' | 'degraded' | 'unhealthy';
-    };
-    lastHour: {
-      evaluationCount: number;
-      averageTime: number;
-      cacheHitRate: number;
-      slowQueries: number;
-    };
-    performance: {
-      percentiles: {
-        p50: number;
-        p90: number;
-        p95: number;
-        p99: number;
-      };
-      fastPathBreakdown: Record<string, number>;
-    };
-  } {
-    const recent = this.metrics.evaluations.slice(-100);
-    const durations = recent.map(e => e.duration).sort((a, b) => a - b);
+  getMetrics(): PerformanceMetrics {
+    return { ...this.metrics };
+  }
 
-    const current = {
-      averageEvaluationTime: this.calculateAverage(durations),
-      cacheHitRate: this.calculateCacheHitRate(recent),
-      slowQueryCount: recent.filter(e => e.duration > this.SLOW_QUERY_THRESHOLD).length,
-      totalEvaluations: this.metrics.evaluations.length,
-      healthStatus: this.calculateHealthStatus(recent),
+  getAlerts(): PerformanceAlert[] {
+    return Array.from(this.alerts.values()).filter(alert => !alert.resolved);
+  }
+
+  getAllAlerts(): PerformanceAlert[] {
+    return Array.from(this.alerts.values());
+  }
+
+  getReport(): PerformanceReport {
+    const trends = this.calculateTrends();
+    const healthScore = this.calculateHealthScore();
+    const recommendations = this.generateRecommendations();
+
+    return {
+      timestamp: new Date(),
+      metrics: this.getMetrics(),
+      alerts: this.getAlerts(),
+      recommendations,
+      healthScore,
+      trends
     };
+  }
 
-    const lastHour = this.getLastHourStats();
+  private updateMetrics(): void {
+    if (this.requestHistory.length === 0) {
+      return;
+    }
 
-    const performance = {
-      percentiles: {
-        p50: this.calculatePercentile(durations, 50),
-        p90: this.calculatePercentile(durations, 90),
-        p95: this.calculatePercentile(durations, 95),
-        p99: this.calculatePercentile(durations, 99),
+    const now = Date.now();
+    const recentRequests = this.requestHistory.filter(
+      req => now - req.endTime < 60000 // Last minute
+    );
+
+    if (recentRequests.length === 0) {
+      return;
+    }
+
+    // Calculate response times
+    const responseTimes = recentRequests.map(req => req.duration);
+    responseTimes.sort((a, b) => a - b);
+
+    this.metrics.totalRequests = this.requestHistory.length;
+    this.metrics.averageResponseTime = responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length;
+    this.metrics.p95ResponseTime = this.percentile(responseTimes, 95);
+    this.metrics.p99ResponseTime = this.percentile(responseTimes, 99);
+
+    // Calculate error rate
+    const errorCount = recentRequests.filter(req => !req.success).length;
+    this.metrics.errorRate = errorCount / recentRequests.length;
+
+    // Calculate cache hit rate
+    const cacheHits = recentRequests.filter(req => req.cacheHit).length;
+    this.metrics.cacheHitRate = cacheHits / recentRequests.length;
+
+    // Calculate memory usage
+    this.metrics.memoryUsage = process.memoryUsage().heapUsed;
+
+    // Calculate CPU usage (simplified)
+    this.metrics.cpuUsage = this.calculateCpuUsage();
+
+    // Calculate throughput
+    this.metrics.throughput = recentRequests.length / 60; // requests per second
+
+    // Calculate latency
+    this.metrics.latency = this.metrics.averageResponseTime;
+
+    this.logger.debug('Metrics updated', {
+      totalRequests: this.metrics.totalRequests,
+      averageResponseTime: this.metrics.averageResponseTime,
+      errorRate: this.metrics.errorRate,
+      cacheHitRate: this.metrics.cacheHitRate
+    });
+  }
+
+  private checkThresholds(): void {
+    const checks = [
+      {
+        type: 'response_time' as const,
+        value: this.metrics.averageResponseTime,
+        threshold: this.thresholds.maxResponseTime,
+        operator: 'gt'
       },
-      fastPathBreakdown: this.getFastPathBreakdown(recent),
-    };
+      {
+        type: 'error_rate' as const,
+        value: this.metrics.errorRate,
+        threshold: this.thresholds.maxErrorRate,
+        operator: 'gt'
+      },
+      {
+        type: 'cache_hit_rate' as const,
+        value: this.metrics.cacheHitRate,
+        threshold: this.thresholds.minCacheHitRate,
+        operator: 'lt'
+      },
+      {
+        type: 'memory_usage' as const,
+        value: this.metrics.memoryUsage,
+        threshold: this.thresholds.maxMemoryUsage,
+        operator: 'gt'
+      },
+      {
+        type: 'cpu_usage' as const,
+        value: this.metrics.cpuUsage,
+        threshold: this.thresholds.maxCpuUsage,
+        operator: 'gt'
+      },
+      {
+        type: 'throughput' as const,
+        value: this.metrics.throughput,
+        threshold: this.thresholds.minThroughput,
+        operator: 'lt'
+      },
+      {
+        type: 'latency' as const,
+        value: this.metrics.latency,
+        threshold: this.thresholds.maxLatency,
+        operator: 'gt'
+      }
+    ];
 
-    return { current, lastHour, performance };
+    for (const check of checks) {
+      const isViolated = check.operator === 'gt' 
+        ? check.value > check.threshold
+        : check.value < check.threshold;
+
+      if (isViolated) {
+        this.createAlert(check.type, check.value, check.threshold);
+      } else {
+        this.resolveAlert(check.type);
+      }
+    }
   }
 
-  /**
-   * Get detailed health report
-   */
-  getHealthReport(): {
-    status: 'healthy' | 'degraded' | 'unhealthy';
-    issues: string[];
-    recommendations: string[];
-    metrics: {
-      averageResponseTime: number;
-      cacheEfficiency: number;
-      errorRate: number;
-      throughput: number;
+  private createAlert(
+    type: PerformanceAlert['type'],
+    value: number,
+    threshold: number
+  ): void {
+    const alertId = `${type}_${Date.now()}`;
+    const existingAlert = Array.from(this.alerts.values())
+      .find(alert => alert.type === type && !alert.resolved);
+
+    if (existingAlert) {
+      return; // Alert already exists
+    }
+
+    const severity = this.calculateSeverity(type, value, threshold);
+    const message = this.generateAlertMessage(type, value, threshold, severity);
+
+    const alert: PerformanceAlert = {
+      id: alertId,
+      type,
+      severity,
+      message,
+      value,
+      threshold,
+      timestamp: new Date(),
+      resolved: false
     };
-  } {
-    const stats = this.getStatistics();
-    const issues: string[] = [];
+
+    this.alerts.set(alertId, alert);
+
+    this.logger.warn('Performance alert created', {
+      type,
+      severity,
+      value,
+      threshold,
+      message
+    });
+  }
+
+  private resolveAlert(type: PerformanceAlert['type']): void {
+    const existingAlert = Array.from(this.alerts.values())
+      .find(alert => alert.type === type && !alert.resolved);
+
+    if (existingAlert) {
+      existingAlert.resolved = true;
+      existingAlert.resolvedAt = new Date();
+
+      this.logger.info('Performance alert resolved', {
+        type,
+        alertId: existingAlert.id
+      });
+    }
+  }
+
+  private calculateSeverity(
+    type: PerformanceAlert['type'],
+    value: number,
+    threshold: number
+  ): PerformanceAlert['severity'] {
+    const ratio = Math.abs(value - threshold) / threshold;
+
+    if (ratio > 2) return 'critical';
+    if (ratio > 1) return 'high';
+    if (ratio > 0.5) return 'medium';
+    return 'low';
+  }
+
+  private generateAlertMessage(
+    type: PerformanceAlert['type'],
+    value: number,
+    threshold: number,
+    severity: PerformanceAlert['severity']
+  ): string {
+    const messages = {
+      response_time: `Average response time ${value.toFixed(2)}ms exceeds threshold ${threshold}ms`,
+      error_rate: `Error rate ${(value * 100).toFixed(2)}% exceeds threshold ${(threshold * 100).toFixed(2)}%`,
+      cache_hit_rate: `Cache hit rate ${(value * 100).toFixed(2)}% below threshold ${(threshold * 100).toFixed(2)}%`,
+      memory_usage: `Memory usage ${(value / 1024 / 1024).toFixed(2)}MB exceeds threshold ${(threshold / 1024 / 1024).toFixed(2)}MB`,
+      cpu_usage: `CPU usage ${(value * 100).toFixed(2)}% exceeds threshold ${(threshold * 100).toFixed(2)}%`,
+      throughput: `Throughput ${value.toFixed(2)} req/s below threshold ${threshold} req/s`,
+      latency: `Latency ${value.toFixed(2)}ms exceeds threshold ${threshold}ms`
+    };
+
+    return messages[type] || `Performance threshold violated for ${type}`;
+  }
+
+  private calculateTrends(): PerformanceTrends {
+    const recent = this.requestHistory.slice(-100); // Last 100 requests
+    const older = this.requestHistory.slice(-200, -100); // Previous 100 requests
+
+    if (recent.length < 10 || older.length < 10) {
+      return {
+        responseTime: 'stable',
+        errorRate: 'stable',
+        cacheHitRate: 'stable',
+        memoryUsage: 'stable',
+        throughput: 'stable'
+      };
+    }
+
+    const recentAvgResponseTime = recent.reduce((sum, req) => sum + req.duration, 0) / recent.length;
+    const olderAvgResponseTime = older.reduce((sum, req) => sum + req.duration, 0) / older.length;
+
+    const recentErrorRate = recent.filter(req => !req.success).length / recent.length;
+    const olderErrorRate = older.filter(req => !req.success).length / older.length;
+
+    const recentCacheHitRate = recent.filter(req => req.cacheHit).length / recent.length;
+    const olderCacheHitRate = older.filter(req => req.cacheHit).length / older.length;
+
+    const recentThroughput = recent.length / 60;
+    const olderThroughput = older.length / 60;
+
+    return {
+      responseTime: this.calculateTrend(recentAvgResponseTime, olderAvgResponseTime, false),
+      errorRate: this.calculateTrend(recentErrorRate, olderErrorRate, false),
+      cacheHitRate: this.calculateTrend(recentCacheHitRate, olderCacheHitRate, true),
+      memoryUsage: 'stable', // Would need more sophisticated tracking
+      throughput: this.calculateTrend(recentThroughput, olderThroughput, true)
+    };
+  }
+
+  private calculateTrend(
+    recent: number,
+    older: number,
+    higherIsBetter: boolean
+  ): 'improving' | 'stable' | 'degrading' {
+    const change = (recent - older) / older;
+    const threshold = 0.1; // 10% change threshold
+
+    if (Math.abs(change) < threshold) {
+      return 'stable';
+    }
+
+    const isImproving = higherIsBetter ? change > 0 : change < 0;
+    return isImproving ? 'improving' : 'degrading';
+  }
+
+  private calculateHealthScore(): number {
+    let score = 100;
+
+    // Deduct points for threshold violations
+    const alerts = this.getAlerts();
+    for (const alert of alerts) {
+      const severityPenalty = {
+        low: 5,
+        medium: 10,
+        high: 20,
+        critical: 40
+      };
+      score -= severityPenalty[alert.severity];
+    }
+
+    // Deduct points for poor metrics
+    if (this.metrics.errorRate > 0.1) score -= 20;
+    if (this.metrics.cacheHitRate < 0.5) score -= 15;
+    if (this.metrics.averageResponseTime > 2000) score -= 25;
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  private generateRecommendations(): string[] {
     const recommendations: string[] = [];
 
-    // Check average response time
-    if (stats.current.averageEvaluationTime > this.TARGET_EVALUATION_TIME) {
-      issues.push(`Average evaluation time (${stats.current.averageEvaluationTime.toFixed(2)}ms) exceeds target (${this.TARGET_EVALUATION_TIME}ms)`);
-      recommendations.push('Consider optimizing permission logic or increasing cache TTL');
+    if (this.metrics.cacheHitRate < 0.8) {
+      recommendations.push('Consider increasing cache TTL or improving cache key strategies');
     }
 
-    // Check cache hit rate
-    if (stats.current.cacheHitRate < 80) {
-      issues.push(`Cache hit rate (${stats.current.cacheHitRate.toFixed(1)}%) is below optimal (80%)`);
-      recommendations.push('Review cache strategy and consider warming common permissions');
+    if (this.metrics.averageResponseTime > 1000) {
+      recommendations.push('Optimize database queries and consider adding indexes');
     }
 
-    // Check slow queries
-    const slowQueryRate = (stats.current.slowQueryCount / stats.current.totalEvaluations) * 100;
-    if (slowQueryRate > 5) {
-      issues.push(`High slow query rate (${slowQueryRate.toFixed(1)}%)`);
-      recommendations.push('Investigate slow permission evaluations and optimize policy logic');
+    if (this.metrics.errorRate > 0.05) {
+      recommendations.push('Investigate and fix error sources to improve reliability');
     }
 
-    // Determine overall status
-    let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
-    if (issues.length > 2 || stats.current.averageEvaluationTime > 20) {
-      status = 'unhealthy';
-    } else if (issues.length > 0) {
-      status = 'degraded';
+    if (this.metrics.memoryUsage > 50 * 1024 * 1024) {
+      recommendations.push('Consider implementing memory cleanup or increasing memory limits');
     }
 
-    return {
-      status,
-      issues,
-      recommendations,
-      metrics: {
-        averageResponseTime: stats.current.averageEvaluationTime,
-        cacheEfficiency: stats.current.cacheHitRate,
-        errorRate: 0, // Would need error tracking
-        throughput: this.calculateThroughput(),
-      },
-    };
+    if (this.metrics.throughput < 50) {
+      recommendations.push('Scale horizontally or optimize request processing');
+    }
+
+    return recommendations;
   }
 
-  /**
-   * Get performance trends over time
-   */
-  async getPerformanceTrends(hours = 24): Promise<{
-    hourly: Array<{
-      hour: string;
-      averageTime: number;
-      evaluationCount: number;
-      cacheHitRate: number;
-      slowQueries: number;
-    }>;
-    daily: Array<{
-      date: string;
-      averageTime: number;
-      evaluationCount: number;
-      cacheHitRate: number;
-    }>;
-  }> {
-    // Get historical data from KV
-    const historical = await this.getHistoricalMetrics(hours);
+  private percentile(sortedArray: number[], percentile: number): number {
+    const index = (percentile / 100) * (sortedArray.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    const weight = index % 1;
 
-    const hourly = Array.from(this.metrics.hourlyStats.entries())
-      .slice(-hours)
-      .map(([hour, stats]) => ({
-        hour,
-        averageTime: stats.totalDuration / stats.count,
-        evaluationCount: stats.count,
-        cacheHitRate: (stats.cacheHits / stats.count) * 100,
-        slowQueries: stats.slowQueries,
-      }));
+    if (upper >= sortedArray.length) {
+      return sortedArray[sortedArray.length - 1];
+    }
 
-    // Aggregate daily stats
-    const daily = this.aggregateDailyStats(historical);
-
-    return { hourly, daily };
+    return sortedArray[lower] * (1 - weight) + sortedArray[upper] * weight;
   }
 
-  /**
-   * Export metrics for external monitoring
-   */
-  exportMetrics(): {
-    prometheus: string;
-    datadog: Record<string, any>;
-    cloudwatch: Record<string, any>;
+  private calculateCpuUsage(): number {
+    // Simplified CPU usage calculation
+    // In a real implementation, you would use system metrics
+    return Math.random() * 0.5; // Mock value
+  }
+
+  // Configuration methods
+  updateThresholds(newThresholds: Partial<PerformanceThresholds>): void {
+    this.thresholds = { ...this.thresholds, ...newThresholds };
+    this.logger.info('Performance thresholds updated', { newThresholds });
+  }
+
+  getThresholds(): PerformanceThresholds {
+    return { ...this.thresholds };
+  }
+
+  // Utility methods
+  clearHistory(): void {
+    this.requestHistory = [];
+    this.logger.info('Request history cleared');
+  }
+
+  clearAlerts(): void {
+    this.alerts.clear();
+    this.logger.info('Performance alerts cleared');
+  }
+
+  isHealthy(): boolean {
+    const healthScore = this.calculateHealthScore();
+    return healthScore >= 70; // Consider healthy if score >= 70
+  }
+
+  getStatus(): {
+    monitoring: boolean;
+    healthy: boolean;
+    metrics: PerformanceMetrics;
+    alertCount: number;
+    healthScore: number;
   } {
-    const stats = this.getStatistics();
-
-    // Prometheus format
-    const prometheus = [
-      `# HELP abac_evaluation_duration_ms ABAC evaluation duration in milliseconds`,
-      `# TYPE abac_evaluation_duration_ms histogram`,
-      `abac_evaluation_duration_ms_bucket{le="1"} ${this.countBelowThreshold(1)}`,
-      `abac_evaluation_duration_ms_bucket{le="5"} ${this.countBelowThreshold(5)}`,
-      `abac_evaluation_duration_ms_bucket{le="10"} ${this.countBelowThreshold(10)}`,
-      `abac_evaluation_duration_ms_bucket{le="25"} ${this.countBelowThreshold(25)}`,
-      `abac_evaluation_duration_ms_bucket{le="+Inf"} ${stats.current.totalEvaluations}`,
-      `abac_evaluation_duration_ms_count ${stats.current.totalEvaluations}`,
-      `abac_evaluation_duration_ms_sum ${this.getTotalDuration()}`,
-      ``,
-      `# HELP abac_cache_hit_rate Cache hit rate for ABAC evaluations`,
-      `# TYPE abac_cache_hit_rate gauge`,
-      `abac_cache_hit_rate ${stats.current.cacheHitRate / 100}`,
-      ``,
-      `# HELP abac_slow_queries_total Total number of slow ABAC queries`,
-      `# TYPE abac_slow_queries_total counter`,
-      `abac_slow_queries_total ${stats.current.slowQueryCount}`,
-    ].join('\n');
-
-    // DataDog format
-    const datadog = {
-      'abac.evaluation.duration.avg': stats.current.averageEvaluationTime,
-      'abac.evaluation.duration.p95': stats.performance.percentiles.p95,
-      'abac.evaluation.duration.p99': stats.performance.percentiles.p99,
-      'abac.cache.hit_rate': stats.current.cacheHitRate,
-      'abac.evaluations.total': stats.current.totalEvaluations,
-      'abac.slow_queries.count': stats.current.slowQueryCount,
-    };
-
-    // CloudWatch format
-    const cloudwatch = {
-      MetricData: [
-        {
-          MetricName: 'AverageEvaluationTime',
-          Value: stats.current.averageEvaluationTime,
-          Unit: 'Milliseconds',
-          Dimensions: [{ Name: 'Service', Value: 'ABAC' }],
-        },
-        {
-          MetricName: 'CacheHitRate',
-          Value: stats.current.cacheHitRate,
-          Unit: 'Percent',
-          Dimensions: [{ Name: 'Service', Value: 'ABAC' }],
-        },
-        {
-          MetricName: 'SlowQueryCount',
-          Value: stats.current.slowQueryCount,
-          Unit: 'Count',
-          Dimensions: [{ Name: 'Service', Value: 'ABAC' }],
-        },
-      ],
-    };
-
-    return { prometheus, datadog, cloudwatch };
-  }
-
-  /**
-   * Clear metrics buffer and reset counters
-   */
-  clearMetrics(): void {
-    this.metrics.evaluations = [];
-    this.metrics.hourlyStats.clear();
-  }
-
-  /**
-   * Update hourly statistics
-   */
-  private updateHourlyStats(
-    timestamp: number,
-    duration: number,
-    cacheHit: boolean
-  ): void {
-    const hour = new Date(timestamp).toISOString().slice(0, 13); // YYYY-MM-DDTHH
-
-    if (!this.metrics.hourlyStats.has(hour)) {
-      this.metrics.hourlyStats.set(hour, {
-        count: 0,
-        totalDuration: 0,
-        cacheHits: 0,
-        slowQueries: 0,
-      });
-    }
-
-    const stats = this.metrics.hourlyStats.get(hour)!;
-    stats.count++;
-    stats.totalDuration += duration;
-    if (cacheHit) stats.cacheHits++;
-    if (duration > this.SLOW_QUERY_THRESHOLD) stats.slowQueries++;
-  }
-
-  /**
-   * Record slow query for investigation
-   */
-  private recordSlowQuery(duration: number, metadata?: any): void {
-    console.warn('Slow ABAC evaluation detected:', {
-      duration: `${duration.toFixed(2)}ms`,
-      threshold: `${this.SLOW_QUERY_THRESHOLD}ms`,
-      metadata,
-      timestamp: new Date().toISOString(),
-    });
-
-    // In production, you might send this to a monitoring service
-  }
-
-  /**
-   * Persist metrics to KV storage
-   */
-  private async persistMetrics(): Promise<void> {
-    try {
-      const summary = {
-        timestamp: Date.now(),
-        evaluationCount: this.metrics.evaluations.length,
-        hourlyStats: Array.from(this.metrics.hourlyStats.entries()),
-        lastUpdate: new Date().toISOString(),
-      };
-
-      await this.kv.put('abac:metrics:summary', JSON.stringify(summary), {
-        expirationTtl: 86400, // 24 hours
-      });
-
-    } catch (error) {
-      console.error('Failed to persist metrics:', error);
-    }
-  }
-
-  /**
-   * Get historical metrics from KV
-   */
-  private async getHistoricalMetrics(hours: number): Promise<any[]> {
-    try {
-      const stored = await this.kv.get('abac:metrics:summary', 'json');
-      return stored ? [stored] : [];
-    } catch (error) {
-      console.error('Failed to retrieve historical metrics:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Calculate various statistics
-   */
-  private calculateAverage(values: number[]): number {
-    if (values.length === 0) return 0;
-    return values.reduce((sum, val) => sum + val, 0) / values.length;
-  }
-
-  private calculateCacheHitRate(evaluations: any[]): number {
-    if (evaluations.length === 0) return 0;
-    const hits = evaluations.filter(e => e.cacheHit).length;
-    return (hits / evaluations.length) * 100;
-  }
-
-  private calculatePercentile(values: number[], percentile: number): number {
-    if (values.length === 0) return 0;
-    const index = Math.ceil((percentile / 100) * values.length) - 1;
-    return values[Math.max(0, index)] || 0;
-  }
-
-  private calculateHealthStatus(evaluations: any[]): 'healthy' | 'degraded' | 'unhealthy' {
-    if (evaluations.length === 0) return 'healthy';
-
-    const avgTime = this.calculateAverage(evaluations.map(e => e.duration));
-    const cacheRate = this.calculateCacheHitRate(evaluations);
-    const slowRate = (evaluations.filter(e => e.duration > this.SLOW_QUERY_THRESHOLD).length / evaluations.length) * 100;
-
-    if (avgTime > 20 || cacheRate < 60 || slowRate > 10) {
-      return 'unhealthy';
-    } else if (avgTime > 10 || cacheRate < 80 || slowRate > 5) {
-      return 'degraded';
-    }
-
-    return 'healthy';
-  }
-
-  private getFastPathBreakdown(evaluations: any[]): Record<string, number> {
-    const breakdown: Record<string, number> = {};
-
-    evaluations.forEach(e => {
-      const path = e.fastPath || 'policy';
-      breakdown[path] = (breakdown[path] || 0) + 1;
-    });
-
-    return breakdown;
-  }
-
-  private getLastHourStats(): any {
-    const oneHourAgo = Date.now() - (60 * 60 * 1000);
-    const lastHour = this.metrics.evaluations.filter(e => e.timestamp > oneHourAgo);
-
     return {
-      evaluationCount: lastHour.length,
-      averageTime: this.calculateAverage(lastHour.map(e => e.duration)),
-      cacheHitRate: this.calculateCacheHitRate(lastHour),
-      slowQueries: lastHour.filter(e => e.duration > this.SLOW_QUERY_THRESHOLD).length,
+      monitoring: this.isMonitoring,
+      healthy: this.isHealthy(),
+      metrics: this.getMetrics(),
+      alertCount: this.getAlerts().length,
+      healthScore: this.calculateHealthScore()
     };
-  }
-
-  private calculateThroughput(): number {
-    const oneMinuteAgo = Date.now() - (60 * 1000);
-    const lastMinute = this.metrics.evaluations.filter(e => e.timestamp > oneMinuteAgo);
-    return lastMinute.length; // evaluations per minute
-  }
-
-  private countBelowThreshold(threshold: number): number {
-    return this.metrics.evaluations.filter(e => e.duration <= threshold).length;
-  }
-
-  private getTotalDuration(): number {
-    return this.metrics.evaluations.reduce((sum, e) => sum + e.duration, 0);
-  }
-
-  private aggregateDailyStats(historical: any[]): any[] {
-    // Aggregate hourly stats into daily stats
-    const dailyMap = new Map<string, any>();
-
-    this.metrics.hourlyStats.forEach((stats, hour) => {
-      const date = hour.slice(0, 10); // YYYY-MM-DD
-
-      if (!dailyMap.has(date)) {
-        dailyMap.set(date, {
-          date,
-          totalCount: 0,
-          totalDuration: 0,
-          totalCacheHits: 0,
-        });
-      }
-
-      const daily = dailyMap.get(date)!;
-      daily.totalCount += stats.count;
-      daily.totalDuration += stats.totalDuration;
-      daily.totalCacheHits += stats.cacheHits;
-    });
-
-    return Array.from(dailyMap.values()).map(daily => ({
-      date: daily.date,
-      averageTime: daily.totalDuration / daily.totalCount,
-      evaluationCount: daily.totalCount,
-      cacheHitRate: (daily.totalCacheHits / daily.totalCount) * 100,
-    }));
   }
 }
+

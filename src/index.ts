@@ -1,124 +1,500 @@
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
-import { logger } from 'hono/logger';
-import { z } from 'zod';
-import type { Env } from './types/env';
+// src/index.ts - Production-Ready Worker with SUPERNOVA Enhancements
+import { Router } from 'itty-router';
+import { CloudflareIntegration } from './cloudflare/CloudflareIntegration';
+import { SmartCaching } from './cloudflare/performance/SmartCaching';
+import { createDatabase, Database } from './database/db';
+import { createAIService, AIService } from './ai/ai-service';
+import { createWebSocketService, WebSocketService } from './realtime/websocket-service';
+import { createQueueHandler, QueueHandler } from './jobs/queue-handler';
+import { addSecurityHeaders, rateLimitByIP, validateJWT,
+  detectSuspiciousActivity, logSecurityEvent, getCorsHeaders } from './middleware/security';
+import { createAnalyticsDashboard, AnalyticsDashboard } from './analytics/dashboard';
+import { SupernovaIntegration } from './supernova/supernova-integration';
+import { memoryOptimizer } from './monitoring/memory-optimizer';
+import { handleAPIRequest } from './routes'; // Import our Hono API routes
+import type { Ai } from '@cloudflare/ai';
+import type {
+  D1Database,
+  KVNamespace,
+  R2Bucket,
+  AnalyticsEngineDataset,
+  DurableObjectNamespace,
+  ExecutionContext,
+  MessageBatch,
+  Message,
+  Queue
+} from './cloudflare/types/cloudflare';
 
-const app = new Hono<{ Bindings: Env }>();
+export interface Env {
+  // Core services
+  DB: D1Database;
+  DB_MAIN: D1Database; // Alias for compatibility with finance routes
+  CACHE: KVNamespace;
+  R2_DOCUMENTS: R2Bucket;
+  R2_ASSETS: R2Bucket;
+  ANALYTICS: AnalyticsEngineDataset;
+  REALTIME: DurableObjectNamespace;
+  AI: Ai;
 
-app.use('*', logger());
-app.use('*', cors({
-  origin: '*',
-  allowHeaders: ['Content-Type', 'Authorization'],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  exposeHeaders: ['Content-Length'],
-  maxAge: 600,
-  credentials: true,
-}));
+  // Queues
+  TASK_QUEUE: Queue;
+  EMAIL_QUEUE: Queue;
+  WEBHOOK_QUEUE: Queue;
 
-app.get('/health', (c) => {
-  return c.json({
+  // Secrets
+  JWT_SECRET: string;
+  ANTHROPIC_API_KEY: string;
+  EMAIL_API_KEY: string;
+  API_BASE_URL: string;
+  ENVIRONMENT: string;
+  ALLOWED_ORIGINS: string;
+
+  // Payment Gateway Secrets
+  STRIPE_SECRET_KEY: string;
+  STRIPE_PUBLISHABLE_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
+  PAYPAL_CLIENT_ID: string;
+  PAYPAL_CLIENT_SECRET: string;
+}
+
+// Global instances - initialized once per Worker with performance optimization
+let cf: CloudflareIntegration | null = null;
+let db: Database | null = null;
+let ai: AIService | null = null;
+let ws: WebSocketService | null = null;
+let queue: QueueHandler | null = null;
+let analytics: AnalyticsDashboard | null = null;
+let supernova: SupernovaIntegration | null = null;
+
+// Performance tracking
+let initializationComplete = false;
+let initializationTime: number | null = null;
+
+// Router instance
+const router = Router();
+
+// Optimized service initialization with intelligent parallelization and dependency management
+async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void> {
+  if (initializationComplete) return;
+  
+  const startTime = performance.now();
+  
+  try {
+    // Initialize memory optimizer first (critical dependency)
+    memoryOptimizer.registerCleanupCallback('high-priority-db', async () => {
+      if (db) await db.cleanup?.();
+    });
+    
+    memoryOptimizer.registerCleanupCallback('high-priority-cache', async () => {
+      if (cf) await cf.clearCaches?.();
+    });
+    
+    // Phase 1: Initialize core infrastructure services in parallel (no dependencies)
+    const coreInfraPromises = [
+      // Cloudflare integration (independent)
+      Promise.resolve().then(async () => {
+        cf = new CloudflareIntegration(env);
+        return cf;
+      }),
+      
+      // Database connection (independent)
+      createDatabase(env.DB).then(instance => {
+        db = instance;
+        return instance;
+      }),
+      
+      // AI service (independent)
+      createAIService(env.AI).then(instance => {
+        ai = instance;
+        return instance;
+      })
+    ];
+    
+    // Wait for core infrastructure with timeout
+    const coreResults = await Promise.allSettled(coreInfraPromises);
+    
+    // Check if core services initialized successfully
+    const failedCore = coreResults.filter(result => result.status === 'rejected');
+    if (failedCore.length > 0) {
+      console.warn('Some core services failed to initialize:', failedCore);
+    }
+    
+    // Phase 2: Initialize dependent services in parallel (depend on core services)
+    const dependentServicesPromises = [];
+    
+    // Only initialize if dependencies are available
+    if (env.REALTIME) {
+      dependentServicesPromises.push(
+        createWebSocketService(env.REALTIME).then(instance => { ws = instance; return instance; })
+          .catch(error => { console.warn('WebSocket service failed:', error); return null; })
+      );
+    }
+    
+    if (env.TASK_QUEUE || env.EMAIL_QUEUE || env.WEBHOOK_QUEUE) {
+      dependentServicesPromises.push(
+        createQueueHandler(env).then(instance => { queue = instance; return instance; })
+          .catch(error => { console.warn('Queue handler failed:', error); return null; })
+      );
+    }
+    
+    if (env.ANALYTICS) {
+      dependentServicesPromises.push(
+        createAnalyticsDashboard(env.ANALYTICS).then(instance => { analytics = instance; return instance; })
+          .catch(error => { console.warn('Analytics dashboard failed:', error); return null; })
+      );
+    }
+    
+    // Execute dependent services with graceful failure handling
+    const dependentResults = await Promise.allSettled(dependentServicesPromises);
+    
+    // Phase 3: Initialize lightweight services (minimal dependencies)
+    const lightweightPromises = [
+      Promise.resolve().then(() => {
+        supernova = new SupernovaIntegration(env);
+        return supernova;
+      })
+    ];
+    
+    await Promise.allSettled(lightweightPromises);
+    
+    initializationTime = performance.now() - startTime;
+    initializationComplete = true;
+    
+    // Calculate success rate
+    const totalServices = coreInfraPromises.length + dependentServicesPromises.length + lightweightPromises.length;
+    const successfulServices = [
+      ...coreResults.filter(r => r.status === 'fulfilled'),
+      ...dependentResults.filter(r => r.status === 'fulfilled'),
+      ...lightweightPromises
+    ].length;
+    
+    const successRate = (successfulServices / totalServices) * 100;
+    
+    console.log(`✅ Service initialization completed in ${initializationTime.toFixed(2)}ms (${successRate.toFixed(1)}% success rate)`);
+    console.log(`   Core: ${cf ? '✓' : '✗'} CF, ${db ? '✓' : '✗'} DB, ${ai ? '✓' : '✗'} AI`);
+    console.log(`   Extended: ${ws ? '✓' : '✗'} WS, ${queue ? '✓' : '✗'} Queue, ${analytics ? '✓' : '✗'} Analytics`);
+    
+    // Track detailed initialization performance
+    if (analytics) {
+      analytics.writeDataPoint({
+        blobs: ['initialization', 'success', env.ENVIRONMENT || 'unknown'],
+        doubles: [Date.now(), initializationTime, successRate],
+        indexes: ['performance', 'initialization']
+      }).catch(() => {}); // Don't block on analytics failure
+    }
+    
+  } catch (error) {
+    const failureTime = performance.now() - startTime;
+    initializationComplete = false;
+    console.error(`❌ Critical service initialization failure after ${failureTime.toFixed(2)}ms:`, error);
+    
+    // Track initialization failure with context
+    if (analytics) {
+      analytics.writeDataPoint({
+        blobs: ['initialization', 'failure', env.ENVIRONMENT || 'unknown', error instanceof Error ? error.message : 'unknown'],
+        doubles: [Date.now(), failureTime],
+        indexes: ['error', 'initialization']
+      }).catch(() => {});
+    }
+    
+    // Don't throw on non-critical failures, allow partial initialization
+    if (!db || !cf) {
+      throw new Error(`Critical services failed: DB=${!!db}, CF=${!!cf}`);
+    }
+    
+    console.warn('Continuing with partial initialization...');
+    initializationComplete = true;
+  }
+}
+
+// Health check endpoint
+router.get('/health', async (request: Request, env: Env) => {
+  const health = {
     status: 'healthy',
-    service: 'CoreFlow360 V4',
     timestamp: new Date().toISOString(),
-    version: c.env.API_VERSION || 'v4',
-    environment: c.env.ENVIRONMENT || 'development',
-    bindings: {
-      d1: ['DB_MAIN', 'DB_ANALYTICS'],
-      kv: ['KV_CACHE', 'KV_SESSION', 'KV_CONFIG'],
-      r2: ['R2_DOCUMENTS', 'R2_ASSETS', 'R2_BACKUPS'],
-      queues: ['TASK_QUEUE', 'EMAIL_QUEUE', 'WEBHOOK_QUEUE'],
-      durableObjects: ['USER_SESSION', 'WORKFLOW_ENGINE', 'REALTIME_SYNC'],
-      ai: true,
-      analytics: true
+    services: {
+      database: db ? 'connected' : 'disconnected',
+      ai: ai ? 'ready' : 'not ready',
+      websocket: ws ? 'ready' : 'not ready',
+      queue: queue ? 'ready' : 'not ready',
+      analytics: analytics ? 'ready' : 'not ready',
+      supernova: supernova ? 'active' : 'inactive'
     }
-  });
-});
-
-app.get('/api/v4/status', async (c) => {
-  const checks = {
-    database: false,
-    cache: false,
-    storage: false,
   };
-
-  try {
-    const testQuery = await c.env.DB_MAIN.prepare('SELECT 1').first();
-    checks.database = testQuery !== null;
-  } catch (error) {
-    console.error('Database check failed:', error);
-  }
-
-  try {
-    await c.env.KV_CACHE.put('health-check', Date.now().toString(), { expirationTtl: 60 });
-    const value = await c.env.KV_CACHE.get('health-check');
-    checks.cache = value !== null;
-  } catch (error) {
-    console.error('Cache check failed:', error);
-  }
-
-  try {
-    const testObject = await c.env.R2_DOCUMENTS.head('health-check.txt');
-    checks.storage = true;
-  } catch (error) {
-    checks.storage = true;
-  }
-
-  const allHealthy = Object.values(checks).every(check => check === true);
-
-  return c.json({
-    status: allHealthy ? 'operational' : 'degraded',
-    checks,
-    timestamp: new Date().toISOString(),
-  }, allHealthy ? 200 : 503);
-});
-
-app.get('/', (c) => {
-  return c.json({
-    message: 'Welcome to CoreFlow360 V4 - AI-Native ERP Platform',
-    documentation: '/api/v4/docs',
-    health: '/health',
-    status: '/api/v4/status',
-    version: c.env.API_VERSION || 'v4',
+  
+  return new Response(JSON.stringify(health), {
+    headers: { 'Content-Type': 'application/json' }
   });
 });
 
-app.notFound((c) => {
-  return c.json({
-    error: 'Not Found',
-    message: 'The requested endpoint does not exist',
-    path: c.req.path,
-  }, 404);
+// API routes
+router.get('/api/status', async (request: Request, env: Env) => {
+  if (!db) return new Response('Database not initialized', { status: 500 });
+  
+  const status = await db.getStatus();
+  return new Response(JSON.stringify(status), {
+    headers: { 'Content-Type': 'application/json' }
+  });
 });
 
-app.onError((err, c) => {
-  console.error('Unhandled error:', err);
-  return c.json({
-    error: 'Internal Server Error',
-    message: err.message || 'An unexpected error occurred',
-  }, 500);
+// SUPERNOVA status endpoint
+router.get('/api/supernova/status', async (request: Request, env: Env) => {
+  if (!supernova) return new Response('SUPERNOVA not initialized', { status: 500 });
+  
+  const status = await supernova.getStatus();
+  return new Response(JSON.stringify(status), {
+    headers: { 'Content-Type': 'application/json' }
+  });
 });
 
-export default {
-  fetch: app.fetch,
+// SUPERNOVA integration endpoint
+router.post('/api/supernova/integrate', async (request: Request, env: Env) => {
+  if (!supernova) return new Response('SUPERNOVA not initialized', { status: 500 });
+  
+  try {
+    const result = await supernova.integrate();
+    return new Response(JSON.stringify(result), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+});
 
-  async queue(batch: MessageBatch<any>, env: Env): Promise<void> {
-    for (const message of batch.messages) {
-      try {
-        console.log('Processing queue message:', message.id);
-        message.ack();
-      } catch (error) {
-        console.error('Queue processing error:', error);
-        message.retry();
+// SUPERNOVA report endpoint
+router.get('/api/supernova/report', async (request: Request, env: Env) => {
+  if (!supernova) return new Response('SUPERNOVA not initialized', { status: 500 });
+
+  const report = await supernova.generateReport();
+  return new Response(JSON.stringify(report), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+});
+
+// API Routes Handler - delegates all /api/v1/* requests to Hono routes
+router.all('/api/v1/*', async (request: Request, env: Env, ctx: ExecutionContext) => {
+  return handleAPIRequest(request, env, ctx);
+});
+
+// Main fetch handler
+// Helper methods for optimized request processing
+const requestProcessor = {
+  calculateRequestTimeout(pathname: string, method: string): number {
+    // Adaptive timeout based on endpoint characteristics
+    if (pathname.includes('/api/ai/') || pathname.includes('/api/supernova/')) {
+      return 30000; // 30s for AI operations
+    }
+    if (pathname.includes('/api/upload/') || method === 'POST') {
+      return 15000; // 15s for uploads/mutations
+    }
+    if (pathname.includes('/health') || pathname.includes('/status')) {
+      return 2000;  // 2s for health checks
+    }
+    return 8000; // 8s default
+  },
+
+  addOptimizedHeaders(response: Response, requestId: string, responseTime: number): Response {
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: {
+        ...response.headers,
+        'X-Request-ID': requestId,
+        'X-Response-Time': `${responseTime.toFixed(2)}ms`,
+        'Cache-Control': response.headers.get('Cache-Control') || 'no-cache'
       }
+    });
+  },
+
+  buildOptimizedResponse(
+    response: Response,
+    requestId: string,
+    responseTime: number,
+    corsHeaders: Record<string, string>,
+    environment: string,
+    allowedOrigins: string[]
+  ): Response {
+    const secureResponse = new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: {
+        ...response.headers,
+        ...corsHeaders,
+        'X-Request-ID': requestId,
+        'X-Response-Time': `${responseTime.toFixed(2)}ms`
+      }
+    });
+    
+    return addSecurityHeaders(secureResponse, {
+      environment,
+      allowedOrigins
+    });
+  },
+
+  async trackRequestPerformance(method: string, pathname: string, responseTime: number, status: number): Promise<void> {
+    try {
+      if (analytics) {
+        await analytics.writeDataPoint({
+          blobs: ['request_performance', method, pathname, status.toString()],
+          doubles: [Date.now(), responseTime],
+          indexes: ['performance', 'requests']
+        });
+      }
+      
+      // Log slow requests
+      if (responseTime > 200) {
+        console.warn(`⚠️ Slow request: ${method} ${pathname} - ${responseTime.toFixed(2)}ms (${status})`);
+      }
+    } catch (error) {
+      // Don't block on tracking failures
+      console.debug('Performance tracking failed:', error);
     }
   },
 
-  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    console.log('Scheduled event triggered at:', new Date().toISOString());
+  async trackRequestError(method: string, pathname: string, responseTime: number, error: string): Promise<void> {
+    try {
+      if (analytics) {
+        await analytics.writeDataPoint({
+          blobs: ['request_error', method, pathname, error.slice(0, 100)],
+          doubles: [Date.now(), responseTime],
+          indexes: ['error', 'requests']
+        });
+      }
+    } catch (trackingError) {
+      console.debug('Error tracking failed:', trackingError);
+    }
   },
+
+  isTimeoutError(error: any): boolean {
+    return error instanceof Error && error.message.includes('timeout');
+  }
 };
 
-export { UserSession } from './workers/UserSession';
-export { WorkflowEngine } from './workers/WorkflowEngine';
-export { RealtimeSync } from './workers/RealtimeSync';
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const requestStart = performance.now();
+    const requestId = crypto.randomUUID();
+    const url = new URL(request.url);
+    const method = request.method;
+    
+    try {
+      // Optimized initialization check with circuit breaker pattern
+      if (!initializationComplete) {
+        // Use waitUntil to avoid blocking response for initialization tracking
+        ctx.waitUntil(initializeServices(env, ctx));
+        await initializeServices(env, ctx);
+      }
+      
+      // Track request start (non-blocking)
+      memoryOptimizer.trackObject({ requestId, startTime: requestStart }, `request-${requestId}`);
+      
+      // Fast path for health checks and static assets
+      if (url.pathname === '/health' || url.pathname.startsWith('/static/')) {
+        const response = await router.handle(request, env, ctx);
+        return requestProcessor.addOptimizedHeaders(response, requestId, performance.now() - requestStart);
+      }
+      
+      // Parallel processing of request metadata
+      const [allowedOrigins, corsHeaders] = await Promise.all([
+        Promise.resolve(
+          env.ALLOWED_ORIGINS 
+            ? env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+            : [
+                'https://app.coreflow360.com',
+                'https://dashboard.coreflow360.com',
+                'https://api.coreflow360.com'
+              ]
+        ),
+        Promise.resolve(
+          getCorsHeaders(
+            request, 
+            env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || [],
+            true, // allowCredentials
+            env.ENVIRONMENT || 'production'
+          )
+        )
+      ]);
+
+      // Optimized request handling with adaptive timeout
+      const timeout = requestProcessor.calculateRequestTimeout(url.pathname, method);
+      const requestPromise = router.handle(request, env, ctx);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error(`Request timeout after ${timeout}ms`)), timeout);
+      });
+      
+      const response = await Promise.race([requestPromise, timeoutPromise]);
+      
+      // Streamlined response processing
+      const optimizedResponse = requestProcessor.buildOptimizedResponse(
+        response,
+        requestId,
+        performance.now() - requestStart,
+        corsHeaders,
+        env.ENVIRONMENT || 'production',
+        allowedOrigins
+      );
+      
+      // Non-blocking performance monitoring
+      const responseTime = performance.now() - requestStart;
+      ctx.waitUntil(requestProcessor.trackRequestPerformance(method, url.pathname, responseTime, response.status));
+      
+      return optimizedResponse;
+      
+    } catch (error) {
+      const responseTime = performance.now() - requestStart;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      console.error(`❌ Request error [${method} ${url.pathname}] (${responseTime.toFixed(2)}ms):`, errorMessage);
+      
+      // Non-blocking error tracking
+      ctx.waitUntil(requestProcessor.trackRequestError(method, url.pathname, responseTime, errorMessage));
+      
+      // Optimized error response
+      return new Response(JSON.stringify({ 
+        error: requestProcessor.isTimeoutError(error) ? 'Request timeout' : 'Internal server error',
+        requestId,
+        timestamp: new Date().toISOString(),
+        ...(env.ENVIRONMENT === 'development' && { details: errorMessage })
+      }), {
+        status: requestProcessor.isTimeoutError(error) ? 504 : 500,
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Request-ID': requestId,
+          'X-Response-Time': `${responseTime.toFixed(2)}ms`
+        }
+      });
+    }
+  },
+
+  // Queue consumer
+  async queue(batch: MessageBatch, env: Env, ctx: ExecutionContext): Promise<void> {
+    if (!queue) {
+      console.error('Queue handler not initialized');
+      return;
+    }
+    
+    try {
+      await queue.processBatch(batch);
+    } catch (error) {
+      console.error('Queue processing error:', error);
+    }
+  },
+
+  // WebSocket handler
+  async webSocket(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    if (!ws) {
+      return new Response('WebSocket service not initialized', { status: 500 });
+    }
+    
+    try {
+      return await ws.handleRequest(request);
+    } catch (error) {
+      console.error('WebSocket error:', error);
+      return new Response('WebSocket error', { status: 500 });
+    }
+  }
+};
+

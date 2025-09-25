@@ -1,19 +1,20 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
-import { AuthService } from '../modules/auth/service';
+import { createAuthService } from '../modules/user-management/auth-service';
+import { extractTenantContext } from '../database/tenant-isolated-db';
 import { rateLimiters } from '../middleware/rate-limit';
 import { authenticate, requireMFA } from '../middleware/auth';
 import { errorHandler, asyncHandler } from '../shared/error-handler';
-import { calculatePasswordStrength } from '../modules/auth/crypto';
 import {
-  RegisterRequestSchema,
-  LoginRequestSchema,
-  RefreshTokenRequestSchema,
-  MFASetupRequestSchema,
-  MFAVerifyRequestSchema,
-  PasswordResetRequestSchema,
-  PasswordResetConfirmSchema,
-} from '../modules/auth/types';
+  registerSchema,
+  loginSchema,
+  changePasswordSchema,
+  passwordResetRequestSchema,
+  validateSchema,
+  type RegisterInput,
+  type LoginInput,
+  type ChangePasswordInput
+} from '../database/schemas';
 
 const auth = new Hono<{ Bindings: Env }>();
 
@@ -21,20 +22,39 @@ const auth = new Hono<{ Bindings: Env }>();
 auth.onError(errorHandler);
 
 /**
- * Register new user
+ * Register new user and business
  * POST /auth/register
  */
 auth.post('/register', rateLimiters.register, asyncHandler(async (c) => {
-  const authService = new AuthService(c.env);
   const body = await c.req.json();
 
-  const result = await authService.register(
-    body,
-    c.req.header('CF-Connecting-IP') || 'unknown',
-    c.req.header('User-Agent') || 'unknown'
+  // Validate input
+  const validation = validateSchema(registerSchema, body);
+  if (!validation.success) {
+    return c.json({
+      success: false,
+      error: 'Validation failed',
+      details: validation.errors?.flatten().fieldErrors
+    }, 400);
+  }
+
+  // Create auth service with system context (no tenant yet)
+  const authService = createAuthService(
+    c.env.DB,
+    { businessId: 'system' }, // Will be overridden during registration
+    c.req.raw,
+    {
+      jwtSecret: c.env.JWT_SECRET || 'fallback-secret'
+    }
   );
 
-  return c.json(result, 201);
+  const result = await authService.register(validation.data!);
+
+  if (result.success) {
+    return c.json(result, 201);
+  } else {
+    return c.json(result, 400);
+  }
 }));
 
 /**
@@ -42,16 +62,52 @@ auth.post('/register', rateLimiters.register, asyncHandler(async (c) => {
  * POST /auth/login
  */
 auth.post('/login', rateLimiters.login, asyncHandler(async (c) => {
-  const authService = new AuthService(c.env);
   const body = await c.req.json();
 
-  const result = await authService.login(
-    body,
-    c.req.header('CF-Connecting-IP') || 'unknown',
-    c.req.header('User-Agent') || 'unknown'
+  // Validate input
+  const validation = validateSchema(loginSchema, body);
+  if (!validation.success) {
+    return c.json({
+      success: false,
+      error: 'Invalid login credentials'
+    }, 400);
+  }
+
+  // First, get user to determine business context
+  const userLookup = await c.env.DB
+    .prepare('SELECT business_id FROM users WHERE email = ? AND deleted_at IS NULL')
+    .bind(validation.data!.email)
+    .first();
+
+  if (!userLookup) {
+    return c.json({
+      success: false,
+      error: 'Invalid login credentials'
+    }, 401);
+  }
+
+  // Create auth service with user's business context
+  const authService = createAuthService(
+    c.env.DB,
+    { businessId: userLookup.business_id },
+    c.req.raw,
+    {
+      jwtSecret: c.env.JWT_SECRET || 'fallback-secret'
+    }
   );
 
-  return c.json(result);
+  const result = await authService.login(validation.data!);
+
+  if (result.success) {
+    // Set session cookie if successful
+    if (result.sessionToken) {
+      c.header('Set-Cookie', `session=${result.sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/`);
+    }
+    return c.json(result);
+  } else {
+    const statusCode = result.requiresMFA ? 202 : 401;
+    return c.json(result, statusCode);
+  }
 }));
 
 /**
@@ -194,9 +250,14 @@ auth.post('/change-password', authenticate(), requireMFA(), asyncHandler(async (
   // Invalidate all sessions
   const { SessionManager } = await import('../modules/auth/session');
   const { JWTService } = await import('../modules/auth/jwt');
+
+  if (!c.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+
   const sessionManager = new SessionManager(
     c.env.KV_SESSION,
-    new JWTService(c.env.JWT_SECRET || 'dev-secret')
+    new JWTService(c.env.JWT_SECRET)
   );
   await sessionManager.deleteUserSessions(userId);
 
@@ -286,9 +347,14 @@ auth.post('/mfa/verify', authenticate(), asyncHandler(async (c) => {
   // Update session MFA status
   const { SessionManager } = await import('../modules/auth/session');
   const { JWTService } = await import('../modules/auth/jwt');
+
+  if (!c.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+
   const sessionManager = new SessionManager(
     c.env.KV_SESSION,
-    new JWTService(c.env.JWT_SECRET || 'dev-secret')
+    new JWTService(c.env.JWT_SECRET)
   );
   await sessionManager.updateMFAStatus(sessionId, true);
 
@@ -387,9 +453,14 @@ auth.delete('/sessions/:sessionId', authenticate(), asyncHandler(async (c) => {
   // Revoke session
   const { SessionManager } = await import('../modules/auth/session');
   const { JWTService } = await import('../modules/auth/jwt');
+
+  if (!c.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is required');
+  }
+
   const sessionManager = new SessionManager(
     c.env.KV_SESSION,
-    new JWTService(c.env.JWT_SECRET || 'dev-secret')
+    new JWTService(c.env.JWT_SECRET)
   );
   await sessionManager.deleteSession(sessionId);
 

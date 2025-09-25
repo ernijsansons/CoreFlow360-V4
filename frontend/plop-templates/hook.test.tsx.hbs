@@ -1,0 +1,10 @@
+import { renderHook } from '@testing-library/react'
+import { use{{pascalCase name}} } from '../use-{{dashCase name}}'
+
+describe('use{{pascalCase name}}', () => {
+  it('should initialize with default state', () => {
+    const { result } = renderHook(() => use{{pascalCase name}}())
+
+    expect(result.current).toBeDefined()
+  })
+})

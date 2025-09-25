@@ -1,0 +1,77 @@
+{
+  "version": 2,
+  "framework": "vite",
+  "buildCommand": "pnpm build",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install",
+  "outputDirectory": "dist",
+  "public": false,
+  "github": {
+    "enabled": true,
+    "autoAlias": true,
+    "silent": false
+  },
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/metrics.ts": {
+      "maxDuration": 10
+    },
+    "api/figma-webhook.ts": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "VITE_API_URL": "@api-url",
+    "VITE_FIGMA_TOKEN": "@figma-token",
+    "VITE_ANALYTICS_ID": "@analytics-id"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "VITE_BUILD_TIME": "@build-time"
+    }
+  },
+  "regions": ["iad1"],
+  "trailingSlash": false,
+  "cleanUrls": true}
