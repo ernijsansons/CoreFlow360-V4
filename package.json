@@ -87,6 +87,7 @@
         "tokens:css": "node scripts/simple-css-gen.mjs",
         "tokens:sync": "node scripts/tokens-sync.mjs && npm run tokens:css",
         "test:tokens": "vitest run --config vitest.token.config.ts",
+        "design:sync": "node scripts/design-sync.mjs",
         "prepare": "husky install",
         "postinstall": "husky install"
     },

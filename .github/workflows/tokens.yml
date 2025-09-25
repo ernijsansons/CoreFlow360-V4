@@ -2,7 +2,7 @@ name: Design Token Validation
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [main, master, develop, comprehensive-testing]
     paths:
       - 'design-system/design-tokens.json'
       - 'design-system/tokens.css'
