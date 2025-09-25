@@ -1,7 +1,8 @@
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
-
 import { cn } from "@/lib/utils"
+import { Badge } from "./badge"
+import { type LucideIcon } from "lucide-react"
 
 const Tabs = TabsPrimitive.Root
 
@@ -51,3 +52,217 @@ const TabsContent = React.forwardRef<
 TabsContent.displayName = TabsPrimitive.Content.displayName
 
 export { Tabs, TabsList, TabsTrigger, TabsContent }
+
+// Enhanced Tabs with additional features
+export interface TabItem {
+  value: string
+  label: string
+  icon?: LucideIcon
+  badge?: string | number
+  disabled?: boolean
+  content?: React.ReactNode
+}
+
+export interface EnhancedTabsProps {
+  tabs: TabItem[]
+  defaultValue?: string
+  value?: string
+  onValueChange?: (value: string) => void
+  orientation?: "horizontal" | "vertical"
+  className?: string
+  listClassName?: string
+  contentClassName?: string
+  variant?: "default" | "pills" | "underline"
+}
+
+export function EnhancedTabs({
+  tabs,
+  defaultValue,
+  value,
+  onValueChange,
+  orientation = "horizontal",
+  className,
+  listClassName,
+  contentClassName,
+  variant = "default"
+}: EnhancedTabsProps) {
+  const listVariants = {
+    default: "bg-muted p-1 rounded-md",
+    pills: "bg-transparent p-0 gap-2",
+    underline: "bg-transparent p-0 border-b rounded-none h-auto"
+  }
+
+  const triggerVariants = {
+    default: "",
+    pills: "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4",
+    underline: "rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent pb-3"
+  }
+
+  return (
+    <Tabs
+      defaultValue={defaultValue || tabs[0]?.value}
+      value={value}
+      onValueChange={onValueChange}
+      orientation={orientation}
+      className={cn("w-full", className)}
+    >
+      <TabsList className={cn(
+        listVariants[variant],
+        orientation === "vertical" && "flex-col h-auto items-stretch",
+        listClassName
+      )}>
+        {tabs.map((tab) => {
+          const Icon = tab.icon
+          return (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              disabled={tab.disabled}
+              className={cn(
+                triggerVariants[variant],
+                orientation === "vertical" && "justify-start",
+                "gap-2"
+              )}
+            >
+              {Icon && <Icon className="h-4 w-4" />}
+              <span>{tab.label}</span>
+              {tab.badge !== undefined && (
+                <Badge variant="secondary" className="ml-auto">
+                  {tab.badge}
+                </Badge>
+              )}
+            </TabsTrigger>
+          )
+        })}
+      </TabsList>
+      {tabs.map((tab) => (
+        <TabsContent
+          key={tab.value}
+          value={tab.value}
+          className={cn(
+            orientation === "vertical" && "ml-4",
+            contentClassName
+          )}
+        >
+          {tab.content}
+        </TabsContent>
+      ))}
+    </Tabs>
+  )
+}
+
+export interface ScrollableTabsProps {
+  tabs: TabItem[]
+  defaultValue?: string
+  value?: string
+  onValueChange?: (value: string) => void
+  className?: string
+}
+
+export function ScrollableTabs({
+  tabs,
+  defaultValue,
+  value,
+  onValueChange,
+  className
+}: ScrollableTabsProps) {
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false)
+  const [canScrollRight, setCanScrollRight] = React.useState(false)
+
+  const checkScroll = React.useCallback(() => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    checkScroll()
+    window.addEventListener('resize', checkScroll)
+    return () => window.removeEventListener('resize', checkScroll)
+  }, [checkScroll])
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = 200
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      })
+      setTimeout(checkScroll, 300)
+    }
+  }
+
+  return (
+    <div className={cn("relative", className)}>
+      {canScrollLeft && (
+        <button
+          onClick={() => scroll('left')}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background shadow-md flex items-center justify-center"
+          aria-label="Scroll left"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16">
+            <path
+              fill="currentColor"
+              d="M10.354 3.646a.5.5 0 0 1 0 .708L6.707 8l3.647 3.646a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708 0z"
+            />
+          </svg>
+        </button>
+      )}
+      {canScrollRight && (
+        <button
+          onClick={() => scroll('right')}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-background shadow-md flex items-center justify-center"
+          aria-label="Scroll right"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16">
+            <path
+              fill="currentColor"
+              d="M5.646 12.354a.5.5 0 0 1 0-.708L9.293 8 5.646 4.354a.5.5 0 1 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708 0z"
+            />
+          </svg>
+        </button>
+      )}
+      <div
+        ref={scrollRef}
+        className="overflow-x-auto scrollbar-hide"
+        onScroll={checkScroll}
+      >
+        <Tabs
+          defaultValue={defaultValue || tabs[0]?.value}
+          value={value}
+          onValueChange={onValueChange}
+        >
+          <TabsList className="inline-flex w-max">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  disabled={tab.disabled}
+                  className="gap-2"
+                >
+                  {Icon && <Icon className="h-4 w-4" />}
+                  <span>{tab.label}</span>
+                  {tab.badge !== undefined && (
+                    <Badge variant="secondary" className="ml-2">
+                      {tab.badge}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              )
+            })}
+          </TabsList>
+          {tabs.map((tab) => (
+            <TabsContent key={tab.value} value={tab.value}>
+              {tab.content}
+            </TabsContent>
+          ))}
+        </Tabs>
+      </div>
+    </div>
+  )
+}

@@ -114,7 +114,12 @@ export class AdaptiveRateLimiter {
       // Check whitelist
       for (const key of keys) {
         if (this.whitelist.has(key.identifier)) {
-          return { limited: false };
+          const config = this.getLimitConfig(key);
+          return { 
+            limited: false, 
+            allowedRequests: config.requests * 2, // Higher limits for whitelisted
+            windowSize: config.window 
+          };
         }
       }
 
@@ -129,7 +134,12 @@ export class AdaptiveRateLimiter {
       if (exceededLimits.length === 0) {
         // No limits exceeded - update counters
         await Promise.all(keys.map(key => this.incrementCounter(key)));
-        return { limited: false };
+        const config = this.getLimitConfig(keys[0]);
+        return { 
+          limited: false, 
+          allowedRequests: config.requests,
+          windowSize: config.window 
+        };
       }
 
       // Analyze with AI to determine if this is legitimate

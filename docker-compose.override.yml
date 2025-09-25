@@ -1,0 +1,70 @@
+# Docker Compose Override for Development
+# This file is automatically loaded in development mode
+
+# Docker Compose Override for Development
+
+services:
+  app:
+    build:
+      target: development
+    environment:
+      - NODE_ENV=development
+      - DEBUG=*
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: ["npm", "run", "dev:watch"]
+    ports:
+      - "9229:9229"  # Debug port
+
+  postgres:
+    ports:
+      - "5432:5432"  # Expose for local development
+    environment:
+      - POSTGRES_PASSWORD=dev_password
+
+  redis:
+    ports:
+      - "6379:6379"  # Expose for local development
+    command: redis-server --appendonly yes
+
+  prometheus:
+    ports:
+      - "9090:9090"
+
+  grafana:
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+  # Add development-specific services
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: coreflow360-mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - backend
+    profiles:
+      - dev
+
+  # Database admin interface
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: coreflow360-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@coreflow360.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - backend
+    profiles:
+      - dev
+
+volumes:
+  pgadmin_data:

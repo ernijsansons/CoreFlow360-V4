@@ -557,4 +557,4 @@ export function setupAgentTests(): void {
   });
 }
 
-export { TestEnvironment, MockAgent, BusinessContextGenerator, TaskGenerator, PerformanceMonitor };
+// Re-export all test utilities (already exported as classes above)

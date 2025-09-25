@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 
-import { QuantumMasterAuditor } from './auditors/QuantumMasterAuditor.js';
+import { QuantumMasterAuditor } from './auditors/QuantumMasterAuditor';
 
 async function main() {
   try {

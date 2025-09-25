@@ -3,7 +3,7 @@
  * Testing comprehensive error handling system with transaction support
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   ErrorHandler,
   BusinessLogicError,

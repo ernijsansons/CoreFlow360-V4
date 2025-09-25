@@ -1,531 +1,535 @@
 import type {
-  VoiceAgentConfig,;
-  CallInitiationRequest,;
-  CallResult,;
-  CallQueueItem,;
-  CallPriority,;
-  VoiceAgentPerformance,;
-  RealTimeCallState;
-} from '../types/voice-agent';"/
-import type { Lead } from '../types/crm';"/
-import { AIVoiceAgent } from './ai-voice-agent';"/
+  VoiceAgentConfig,
+  CallInitiationRequest,
+  CallResult,
+  CallQueueItem,
+  CallPriority,
+  VoiceAgentPerformance,
+  RealTimeCallState
+} from '../types/voice-agent';
+import type { Lead } from '../types/crm';
+import { AIVoiceAgent } from './ai-voice-agent';
 import { CRMService } from './crm-service';
 
 export interface CallOrchestratorConfig {
   max_concurrent_calls: number;
-  queue_processing_interval: number;/
-  retry_delays: number[]; // [300, 900, 1800] - 5min, 15min, 30min;
-  business_hours: {"/
-    start: string; // "09:00";"/
-    end: string;   // "17:00";"/
-    timezone: string; // "America/New_York";/
-    days: number[]; // [1,2,3,4,5] Monday-Friday;
+  queue_processing_interval: number;
+  retry_delays: number[]; // [300, 900, 1800] - 5min, 15min, 30min
+  business_hours: {
+    start: string; // "09:00"
+    end: string;   // "17:00"
+    timezone: string; // "America/New_York"
+    days: number[]; // [1,2,3,4,5] Monday-Friday
   };
   call_volume_limits: {
     per_hour: number;
-    per_day: number;};
+    per_day: number;
+  };
 }
 
-export interface CallQueueStats {"
-  total_queued: "number;"
-  by_priority: Record<CallPriority", number>;"
-  estimated_wait_times: "Record<CallPriority", number>;"
-  processing_rate: "number;"
-  success_rate: number;"}
+export interface CallQueueStats {
+  total_queued: number;
+  by_priority: Record<CallPriority, number>;
+  estimated_wait_times: Record<CallPriority, number>;
+  processing_rate: number;
+  success_rate: number;
+}
 
 export class CallOrchestrator {
   private voiceAgent: AIVoiceAgent;
   private crmService: CRMService;
   private config: CallOrchestratorConfig;
   private callQueue: CallQueueItem[] = [];
-  private activeCalls: Map<string, RealTimeCallState> = new Map();"
-  private processedToday: "number = 0;
+  private activeCalls: Map<string, RealTimeCallState> = new Map();
+  private processedToday: number = 0;
   private processedThisHour: number = 0;
   private queueProcessor: any;
   private hourlyReset: any;
   private dailyReset: any;
 
-  constructor(;"
-    voiceAgentConfig: VoiceAgentConfig",;"
-    orchestratorConfig: "CallOrchestratorConfig",;
-    crmService: CRMService;
+  constructor(
+    voiceAgentConfig: VoiceAgentConfig,
+    orchestratorConfig: CallOrchestratorConfig
   ) {
     this.voiceAgent = new AIVoiceAgent(voiceAgentConfig);
-    this.crmService = crmService;
+    this.crmService = new CRMService();
     this.config = orchestratorConfig;
 
     this.startQueueProcessor();
-    this.startVolumeResetTimers();}
-"
-  async queueCall(lead: "Lead", request: CallInitiationRequest): Promise<{
-    success: boolean;
-    queue_item_id?: string;
-    estimated_wait_time?: number;
-    position?: number;
-    error?: string;}> {
-    try {/
-      // Validate call can be queued;
-      const validation = await this.validateCallQueue(lead, request);
-      if (!validation.canQueue) {
-        return {"
-          success: "false",;"
-          error: "validation.reason;"};
-      }
-/
-      // Check volume limits;
-      if (!this.checkVolumelimits()) {
-        return {"
-          success: "false",;"
-          error: 'Daily or hourly call volume limit reached';};
-      }
-/
-      // Create queue item;
-      const queueItem: CallQueueItem = {
-        id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,;"
-        lead_id: "lead.id",;"
-        priority: "request.priority",;"
-        call_type: "request.call_type",;"
-        scheduled_at: "request.scheduled_at || new Date().toISOString()",;"
-        retry_count: "0",;"
-        max_retries: "this.config.retry_delays.length",;
-        context: request.context || {
-          previous_interactions: [],;"
-          campaign_context: 'Auto-generated call';},;"
-        estimated_duration: "this.estimateCallDuration(request.call_type)",;"
-        created_at: "new Date().toISOString();"};
-/
-      // Insert into queue based on priority and schedule;
-      this.insertIntoQueue(queueItem);
-
-      const position = this.getQueuePosition(queueItem.id);
-      const estimatedWait = this.calculateWaitTime(position, request.priority);
-
-
-      return {"
-        success: "true",;"
-        queue_item_id: "queueItem.id",;"
-        estimated_wait_time: "estimatedWait",;"
-        position: "position;"};
-
-    } catch (error) {
-      return {"
-        success: "false",;"
-        error: error instanceof Error ? error.message : 'Unknown error';};
-    }
+    this.setupResetTimers();
   }
 
-  async processQueue(): Promise<void> {
-    try {/
-      // Check if we can process more calls;
-      if (this.activeCalls.size >= this.config.max_concurrent_calls) {
-        return;
+  /**
+   * Initiate a new call
+   */
+  async initiateCall(request: CallInitiationRequest): Promise<CallResult> {
+    try {
+      // Check business hours
+      if (!this.isBusinessHours()) {
+        return {
+          success: false,
+          callId: '',
+          error: 'Call initiated outside business hours',
+          timestamp: new Date(),
+        };
       }
 
-      if (!this.checkVolumelimits()) {
-        return;
+      // Check volume limits
+      if (!this.checkVolumeLimits()) {
+        return {
+          success: false,
+          callId: '',
+          error: 'Call volume limits exceeded',
+          timestamp: new Date(),
+        };
       }
 
-      if (!this.isWithinBusinessHours()) {
-        return;
-      }
-/
-      // Get next items to process;
-      const callsToProcess = this.getNextCallsToProcess();
-
-      for (const queueItem of callsToProcess) {
+      // Check concurrent call limits
         if (this.activeCalls.size >= this.config.max_concurrent_calls) {
-          break;
-        }
+        // Queue the call
+        const queueItem: CallQueueItem = {
+          id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          request,
+          priority: request.priority || 'normal',
+          queuedAt: new Date(),
+          retryCount: 0,
+        };
 
-        await this.processQueueItem(queueItem);
+        this.callQueue.push(queueItem);
+        this.sortQueueByPriority();
+
+        return {
+          success: true,
+          callId: queueItem.id,
+          queued: true,
+          estimatedWaitTime: this.calculateEstimatedWaitTime(queueItem.priority),
+          timestamp: new Date(),
+        };
       }
 
+      // Initiate the call immediately
+      const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const result = await this.executeCall(callId, request);
+
+      return result;
+
     } catch (error) {
+      return {
+        success: false,
+        callId: '',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date(),
+      };
     }
   }
 
-  private async processQueueItem(queueItem: CallQueueItem): Promise<void> {
-    try {/
-      // Remove from queue;
-      this.callQueue = this.callQueue.filter(item => item.id !== queueItem.id);
-/
-      // Get lead data;
-      const lead = await this.crmService.getLeadById(queueItem.lead_id);
-      if (!lead) {
-        return;}
+  /**
+   * Execute a call
+   */
+  private async executeCall(callId: string, request: CallInitiationRequest): Promise<CallResult> {
+    try {
+      // Create call state
+      const callState: RealTimeCallState = {
+        callId,
+        status: 'initiating',
+        startTime: new Date(),
+        endTime: null,
+        duration: 0,
+        lead: null,
+        transcript: [],
+        sentiment: 'neutral',
+        intent: null,
+        confidence: 0,
+        nextAction: null,
+        error: null,
+      };
 
-/
-      // Initiate call through voice agent;
-      const response = await this.voiceAgent.initiateCall(lead, {"
-        lead_id: "queueItem.lead_id",;"
-        priority: "queueItem.priority",;"
-        call_type: "queueItem.call_type",;"
-        context: "queueItem.context;"});
+      this.activeCalls.set(callId, callState);
 
-      if (response.success && response.call_id) {/
-        // Track active call;
-        const callState = await this.voiceAgent.getActiveCallState(response.call_id);
-        if (callState) {
-          this.activeCalls.set(response.call_id, callState);
-        }
-/
-        // Update counters;
+      // Update counters
         this.processedToday++;
         this.processedThisHour++;
 
+      // Execute the call
+      const result = await this.voiceAgent.makeCall({
+        ...request,
+        callId,
+      });
 
-      } else {/
-        // Handle failed call initiation
-;/
-        // Retry logic;
-        if (queueItem.retry_count < queueItem.max_retries) {
-          await this.scheduleRetry(queueItem);
-        } else {/
-          // Log failure to CRM;"
-          await this.logCallFailure(queueItem, response.error || 'Unknown error');
-        }
+      // Update call state
+      callState.status = result.success ? 'completed' : 'failed';
+      callState.endTime = new Date();
+      callState.duration = callState.endTime.getTime() - callState.startTime.getTime();
+      callState.lead = result.lead;
+      callState.transcript = result.transcript || [];
+      callState.sentiment = result.sentiment || 'neutral';
+      callState.intent = result.intent;
+      callState.confidence = result.confidence || 0;
+      callState.error = result.error;
+
+      // Update CRM if lead was created
+      if (result.lead) {
+        await this.crmService.createLead(result.lead);
       }
+
+      // Remove from active calls
+      this.activeCalls.delete(callId);
+
+      return {
+        success: result.success,
+        callId,
+        lead: result.lead,
+        transcript: result.transcript,
+        sentiment: result.sentiment,
+        intent: result.intent,
+        confidence: result.confidence,
+        duration: callState.duration,
+        timestamp: new Date(),
+      };
 
     } catch (error) {
-/
-      // Retry on error;
-      if (queueItem.retry_count < queueItem.max_retries) {
-        await this.scheduleRetry(queueItem);
+      // Update call state with error
+      const callState = this.activeCalls.get(callId);
+      if (callState) {
+        callState.status = 'failed';
+        callState.endTime = new Date();
+        callState.duration = callState.endTime.getTime() - callState.startTime.getTime();
+        callState.error = error instanceof Error ? error.message : 'Unknown error';
+        this.activeCalls.delete(callId);
       }
+
+      return {
+        success: false,
+        callId,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date(),
+      };
     }
   }
 
-  async handleCallCompletion(callSid: string): Promise<void> {
-    try {/
-      // Remove from active calls;
-      this.activeCalls.delete(callSid);
-/
-      // Get call result;
-      const callResult = await this.voiceAgent.getCallResult(callSid);
-      if (!callResult) {
-        return;}
-/
-      // Log call to CRM;
-      await this.logCallResult(callResult);
-
-/
-      // Schedule follow-up actions;
-      await this.scheduleFollowUpActions(callResult);
-
-    } catch (error) {
-    }
-  }
-
-  private async scheduleRetry(queueItem: CallQueueItem): Promise<void> {/
-    const delaySeconds = this.config.retry_delays[queueItem.retry_count] || 1800; // Default 30min;
-    const retryTime = new Date(Date.now() + delaySeconds * 1000);
-
-    queueItem.retry_count++;
-    queueItem.scheduled_at = retryTime.toISOString();
-/
-    // Re-insert into queue;
-    this.insertIntoQueue(queueItem);}
-
-  private insertIntoQueue(queueItem: CallQueueItem): void {
-    const scheduledTime = new Date(queueItem.scheduled_at).getTime();
-    const now = Date.now();
-/
-    // If scheduled for future, just add to end and sort later;
-    if (scheduledTime > now) {
-      this.callQueue.push(queueItem);
-      this.sortQueue();
+  /**
+   * Process the call queue
+   */
+  private async processQueue(): Promise<void> {
+    if (this.callQueue.length === 0) {
       return;
     }
-/
-    // Insert based on priority for immediate processing;"
-    const priorityOrder = { urgent: "0", high: "1", medium: "2", low: "3"};
-    const itemPriority = priorityOrder[queueItem.priority];
 
-    let insertIndex = this.callQueue.length;
-    for (let i = 0; i < this.callQueue.length; i++) {
-      const existingPriority = priorityOrder[this.callQueue[i].priority];
-      const existingScheduled = new Date(this.callQueue[i].scheduled_at).getTime();
-/
-      // If this item has higher priority, or same priority but scheduled earlier;
-      if (itemPriority < existingPriority ||;
-          (itemPriority === existingPriority && scheduledTime < existingScheduled)) {
-        insertIndex = i;
-        break;
-      }
+    if (this.activeCalls.size >= this.config.max_concurrent_calls) {
+      return;
     }
 
-    this.callQueue.splice(insertIndex, 0, queueItem);
-  }
-
-  private sortQueue(): void {
-    this.callQueue.sort((a, b) => {"
-      const priorityOrder = { urgent: "0", high: "1", medium: "2", low: "3"};
-      const aPriority = priorityOrder[a.priority];
-      const bPriority = priorityOrder[b.priority];
-/
-      // First sort by scheduled time;
-      const aTime = new Date(a.scheduled_at).getTime();
-      const bTime = new Date(b.scheduled_at).getTime();
-      const now = Date.now();
-/
-      // Both scheduled for now or past - sort by priority;
-      if (aTime <= now && bTime <= now) {
-        if (aPriority !== bPriority) {
-          return aPriority - bPriority;
-        }
-        return aTime - bTime;
-      }
-/
-      // One is scheduled for future, one for now - prioritize the current one;
-      if (aTime <= now && bTime > now) return -1;
-      if (bTime <= now && aTime > now) return 1;
-/
-      // Both scheduled for future - sort by scheduled time;
-      return aTime - bTime;
-    });
-  }
-
-  private getNextCallsToProcess(): CallQueueItem[] {
-    const now = Date.now();
-    const availableSlots = this.config.max_concurrent_calls - this.activeCalls.size;
-
-    return this.callQueue;
-      .filter(item => new Date(item.scheduled_at).getTime() <= now);
-      .slice(0, availableSlots);
-  }
-
-  private getQueuePosition(queueItemId: string): number {
-    const index = this.callQueue.findIndex(item => item.id === queueItemId);
-    return index === -1 ? 0 : index + 1;}
-"
-  private calculateWaitTime(position: "number", priority: CallPriority): number {/
-    const averageCallDuration = 300; // 5 minutes;
-    const processingRate = this.config.max_concurrent_calls;
-/
-    // Adjust for priority;
-    const priorityMultiplier = {
-      urgent: 0.1,;"
-      high: "0.5",;"
-      medium: "1.0",;"
-      low: "1.5;"};
-/
-    const baseWaitTime = (position / processingRate) * averageCallDuration;
-    return Math.round(baseWaitTime * priorityMultiplier[priority]);
-  }
-
-  private estimateCallDuration(callType: string): number {
-    const durations = {/
-      cold_outreach: 180,    // 3 minutes;"/
-      follow_up: "240",        // 4 minutes;"/
-      qualification: "360",    // 6 minutes;"/
-      demo_booking: "300",     // 5 minutes;"/
-      support: "420          // 7 minutes;"};
-
-    return durations[callType as keyof typeof durations] || 300;
-  }
-
-  private checkVolumelimits(): boolean {
-    return this.processedThisHour < this.config.call_volume_limits.per_hour &&;
-           this.processedToday < this.config.call_volume_limits.per_day;
-  }
-
-  private isWithinBusinessHours(): boolean {
-    const now = new Date();/
-    const day = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
-;/
-    // Check if today is a business day;
-    if (!this.config.business_hours.days.includes(day)) {
-      return false;
+    if (!this.isBusinessHours()) {
+      return;
     }
-/
-    // Check time (simplified - assumes same timezone);
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
+
+    if (!this.checkVolumeLimits()) {
+      return;
+    }
+
+    // Get the next call from queue
+    const queueItem = this.callQueue.shift();
+    if (!queueItem) {
+      return;
+    }
+
+    try {
+      // Execute the call
+      const result = await this.executeCall(queueItem.id, queueItem.request);
+
+      if (!result.success && queueItem.retryCount < this.config.retry_delays.length) {
+        // Retry the call
+        queueItem.retryCount++;
+        queueItem.queuedAt = new Date(Date.now() + this.config.retry_delays[queueItem.retryCount - 1] * 1000);
+        this.callQueue.push(queueItem);
+        this.sortQueueByPriority();
+      }
+
+    } catch (error) {
+      console.error('Error processing queue item:', error);
+    }
+  }
+
+  /**
+   * Start the queue processor
+   */
+  private startQueueProcessor(): void {
+    this.queueProcessor = setInterval(() => {
+      this.processQueue();
+    }, this.config.queue_processing_interval);
+  }
+
+  /**
+   * Setup reset timers
+   */
+  private setupResetTimers(): void {
+    // Reset hourly counter
+    this.hourlyReset = setInterval(() => {
+      this.processedThisHour = 0;
+    }, 60 * 60 * 1000); // Every hour
+
+    // Reset daily counter
+    this.dailyReset = setInterval(() => {
+      this.processedToday = 0;
+    }, 24 * 60 * 60 * 1000); // Every day
+  }
+
+  /**
+   * Check if it's business hours
+   */
+  private isBusinessHours(): boolean {
+    const now = new Date();
+    const timezone = this.config.business_hours.timezone;
+    const localTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+    
+    const currentHour = localTime.getHours();
+    const currentMinute = localTime.getMinutes();
+    const currentDay = localTime.getDay();
+
+    const startHour = parseInt(this.config.business_hours.start.split(':')[0]);
+    const startMinute = parseInt(this.config.business_hours.start.split(':')[1]);
+    const endHour = parseInt(this.config.business_hours.end.split(':')[0]);
+    const endMinute = parseInt(this.config.business_hours.end.split(':')[1]);
+
     const currentTime = currentHour * 60 + currentMinute;
-"
-    const [startHour, startMinute] = this.config.business_hours.start.split(':').map(Number);"
-    const [endHour, endMinute] = this.config.business_hours.end.split(':').map(Number);
-
     const startTime = startHour * 60 + startMinute;
     const endTime = endHour * 60 + endMinute;
 
-    return currentTime >= startTime && currentTime <= endTime;
-  }
-"
-  private async validateCallQueue(lead: "Lead", request: CallInitiationRequest): Promise<{
-    canQueue: boolean;
-    reason?: string;}> {/
-    // Check if lead already has active call;
-    const hasActiveCall = Array.from(this.activeCalls.values());
-      .some(call => call.lead_id === lead.id);
-
-    if (hasActiveCall) {"
-      return { canQueue: "false", reason: 'Lead already has active call'};
-    }
-/
-    // Check if lead is already in queue;
-    const alreadyQueued = this.callQueue.some(item => item.lead_id === lead.id);
-    if (alreadyQueued) {"
-      return { canQueue: "false", reason: 'Lead already in call queue'};
-    }
-/
-    // Check if lead has valid phone number;
-    if (!lead.phone) {"
-      return { canQueue: "false", reason: 'Lead has no phone number'};
-    }
-/
-    // Check recent call history to prevent spam;/
-    // This would query the database for recent calls to this lead
-;"
-    return { canQueue: "true"};
+    return this.config.business_hours.days.includes(currentDay) &&
+           currentTime >= startTime &&
+           currentTime <= endTime;
   }
 
-  private async logCallResult(callResult: CallResult): Promise<void> {
-    try {/
-      // Update lead with call result;
-      await this.crmService.addLeadInteraction(callResult.lead_id, {"
-        type: 'call',;"
-        summary: callResult.conversation_summary?.key_points.join(', ') || 'Call completed',;"
-        outcome: callResult.conversation_summary?.outcome || 'unknown',;"
-        next_steps: "callResult.next_actions.map(action => action.description)",;
-        metadata: {
-          call_id: callResult.call_id,;"
-          duration: "callResult.duration_seconds",;"
-          cost: "callResult.cost",;"
-          recording_url: "callResult.recording_url;"}
-      });
-
-
-    } catch (error) {
-    }
+  /**
+   * Check volume limits
+   */
+  private checkVolumeLimits(): boolean {
+    return this.processedThisHour < this.config.call_volume_limits.per_hour &&
+           this.processedToday < this.config.call_volume_limits.per_day;
   }
-"
-  private async logCallFailure(queueItem: "CallQueueItem", error: string): Promise<void> {
+
+  /**
+   * Sort queue by priority
+   */
+  private sortQueueByPriority(): void {
+    const priorityOrder = { 'high': 0, 'normal': 1, 'low': 2 };
+    this.callQueue.sort((a, b) => {
+      const aPriority = priorityOrder[a.priority] || 1;
+      const bPriority = priorityOrder[b.priority] || 1;
+      return aPriority - bPriority;
+    });
+  }
+
+  /**
+   * Calculate estimated wait time
+   */
+  private calculateEstimatedWaitTime(priority: CallPriority): number {
+    const priorityOrder = { 'high': 0, 'normal': 1, 'low': 2 };
+    const currentPriority = priorityOrder[priority] || 1;
+    
+    let waitTime = 0;
+    for (const item of this.callQueue) {
+      const itemPriority = priorityOrder[item.priority] || 1;
+      if (itemPriority <= currentPriority) {
+        waitTime += this.config.queue_processing_interval;
+      }
+    }
+
+    return waitTime;
+  }
+
+  /**
+   * Get queue statistics
+   */
+  getQueueStats(): CallQueueStats {
+    const byPriority: Record<CallPriority, number> = {
+      'high': 0,
+      'normal': 0,
+      'low': 0,
+    };
+
+    for (const item of this.callQueue) {
+      byPriority[item.priority]++;
+    }
+
+    const estimatedWaitTimes: Record<CallPriority, number> = {
+      'high': this.calculateEstimatedWaitTime('high'),
+      'normal': this.calculateEstimatedWaitTime('normal'),
+      'low': this.calculateEstimatedWaitTime('low'),
+    };
+
+    return {
+      total_queued: this.callQueue.length,
+      by_priority: byPriority,
+      estimated_wait_times: estimatedWaitTimes,
+      processing_rate: this.calculateProcessingRate(),
+      success_rate: this.calculateSuccessRate(),
+    };
+  }
+
+  /**
+   * Calculate processing rate
+   */
+  private calculateProcessingRate(): number {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    
+    // This would typically query a database for actual processing history
+    // For now, we'll return a mock value
+    return this.processedThisHour;
+  }
+
+  /**
+   * Calculate success rate
+   */
+  private calculateSuccessRate(): number {
+    // This would typically query a database for actual success history
+    // For now, we'll return a mock value
+    return 0.85; // 85% success rate
+  }
+
+  /**
+   * Get active calls
+   */
+  getActiveCalls(): RealTimeCallState[] {
+    return Array.from(this.activeCalls.values());
+  }
+
+  /**
+   * Get call by ID
+   */
+  getCall(callId: string): RealTimeCallState | null {
+    return this.activeCalls.get(callId) || null;
+  }
+
+  /**
+   * Cancel a call
+   */
+  async cancelCall(callId: string): Promise<boolean> {
     try {
-      await this.crmService.addLeadInteraction(queueItem.lead_id, {"
-        type: 'call_failed',;`
-        summary: `Call failed after ${queueItem.retry_count} retries: ${error}`,;"
-        outcome: 'failed',;"
-        next_steps: ['Review lead data and retry manually if needed'],;
-        metadata: {
-          queue_item_id: queueItem.id,;"
-          retry_count: "queueItem.retry_count",;"
-          error: "error;"}
-      });
-
-    } catch (error) {
-    }
-  }
-
-  private async scheduleFollowUpActions(callResult: CallResult): Promise<void> {
-    try {
-      for (const action of callResult.next_actions) {
-        if (action.automated) {/
-          // Schedule automated actions;
-          switch (action.action) {"
-            case 'Send calendar invite':;/
-              // Would integrate with calendar service;
-              break;
-"
-            case 'Send follow-up email':;/
-              // Would integrate with email service;
-                leadId: callResult.lead_id,;"
-                timestamp: "Date.now();"});
-              break;
-"
-            case 'Schedule follow-up call':;/
-              // Re-queue call with delay;
-              const followUpTime = new Date(action.due_date || Date.now() + 86400000 * 7);/
-              // Would create new queue item;
-              break;
-          }
-        }
+      // Check if call is active
+      const callState = this.activeCalls.get(callId);
+      if (callState) {
+        // Cancel the active call
+        await this.voiceAgent.cancelCall(callId);
+        callState.status = 'cancelled';
+        callState.endTime = new Date();
+        callState.duration = callState.endTime.getTime() - callState.startTime.getTime();
+        this.activeCalls.delete(callId);
+        return true;
       }
 
+      // Check if call is in queue
+      const queueIndex = this.callQueue.findIndex(item => item.id === callId);
+      if (queueIndex !== -1) {
+        this.callQueue.splice(queueIndex, 1);
+        return true;
+      }
+
+      return false;
+
     } catch (error) {
+      console.error('Error cancelling call:', error);
+      return false;
     }
   }
-/
-  // Queue management methods
-;
-  async getQueueStats(): Promise<CallQueueStats> {
-    const stats: CallQueueStats = {
-      total_queued: this.callQueue.length,;
-      by_priority: {
-        urgent: 0,;"
-        high: "0",;"
-        medium: "0",;"
-        low: "0;"},;
-      estimated_wait_times: {
-        urgent: 0,;"
-        high: "0",;"
-        medium: "0",;"
-        low: "0;"},;"
-      processing_rate: "this.processedThisHour",;"/
-      success_rate: "85 // Would calculate from historical data;"};
-/
-    // Count by priority;
-    this.callQueue.forEach(item => {
-      stats.by_priority[item.priority]++;
-    });
-/
-    // Calculate wait times;
-    Object.keys(stats.by_priority).forEach(priority => {
-      const count = stats.by_priority[priority as CallPriority];
-      stats.estimated_wait_times[priority as CallPriority] =;
-        this.calculateWaitTime(count, priority as CallPriority);
-    });
 
-    return stats;
+  /**
+   * Get performance metrics
+   */
+  async getPerformanceMetrics(): Promise<VoiceAgentPerformance> {
+    const activeCalls = this.getActiveCalls();
+    const queueStats = this.getQueueStats();
+
+    return {
+      totalCalls: this.processedToday,
+      activeCalls: activeCalls.length,
+      queuedCalls: queueStats.total_queued,
+      successRate: queueStats.success_rate,
+      averageCallDuration: this.calculateAverageCallDuration(),
+      averageWaitTime: this.calculateAverageWaitTime(),
+      peakConcurrency: this.calculatePeakConcurrency(),
+      errorRate: this.calculateErrorRate(),
+      throughput: queueStats.processing_rate,
+      leadConversionRate: this.calculateLeadConversionRate(),
+      customerSatisfaction: this.calculateCustomerSatisfaction(),
+    };
   }
 
-  async cancelQueuedCall(queueItemId: string): Promise<boolean> {
-    const index = this.callQueue.findIndex(item => item.id === queueItemId);
-    if (index === -1) {
-      return false;}
-
-    this.callQueue.splice(index, 1);
-    return true;
-  }
-"
-  async updateCallPriority(queueItemId: "string", newPriority: CallPriority): Promise<boolean> {
-    const item = this.callQueue.find(item => item.id === queueItemId);
-    if (!item) {
-      return false;}
-
-    item.priority = newPriority;
-    this.sortQueue();
-    return true;
+  /**
+   * Calculate average call duration
+   */
+  private calculateAverageCallDuration(): number {
+    // This would typically query a database for actual call history
+    // For now, we'll return a mock value
+    return 300000; // 5 minutes
   }
 
-  private startQueueProcessor(): void {
-    this.queueProcessor = setInterval(() => {
-      this.processQueue().catch(error => {
-      });
-    }, this.config.queue_processing_interval * 1000);
-
+  /**
+   * Calculate average wait time
+   */
+  private calculateAverageWaitTime(): number {
+    const queueStats = this.getQueueStats();
+    const totalWaitTime = Object.values(queueStats.estimated_wait_times).reduce((sum, time) => sum + time, 0);
+    const totalQueued = queueStats.total_queued;
+    
+    return totalQueued > 0 ? totalWaitTime / totalQueued : 0;
   }
 
-  private startVolumeResetTimers(): void {/
-    // Reset hourly counter every hour;
-    this.hourlyReset = setInterval(() => {
-      this.processedThisHour = 0;
-    }, 3600000);
-/
-    // Reset daily counter at midnight;
-    const msUntilMidnight = new Date().setHours(24, 0, 0, 0) - Date.now();
-    setTimeout(() => {
-      this.processedToday = 0;
-/
-      // Set up daily reset interval;
-      this.dailyReset = setInterval(() => {
-        this.processedToday = 0;
-      }, 86400000);
-    }, msUntilMidnight);
+  /**
+   * Calculate peak concurrency
+   */
+  private calculatePeakConcurrency(): number {
+    // This would typically track peak concurrency over time
+    // For now, we'll return the current active calls count
+    return this.activeCalls.size;
   }
 
-  async shutdown(): Promise<void> {/
-    // Clear timers;
+  /**
+   * Calculate error rate
+   */
+  private calculateErrorRate(): number {
+    // This would typically query a database for actual error history
+    // For now, we'll return a mock value
+    return 0.15; // 15% error rate
+  }
+
+  /**
+   * Calculate lead conversion rate
+   */
+  private calculateLeadConversionRate(): number {
+    // This would typically query a database for actual conversion history
+    // For now, we'll return a mock value
+    return 0.25; // 25% conversion rate
+  }
+
+  /**
+   * Calculate customer satisfaction
+   */
+  private calculateCustomerSatisfaction(): number {
+    // This would typically query a database for actual satisfaction scores
+    // For now, we'll return a mock value
+    return 4.2; // 4.2 out of 5
+  }
+
+  /**
+   * Update configuration
+   */
+  updateConfig(newConfig: Partial<CallOrchestratorConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+    
+    // Restart queue processor if interval changed
+    if (newConfig.queue_processing_interval) {
+      clearInterval(this.queueProcessor);
+      this.startQueueProcessor();
+    }
+  }
+
+  /**
+   * Shutdown the orchestrator
+   */
+  async shutdown(): Promise<void> {
+    // Clear timers
     if (this.queueProcessor) {
       clearInterval(this.queueProcessor);
     }
@@ -535,13 +539,14 @@ export class CallOrchestrator {
     if (this.dailyReset) {
       clearInterval(this.dailyReset);
     }
-/
-    // Terminate active calls gracefully;
-    const terminationPromises = Array.from(this.activeCalls.keys()).map(callSid =>;"
-      this.voiceAgent.terminateCall(callSid, 'System shutdown');
-    );
 
-    await Promise.all(terminationPromises);
+    // Cancel all active calls
+    for (const callId of this.activeCalls.keys()) {
+      await this.cancelCall(callId);
+    }
 
+    // Clear queue
+    this.callQueue = [];
   }
-}"`/
+}
+

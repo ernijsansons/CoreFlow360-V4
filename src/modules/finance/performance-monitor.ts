@@ -398,6 +398,7 @@ export function getGlobalMonitor(): PerformanceMonitor {
  */
 export function Trace(operationName?: string) {
   return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
+    if (!descriptor || !descriptor.value) return descriptor;
     const method = descriptor.value;
     const opName = operationName || `${target.constructor.name}.${propertyName}`;
 

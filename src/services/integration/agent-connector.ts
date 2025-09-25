@@ -71,13 +71,40 @@ class AgentServiceConnector {
         outputFormat: { strategy: 'object', technologies: 'array', roadmap: 'object' }
       },
       {
-        id: 'hr_manager',
-        name: 'HR Manager Agent',
-        description: 'Human resources and talent management',
-        type: 'department',
-        capabilities: ['recruitment', 'performance_management', 'employee_relations'],
-        requiredData: ['employee_data', 'performance_reviews', 'recruitment_needs'],
-        outputFormat: { actions: 'array', policies: 'object', metrics: 'object' }
+        id: 'coo',
+        name: 'COO Agent',
+        description: 'Chief Operating Officer - Operational excellence and efficiency',
+        type: 'executive',
+        capabilities: ['operational_excellence', 'cross_department_coordination', 'process_standardization', 'performance_optimization'],
+        requiredData: ['operational_metrics', 'department_performance', 'process_data', 'resource_utilization'],
+        outputFormat: { strategy: 'object', optimizations: 'array', coordination: 'object', kpis: 'object' }
+      },
+      {
+        id: 'cmo',
+        name: 'CMO Agent',
+        description: 'Chief Marketing Officer - Marketing strategy and brand management',
+        type: 'executive',
+        capabilities: ['marketing_strategy', 'brand_management', 'campaign_orchestration', 'customer_acquisition'],
+        requiredData: ['market_data', 'campaign_metrics', 'brand_health', 'customer_analytics'],
+        outputFormat: { strategy: 'object', campaigns: 'array', brand_initiatives: 'object', roi_analysis: 'object' }
+      },
+      {
+        id: 'clo',
+        name: 'CLO Agent',
+        description: 'Chief Legal Officer - Legal compliance and governance',
+        type: 'executive',
+        capabilities: ['legal_compliance', 'contract_management', 'risk_mitigation', 'regulatory_compliance'],
+        requiredData: ['legal_requirements', 'contracts', 'compliance_status', 'regulatory_changes'],
+        outputFormat: { compliance: 'object', legal_opinion: 'string', risks: 'array', recommendations: 'array' }
+      },
+      {
+        id: 'chro',
+        name: 'CHRO Agent',
+        description: 'Chief Human Resources Officer - Strategic workforce and culture',
+        type: 'executive',
+        capabilities: ['strategic_workforce_planning', 'executive_talent_management', 'organizational_culture', 'compensation_strategy'],
+        requiredData: ['workforce_analytics', 'talent_pipeline', 'culture_metrics', 'compensation_data'],
+        outputFormat: { strategy: 'object', initiatives: 'array', metrics: 'object', recommendations: 'array' }
       },
       {
         id: 'sales_manager',

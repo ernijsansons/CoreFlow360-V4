@@ -1027,8 +1027,7 @@ export class PenetrationTestingAutomation {
   private generateTestSummary(results: TestResult[]): any {
     const totalTests = results.length;
     const totalFindings = results.reduce((sum, r) => sum + r.findings.length, 0);
-    const criticalFindings = results.reduce((sum, r)
-  => sum + r.findings.filter(f => f.severity === 'critical').length, 0);
+    const criticalFindings = results.reduce((sum, r) => sum + r.findings.filter(f => f.severity === 'critical').length, 0);
 
     return {
       totalTests,

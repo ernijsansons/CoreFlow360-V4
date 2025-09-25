@@ -741,6 +741,9 @@ export enum FinancialReportType {
   CUSTOM = 'CUSTOM'
 }
 
+// Alias for backwards compatibility in tests
+export const ReportType = FinancialReportType;
+
 export enum ReportStatus {
   GENERATING = 'GENERATING',
   COMPLETED = 'COMPLETED',

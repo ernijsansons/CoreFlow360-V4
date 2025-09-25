@@ -1,8 +1,8 @@
-export { ProductionLaunchOrchestrator } from './orchestrator/ProductionLaunchOrchestrator.js';
-export { ProgressiveRolloutEngine } from './orchestrator/ProgressiveRolloutEngine.js';
-export { PreFlightValidator } from './validators/PreFlightValidator.js';
-export { MonitoringSystem } from './monitoring/MonitoringSystem.js';
-export { RollbackManager } from './rollback/RollbackManager.js';
+export { ProductionLaunchOrchestrator } from './orchestrator/ProductionLaunchOrchestrator';
+export { ProgressiveRolloutEngine } from './orchestrator/ProgressiveRolloutEngine';
+export { PreFlightValidator } from './validators/PreFlightValidator';
+export { MonitoringSystem } from './monitoring/MonitoringSystem';
+export { RollbackManager } from './rollback/RollbackManager';
 
-export * from './types/index.js';
-export { runProductionLaunch } from './production-launch.js';
+export * from './types/index';
+export { runProductionLaunch } from './production-launch';

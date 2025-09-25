@@ -1,26 +1,26 @@
-/**;
- * AI-Powered Workflow Generator;
- * Natural language to workflow conversion with intelligent templates;/
+/**
+ * AI-Powered Workflow Generator
+ * Natural language to workflow conversion with intelligent templates
  */
-;/
-import type { Env } from '../types/env';"/
-import { getAIClient } from './secure-ai-client';"/
-import { validateInput } from '../utils/validation-schemas';"
+import type { Env } from '../types/env';
+import { getAIClient } from './secure-ai-client';
+import { validateInput } from '../utils/validation-schemas';
 import { z } from 'zod';
-/
-// =====================================================;/
-// TYPES AND INTERFACES;/
+
 // =====================================================
-;
-export interface WorkflowGenerationRequest {"
-  description: "string;
+// TYPES AND INTERFACES
+// =====================================================
+
+export interface WorkflowGenerationRequest {
+  description: string;
   businessContext: BusinessContext;
   constraints?: WorkflowConstraints;
-  templatePreferences?: TemplatePreferences;"
-  advancedOptions?: AdvancedOptions;"}
+  templatePreferences?: TemplatePreferences;
+  advancedOptions?: AdvancedOptions;
+}
 
 export interface BusinessContext {
-  industry: string;"
+  industry: string;
   companySize: 'startup' | 'small' | 'medium' | 'large' | 'enterprise';
   department: string;
   useCase: string;
@@ -29,7 +29,8 @@ export interface BusinessContext {
   complianceRequirements: string[];
   budgetConstraints?: {
     maxCostPerExecution: number;
-    maxMonthlyBudget: number;};
+    maxMonthlyBudget: number;
+  };
 }
 
 export interface WorkflowConstraints {
@@ -37,1115 +38,796 @@ export interface WorkflowConstraints {
   maxExecutionTime: number;
   maxCostPerExecution: number;
   requiredIntegrations: string[];
-  forbiddenIntegrations: string[];"
+  forbiddenIntegrations: string[];
   securityLevel: 'standard' | 'high' | 'critical';
-  complianceStandards: string[];}
+  complianceStandards: string[];
+}
 
 export interface TemplatePreferences {
   preferredNodeTypes: string[];
   aiModelPreferences: string[];
   integrationPriorities: string[];
-  approvalRequirements: boolean;"
-  errorHandlingLevel: 'basic' | 'standard' | 'comprehensive';}
+  approvalRequirements: boolean;
+  errorHandlingLevel: 'basic' | 'standard' | 'comprehensive';
+}
 
-export interface AdvancedOptions {"
-  enableOptimization: "boolean;
-  generateVariants: number;
-  includeTestData: boolean;
-  generateDocumentation: boolean;"
-  createMonitoring: boolean;"}
+export interface AdvancedOptions {
+  customTemplates?: string[];
+  experimentalFeatures?: string[];
+  optimizationLevel: 'basic' | 'standard' | 'advanced';
+  testingMode: boolean;
+  debugOutput: boolean;
+}
+
+export interface WorkflowNode {
+  id: string;
+  type: 'trigger' | 'action' | 'condition' | 'loop' | 'ai' | 'integration' | 'approval' | 'notification' | 'data' | 'custom';
+  name: string;
+  description: string;
+  position: { x: number; y: number };
+  configuration: Record<string, any>;
+  inputs: NodeInput[];
+  outputs: NodeOutput[];
+  dependencies: string[];
+  errorHandling: ErrorHandlingConfig;
+  performance: PerformanceConfig;
+  security: SecurityConfig;
+}
+
+export interface NodeInput {
+  id: string;
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'file' | 'json';
+  required: boolean;
+  description: string;
+  validation: ValidationConfig;
+  defaultValue?: any;
+}
+
+export interface NodeOutput {
+  id: string;
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array' | 'file' | 'json';
+  description: string;
+  schema?: any;
+}
+
+export interface ErrorHandlingConfig {
+  strategy: 'retry' | 'skip' | 'fail' | 'custom';
+  maxRetries: number;
+  retryDelay: number;
+  fallbackAction?: string;
+  customHandler?: string;
+}
+
+export interface PerformanceConfig {
+  timeout: number;
+  maxConcurrency: number;
+  caching: boolean;
+  optimization: 'none' | 'basic' | 'advanced';
+}
+
+export interface SecurityConfig {
+  authentication: boolean;
+  authorization: string[];
+  encryption: boolean;
+  auditLogging: boolean;
+  dataPrivacy: 'standard' | 'high' | 'critical';
+}
+
+export interface ValidationConfig {
+  required: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  min?: number;
+  max?: number;
+  custom?: string;
+}
+
+export interface WorkflowEdge {
+  id: string;
+  source: string;
+  target: string;
+  condition?: string;
+  label?: string;
+  type: 'success' | 'error' | 'conditional' | 'loop';
+}
 
 export interface GeneratedWorkflow {
   id: string;
   name: string;
   description: string;
-  category: string;"
-  complexity: 'simple' | 'moderate' | 'complex' | 'advanced';
-  estimatedCost: number;
-  estimatedDuration: number;
-  confidenceScore: number;
+  version: string;
   nodes: WorkflowNode[];
   edges: WorkflowEdge[];
-  variables: Record<string, any>;
   metadata: WorkflowMetadata;
-  optimization?: OptimizationData;
-  documentation?: WorkflowDocumentation;
-  testData?: TestDataSet[];}
-
-export interface WorkflowNode {
-  id: string;"
-  type: 'ai_agent' | 'logic' | 'integration' | 'approval' | 'trigger';
-  subtype: string;
-  label: string;
-  description: string;
-  position: { x: number; y: number};
-  config: any;
-  inputSchema?: any;
-  outputSchema?: any;
-  dependsOn: string[];
-  tags: string[];
-  estimatedCost?: number;
-  estimatedDuration?: number;}
-
-export interface WorkflowEdge {
-  id: string;
-  sourceNodeId: string;
-  targetNodeId: string;
-  sourceHandle?: string;
-  targetHandle?: string;"
-  conditionType: 'always' | 'success' | 'failure' | 'conditional';
-  conditionExpression?: string;
-  label?: string;}
-
-export interface WorkflowMetadata {"
-  generatedBy: 'ai';
-  generationModel: string;
-  generationDate: string;
-  sourceDescription: string;
-  businessContext: BusinessContext;
-  validationResults?: ValidationResults;
-  suggestedImprovements?: string[];}
-
-export interface OptimizationData {
-  performanceOptimizations: string[];
-  costOptimizations: string[];
-  reliabilityImprovements: string[];
-  estimatedSavings: {
-    cost: number;
-    time: number;};
+  validation: WorkflowValidation;
+  testing: WorkflowTesting;
+  deployment: WorkflowDeployment;
 }
 
-export interface WorkflowDocumentation {"
-  overview: "string;"
-  nodeDescriptions: Record<string", string>;
-  setupInstructions: string[];
-  troubleshootingGuide: string[];
-  maintenanceNotes: string[];}
+export interface WorkflowMetadata {
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+  businessId: string;
+  tags: string[];
+  category: string;
+  complexity: 'low' | 'medium' | 'high';
+  estimatedCost: number;
+  estimatedExecutionTime: number;
+  successRate: number;
+  maintenanceLevel: 'low' | 'medium' | 'high';
+}
 
-export interface TestDataSet {
+export interface WorkflowValidation {
+  isValid: boolean;
+  errors: ValidationError[];
+  warnings: ValidationWarning[];
+  suggestions: ValidationSuggestion[];
+}
+
+export interface ValidationError {
+  type: 'syntax' | 'logic' | 'security' | 'performance' | 'compliance';
+  message: string;
+  nodeId?: string;
+  edgeId?: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+}
+
+export interface ValidationWarning {
+  type: 'performance' | 'security' | 'maintainability' | 'usability';
+  message: string;
+  nodeId?: string;
+  edgeId?: string;
+  suggestion: string;
+}
+
+export interface ValidationSuggestion {
+  type: 'optimization' | 'security' | 'maintainability' | 'usability';
+  message: string;
+  nodeId?: string;
+  edgeId?: string;
+  impact: 'low' | 'medium' | 'high';
+  effort: 'low' | 'medium' | 'high';
+}
+
+export interface WorkflowTesting {
+  testCases: TestCase[];
+  coverage: number;
+  performance: PerformanceTest;
+  security: SecurityTest;
+  integration: IntegrationTest;
+}
+
+export interface TestCase {
+  id: string;
   name: string;
   description: string;
-  inputData: any;
-  expectedOutput: any;"
-  testType: 'happy_path' | 'error_case' | 'edge_case' | 'performance';}
+  input: Record<string, any>;
+  expectedOutput: Record<string, any>;
+  type: 'unit' | 'integration' | 'end-to-end' | 'performance' | 'security';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+}
 
-export interface ValidationResults {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-  suggestions: string[];
-  qualityScore: number;}
-/
-// =====================================================;/
-// WORKFLOW TEMPLATES REPOSITORY;/
-// =====================================================
-;
-const INDUSTRY_TEMPLATES = {
-  healthcare: {"
-    'patient_onboarding': {"
-      description: 'Complete patient onboarding with verification and scheduling',;"
-      complexity: 'moderate',;"
-      estimatedNodes: "8",;"
-      commonNodes: ['data_validation', 'insurance_verification', 'appointment_scheduling'];
-    },;"
-    'claims_processing': {"
-      description: 'Automated insurance claims processing and approval',;"
-      complexity: 'complex',;"
-      estimatedNodes: "12",;"
-      commonNodes: ['document_extraction', 'fraud_detection', 'approval_chain'];
-    }
-  },;
-  finance: {"
-    'invoice_processing': {"
-      description: 'Automated invoice processing with approval workflows',;"
-      complexity: 'moderate',;"
-      estimatedNodes: "10",;"
-      commonNodes: ['ocr_extraction', 'vendor_validation', 'approval_routing'];
-    },;"
-    'loan_application': {"
-      description: 'Complete loan application processing and decision',;"
-      complexity: 'complex',;"
-      estimatedNodes: "15",;"
-      commonNodes: ['credit_check', 'income_verification', 'risk_assessment'];
-    },;"
-    'expense_approval': {"
-      description: 'Employee expense report processing and approval',;"
-      complexity: 'simple',;"
-      estimatedNodes: "6",;"
-      commonNodes: ['expense_validation', 'manager_approval', 'accounting_integration'];
-    }
-  },;
-  retail: {"
-    'order_fulfillment': {"
-      description: 'End-to-end order processing and fulfillment',;"
-      complexity: 'moderate',;"
-      estimatedNodes: "9",;"
-      commonNodes: ['inventory_check', 'payment_processing', 'shipping_coordination'];
-    },;"
-    'customer_onboarding': {"
-      description: 'New customer registration and welcome sequence',;"
-      complexity: 'simple',;"
-      estimatedNodes: "5",;"
-      commonNodes: ['account_creation', 'verification', 'welcome_email'];
-    }
-  },;
-  manufacturing: {"
-    'quality_control': {"
-      description: 'Automated quality control and defect tracking',;"
-      complexity: 'complex',;"
-      estimatedNodes: "12",;"
-      commonNodes: ['inspection_analysis', 'defect_classification', 'corrective_action'];
-    },;"
-    'supply_chain': {"
-      description: 'Supply chain optimization and vendor management',;"
-      complexity: 'advanced',;"
-      estimatedNodes: "18",;"
-      commonNodes: ['demand_forecasting', 'vendor_selection', 'inventory_optimization'];
-    }
-  }
-};
+export interface PerformanceTest {
+  maxExecutionTime: number;
+  maxMemoryUsage: number;
+  maxCpuUsage: number;
+  throughput: number;
+  latency: number;
+}
 
-const NODE_TEMPLATES = {
-  ai_agent: {"
-    'document_analyzer': {"
-      prompt: 'Analyze the uploaded document;"
-  and extract key information including {{fields}}. Return structured data in JSON format.',;"
-      systemPrompt: 'You are an expert document analyst. Extract information accurately and flag any inconsistencies.',;"
-      model: 'claude-3-haiku-20240307',;"
-      estimatedCost: "15",;"
-      estimatedDuration: "3000;"},;"
-    'content_generator': {"
-      prompt: 'Generate {{content_type}} content based;"
-  on the provided context: {{context}}. Make it {{tone}} and targeted for {{audience}}.',;"
-      systemPrompt: 'You are a professional content creator. Create engaging, accurate, and on-brand content.',;"
-      model: 'claude-3-sonnet-20240229',;"
-      estimatedCost: "45",;"
-      estimatedDuration: "5000;"},;"
-    'decision_maker': {"
-      prompt: 'Based on the provided data;"
-  {{data}}, make a decision about {{decision_type}}. Consider {{criteria}} and explain your reasoning.',;"
-      systemPrompt: 'You are a business decision expert. Make logical, data-driven decisions with clear reasoning.',;"
-      model: 'claude-3-sonnet-20240229',;"
-      estimatedCost: "50",;"
-      estimatedDuration: "4000;"}
-  },;
-  integration: {"
-    'email_sender': {"
-      provider: 'sendgrid',;"
-      method: 'POST',;"/
-      endpoint: '/v3/mail/send',;"
-      authentication: { type: 'api_key'},;"
-      estimatedCost: "5",;"
-      estimatedDuration: "1000;"},;"
-    'crm_update': {"
-      provider: 'salesforce',;"
-      method: 'PATCH',;"/
-      endpoint: '/services/data/v59.0/sobjects/{{object_type}}/{{record_id}}',;"
-      authentication: { type: 'oauth2'},;"
-      estimatedCost: "10",;"
-      estimatedDuration: "2000;"},;"
-    'database_query': {"
-      provider: 'postgresql',;"
-      method: 'POST',;"/
-      endpoint: '/query',;"
-      authentication: { type: 'basic'},;"
-      estimatedCost: "2",;"
-      estimatedDuration: "500;"}
-  }
-};
-/
-// =====================================================;/
-// AI WORKFLOW GENERATOR SERVICE;/
+export interface SecurityTest {
+  vulnerabilityScan: boolean;
+  penetrationTest: boolean;
+  complianceCheck: boolean;
+  dataPrivacyTest: boolean;
+}
+
+export interface IntegrationTest {
+  externalServices: string[];
+  mockServices: string[];
+  testData: Record<string, any>;
+  environment: 'development' | 'staging' | 'production';
+}
+
+export interface WorkflowDeployment {
+  environment: 'development' | 'staging' | 'production';
+  region: string;
+  scaling: ScalingConfig;
+  monitoring: MonitoringConfig;
+  backup: BackupConfig;
+  rollback: RollbackConfig;
+}
+
+export interface ScalingConfig {
+  minInstances: number;
+  maxInstances: number;
+  scaleUpThreshold: number;
+  scaleDownThreshold: number;
+  cooldownPeriod: number;
+}
+
+export interface MonitoringConfig {
+  enabled: boolean;
+  metrics: string[];
+  alerts: AlertConfig[];
+  dashboards: string[];
+  logs: LogConfig;
+}
+
+export interface AlertConfig {
+  name: string;
+  condition: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  action: string;
+  cooldown: number;
+}
+
+export interface LogConfig {
+  level: 'debug' | 'info' | 'warn' | 'error';
+  retention: number;
+  format: 'json' | 'text';
+  destination: string[];
+}
+
+export interface BackupConfig {
+  enabled: boolean;
+  frequency: 'hourly' | 'daily' | 'weekly' | 'monthly';
+  retention: number;
+  encryption: boolean;
+  compression: boolean;
+}
+
+export interface RollbackConfig {
+  enabled: boolean;
+  maxVersions: number;
+  automatic: boolean;
+  approvalRequired: boolean;
+  notificationChannels: string[];
+}
+
 // =====================================================
-;
-export class AIWorkflowGenerator {"
-  private env: "Env;
-  private businessId: string;
+// VALIDATION SCHEMAS
+// =====================================================
+
+const WorkflowGenerationRequestSchema = z.object({
+  description: z.string().min(10).max(1000),
+  businessContext: z.object({
+    industry: z.string().min(1),
+    companySize: z.enum(['startup', 'small', 'medium', 'large', 'enterprise']),
+    department: z.string().min(1),
+    useCase: z.string().min(1),
+    existingTools: z.array(z.string()),
+    businessRules: z.array(z.string()),
+    complianceRequirements: z.array(z.string()),
+    budgetConstraints: z.object({
+      maxCostPerExecution: z.number().min(0),
+      maxMonthlyBudget: z.number().min(0),
+    }).optional(),
+  }),
+  constraints: z.object({
+    maxNodes: z.number().min(1).max(100),
+    maxExecutionTime: z.number().min(1),
+    maxCostPerExecution: z.number().min(0),
+    requiredIntegrations: z.array(z.string()),
+    forbiddenIntegrations: z.array(z.string()),
+    securityLevel: z.enum(['standard', 'high', 'critical']),
+    complianceStandards: z.array(z.string()),
+  }).optional(),
+  templatePreferences: z.object({
+    preferredNodeTypes: z.array(z.string()),
+    aiModelPreferences: z.array(z.string()),
+    integrationPriorities: z.array(z.string()),
+    approvalRequirements: z.boolean(),
+    errorHandlingLevel: z.enum(['basic', 'standard', 'comprehensive']),
+  }).optional(),
+  advancedOptions: z.object({
+    customTemplates: z.array(z.string()).optional(),
+    experimentalFeatures: z.array(z.string()).optional(),
+    optimizationLevel: z.enum(['basic', 'standard', 'advanced']),
+    testingMode: z.boolean(),
+    debugOutput: z.boolean(),
+  }).optional(),
+});
+
+// =====================================================
+// AI WORKFLOW GENERATOR CLASS
+// =====================================================
+
+export class AIWorkflowGenerator {
   private aiClient: any;
-"
-  constructor(env: Env", businessId: string) {
+  private env: Env;
+
+  constructor(env: Env) {
     this.env = env;
-    this.businessId = businessId;
-    this.aiClient = getAIClient(env);}
-/
-  // =====================================================;/
-  // MAIN GENERATION METHODS;/
-  // =====================================================
-;
-  async generateWorkflow(request: WorkflowGenerationRequest): Promise<GeneratedWorkflow> {
-
-    try {/
-      // Step 1: Analyze and understand the request;
-      const analysisResult = await this.analyzeRequest(request);
-/
-      // Step 2: Find similar templates and patterns;
-      const templateSuggestions = await this.findRelevantTemplates(request, analysisResult);
-"/
-      // Step 3: "Generate workflow structure;
-      const workflowStructure = await this.generateWorkflowStructure(;"
-        request",;
-        analysisResult,;
-        templateSuggestions;
-      );
-"/
-      // Step 4: "Generate detailed node configurations;
-      const detailedWorkflow = await this.generateDetailedConfiguration(;"
-        workflowStructure",;
-        request;
-      );
-"/
-      // Step 5: "Optimize the generated workflow;
-      const optimizedWorkflow = request.advancedOptions?.enableOptimization;"
-        ? await this.optimizeWorkflow(detailedWorkflow", request);
-        : detailedWorkflow;
-/
-      // Step 6: Validate the workflow;
-      const validationResults = await this.validateGeneratedWorkflow(optimizedWorkflow);
-/
-      // Step 7: Generate additional resources if requested;
-      if (request.advancedOptions?.generateDocumentation) {
-        optimizedWorkflow.documentation = await this.generateDocumentation(optimizedWorkflow);}
-
-      if (request.advancedOptions?.includeTestData) {
-        optimizedWorkflow.testData = await this.generateTestData(optimizedWorkflow);
-      }
-
-      optimizedWorkflow.metadata.validationResults = validationResults;
-
-      return optimizedWorkflow;
-
-    } catch (error) {
-      throw new Error(`Failed to generate workflow: ${error.message}`);
-    }
+    this.aiClient = getAIClient(env);
   }
 
-  async generateMultipleVariants(;"
-    request: "WorkflowGenerationRequest",;
-    variantCount: number = 3;
-  ): Promise<GeneratedWorkflow[]> {
-    const variants: GeneratedWorkflow[] = [];
+  /**
+   * Generate a workflow from natural language description
+   */
+  async generateWorkflow(request: WorkflowGenerationRequest): Promise<GeneratedWorkflow> {
+    try {
+      // Validate input
+      const validatedRequest = WorkflowGenerationRequestSchema.parse(request);
 
-    for (let i = 0; i < variantCount; i++) {/
-      // Modify the request slightly for each variant;
-      const variantRequest = {
-        ...request,;
-        description: ;"`
-  `${request.description} (Variant ${i + 1}: focus on ${['performance', 'cost-optimization', 'reliability'][i]})`;
+      // Generate workflow using AI
+      const workflow = await this.generateWorkflowWithAI(validatedRequest);
+
+      // Validate generated workflow
+      const validation = await this.validateWorkflow(workflow);
+
+      // Generate test cases
+      const testing = await this.generateTestCases(workflow);
+
+      // Generate deployment configuration
+      const deployment = await this.generateDeploymentConfig(workflow, validatedRequest);
+
+      return {
+        ...workflow,
+        validation,
+        testing,
+        deployment,
       };
 
-      const workflow = await this.generateWorkflow(variantRequest);`
-      workflow.name += ` - Variant ${i + 1}`;
-      variants.push(workflow);
-    }
-
-    return variants;
-  }
-/
-  // =====================================================;/
-  // REQUEST ANALYSIS;/
-  // =====================================================
-;
-  private async analyzeRequest(request: WorkflowGenerationRequest): Promise<any> {`
-    const analysisPrompt = `;
-      Analyze this workflow generation request and extract key information:
-;"
-      Description: "${request.description}"
-;
-      Business Context: ;
-      - Industry: ${request.businessContext.industry}
-      - Company Size: ${request.businessContext.companySize}
-      - Department: ${request.businessContext.department}
-      - Use Case: ${request.businessContext.useCase}"
-      - Existing Tools: ${request.businessContext.existingTools.join(', ')}"
-      - Business Rules: ${request.businessContext.businessRules.join('; ')}
-
-      Analyze and extract: ;
-      1. Primary objectives and goals;
-      2. Key processes and steps mentioned;
-      3. Data inputs and outputs;
-      4. Integration requirements;
-      5. Approval and validation needs;
-      6. Error handling requirements;
-      7. Performance and scalability needs;
-      8. Compliance and security considerations
-;
-      Return JSON:;
-      {"
-        "primaryObjectives": ["objective1", "objective2"],;"
-        "keyProcesses": ["process1", "process2"],;"
-        "dataInputs": [{"name": "input1", "type": "type", "required": true}],;"
-        "dataOutputs": [{"name": "output1", "type": "type"}],;"
-        "integrationNeeds": ["system1", "system2"],;"
-        "approvalRequirements": ["approval1"],;"
-        "errorHandlingNeeds": ["error_type1"],;"
-        "performanceRequirements": {"
-          "maxExecutionTime": "estimate",;"
-          "expectedVolume": "estimate",;"
-          "availabilityNeeds": "level";
-        },;"
-        "complianceRequirements": ["standard1"],;"
-        "complexity": "simple|moderate|complex|advanced",;"
-        "estimatedNodes": number,;"
-        "recommendedApproach": "sequential|parallel|hybrid";
-      }`
-    `;
-
-    try {
-      const analysis = await this.aiClient.parseJSONResponse(analysisPrompt);
-      return analysis;
     } catch (error) {
-      return {"
-        primaryObjectives: ['Process automation'],;"
-        keyProcesses: ['Data processing'],;"
-        complexity: 'moderate',;"
-        estimatedNodes: "5",;"
-        recommendedApproach: 'sequential';};
+      throw new Error(`Workflow generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
-/
-  // =====================================================;/
-  // TEMPLATE MATCHING;/
-  // =====================================================
-;
-  private async findRelevantTemplates(;"
-    request: "WorkflowGenerationRequest",;
-    analysis: any;
-  ): Promise<any[]> {
-    const industryTemplates = INDUSTRY_TEMPLATES[request.businessContext.industry] || {};
-    const relevantTemplates: any[] = [];
-/
-    // Find templates based on industry and use case;
-    for (const [templateId, template] of Object.entries(industryTemplates)) {
-      const similarity = this.calculateTemplateSimilarity(;
-        request.description,;
-        template.description,;
-        analysis.keyProcesses;
-      );
 
-      if (similarity > 0.3) {
-        relevantTemplates.push({"
-          id: "templateId",;
-          ...template,;
-          similarity;
+  /**
+   * Generate workflow using AI
+   */
+  private async generateWorkflowWithAI(request: WorkflowGenerationRequest): Promise<GeneratedWorkflow> {
+    const prompt = this.buildWorkflowPrompt(request);
+    
+    const response = await this.aiClient.generateStructuredResponse<GeneratedWorkflow>(
+      prompt,
+      {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          name: { type: 'string' },
+          description: { type: 'string' },
+          version: { type: 'string' },
+          nodes: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                type: { type: 'string' },
+                name: { type: 'string' },
+                description: { type: 'string' },
+                position: {
+                  type: 'object',
+                  properties: {
+                    x: { type: 'number' },
+                    y: { type: 'number' },
+                  },
+                },
+                configuration: { type: 'object' },
+                inputs: { type: 'array' },
+                outputs: { type: 'array' },
+                dependencies: { type: 'array' },
+                errorHandling: { type: 'object' },
+                performance: { type: 'object' },
+                security: { type: 'object' },
+              },
+            },
+          },
+          edges: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                source: { type: 'string' },
+                target: { type: 'string' },
+                condition: { type: 'string' },
+                label: { type: 'string' },
+                type: { type: 'string' },
+              },
+            },
+          },
+          metadata: { type: 'object' },
+        },
+      },
+      {
+        maxTokens: 4000,
+        temperature: 0.3,
+      }
+    );
+
+    return response;
+  }
+
+  /**
+   * Build workflow generation prompt
+   */
+  private buildWorkflowPrompt(request: WorkflowGenerationRequest): string {
+    return `
+Generate a comprehensive workflow based on the following requirements:
+
+DESCRIPTION:
+${request.description}
+
+BUSINESS CONTEXT:
+- Industry: ${request.businessContext.industry}
+- Company Size: ${request.businessContext.companySize}
+- Department: ${request.businessContext.department}
+- Use Case: ${request.businessContext.useCase}
+- Existing Tools: ${request.businessContext.existingTools.join(', ')}
+- Business Rules: ${request.businessContext.businessRules.join(', ')}
+- Compliance Requirements: ${request.businessContext.complianceRequirements.join(', ')}
+
+CONSTRAINTS:
+${request.constraints ? `
+- Max Nodes: ${request.constraints.maxNodes}
+- Max Execution Time: ${request.constraints.maxExecutionTime} seconds
+- Max Cost Per Execution: $${request.constraints.maxCostPerExecution}
+- Required Integrations: ${request.constraints.requiredIntegrations.join(', ')}
+- Forbidden Integrations: ${request.constraints.forbiddenIntegrations.join(', ')}
+- Security Level: ${request.constraints.securityLevel}
+- Compliance Standards: ${request.constraints.complianceStandards.join(', ')}
+` : ''}
+
+TEMPLATE PREFERENCES:
+${request.templatePreferences ? `
+- Preferred Node Types: ${request.templatePreferences.preferredNodeTypes.join(', ')}
+- AI Model Preferences: ${request.templatePreferences.aiModelPreferences.join(', ')}
+- Integration Priorities: ${request.templatePreferences.integrationPriorities.join(', ')}
+- Approval Requirements: ${request.templatePreferences.approvalRequirements}
+- Error Handling Level: ${request.templatePreferences.errorHandlingLevel}
+` : ''}
+
+ADVANCED OPTIONS:
+${request.advancedOptions ? `
+- Custom Templates: ${request.advancedOptions.customTemplates?.join(', ') || 'None'}
+- Experimental Features: ${request.advancedOptions.experimentalFeatures?.join(', ') || 'None'}
+- Optimization Level: ${request.advancedOptions.optimizationLevel}
+- Testing Mode: ${request.advancedOptions.testingMode}
+- Debug Output: ${request.advancedOptions.debugOutput}
+` : ''}
+
+Generate a workflow that:
+1. Addresses the business requirements effectively
+2. Follows best practices for workflow design
+3. Includes proper error handling and validation
+4. Implements appropriate security measures
+5. Optimizes for performance and cost
+6. Includes comprehensive testing and monitoring
+7. Supports the specified integrations and constraints
+
+Return a complete workflow definition with all necessary nodes, edges, and configurations.
+`;
+  }
+
+  /**
+   * Validate generated workflow
+   */
+  private async validateWorkflow(workflow: GeneratedWorkflow): Promise<WorkflowValidation> {
+    const errors: ValidationError[] = [];
+    const warnings: ValidationWarning[] = [];
+    const suggestions: ValidationSuggestion[] = [];
+
+    // Validate nodes
+    for (const node of workflow.nodes) {
+      // Check for required fields
+      if (!node.id || !node.name || !node.type) {
+        errors.push({
+          type: 'syntax',
+          message: 'Node missing required fields',
+          nodeId: node.id,
+          severity: 'high',
+        });
+      }
+
+      // Check for circular dependencies
+      if (this.hasCircularDependency(node.id, workflow.nodes, workflow.edges)) {
+        errors.push({
+          type: 'logic',
+          message: 'Circular dependency detected',
+          nodeId: node.id,
+          severity: 'critical',
+        });
+      }
+
+      // Check for performance issues
+      if (node.performance.timeout > 300000) { // 5 minutes
+        warnings.push({
+          type: 'performance',
+          message: 'Node timeout is very high',
+          nodeId: node.id,
+          suggestion: 'Consider breaking down into smaller nodes',
+        });
+      }
+
+      // Check for security issues
+      if (node.security.dataPrivacy === 'critical' && !node.security.encryption) {
+        warnings.push({
+          type: 'security',
+          message: 'Critical data privacy without encryption',
+          nodeId: node.id,
+          suggestion: 'Enable encryption for critical data',
         });
       }
     }
-/
-    // Sort by similarity;
-    relevantTemplates.sort((a, b) => b.similarity - a.similarity);
-/
-    // AI-powered template enhancement;
-    if (relevantTemplates.length > 0) {`
-      const enhancementPrompt = `;"
-        Based on these relevant templates and the user's request, suggest enhancements: ;"
-        User Request: "${request.description}";
-        Analysis: ${JSON.stringify(analysis)}
 
-        Relevant Templates: ;"`
-        ${relevantTemplates.map(t => `- ${t.id}: ${t.description}`).join('\n')}
+    // Validate edges
+    for (const edge of workflow.edges) {
+      const sourceNode = workflow.nodes.find(n => n.id === edge.source);
+      const targetNode = workflow.nodes.find(n => n.id === edge.target);
 
-        Suggest: ;
-        1. Which template to use as base (if any);
-        2. What modifications are needed;
-        3. Additional nodes or features to add;
-        4. Integration opportunities
-;
-        Return JSON:;
-        {"
-          "recommendedBaseTemplate": "template_id_or_null",;"
-          "modifications": ["modification1", "modification2"],;"
-          "additionalFeatures": ["feature1", "feature2"],;"
-          "integrationOpportunities": ["integration1"];
-        }`
-      `;
-
-      try {
-        const enhancement = await this.aiClient.parseJSONResponse(enhancementPrompt);
-        return relevantTemplates.map(t => ({
-          ...t,;"
-          enhancement: "t.id === enhancement.recommendedBaseTemplate ? enhancement : null;"}));
-      } catch (error) {
+      if (!sourceNode || !targetNode) {
+        errors.push({
+          type: 'syntax',
+          message: 'Edge references non-existent node',
+          edgeId: edge.id,
+          severity: 'high',
+        });
       }
     }
 
-    return relevantTemplates;
-  }
-
-  private calculateTemplateSimilarity(;"
-    description: "string",;"
-    templateDescription: "string",;
-    keyProcesses: string[];
-  ): number {/
-    // Simple similarity calculation - in production, would use more sophisticated NLP;"
-    const descWords = description.toLowerCase().split(' ');"
-    const templateWords = templateDescription.toLowerCase().split(' ');
-
-    const commonWords = descWords.filter(word => templateWords.includes(word));/
-    const descSimilarity = commonWords.length / descWords.length;
-
-    const processMatches = keyProcesses.filter(process =>;
-      templateDescription.toLowerCase().includes(process.toLowerCase());
-    );/
-    const processSimilarity = processMatches.length / Math.max(keyProcesses.length, 1);
-/
-    return (descSimilarity + processSimilarity) / 2;
-  }
-/
-  // =====================================================;/
-  // WORKFLOW STRUCTURE GENERATION;/
-  // =====================================================
-;
-  private async generateWorkflowStructure(;"
-    request: "WorkflowGenerationRequest",;"
-    analysis: "any",;
-    templates: any[];
-  ): Promise<any> {`
-    const structurePrompt = `;
-      Generate a high-level workflow structure for this request:
-;"
-      Request: "${request.description}";
-      Analysis: ${JSON.stringify(analysis)}
-"`
-      Available Templates: ${templates.map(t => `${t.id}: ${t.description}`).join('; ')}
-
-      Business Constraints: ;"
-      - Max execution time: ${request.constraints?.maxExecutionTime || 'No limit'}/
-      - Max cost per execution: $${(request.constraints?.maxCostPerExecution || 1000) / 100}"
-      - Security level: ${request.constraints?.securityLevel || 'standard'}
-"
-      Create a workflow with these node types: ";"
-      - ai_agent: For AI-powered analysis", content generation, decision making;"
-      - logic: "For conditional branching", loops, data transformation;"
-      - integration: "For external system connections (email", CRM, databases);
-      - approval: For human approval processes;
-      - trigger: For starting the workflow
-;
-      Generate a logical flow considering:;
-      1. Input validation and preprocessing;
-      2. Main processing steps;
-      3. Decision points and branching;
-      4. External integrations;
-      5. Approval processes;
-      6. Output generation and delivery;
-      7. Error handling and logging
-;
-      Return JSON:;
-      {"
-        "name": "workflow_name",;"
-        "description": "what_this_workflow_does",;"
-        "category": "sales|finance|operations|hr|marketing|custom",;"
-        "estimatedCost": cents_per_execution,;"
-        "estimatedDuration": seconds,;"
-        "complexity": "simple|moderate|complex|advanced",;"
-        "nodes": [;
-          {"
-            "id": "node_1",;"
-            "type": "trigger|ai_agent|logic|integration|approval",;"
-            "subtype": "specific_implementation",;"
-            "label": "Human readable name",;"
-            "description": "What this node does",;"
-            "position": {"x": 200, "y": 100},;"
-            "dependsOn": [],;"
-            "tags": ["tag1", "tag2"],;"
-            "estimatedCost": cents,;"
-            "estimatedDuration": milliseconds;
-          }
-        ],;"
-        "edges": [;
-          {"
-            "id": "edge_1",;"
-            "sourceNodeId": "node_1",;"
-            "targetNodeId": "node_2",;"
-            "conditionType": "always|success|failure|conditional",;"
-            "conditionExpression": "expression_if_conditional",;"
-            "label": "edge_description";
-          }
-        ],;"
-        "variables": {"
-          "var1": "default_value";
-        }
-      }
-
-      Make the workflow: ;
-      - Efficient and cost-effective;
-      - Robust with proper error handling;
-      - Scalable for the expected volume;
-      - Compliant with specified requirements;`
-    `;
-
-    try {
-      const structure = await this.aiClient.parseJSONResponse(structurePrompt);
-/
-      // Auto-layout nodes if positions not specified;
-      if (structure.nodes) {
-        structure.nodes = this.autoLayoutNodes(structure.nodes, structure.edges);
-      }
-
-      return structure;
-    } catch (error) {"
-      throw new Error('Failed to generate workflow structure');
-    }
-  }
-/
-  // =====================================================;/
-  // DETAILED CONFIGURATION GENERATION;/
-  // =====================================================
-;
-  private async generateDetailedConfiguration(;"
-    structure: "any",;
-    request: WorkflowGenerationRequest;
-  ): Promise<GeneratedWorkflow> {
-    const detailedNodes: WorkflowNode[] = [];
-
-    for (const node of structure.nodes) {
-      const detailedNode = await this.generateNodeConfiguration(node, request);
-      detailedNodes.push(detailedNode);
+    // Check for orphaned nodes
+    const connectedNodes = new Set<string>();
+    for (const edge of workflow.edges) {
+      connectedNodes.add(edge.source);
+      connectedNodes.add(edge.target);
     }
 
-    const workflow: GeneratedWorkflow = {`
-      id: `wf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,;"
-      name: "structure.name",;"
-      description: "structure.description",;"
-      category: "structure.category",;"
-      complexity: "structure.complexity",;"
-      estimatedCost: "structure.estimatedCost",;"
-      estimatedDuration: "structure.estimatedDuration",;"/
-      confidenceScore: "0.85", // Would be calculated based on analysis quality;"
-      nodes: "detailedNodes",;"
-      edges: "structure.edges",;
-      variables: structure.variables || {},;
-      metadata: {"
-        generatedBy: 'ai',;"
-        generationModel: 'claude-3-sonnet-20240229',;"
-        generationDate: "new Date().toISOString()",;"
-        sourceDescription: "request.description",;"
-        businessContext: "request.businessContext;"}
-    };
-
-    return workflow;
-  }
-
-  private async generateNodeConfiguration(;"
-    node: "any",;
-    request: WorkflowGenerationRequest;
-  ): Promise<WorkflowNode> {
-    const nodeType = node.type;
-    const nodeSubtype = node.subtype;
-/
-    // Get template configuration if available;
-    const template = NODE_TEMPLATES[nodeType]?.[nodeSubtype];
-`
-    const configPrompt = `;
-      Generate detailed configuration for this workflow node:
-;
-      Node: ${JSON.stringify(node)}
-      Type: ${nodeType}
-      Subtype: ${nodeSubtype}"
-      Template: ${template ? JSON.stringify(template) : 'None'}
-
-      Business Context: ${JSON.stringify(request.businessContext)}
-
-      Create appropriate configuration based on node type: ;
-      For AI Agent nodes:;
-      - Specific prompts with variable placeholders;/
-      - Appropriate model selection (considering cost/performance);
-      - Temperature and token settings;/
-      - Input/output schemas
-;
-      For Integration nodes:;
-      - Endpoint URLs and methods;
-      - Authentication configuration;/
-      - Request/response mapping;
-      - Error handling
-;
-      For Logic nodes:;
-      - Condition expressions;
-      - Loop configurations;
-      - Transformation logic
-;
-      For Approval nodes:;
-      - Approval criteria;
-      - Escalation rules;
-      - Notification settings
-;
-      Return JSON config object specific to the node type.;`
-    `;
-
-    try {
-      const config = await this.aiClient.parseJSONResponse(configPrompt);
-
-      return {
-        id: node.id,;"
-        type: "nodeType",;"
-        subtype: "nodeSubtype",;"
-        label: "node.label",;"
-        description: "node.description",;"
-        position: "node.position",;
-        config,;
-        dependsOn: node.dependsOn || [],;
-        tags: node.tags || [],;"
-        estimatedCost: "node.estimatedCost || template?.estimatedCost || 10",;"
-        estimatedDuration: "node.estimatedDuration || template?.estimatedDuration || 1000;"};
-    } catch (error) {
-/
-      // Return basic configuration;
-      return {"
-        id: "node.id",;"
-        type: "nodeType",;"
-        subtype: "nodeSubtype",;"
-        label: "node.label",;"
-        description: "node.description",;"
-        position: "node.position",;
-        config: template || {},;
-        dependsOn: node.dependsOn || [],;
-        tags: node.tags || [],;"
-        estimatedCost: "10",;"
-        estimatedDuration: "1000;"};
-    }
-  }
-/
-  // =====================================================;/
-  // WORKFLOW OPTIMIZATION;/
-  // =====================================================
-;
-  private async optimizeWorkflow(;"
-    workflow: "GeneratedWorkflow",;
-    request: WorkflowGenerationRequest;
-  ): Promise<GeneratedWorkflow> {`
-    const optimizationPrompt = `;
-      Optimize this generated workflow for performance, cost, and reliability: ;
-      Workflow: ${JSON.stringify(workflow, null, 2)}
-
-      Constraints: ;/
-      - Max cost per execution: $${(request.constraints?.maxCostPerExecution || 1000) / 100}
-      - Max execution time: ${request.constraints?.maxExecutionTime || 300} seconds;"
-      - Security level: ${request.constraints?.securityLevel || 'standard'}
-
-      Analyze and suggest optimizations: ;
-      1. Parallel execution opportunities;/
-      2. AI model optimizations (cheaper/faster models where appropriate);
-      3. Caching opportunities;
-      4. Integration batching;
-      5. Error handling improvements;
-      6. Cost reduction strategies
-;
-      Return JSON:;
-      {"
-        "performanceOptimizations": ["optimization1", "optimization2"],;"
-        "costOptimizations": ["cost_opt1", "cost_opt2"],;"
-        "reliabilityImprovements": ["reliability1"],;"
-        "optimizedNodes": [;
-          {"
-            "nodeId": "node_id",;"
-            "changes": {"
-              "config": {...},;"
-              "reasoning": "why this change helps";
-            }
-          }
-        ],;"
-        "optimizedEdges": [;
-          {"
-            "edgeId": "edge_id",;"
-            "changes": {...}
-          }
-        ],;"
-        "estimatedSavings": {"
-          "cost": percentage_reduction,;"
-          "time": percentage_reduction;
-        }
-      }`
-    `;
-
-    try {
-      const optimization = await this.aiClient.parseJSONResponse(optimizationPrompt);
-/
-      // Apply optimizations to workflow;
-      if (optimization.optimizedNodes) {
-        for (const nodeOpt of optimization.optimizedNodes) {
-          const node = workflow.nodes.find(n => n.id === nodeOpt.nodeId);
-          if (node && nodeOpt.changes.config) {
-            node.config = { ...node.config, ...nodeOpt.changes.config };
-          }
-        }
-      }
-/
-      // Store optimization data;
-      workflow.optimization = {
-        performanceOptimizations: optimization.performanceOptimizations || [],;
-        costOptimizations: optimization.costOptimizations || [],;
-        reliabilityImprovements: optimization.reliabilityImprovements || [],;"
-        estimatedSavings: optimization.estimatedSavings || { cost: 0, time: "0"}
-      };
-
-      return workflow;
-    } catch (error) {
-      return workflow;
-    }
-  }
-/
-  // =====================================================;/
-  // VALIDATION AND QUALITY ASSURANCE;/
-  // =====================================================
-;
-  private async validateGeneratedWorkflow(workflow: GeneratedWorkflow): Promise<ValidationResults> {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const suggestions: string[] = [];
-/
-    // Basic structural validation;
-    if (!workflow.nodes || workflow.nodes.length === 0) {"
-      errors.push('Workflow must have at least one node');}
-
-    if (!workflow.edges || workflow.edges.length === 0) {"
-      warnings.push('Workflow has no connections between nodes');
-    }
-/
-    // Check for circular dependencies;
-    try {
-      this.detectCircularDependencies(workflow);
-    } catch (error) {`
-      errors.push(`Circular dependency detected: ${error.message}`);
-    }
-/
-    // Validate node configurations;
     for (const node of workflow.nodes) {
-      const nodeErrors = await this.validateNodeConfiguration(node);
-      errors.push(...nodeErrors);
+      if (node.type !== 'trigger' && !connectedNodes.has(node.id)) {
+        warnings.push({
+          type: 'logic',
+          message: 'Node is not connected to the workflow',
+          nodeId: node.id,
+          suggestion: 'Connect the node or remove if not needed',
+        });
+      }
     }
-/
-    // AI-powered validation;
-    await this.performAIValidation(workflow, errors, warnings, suggestions);
 
-    const qualityScore = this.calculateQualityScore(workflow, errors, warnings);
-
-    return {"
-      isValid: "errors.length === 0",;
-      errors,;
-      warnings,;
-      suggestions,;
-      qualityScore;
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      suggestions,
     };
   }
 
-  private async validateNodeConfiguration(node: WorkflowNode): Promise<string[]> {
-    const errors: string[] = [];
-/
-    // Type-specific validation;
-    switch (node.type) {"
-      case 'ai_agent':;
-        if (!node.config.prompt) {`
-          errors.push(`AI Agent node ${node.id} missing prompt`);
-        }
-        if (!node.config.model) {`
-          errors.push(`AI Agent node ${node.id} missing model selection`);
-        }
-        break;
-"
-      case 'integration':;
-        if (!node.config.endpoint) {`
-          errors.push(`Integration node ${node.id} missing endpoint`);
-        }
-        if (!node.config.method) {`
-          errors.push(`Integration node ${node.id} missing HTTP method`);
-        }
-        break;
-"
-      case 'logic':;"
-        if (node.subtype === 'condition' && !node.config.expression) {`
-          errors.push(`Logic node ${node.id} missing condition expression`);
-        }
-        break;
-    }
-
-    return errors;
-  }
-
-  private detectCircularDependencies(workflow: GeneratedWorkflow): void {
+  /**
+   * Check for circular dependencies
+   */
+  private hasCircularDependency(nodeId: string, nodes: WorkflowNode[], edges: WorkflowEdge[]): boolean {
     const visited = new Set<string>();
     const recursionStack = new Set<string>();
 
-    const hasCycle = (nodeId: string): boolean => {
-      if (recursionStack.has(nodeId)) {`
-        throw new Error(`Circular dependency involving node: ${nodeId}`);
+    const dfs = (currentNodeId: string): boolean => {
+      if (recursionStack.has(currentNodeId)) {
+        return true; // Circular dependency found
       }
-      if (visited.has(nodeId)) {
+
+      if (visited.has(currentNodeId)) {
         return false;
       }
 
-      visited.add(nodeId);
-      recursionStack.add(nodeId);
+      visited.add(currentNodeId);
+      recursionStack.add(currentNodeId);
 
-      const node = workflow.nodes.find(n => n.id === nodeId);
-      if (node && node.dependsOn) {
-        for (const depId of node.dependsOn) {
-          if (hasCycle(depId)) {
-            return true;
-          }
+      const outgoingEdges = edges.filter(e => e.source === currentNodeId);
+      for (const edge of outgoingEdges) {
+        if (dfs(edge.target)) {
+          return true;
         }
       }
 
-      recursionStack.delete(nodeId);
+      recursionStack.delete(currentNodeId);
       return false;
     };
 
-    for (const node of workflow.nodes) {
-      if (!visited.has(node.id)) {
-        hasCycle(node.id);
-      }
-    }
+    return dfs(nodeId);
   }
 
-  private async performAIValidation(;"
-    workflow: "GeneratedWorkflow",;
-    errors: string[],;
-    warnings: string[],;
-    suggestions: string[];
-  ): Promise<void> {`
-    const validationPrompt = `;
-      Validate this generated workflow for quality and completeness:
-;
-      ${JSON.stringify(workflow, null, 2)}
+  /**
+   * Generate test cases for the workflow
+   */
+  private async generateTestCases(workflow: GeneratedWorkflow): Promise<WorkflowTesting> {
+    const testCases: TestCase[] = [];
+    const prompt = `
+Generate comprehensive test cases for the following workflow:
 
-      Check for: ;
-      1. Logical flow and consistency;
-      2. Missing error handling;
-      3. Security vulnerabilities;
-      4. Performance bottlenecks;
-      5. Cost optimization opportunities;
-      6. Business logic gaps;
-      7. Integration issues
-;
-      Return JSON:;
-      {"
-        "errors": ["critical issues"],;"
-        "warnings": ["potential issues"],;"
-        "suggestions": ["improvements"];
-      }`
-    `;
+WORKFLOW:
+${JSON.stringify(workflow, null, 2)}
+
+Generate test cases that cover:
+1. Happy path scenarios
+2. Error conditions
+3. Edge cases
+4. Performance testing
+5. Security testing
+6. Integration testing
+
+Return a JSON array of test cases with input data, expected outputs, and test types.
+`;
 
     try {
-      const validation = await this.aiClient.parseJSONResponse(validationPrompt);
-      errors.push(...(validation.errors || []));
-      warnings.push(...(validation.warnings || []));
-      suggestions.push(...(validation.suggestions || []));
-    } catch (error) {
-    }
-  }
-
-  private calculateQualityScore(;"
-    workflow: "GeneratedWorkflow",;
-    errors: string[],;
-    warnings: string[];
-  ): number {
-    let score = 100;
-/
-    // Deduct for errors and warnings;
-    score -= errors.length * 20;
-    score -= warnings.length * 5;
-/
-    // Bonus for complexity and completeness;
-    const complexityBonus = {"
-      'simple': 0,;"
-      'moderate': 5,;"
-      'complex': 10,;"
-      'advanced': 15;
-    }[workflow.complexity] || 0;
-
-    score += complexityBonus;
-/
-    // Bonus for having documentation and test data;
-    if (workflow.documentation) score += 10;
-    if (workflow.testData) score += 10;
-
-    return Math.max(0, Math.min(100, score));
-  }
-/
-  // =====================================================;/
-  // DOCUMENTATION GENERATION;/
-  // =====================================================
-;
-  private async generateDocumentation(workflow: GeneratedWorkflow): Promise<WorkflowDocumentation> {`
-    const docPrompt = `;
-      Generate comprehensive documentation for this workflow:
-;
-      ${JSON.stringify(workflow, null, 2)}
-
-      Create: ;
-      1. Overview explaining the workflow purpose and benefits;
-      2. Detailed description for each node;
-      3. Setup instructions with prerequisites;
-      4. Troubleshooting guide for common issues;
-      5. Maintenance notes and best practices
-;
-      Return JSON:;
-      {"
-        "overview": "workflow overview",;"
-        "nodeDescriptions": {"
-          "node_id": "detailed description";
-        },;"
-        "setupInstructions": ["step1", "step2"],;"
-        "troubleshootingGuide": ["issue and solution"],;"
-        "maintenanceNotes": ["maintenance item"];
-      }`
-    `;
-
-    try {
-      return await this.aiClient.parseJSONResponse(docPrompt);
-    } catch (error) {
-      return {"
-        overview: 'Generated workflow documentation',;
-        nodeDescriptions: {},;
-        setupInstructions: [],;
-        troubleshootingGuide: [],;
-        maintenanceNotes: [];};
-    }
-  }
-/
-  // =====================================================;/
-  // TEST DATA GENERATION;/
-  // =====================================================
-;
-  private async generateTestData(workflow: GeneratedWorkflow): Promise<TestDataSet[]> {`
-    const testPrompt = `;
-      Generate test data sets for this workflow:
-;
-      ${JSON.stringify(workflow, null, 2)}
-
-      Create test cases for: ;
-      1. Happy path scenario (normal execution);
-      2. Error scenarios (various failure modes);
-      3. Edge cases (boundary conditions);
-      4. Performance testing (high volume)
-;
-      Return JSON array:;
-      [;
-        {"
-          "name": "test_name",;"
-          "description": "what this tests",;"
-          "inputData": {...},;"
-          "expectedOutput": {...},;"
-          "testType": "happy_path|error_case|edge_case|performance";
+      const response = await this.aiClient.generateStructuredResponse<TestCase[]>(
+        prompt,
+        {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              name: { type: 'string' },
+              description: { type: 'string' },
+              input: { type: 'object' },
+              expectedOutput: { type: 'object' },
+              type: { type: 'string' },
+              priority: { type: 'string' },
+            },
+          },
+        },
+        {
+          maxTokens: 2000,
+          temperature: 0.2,
         }
-      ];`
-    `;
-
-    try {
-      return await this.aiClient.parseJSONResponse(testPrompt);
-    } catch (error) {
-      return [];
-    }
-  }
-/
-  // =====================================================;/
-  // UTILITY METHODS;/
-  // =====================================================
-;
-  private autoLayoutNodes(nodes: any[], edges: any[]): any[] {/
-    // Simple auto-layout algorithm - arranges nodes in a flow;
-    const startNodes = nodes.filter(n => !n.dependsOn || n.dependsOn.length === 0);
-    const positioned = new Set<string>();
-    let currentY = 100;
-    const levelWidth = 300;
-"
-    const positionNode = (node: any, x: "number", y: number) => {
-      if (positioned.has(node.id)) return;
-
-      node.position = { x, y };
-      positioned.add(node.id);
-/
-      // Position dependent nodes;
-      const dependents = nodes.filter(n =>;
-        n.dependsOn && n.dependsOn.includes(node.id);
       );
 
-      dependents.forEach((dep, index) => {
-        positionNode(dep, x + levelWidth, y + (index * 120));
+      testCases.push(...response);
+    } catch (error) {
+      // Fallback to basic test cases
+      testCases.push({
+        id: 'basic-1',
+        name: 'Basic Execution Test',
+        description: 'Test basic workflow execution',
+        input: {},
+        expectedOutput: {},
+        type: 'unit',
+        priority: 'high',
       });
+    }
+
+    return {
+      testCases,
+      coverage: 0.8, // Mock coverage
+      performance: {
+        maxExecutionTime: 300000,
+        maxMemoryUsage: 512,
+        maxCpuUsage: 80,
+        throughput: 100,
+        latency: 1000,
+      },
+      security: {
+        vulnerabilityScan: true,
+        penetrationTest: true,
+        complianceCheck: true,
+        dataPrivacyTest: true,
+      },
+      integration: {
+        externalServices: [],
+        mockServices: [],
+        testData: {},
+        environment: 'development',
+      },
     };
-/
-    // Position start nodes;
-    startNodes.forEach((node, index) => {
-      positionNode(node, 100, currentY + (index * 120));
-    });
-/
-    // Position any remaining nodes;
-    nodes.forEach((node, index) => {
-      if (!positioned.has(node.id)) {"
-        node.position = { x: "100", y: "currentY + (index * 120)"};
-      }
-    });
-
-    return nodes;
   }
 
-  async saveGeneratedWorkflow(workflow: GeneratedWorkflow): Promise<string> {
-    const db = this.env.DB_CRM;
-/
-    // Save workflow definition;`
-    const workflowId = await db.prepare(`;
-      INSERT INTO workflow_definitions (;
-        id, business_id, name, description, category, version,;
-        graph_data, ai_optimized, optimization_score, cost_estimate_cents,;
-        tags, is_template, status, created_by;
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-    `).bind(;
-      workflow.id,;
-      this.businessId,;
-      workflow.name,;
-      workflow.description,;
-      workflow.category,;"
-      '1.0.0',;"
-      JSON.stringify({ nodes: "workflow.nodes", edges: "workflow.edges"}),;
-      true,;
-      workflow.confidenceScore,;
-      workflow.estimatedCost,;
-      JSON.stringify([]),;
-      false,;"
-      'draft',;"
-      'ai-generator';
-    ).run();
-/
-    // Save nodes;
-    for (const node of workflow.nodes) {`
-      await db.prepare(`;
-        INSERT INTO workflow_nodes (;
-          id, workflow_id, business_id, node_key, node_type, node_subtype,;
-          position_x, position_y, config, depends_on, ai_generated;
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
-      `).bind(;
-        node.id,;
-        workflow.id,;
-        this.businessId,;
-        node.id,;
-        node.type,;
-        node.subtype,;
-        node.position.x,;
-        node.position.y,;
-        JSON.stringify(node.config),;
-        JSON.stringify(node.dependsOn),;
-        true;
-      ).run();
-    }
-/
-    // Save edges;
-    for (const edge of workflow.edges) {`
-      await db.prepare(`;
-        INSERT INTO workflow_edges (;
-          id, workflow_id, business_id, source_node_id, target_node_id,;
-          condition_type, condition_expression, label;
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
-      `).bind(;
-        edge.id,;
-        workflow.id,;
-        this.businessId,;
-        edge.sourceNodeId,;
-        edge.targetNodeId,;
-        edge.conditionType,;
-        edge.conditionExpression,;
-        edge.label;
-      ).run();
-    }
-
-    return workflow.id;
+  /**
+   * Generate deployment configuration
+   */
+  private async generateDeploymentConfig(
+    workflow: GeneratedWorkflow,
+    request: WorkflowGenerationRequest
+  ): Promise<WorkflowDeployment> {
+    return {
+      environment: 'development',
+      region: 'us-east-1',
+      scaling: {
+        minInstances: 1,
+        maxInstances: 10,
+        scaleUpThreshold: 80,
+        scaleDownThreshold: 20,
+        cooldownPeriod: 300,
+      },
+      monitoring: {
+        enabled: true,
+        metrics: ['execution_time', 'success_rate', 'error_rate', 'cost'],
+        alerts: [
+          {
+            name: 'High Error Rate',
+            condition: 'error_rate > 0.1',
+            severity: 'high',
+            action: 'notify',
+            cooldown: 300,
+          },
+        ],
+        dashboards: ['workflow-overview', 'performance-metrics'],
+        logs: {
+          level: 'info',
+          retention: 30,
+          format: 'json',
+          destination: ['console', 'file'],
+        },
+      },
+      backup: {
+        enabled: true,
+        frequency: 'daily',
+        retention: 30,
+        encryption: true,
+        compression: true,
+      },
+      rollback: {
+        enabled: true,
+        maxVersions: 5,
+        automatic: false,
+        approvalRequired: true,
+        notificationChannels: ['email', 'slack'],
+      },
+    };
   }
-}"`/
+
+  /**
+   * Get available workflow templates
+   */
+  async getAvailableTemplates(): Promise<Array<{
+    id: string;
+    name: string;
+    description: string;
+    category: string;
+    complexity: 'low' | 'medium' | 'high';
+    tags: string[];
+  }>> {
+    // Mock implementation
+    return [
+      {
+        id: 'invoice-processing',
+        name: 'Invoice Processing Workflow',
+        description: 'Automated invoice processing with validation and approval',
+        category: 'finance',
+        complexity: 'medium',
+        tags: ['invoice', 'automation', 'finance'],
+      },
+      {
+        id: 'customer-onboarding',
+        name: 'Customer Onboarding Workflow',
+        description: 'Complete customer onboarding process with verification',
+        category: 'sales',
+        complexity: 'high',
+        tags: ['customer', 'onboarding', 'sales'],
+      },
+      {
+        id: 'data-migration',
+        name: 'Data Migration Workflow',
+        description: 'Safe data migration between systems',
+        category: 'data',
+        complexity: 'high',
+        tags: ['data', 'migration', 'etl'],
+      },
+    ];
+  }
+
+  /**
+   * Get workflow generation statistics
+   */
+  async getGenerationStats(): Promise<{
+    totalGenerated: number;
+    successRate: number;
+    averageComplexity: number;
+    popularTemplates: string[];
+    commonIssues: string[];
+  }> {
+    // Mock implementation
+    return {
+      totalGenerated: 0,
+      successRate: 0.95,
+      averageComplexity: 0.7,
+      popularTemplates: ['invoice-processing', 'customer-onboarding'],
+      commonIssues: ['circular-dependencies', 'missing-error-handling'],
+    };
+  }
+}
+

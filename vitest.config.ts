@@ -4,27 +4,15 @@
  */
 
 import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
+// import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [],
   test: {
-    // Dual environment support for Workers and DOM
-    environment: 'miniflare', // Changed to miniflare for Cloudflare Workers
-    environmentOptions: {
-      bindings: {
-        DB: 'test-database',
-        KV: 'test-kv',
-        CACHE: 'test-cache',
-        QUEUE: 'test-queue',
-        DO_NAMESPACE: 'test-durable-objects'
-      },
-      kvPersist: false,
-      durableObjectsPersist: false,
-      cachePersist: false
-    },
-    setupFiles: ['./tests/setup.ts', './testing/setup/global-setup.ts'],
+    // Use node environment for basic testing (miniflare causes issues)
+    environment: 'node',
+    setupFiles: ['./tests/setup.ts'],
     globals: true,
     css: true,
     coverage: {

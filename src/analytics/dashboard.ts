@@ -1,7 +1,33 @@
 // src/analytics/dashboard.ts
 import type { AnalyticsEngineDataset, KVNamespace } from '../cloudflare/types/cloudflare';
-import { createDatabase, Database } from '../database/db.js';
-import { createAIService, AIService } from '../ai/ai-service.js';
+import { createDatabase, Database } from '../database/db';
+import { createAIService, AIService } from '../ai/ai-service';
+
+// Database query result types
+interface RevenueQueryResult {
+  total_revenue: number;
+  transaction_count: number;
+}
+
+interface ActivityQueryResult {
+  active_users: number;
+  total_actions: number;
+  total: number;
+}
+
+interface CountQueryResult {
+  total: number;
+}
+
+interface AIMetricsQueryResult {
+  requests_processed: number;
+  avg_processing_time: number;
+}
+
+interface JobMetricsQueryResult {
+  completed: number;
+  failed: number;
+}
 
 export interface DashboardData {
   revenue: {
@@ -88,7 +114,7 @@ export class AnalyticsDashboard {
     // Check cache first
     const cached = await this.cache.get(cacheKey, { type: 'json' });
     if (cached) {
-      return cached as DashboardData;
+      return JSON.parse(cached as string) as DashboardData;
     }
 
     // Calculate time ranges
@@ -147,7 +173,7 @@ export class AnalyticsDashboard {
   async getRevenueMetrics(businessId: string, timeRanges: any): Promise<any> {
     try {
       // Get ledger data for revenue calculation
-      const ledgerEntries = await this.db.query(
+      const ledgerEntries = await this.db.query<RevenueQueryResult>(
         `SELECT
           SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as total_revenue,
           COUNT(*) as transaction_count
@@ -160,7 +186,7 @@ export class AnalyticsDashboard {
       const current = ledgerEntries[0] || { total_revenue: 0, transaction_count: 0 };
 
       // Calculate growth rate
-      const previousPeriod = await this.db.query(
+      const previousPeriod = await this.db.query<RevenueQueryResult>(
         `SELECT SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as total_revenue
         FROM ledger_entries
         WHERE business_id = ? AND created_at BETWEEN ? AND ?`,
@@ -206,7 +232,7 @@ export class AnalyticsDashboard {
   async getActivityMetrics(businessId: string, timeRanges: any): Promise<any> {
     try {
       // Get user activity from audit logs
-      const activity = await this.db.query(
+      const activity = await this.db.query<ActivityQueryResult>(
         `SELECT
           COUNT(DISTINCT user_id) as active_users,
           COUNT(*) as total_actions
@@ -219,7 +245,7 @@ export class AnalyticsDashboard {
       const current = activity[0] || { active_users: 0, total_actions: 0 };
 
       // Calculate engagement metrics
-      const totalUsers = await this.db.query(
+      const totalUsers = await this.db.query<CountQueryResult>(
         `SELECT COUNT(*) as total FROM users WHERE business_id = ?`,
         [businessId],
         { cache: 600 }
@@ -256,7 +282,7 @@ export class AnalyticsDashboard {
   async getAIMetrics(businessId: string, timeRanges: any): Promise<any> {
     try {
       // Get AI usage from audit logs
-      const aiActivity = await this.db.query(
+      const aiActivity = await this.db.query<AIMetricsQueryResult>(
         `SELECT COUNT(*) as requests_processed
         FROM audit_log
         WHERE business_id = ? AND resource = 'ai' AND timestamp > ?`,
@@ -293,7 +319,7 @@ export class AnalyticsDashboard {
   async getJobMetrics(businessId: string, timeRanges: any): Promise<any> {
     try {
       // Get job statistics from audit logs
-      const jobStats = await this.db.query(
+      const jobStats = await this.db.query<JobMetricsQueryResult>(
         `SELECT
           SUM(CASE WHEN action = 'job_completed' THEN 1 ELSE 0 END) as completed,
           SUM(CASE WHEN action = 'job_failed' THEN 1 ELSE 0 END) as failed
@@ -373,7 +399,7 @@ export class AnalyticsDashboard {
     // Check cache
     const cached = await this.cache.get(cacheKey, { type: 'json' });
     if (cached) {
-      return cached as TimeSeriesData[];
+      return JSON.parse(cached as string) as TimeSeriesData[];
     }
 
     // Generate time series data based on metric type
@@ -418,7 +444,7 @@ export class AnalyticsDashboard {
       }
     };
 
-    return ranges[period] || ranges['24h'];
+    return (ranges as any)[period] || ranges['24h'];
   }
 
   private getCacheTTL(period: string): number {
@@ -429,7 +455,7 @@ export class AnalyticsDashboard {
       '30d': 3600   // 1 hour
     };
 
-    return ttls[period] || 600;
+    return (ttls as any)[period] || 600;
   }
 
   private getSettledValue(result: PromiseSettledResult<any>): any {

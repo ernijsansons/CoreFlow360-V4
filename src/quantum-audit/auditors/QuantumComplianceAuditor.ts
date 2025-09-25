@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { ComplianceAuditResult, Issue } from '../types/index.js';
+import { ComplianceAuditResult, Issue } from '../types/index';
 
 export class QuantumComplianceAuditor {
   async auditCompliance(): Promise<ComplianceAuditResult> {

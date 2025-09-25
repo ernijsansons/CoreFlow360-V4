@@ -7,13 +7,13 @@ import {
   AIAnalysis,
   ActionPlan,
   CertificationReport
-} from '../types/index.js';
-import { QuantumSecurityAuditor } from './QuantumSecurityAuditor.js';
-import { QuantumPerformanceAuditor } from './QuantumPerformanceAuditor.js';
-import { QuantumCodeAuditor } from './QuantumCodeAuditor.js';
-import { QuantumDataAuditor } from './QuantumDataAuditor.js';
-import { QuantumAIAuditor } from './QuantumAIAuditor.js';
-import { QuantumComplianceAuditor } from './QuantumComplianceAuditor.js';
+} from '../types/index';
+import { QuantumSecurityAuditor } from './QuantumSecurityAuditor';
+import { QuantumPerformanceAuditor } from './QuantumPerformanceAuditor';
+import { QuantumCodeAuditor } from './QuantumCodeAuditor';
+import { QuantumDataAuditor } from './QuantumDataAuditor';
+import { QuantumAIAuditor } from './QuantumAIAuditor';
+import { QuantumComplianceAuditor } from './QuantumComplianceAuditor';
 
 export class QuantumMasterAuditor {
   private issues: Issue[] = [];

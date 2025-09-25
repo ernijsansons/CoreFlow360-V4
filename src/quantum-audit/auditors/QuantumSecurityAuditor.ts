@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { SecurityAuditResult, Issue } from '../types/index.js';
+import { SecurityAuditResult, Issue } from '../types/index';
 
 export class QuantumSecurityAuditor {
   async performSecurityAudit(): Promise<SecurityAuditResult> {

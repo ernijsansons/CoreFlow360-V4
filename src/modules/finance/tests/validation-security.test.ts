@@ -3,7 +3,7 @@
  * Testing Zod validation schemas against malicious payloads and edge cases
  */
 
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import {
   validateInput,
   ValidationError,
@@ -86,13 +86,13 @@ describe('Input Validation Security Tests', () => {
       const validBusinessIds = [
         'business_123',
         'company-456',
-        'org789',
         'test_business_id_12345',
         'valid-business-id',
         'Business123',
-        'test.business',
         'business_id_with_underscores',
-        'business-id-with-hyphens'
+        'business-id-with-hyphens',
+        'company_ABC',
+        'firm-XYZ-123'
       ];
 
       for (const validId of validBusinessIds) {

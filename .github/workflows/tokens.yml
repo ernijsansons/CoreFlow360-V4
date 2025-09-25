@@ -1,0 +1,251 @@
+name: Design Token Validation
+
+on:
+  push:
+    branches: [main, master, develop, comprehensive-testing]
+    paths:
+      - 'design-system/design-tokens.json'
+      - 'design-system/tokens.css'
+      - 'scripts/validate-tokens.mjs'
+      - 'scripts/diff-tokens.mjs'
+      - 'scripts/tokens-sync.mjs'
+      - 'scripts/fix-token-types.mjs'
+      - 'tests/tokens/**'
+      - '.github/workflows/tokens.yml'
+
+  pull_request:
+    paths:
+      - 'design-system/design-tokens.json'
+      - 'design-system/tokens.css'
+      - 'scripts/validate-tokens.mjs'
+      - 'scripts/diff-tokens.mjs'
+      - 'scripts/tokens-sync.mjs'
+      - 'scripts/fix-token-types.mjs'
+      - 'tests/tokens/**'
+      - '.github/workflows/tokens.yml'
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      fail-on-critical:
+        description: 'Fail on critical changes (removed/semantic changes)'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  NODE_VERSION: '18'
+  CI: true
+
+jobs:
+  validate-tokens:
+    name: Validate Design Tokens
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need history for diff
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      - name: 🚀 Run Unified Token Sync
+        id: sync
+        run: |
+          echo "::group::Token Sync & Validation"
+          npm run tokens:sync
+          echo "::endgroup::"
+
+      - name: 📤 Upload Validation Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: token-validation-results
+          path: |
+            design-system/validation-results.json
+            design-system/token-diff.json
+          retention-days: 30
+
+      - name: 💬 Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            // Read diff results
+            let diffSummary = '📊 **Token Changes Summary**\n\n';
+            try {
+              const diffPath = path.join(process.env.GITHUB_WORKSPACE, 'design-system', 'token-diff.json');
+              if (fs.existsSync(diffPath)) {
+                const diff = JSON.parse(fs.readFileSync(diffPath, 'utf8'));
+
+                diffSummary += `| Type | Count |\n`;
+                diffSummary += `|------|-------|\n`;
+                diffSummary += `| ➕ Added | ${diff.summary.added} |\n`;
+                diffSummary += `| ➖ Removed | ${diff.summary.removed} |\n`;
+                diffSummary += `| 🔄 Changed | ${diff.summary.changed} |\n`;
+                diffSummary += `| 📈 Net Change | ${diff.netChange > 0 ? '+' : ''}${diff.netChange} |\n\n`;
+
+                if (diff.removed.length > 0) {
+                  diffSummary += '⚠️ **Warning:** Tokens have been removed. This may break existing components.\n\n';
+                }
+
+                if (diff.changed.filter(c => c.path.includes('semantic')).length > 0) {
+                  diffSummary += '⚠️ **Warning:** Semantic tokens have been changed. This may affect the design system consistency.\n\n';
+                }
+              }
+            } catch (e) {
+              console.error('Failed to read diff results:', e);
+            }
+
+            // Read validation results
+            let validationSummary = '✅ **Validation Results**\n\n';
+            try {
+              const validationPath = path.join(process.env.GITHUB_WORKSPACE, 'design-system', 'validation-results.json');
+              if (fs.existsSync(validationPath)) {
+                const validation = JSON.parse(fs.readFileSync(validationPath, 'utf8'));
+
+                validationSummary += `| Check | Status |\n`;
+                validationSummary += `|-------|--------|\n`;
+                validationSummary += `| Structure Errors | ${validation.stats['Structure errors'] === 0 ? '✅' : '❌'} ${validation.stats['Structure errors']} |\n`;
+                validationSummary += `| Reference Errors | ${validation.stats['Reference errors'] === 0 ? '✅' : '❌'} ${validation.stats['Reference errors']} |\n`;
+                validationSummary += `| Duplicate Tokens | ${validation.stats['Duplicate tokens'] === 0 ? '✅' : '⚠️'} ${validation.stats['Duplicate tokens']} |\n`;
+                validationSummary += `| Type Warnings | ${validation.stats['Type warnings'] === 0 ? '✅' : '⚠️'} ${validation.stats['Type warnings']} |\n\n`;
+
+                if (validation.errors.length > 0) {
+                  validationSummary += '❌ **Errors Found:**\n';
+                  validation.errors.slice(0, 5).forEach(err => {
+                    validationSummary += `- ${err.message}\n`;
+                  });
+                  if (validation.errors.length > 5) {
+                    validationSummary += `- ... and ${validation.errors.length - 5} more\n`;
+                  }
+                  validationSummary += '\n';
+                }
+              }
+            } catch (e) {
+              console.error('Failed to read validation results:', e);
+            }
+
+            // Build status summary
+            const syncSuccess = ${{ steps.sync.outcome == 'success' }};
+
+            let statusEmoji = '✅';
+            if (!syncSuccess) statusEmoji = '❌';
+
+            const body = `## ${statusEmoji} Design Token Validation Report\n\n` +
+              diffSummary +
+              validationSummary +
+              `### 📋 Check Results\n\n` +
+              `- Token Sync: ${syncSuccess ? '✅ Passed (Zero Warnings)' : '❌ Failed'}\n\n` +
+              `💡 [View artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for detailed results.`;
+
+            // Find and update or create comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('Design Token Validation Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: 🚦 Set Final Status
+        if: always()
+        run: |
+          if [ "${{ steps.sync.outcome }}" != "success" ]; then
+            echo "❌ Token sync failed - zero-warning compliance not achieved"
+            exit 1
+          fi
+
+          echo "✅ Token sync passed - zero warnings achieved"
+          exit 0
+
+  figma-sync-check:
+    name: Figma Sync Compatibility Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🔍 Check Token Format
+        run: |
+          echo "::group::Checking Tokens Studio Compatibility"
+
+          # Check if design-tokens.json follows Tokens Studio format
+          if ! jq -e '.$themes' design-system/design-tokens.json > /dev/null 2>&1; then
+            echo "⚠️ Warning: Missing $themes configuration for Tokens Studio"
+          fi
+
+          if ! jq -e '.$metadata' design-system/design-tokens.json > /dev/null 2>&1; then
+            echo "⚠️ Warning: Missing $metadata for Tokens Studio"
+          fi
+
+          echo "✅ Token format check complete"
+          echo "::endgroup::"
+
+      - name: 💬 Add Figma Sync Reminder
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `## 🎨 Figma Sync Reminder\n\n` +
+              `Token changes have been detected. Please ensure:\n\n` +
+              `- [ ] Pull latest tokens in Figma using Tokens Studio plugin\n` +
+              `- [ ] Test design components with new tokens\n` +
+              `- [ ] Update Figma documentation if needed\n` +
+              `- [ ] Notify design team of changes\n\n` +
+              `📖 [Figma Sync Guide](/.reports/figma-sync-guide.md)`;
+
+            // Check if reminder already exists
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const reminderExists = comments.some(comment =>
+              comment.body.includes('Figma Sync Reminder')
+            );
+
+            if (!reminderExists) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }

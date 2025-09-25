@@ -57,7 +57,7 @@ export class SecurityMiddleware {
   /**
    * Main security middleware function
    */
-  async middleware() {
+  middleware() {
     return async (c: any, next: () => Promise<void>) => {
       const correlationId = CorrelationId.generate();
       const startTime = Date.now();

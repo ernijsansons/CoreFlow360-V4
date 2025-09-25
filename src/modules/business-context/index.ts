@@ -64,8 +64,8 @@ import { AuditService } from '../audit/audit-service';
  * Business Context Manager
  * Central interface for managing business context for AI agents
  */
-export // TODO: Consider splitting BusinessContextManager into smaller, focused classes
-class BusinessContextManager {
+// TODO: Consider splitting BusinessContextManager into smaller, focused classes
+export class BusinessContextManager {
   private logger: Logger;
   private provider: BusinessContextProvider;
   private cache: ContextCache;

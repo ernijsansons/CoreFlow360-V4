@@ -458,3 +458,13 @@ export function validatePositiveAmount(amount: number, fieldName: string = 'amou
 
   return amount;
 }
+
+/**
+ * Format date for display in reports
+ */
+export function formatDate(timestamp: number): string {
+  if (!timestamp || typeof timestamp !== 'number') {
+    return new Date().toLocaleDateString();
+  }
+  return new Date(timestamp).toLocaleDateString();
+}

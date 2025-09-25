@@ -1,4 +1,4 @@
-import { LaunchMetrics, BusinessMetrics, MetricTrend } from '../types/index.js';
+import { LaunchMetrics, BusinessMetrics, MetricTrend } from '../types/index';
 
 export class MonitoringSystem {
   private launchId?: string;

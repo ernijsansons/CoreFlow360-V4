@@ -3,7 +3,7 @@
  * Testing distributed tracing and performance metrics collection
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   PerformanceMonitor,
   getGlobalMonitor,

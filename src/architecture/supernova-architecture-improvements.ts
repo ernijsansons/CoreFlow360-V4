@@ -34,7 +34,7 @@ export class SupernovaDIContainer {
    */
   resolve<T>(name: string): T {
     if (this.instances.has(name)) {
-      return this.instances.get(name);
+      return this.instances.get(name) as T;
     }
 
     const definition = this.services.get(name);
@@ -152,19 +152,19 @@ export class SupernovaSingleton<T> {
 
     // Check if instance exists
     if (this.instances.has(key)) {
-      return this.instances.get(key);
+      return this.instances.get(key) as T;
     }
 
     // Check if creation is in progress
     if (this.locks.has(key)) {
-      return this.locks.get(key);
+      return this.locks.get(key) as T;
     }
 
     // Create new instance with lock
     const creationPromise = this.createInstance(key, factory, maxInstances, ttl);
     this.locks.set(key, creationPromise);
 
-    return creationPromise;
+    return creationPromise as T;
   }
 
   private static async createInstance<T>(

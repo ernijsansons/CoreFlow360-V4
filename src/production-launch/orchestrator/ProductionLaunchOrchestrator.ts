@@ -8,11 +8,11 @@ import {
   LaunchIssue,
   RollbackPlan,
   LaunchReport
-} from '../types/index.js';
-import { PreFlightValidator } from '../validators/PreFlightValidator.js';
-import { ProgressiveRolloutEngine } from './ProgressiveRolloutEngine.js';
-import { MonitoringSystem } from '../monitoring/MonitoringSystem.js';
-import { RollbackManager } from '../rollback/RollbackManager.js';
+} from '../types/index';
+import { PreFlightValidator } from '../validators/PreFlightValidator';
+import { ProgressiveRolloutEngine } from './ProgressiveRolloutEngine';
+import { MonitoringSystem } from '../monitoring/MonitoringSystem';
+import { RollbackManager } from '../rollback/RollbackManager';
 
 export class ProductionLaunchOrchestrator {
   private validator: PreFlightValidator;

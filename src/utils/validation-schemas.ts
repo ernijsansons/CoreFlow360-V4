@@ -1,49 +1,107 @@
 /**
- * Comprehensive Input Validation Schemas
+ * Comprehensive Input Validation Schemas - Enhanced Security
  * Prevents injection attacks and ensures data integrity
+ * Updated with enterprise-grade security validation
  */
 
 import { z } from 'zod';
+import { preventXSS, sanitizeInput } from '../middleware/security';
 
 // =====================================================
-// COMMON VALIDATION PATTERNS
+// ENHANCED SECURITY VALIDATION PATTERNS
 // =====================================================
 
-// Safe string patterns to prevent injection
-const safeId = z.string()
+// Security-enhanced string validators with XSS and SQL injection prevention
+const secureString = (minLength = 1, maxLength = 255) =>
+  z.string()
+    .min(minLength, `Must be at least ${minLength} characters`)
+    .max(maxLength, `Must be at most ${maxLength} characters`)
+    .transform((str) => preventXSS(str))
+    .refine((str) => !str.includes('<script'), 'Contains potentially dangerous content')
+    .refine((str) => !str.includes('javascript:'), 'Contains potentially dangerous content');
+
+const secureId = z.string()
   .min(1)
   .max(100)
-  .regex(/^[a-zA-Z0-9_-]+$/, 'Invalid ID format');
+  .regex(/^[a-zA-Z0-9_-]+$/, 'Invalid ID format')
+  .transform((str) => preventXSS(str));
 
-const safeBusinessId = z.string()
+const secureBusinessId = z.string()
   .min(1)
   .max(100)
-  .regex(/^biz_[a-zA-Z0-9_-]+$/, 'Invalid business ID format');
+  .regex(/^biz_[a-zA-Z0-9_-]+$/, 'Invalid business ID format')
+  .transform((str) => preventXSS(str));
 
-const safeEmail = z.string()
-  .email()
-  .max(255)
+const secureEmail = z.string()
+  .email('Invalid email format')
+  .max(254, 'Email too long')
   .toLowerCase()
-  .transform(val => val.trim());
+  .transform((email) => preventXSS(email.trim()))
+  .refine((email) => {
+    // Additional email security checks
+    const dangerousPatterns = ['<script', 'javascript:', 'onclick', 'onerror', 'onload'];
+    return !dangerousPatterns.some(pattern => email.includes(pattern));
+  }, 'Email contains potentially dangerous content');
 
-const safePhone = z.string()
+const securePhone = z.string()
   .regex(/^\+?[1-9]\d{1,14}$/, 'Invalid phone number format')
-  .optional();
+  .optional()
+  .transform((phone) => phone ? preventXSS(phone) : phone);
 
-const safeName = z.string()
+const secureName = z.string()
   .min(1)
   .max(100)
-  .regex(/^[a-zA-Z\s'-]+$/, 'Name contains invalid characters');
+  .regex(/^[a-zA-Z\s'-]+$/, 'Name contains invalid characters')
+  .transform((name) => preventXSS(name));
 
-const safeText = z.string()
+const secureText = z.string()
   .max(10000)
-  .transform(val => val.trim());
+  .transform((text) => preventXSS(text.trim()))
+  .refine((text) => {
+    // Check for potential SQL injection patterns
+    const sqlPatterns = ['union select', 'drop table', 'insert into', 'delete from', '--', ';'];
+    const lowerText = text.toLowerCase();
+    return !sqlPatterns.some(pattern => lowerText.includes(pattern));
+  }, 'Contains potentially dangerous content');
 
-const safeUrl = z.string()
-  .url()
-  .max(2048);
+const secureUrl = z.string()
+  .url('Invalid URL format')
+  .max(2048)
+  .refine((url) => {
+    try {
+      const parsed = new URL(url);
+      // Only allow http and https protocols
+      return ['http:', 'https:'].includes(parsed.protocol);
+    } catch {
+      return false;
+    }
+  }, 'Invalid or unsafe URL protocol');
 
-const pagination = z.object({
+// Strong password validation
+const strongPassword = z.string()
+  .min(12, 'Password must be at least 12 characters')
+  .max(128, 'Password too long')
+  .refine((password) => /[A-Z]/.test(password), 'Password must contain at least one uppercase letter')
+  .refine((password) => /[a-z]/.test(password), 'Password must contain at least one lowercase letter')
+  .refine((password) => /\d/.test(password), 'Password must contain at least one number')
+  .refine((password) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password), 'Password must contain at least one special character')
+  .refine((password) => {
+    // Check against common passwords
+    const commonPasswords = ['password123', 'admin123', 'welcome123', 'qwerty123'];
+    return !commonPasswords.includes(password.toLowerCase());
+  }, 'Password is too common')
+  .refine((password) => !/(.)\1{2,}/.test(password), 'Password cannot have more than 2 consecutive identical characters');
+
+// Backwards compatibility aliases
+const safeId = secureId;
+const safeBusinessId = secureBusinessId;
+const safeEmail = secureEmail;
+const safePhone = securePhone;
+const safeName = secureName;
+const safeText = secureText;
+const safeUrl = secureUrl;
+
+const _pagination = z.object({
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(20),
   sortBy: z.string().regex(/^[a-zA-Z_]+$/).optional(),
@@ -330,7 +388,7 @@ export function sanitizeSearchQuery(query: string): string {
 export function validateBusinessContext(
   businessId: string,
   userId: string,
-  requiredRole?: string
+  _requiredRole?: string
 ): void {
   if (!businessId || !safeBusinessId.safeParse(businessId).success) {
     throw new Error('Invalid business context');
@@ -364,3 +422,144 @@ export function createPaginatedResponse<T>(
     }
   };
 }
+
+// =====================================================
+// ENHANCED AUTHENTICATION SCHEMAS
+// =====================================================
+
+export const secureLoginSchema = z.object({
+  email: secureEmail,
+  password: z.string().min(1, 'Password is required').max(128, 'Password too long'),
+  remember_me: z.boolean().optional().default(false),
+  mfa_token: z.string().optional().regex(/^[0-9]{6}$|^[A-Z0-9]{8}$/, 'Invalid MFA token format'),
+  device_fingerprint: secureString(0, 500).optional()
+}).strict();
+
+export const secureRegisterSchema = z.object({
+  business_name: secureString(2, 100),
+  business_slug: z.string()
+    .min(2, 'Slug too short')
+    .max(50, 'Slug too long')
+    .regex(/^[a-z0-9-]+$/, 'Slug must contain only lowercase letters, numbers, and hyphens')
+    .transform((slug) => preventXSS(slug)),
+  email: secureEmail,
+  password: strongPassword,
+  first_name: secureName,
+  last_name: secureName,
+  terms_accepted: z.boolean().refine(val => val === true, 'Terms must be accepted'),
+  privacy_accepted: z.boolean().refine(val => val === true, 'Privacy policy must be accepted'),
+  marketing_accepted: z.boolean().optional().default(false),
+  company_size: z.enum(['1-10', '11-50', '51-200', '201-1000', '1000+']).optional(),
+  industry: secureString(0, 100).optional()
+}).strict();
+
+export const securePasswordResetRequestSchema = z.object({
+  email: secureEmail,
+  captcha_token: secureString(0, 1000).optional()
+}).strict();
+
+export const securePasswordResetConfirmSchema = z.object({
+  token: z.string()
+    .min(1, 'Reset token is required')
+    .max(500, 'Reset token too long')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Invalid reset token format'),
+  password: strongPassword,
+  confirm_password: z.string()
+}).refine((data) => data.password === data.confirm_password, {
+  message: "Passwords don't match",
+  path: ["confirm_password"]
+}).strict();
+
+export const secureChangePasswordSchema = z.object({
+  current_password: z.string().min(1, 'Current password is required').max(128),
+  new_password: strongPassword,
+  confirm_password: z.string()
+}).refine((data) => data.new_password === data.confirm_password, {
+  message: "Passwords don't match",
+  path: ["confirm_password"]
+}).refine((data) => data.current_password !== data.new_password, {
+  message: "New password must be different from current password",
+  path: ["new_password"]
+}).strict();
+
+// =====================================================
+// SECURITY VALIDATION HELPERS
+// =====================================================
+
+/**
+ * Enhanced validation with comprehensive security checks
+ */
+export function validateWithSecurity<T>(
+  schema: z.ZodSchema<T>, 
+  data: unknown,
+  options: {
+    sanitize?: boolean;
+    checkBusinessId?: string;
+    requireAuth?: boolean;
+  } = {}
+): {
+  success: boolean;
+  data?: T;
+  errors?: z.ZodError;
+  securityIssues?: string[];
+} {
+  const securityIssues: string[] = [];
+
+  try {
+    // Pre-validation security checks
+    if (typeof data === 'object' && data !== null) {
+      const dataStr = JSON.stringify(data);
+      
+      // Check for potential XSS
+      if (dataStr.includes('<script') || dataStr.includes('javascript:')) {
+        securityIssues.push('Potential XSS content detected');
+      }
+      
+      // Check for potential SQL injection
+      const sqlPatterns = ['union select', 'drop table', 'insert into', 'delete from'];
+      if (sqlPatterns.some(pattern => dataStr.toLowerCase().includes(pattern))) {
+        securityIssues.push('Potential SQL injection detected');
+      }
+      
+      // Check for oversized payloads
+      if (dataStr.length > 1000000) { // 1MB limit
+        securityIssues.push('Payload too large');
+      }
+    }
+
+    if (securityIssues.length > 0) {
+      return {
+        success: false,
+        securityIssues
+      };
+    }
+
+    // Perform schema validation
+    const result = schema.safeParse(data);
+    
+    if (!result.success) {
+      return {
+        success: false,
+        errors: result.error
+      };
+    }
+
+    return {
+      success: true,
+      data: result.data
+    };
+  } catch (error) {
+    securityIssues.push('Validation error occurred');
+    return {
+      success: false,
+      securityIssues
+    };
+  }
+}
+
+// Export enhanced types
+export type SecureLoginInput = z.infer<typeof secureLoginSchema>;
+export type SecureRegisterInput = z.infer<typeof secureRegisterSchema>;
+export type SecurePasswordResetRequestInput = z.infer<typeof securePasswordResetRequestSchema>;
+export type SecurePasswordResetConfirmInput = z.infer<typeof securePasswordResetConfirmSchema>;
+export type SecureChangePasswordInput = z.infer<typeof secureChangePasswordSchema>;

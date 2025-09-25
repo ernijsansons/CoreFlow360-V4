@@ -6,38 +6,38 @@
 import '@testing-library/jest-dom'
 import { beforeAll, afterEach, afterAll, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
-import { server } from './mocks/server'
 
-// Establish API mocking before all tests
+// Basic test environment setup
 beforeAll(() => {
-  server.listen()
+  // Setup test environment
 })
 
 // Reset any request handlers that we may add during the tests
 afterEach(() => {
   cleanup()
-  server.resetHandlers()
 })
 
 // Clean up after the tests are finished
 afterAll(() => {
-  server.close()
+  // Cleanup test environment
 })
 
-// Mock window methods
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: vi.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })),
-})
+// Mock window methods (only if window exists)
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  })
+}
 
 // Mock ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation(() => ({

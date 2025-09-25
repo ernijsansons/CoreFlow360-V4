@@ -1,0 +1,28 @@
+# MCP Server Dependencies for CoreFlow360 V4
+# Production-ready Python dependencies
+
+# Core MCP framework
+mcp>=1.0.0
+
+# HTTP client for health checks
+requests>=2.31.0
+
+# Async support
+asyncio-mqtt>=0.16.0
+
+# Logging and monitoring
+structlog>=23.1.0
+prometheus-client>=0.17.0
+
+# Security
+cryptography>=41.0.0
+
+# Configuration management
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+
+# Development and testing (optional)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+flake8>=6.0.0

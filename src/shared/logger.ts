@@ -91,7 +91,8 @@ export class Logger {
 
   constructor(config: Partial<LoggerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
-    this.startFlushTimer();
+    // Don't start timer in constructor (not allowed in Workers global scope)
+    // Timer will be started on first log
   }
 
   /**
@@ -257,6 +258,11 @@ export class Logger {
     securityContext?: SecurityContext
   ): void {
     try {
+      // Start flush timer on first log (lazy initialization for Workers compatibility)
+      if (!this.flushTimer && typeof setInterval !== 'undefined') {
+        this.startFlushTimer();
+      }
+
       // Check if we should log at this level
       if (level < this.config.level) {
         this.stats.logsSuppressed++;
@@ -572,12 +578,48 @@ export class LoggerFactory {
 
 /**
  * Default logger instances for common components
+ * Using lazy initialization to avoid global scope issues in Workers
  */
-export const logger = LoggerFactory.getLogger('core');
-export const securityLogger = LoggerFactory.getLogger('security');
-export const abacLogger = LoggerFactory.getLogger('abac');
-export const performanceLogger = LoggerFactory.getLogger('performance');
-export const auditLogger = LoggerFactory.getLogger('audit');
+let _logger: Logger | undefined;
+let _securityLogger: Logger | undefined;
+let _abacLogger: Logger | undefined;
+let _performanceLogger: Logger | undefined;
+let _auditLogger: Logger | undefined;
+
+export const logger = {
+  debug: (message: string, context?: any) => (_logger || (_logger = LoggerFactory.getLogger('core'))).debug(message, context),
+  info: (message: string, context?: any) => (_logger || (_logger = LoggerFactory.getLogger('core'))).info(message, context),
+  warn: (message: string, context?: any) => (_logger || (_logger = LoggerFactory.getLogger('core'))).warn(message, context),
+  error: (message: string, context?: any) => (_logger || (_logger = LoggerFactory.getLogger('core'))).error(message, context),
+};
+
+export const securityLogger = {
+  debug: (message: string, context?: any) => (_securityLogger || (_securityLogger = LoggerFactory.getLogger('security'))).debug(message, context),
+  info: (message: string, context?: any) => (_securityLogger || (_securityLogger = LoggerFactory.getLogger('security'))).info(message, context),
+  warn: (message: string, context?: any) => (_securityLogger || (_securityLogger = LoggerFactory.getLogger('security'))).warn(message, context),
+  error: (message: string, context?: any) => (_securityLogger || (_securityLogger = LoggerFactory.getLogger('security'))).error(message, context),
+};
+
+export const abacLogger = {
+  debug: (message: string, context?: any) => (_abacLogger || (_abacLogger = LoggerFactory.getLogger('abac'))).debug(message, context),
+  info: (message: string, context?: any) => (_abacLogger || (_abacLogger = LoggerFactory.getLogger('abac'))).info(message, context),
+  warn: (message: string, context?: any) => (_abacLogger || (_abacLogger = LoggerFactory.getLogger('abac'))).warn(message, context),
+  error: (message: string, context?: any) => (_abacLogger || (_abacLogger = LoggerFactory.getLogger('abac'))).error(message, context),
+};
+
+export const performanceLogger = {
+  debug: (message: string, context?: any) => (_performanceLogger || (_performanceLogger = LoggerFactory.getLogger('performance'))).debug(message, context),
+  info: (message: string, context?: any) => (_performanceLogger || (_performanceLogger = LoggerFactory.getLogger('performance'))).info(message, context),
+  warn: (message: string, context?: any) => (_performanceLogger || (_performanceLogger = LoggerFactory.getLogger('performance'))).warn(message, context),
+  error: (message: string, context?: any) => (_performanceLogger || (_performanceLogger = LoggerFactory.getLogger('performance'))).error(message, context),
+};
+
+export const auditLogger = {
+  debug: (message: string, context?: any) => (_auditLogger || (_auditLogger = LoggerFactory.getLogger('audit'))).debug(message, context),
+  info: (message: string, context?: any) => (_auditLogger || (_auditLogger = LoggerFactory.getLogger('audit'))).info(message, context),
+  warn: (message: string, context?: any) => (_auditLogger || (_auditLogger = LoggerFactory.getLogger('audit'))).warn(message, context),
+  error: (message: string, context?: any) => (_auditLogger || (_auditLogger = LoggerFactory.getLogger('audit'))).error(message, context),
+};
 
 /**
  * Initialize logging with environment configuration

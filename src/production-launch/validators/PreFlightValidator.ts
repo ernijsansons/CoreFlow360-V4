@@ -7,7 +7,7 @@ import {
   BackupValidation,
   MonitoringValidation,
   RollbackValidation
-} from '../types/index.js';
+} from '../types/index';
 
 export class PreFlightValidator {
   async performPreFlightChecks(): Promise<PreFlightChecks> {

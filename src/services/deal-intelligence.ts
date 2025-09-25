@@ -1,6 +1,6 @@
-import type { Lead,,, Company,,} from '../types/crm';/;"/
-import type { Env,,} from '../types/env';/;"/
-import { PredictiveScoring,,} from './predictive-scoring';
+import type { Lead, Company } from '../types/crm';
+import type { Env } from '../types/env';
+import { PredictiveScoring } from './predictive-scoring';
 
 export interface Opportunity {
   id: string;
@@ -21,1355 +21,1149 @@ export interface Opportunity {
   stakeholderEngagement: StakeholderEngagement;
   knownCompetitors: string[];
   contractValue?: number;
-  recurringRevenue?: number;"
+  recurringRevenue?: number;
   dealType: 'new' | 'expansion' | 'renewal';
   source: string;
   champion?: string;
   decisionCriteria?: string[];
   painPoints?: string[];
   businessCase?: string;
-  notes?: string;}
+  notes?: string;
+}
 
-export type OpportunityStage =;"
-  | 'prospecting';"
-  | 'qualification';"
-  | 'needs_analysis';"
-  | 'value_proposition';"
-  | 'decision_maker_identification';"
-  | 'perception_analysis';"
-  | 'proposal';"
-  | 'negotiation';"
-  | 'closed_won';"
+export type OpportunityStage =
+  | 'prospecting'
+  | 'qualification'
+  | 'needs_analysis'
+  | 'value_proposition'
+  | 'decision_maker_identification'
+  | 'perception_analysis'
+  | 'proposal'
+  | 'negotiation'
+  | 'closed_won'
   | 'closed_lost';
 
 export interface StakeholderEngagement {
   totalStakeholders: number;
   engagedStakeholders: number;
   decisionMakersEngaged: number;
-  lastEngagement: string;"
-  engagementLevel: 'low' | 'medium' | 'high';}
+  lastEngagement: string;
+  engagementLevel: 'low' | 'medium' | 'high';
+}
 
-export interface DealAnalysis {
-  opportunityId: string;
-  winProbability: WinProbability;
-  riskFactors: Risk[];
-  competitivePosition: CompetitiveAnalysis;
-  stakeholderMap: StakeholderMap;
-  nextBestActions: Action[];
-  negotiationLevers: NegotiationLever[];
-  strategy: DealStrategy;
+export interface DealIntelligence {
+  opportunity: Opportunity;
+  scoring: DealScoring;
+  insights: DealInsights;
+  recommendations: DealRecommendation[];
+  riskFactors: RiskFactor[];
+  nextActions: NextAction[];
+  competitiveAnalysis: CompetitiveAnalysis;
   timeline: DealTimeline;
-  healthScore: number;"
-  momentum: 'accelerating' | 'steady' | 'slowing' | 'stalled';
-  keyInsights: string[];
-  analysisDate: string;}
+  forecast: DealForecast;
+}
 
-export interface WinProbability {
-  percentage: number;
+export interface DealScoring {
+  overall: number;
+  breakdown: {
+    engagement: number;
+    momentum: number;
+    fit: number;
+    urgency: number;
+    budget: number;
+    authority: number;
+    need: number;
+  };
+  trend: 'improving' | 'declining' | 'stable';
   confidence: number;
-  factors: ProbabilityFactor[];"
-  trend: 'improving' | 'stable' | 'declining';
-  comparisonToBenchmark: number;
-  predictedCloseDate: string;
-  predictedValue: number;}
+  lastUpdated: string;
+}
 
-export interface ProbabilityFactor {/
-  name: string;/;/
-  impact: number; // -100 to +100;
-  description: string;"
-  category: 'positive' | 'negative' | 'neutral';}
+export interface DealInsights {
+  keyInsights: string[];
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+  criticalSuccessFactors: string[];
+  dealDrivers: string[];
+  potentialBlockers: string[];
+}
 
-export interface Risk {
-  type: RiskType;"
+export interface DealRecommendation {
+  id: string;
+  type: 'action' | 'strategy' | 'tactical' | 'relationship';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  title: string;
+  description: string;
+  rationale: string;
+  expectedImpact: string;
+  effort: 'low' | 'medium' | 'high';
+  timeline: string;
+  owner?: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+}
+
+export interface RiskFactor {
+  id: string;
+  type: 'competitive' | 'budget' | 'timeline' | 'stakeholder' | 'technical' | 'compliance';
   severity: 'low' | 'medium' | 'high' | 'critical';
   probability: number;
   impact: string;
-  description: string;
-  indicators: string[];
   mitigation: string;
   owner?: string;
-  dueDate?: string;"
-  status: 'identified' | 'monitoring' | 'mitigating' | 'resolved';}
+  status: 'identified' | 'monitoring' | 'mitigating' | 'resolved';
+}
 
-export type RiskType =;"
-  | 'budget';"
-  | 'timeline';"
-  | 'stakeholder';"
-  | 'competition';"
-  | 'technical';"
-  | 'legal';"
-  | 'relationship';"
-  | 'decision_process';"
-  | 'champion_risk';"
-  | 'procurement';
-
-export interface CompetitiveAnalysis {"
-  knownCompetitors: "Competitor[];
-  winProbabilityVsCompetition: number;
-  ourStrengths: string[];
-  ourWeaknesses: string[];
-  differentiators: string[];
-  competitiveStrategy: string;"
-  battlecards: BattleCard[];"}
-
-export interface Competitor {
-  name: string;"
-  threatLevel: 'low' | 'medium' | 'high';
-  strengths: string[];
-  weaknesses: string[];
-  likelyStrategy: string;
-  counterStrategy: string;
-  incumbent: boolean;}
-
-export interface BattleCard {"
-  competitor: "string;
-  scenario: string;
-  ourResponse: string;
-  proofPoints: string[];"
-  traps: string[];"}
-
-export interface StakeholderMap {"
-  stakeholders: "Stakeholder[];
-  powerDynamics: PowerDynamic[];
-  influenceNetwork: InfluenceLink[];
-  decisionProcess: DecisionProcess;
-  engagementGaps: string[];"
-  recommendations: string[];"}
-
-export interface Stakeholder {
+export interface NextAction {
   id: string;
-  name: string;
+  type: 'call' | 'email' | 'meeting' | 'demo' | 'proposal' | 'follow_up';
   title: string;
-  role: StakeholderRole;"
-  influence: 'low' | 'medium' | 'high';"/
-  stance: 'champion' | 'supportive' | 'neutral' | 'skeptical' | 'opposed';/;/
-  engagementLevel: number; // 0-100;
-  concerns: string[];
-  motivations: string[];
-  communicationStyle: string;
-  lastContact?: string;
-  nextAction?: string;}
-
-export type StakeholderRole =;"
-  | 'economic_buyer';"
-  | 'technical_buyer';"
-  | 'user_buyer';"
-  | 'champion';"
-  | 'influencer';"
-  | 'gatekeeper';"
-  | 'coach';"
-  | 'blocker';
-
-export interface PowerDynamic {
-  description: string;"
-  impact: 'positive' | 'negative' | 'neutral';
-  actionRequired: boolean;
-  strategy: string;}
-
-export interface InfluenceLink {
-  from: string;
-  to: string;"
-  strength: 'weak' | 'medium' | 'strong';"
-  type: 'reports_to' | 'influences' | 'collaborates' | 'conflicts';}
-
-export interface DecisionProcess {"
-  type: 'individual' | 'consensus' | 'committee' | 'democratic';
-  stages: string[];
-  currentStage: string;
-  keyDecisionMakers: string[];/
-  approvalRequired: string[];/;/
-  estimatedTimeline: number; // days,,}
-
-export interface Action {
-  id: string;"
-  priority: 'urgent' | 'high' | 'medium' | 'low';
-  type: ActionType;
   description: string;
-  owner: string;
   dueDate: string;
-  expectedImpact: string;"
-  status: 'pending' | 'in_progress' | 'completed';
-  dependencies?: string[];
-  successCriteria?: string;}
-
-export type ActionType =;"
-  | 'stakeholder_engagement';"
-  | 'demo';"
-  | 'proposal';"
-  | 'negotiation';"
-  | 'reference';"
-  | 'proof_of_concept';"
-  | 'executive_briefing';"
-  | 'risk_mitigation';"
-  | 'competitive_response';
-
-export interface NegotiationLever {
-  type: LeverType;"
-  strength: 'weak' | 'moderate' | 'strong';
-  description: string;
-  howToUse: string;"
-  timing: 'immediate' | 'mid_negotiation' | 'closing';
-  expectedOutcome: string;}
-
-export type LeverType =;"
-  | 'pricing';"
-  | 'terms';"
-  | 'timeline';"
-  | 'scope';"
-  | 'reference';"
-  | 'competition';"
-  | 'relationship';"
-  | 'business_value';"
-  | 'risk_reduction';"
-  | 'partnership';
-
-export interface DealStrategy {"
-  approach: "StrategyApproach;
-  primaryMessage: string;
-  valueProposition: string;
-  differentiators: string[];
-  winThemes: string[];
-  executionPlan: ExecutionStep[];
-  contingencyPlans: ContingencyPlan[];"
-  successMetrics: string[];"}
-
-export type StrategyApproach =;"
-  | 'value_selling';"
-  | 'solution_selling';"
-  | 'consultative';"
-  | 'challenger';"
-  | 'relationship';"
-  | 'competitive_displacement';
-
-export interface ExecutionStep {"
-  phase: "string;
-  actions: string[];
+  priority: 'low' | 'medium' | 'high' | 'critical';
   owner: string;
-  timeline: string;"
-  successCriteria: string;"}
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  outcome?: string;
+}
 
-export interface ContingencyPlan {"
-  trigger: "string;
-  response: string;
-  owner: string;"
-  escalation?: string;"}
+export interface CompetitiveAnalysis {
+  competitors: CompetitorInfo[];
+  ourPosition: CompetitivePosition;
+  winRate: number;
+  differentiators: string[];
+  threats: string[];
+  opportunities: string[];
+}
 
-export interface DealTimeline {"
-  currentMilestone: "string;
-  nextMilestone: string;
-  criticalDates: CriticalDate[];
-  expectedCloseDate: string;
-  confidenceLevel: number;
-  delayRisks: string[];"
-  accelerationOpportunities: string[];"}
+export interface CompetitorInfo {
+  name: string;
+  strength: number;
+  weakness: string[];
+  pricing: 'higher' | 'similar' | 'lower';
+  lastEncountered: string;
+  winRate: number;
+}
 
-export interface CriticalDate {
+export interface CompetitivePosition {
+  overall: 'leading' | 'competitive' | 'behind' | 'unknown';
+  pricing: 'premium' | 'competitive' | 'discount';
+  features: 'superior' | 'comparable' | 'inferior';
+  relationship: 'strong' | 'moderate' | 'weak' | 'none';
+}
+
+export interface DealTimeline {
+  stages: TimelineStage[];
+  currentStage: string;
+  estimatedClose: string;
+  confidence: number;
+  milestones: Milestone[];
+}
+
+export interface TimelineStage {
+  name: string;
+  startDate: string;
+  endDate: string;
+  duration: number;
+  status: 'completed' | 'current' | 'upcoming';
+  probability: number;
+}
+
+export interface Milestone {
+  name: string;
   date: string;
-  event: string;"
-  importance: 'low' | 'medium' | 'high' | 'critical';
-  owner: string;"
-  status: 'scheduled' | 'confirmed' | 'at_risk' | 'completed';}
+  status: 'completed' | 'pending' | 'overdue';
+  critical: boolean;
+}
 
-export class DealIntelligence {"
-  private env: "Env;
-  private predictiveScoring: PredictiveScoring;"
-  private analysisCache: Map<string", DealAnalysis>;
-"
-  constructor(env: "Env) {
+export interface DealForecast {
+  probability: number;
+  expectedValue: number;
+  bestCase: number;
+  worstCase: number;
+  confidence: number;
+  factors: ForecastFactor[];
+  scenarios: ForecastScenario[];
+}
+
+export interface ForecastFactor {
+  name: string;
+  impact: number;
+  probability: number;
+  description: string;
+}
+
+export interface ForecastScenario {
+  name: string;
+  probability: number;
+  value: number;
+  description: string;
+}
+
+export class DealIntelligenceService {
+  private env: Env;
+  private predictiveScoring: PredictiveScoring;
+
+  constructor(env: Env) {
     this.env = env;
-    this.predictiveScoring = new PredictiveScoring(env);"
-    this.analysisCache = new Map();"}
-"/
-  async analyzeDeal(opportunity: "Opportunity): Promise<DealAnalysis> {/;/
-    // Check cache;"
-    const cacheKey = `${opportunity.id"}_${Date.now()}`;
-    const cached = this.analysisCache.get(opportunity.id);/
-    if (cached && new Date().getTime() - new Date(cached.analysisDate).getTime() < 3600000) {/;/
-      return cached; // Return if less than 1 hour old,,}/
-/;/
-    // Perform multi-dimensional analysis;
-    const [;
-      winProbability,,,;
-      riskFactors,,,;
-      competitivePosition,,,;
-      stakeholderMap,,,;
-      nextBestActions,,,;
-      negotiationLevers,,,;
-      timeline,,,;
-      healthScore,,,;
-      momentum;
-    ] = await Promise.all([;
-      this.predictWinProbability(opportunity),;
-      this.identifyRisks(opportunity),;
-      this.analyzeCompetition(opportunity),;
-      this.mapStakeholders(opportunity),;
-      this.recommendActions(opportunity),;
-      this.identifyNegotiationLevers(opportunity),;
-      this.analyzeTimeline(opportunity),;
-      this.calculateHealthScore(opportunity),;
-      this.analyzeMomentum(opportunity);
-    ]);/
-/;/
-    // Generate strategy based on analysis;
-    const strategy = await this.generateStrategy({
-      opportunity,,,;
-      winProbability,,,;
-      riskFactors,,,;
-      competitivePosition,,,;
-      stakeholderMap,,});/
-/;/
-    // Generate key insights;
-    const keyInsights = await this.generateKeyInsights({
-      opportunity,,,;
-      winProbability,,,;
-      riskFactors,,,;
-      stakeholderMap,,,;
-      momentum,,});
-"
-    const analysis: "DealAnalysis = {"
-      opportunityId: opportunity.id",;
-      winProbability,,,;
-      riskFactors,,,;
-      competitivePosition,,,;
-      stakeholderMap,,,;
-      nextBestActions,,,;
-      negotiationLevers,,,;
-      strategy,,,;
-      timeline,,,;
-      healthScore,,,;
-      momentum,,,;
-      keyInsights,,,;"
-      analysisDate: "new Date().toISOString()"};/
-/;/
-    // Cache the analysis;
-    this.analysisCache.set(opportunity.id,,, analysis);/
-/;/
-    // Store for historical tracking;
-    await this.storeAnalysis(analysis);
-
-    return analysis;
-  }`
-`;"`
-  private async predictWinProbability(opp: "Opportunity): Promise<WinProbability> {`;`;`
-    const prompt = `;
-      Analyze this opportunity and predict win probability:;
-;
-      Opportunity Details:;"
-      - Name: ${opp.name"}"
-      - Value: "$${opp.value.toLocaleString()"}"
-      - Stage: "${opp.stage"}"
-      - Days in Stage: "${opp.daysInStage"}"
-      - Total Age: "${opp.totalAge"} days;"
-      - Close Date: "${opp.closeDate"}"
-      - Deal Type: "${opp.dealType"}
-/
-    /;"/
-   Engagement: "- Stakeholders Engaged: ${opp.stakeholderEngagement.engagedStakeholders"}/${opp.stakeholderEngagement.totalStakeholders,,}"
-      - Decision Makers Engaged: "${opp.stakeholderEngagement.decisionMakersEngaged"}"
-      - Engagement Level: "${opp.stakeholderEngagement.engagementLevel"}"
-      - Last Activity: "${opp.lastActivity"}
-"
-      Competition: - Known Competitors: ${opp.knownCompetitors.join(', ') || 'None identified'}
-"
-      Additional Context: - Champion: ${opp.champion ? 'Identified' : 'Not identified'}"
-      - Decision Criteria: ${opp.decisionCriteria?.join(', ') || 'Unknown'}"
-      - Pain Points: ${opp.painPoints?.join(', ') || 'Not specified'}
-
-      Based on this information,,, provide: 1. Win probability percentage (0-100);
-      2. Confidence level in prediction (0-1);/
-      3. Key factors influencing probability (positive and negative)/;/
-      4. Trend (improving/stable/declining);
-      5. Predicted close date;
-      6. Predicted final value;
-;
-      Consider:;
-      - Stage progression velocity;
-      - Stakeholder engagement depth;
-      - Competitive landscape;
-      - Deal age vs. average sales cycle;
-      - Decision maker involvement;
-;
-      Return as JSON:;
-      {"
-        "percentage": number,,,;"
-        "confidence": number,,,;"
-        "factors": [;
-          {"
-            "name": "Factor name",;"
-            "impact": number (-100 to +100),;"
-            "description": "Description",;"
-            "category": "positive|negative|neutral";
-          }
-        ],;"
-        "trend": "improving|stable|declining",;"`
-        "predictedCloseDate": "ISO date",;`;"`
-        "predictedValue": number,,}`;`;`
-    `;
-/
-    try {/;"/
-      const response = await fetch('https: //api.anthropic.com/v1/messages', {"
-        method: 'POST',;/
-        headers: {/;"/
-          'Content-Type': 'application/json',;"
-          'x-api-key': this.env.ANTHROPIC_API_KEY,,,;"
-          'anthropic-version': '2023-06-01';
-        },;
-        body: JSON.stringify({"
-          model: 'claude-3-sonnet-20240229',;"
-          max_tokens: "1500",;
-          messages: [{"
-            role: 'user',;"
-            content: "prompt"}],;"
-          temperature: "0.3"});
-      });
-/
-      const result = await response.json() as any;/;/
-      const jsonMatch = result.content[0,].text.match(/\{[\s\S,]*\}/);
-
-      if (jsonMatch) {
-        const prediction = JSON.parse(jsonMatch[0,]);/
-/;/
-        // Calculate comparison to benchmark;
-        const benchmarkWinRate = await this.getBenchmarkWinRate(opp.stage);
-
-        return {
-          ...prediction,,,;"
-          comparisonToBenchmark: "prediction.percentage - benchmarkWinRate"};
-      }
-    } catch (error) {
-    }/
-/;/
-    // Fallback calculation;
-    return this.calculateFallbackWinProbability(opp);
-  }`
-`;"`
-  private async identifyRisks(opp: "Opportunity): Promise<Risk[]> {`;`;`
-    const prompt = `;
-      Analyze this deal for risks and red flags:;
-;
-      Deal Information:;"
-      - Stage: ${opp.stage"}"
-      - Days in Current Stage: "${opp.daysInStage"}"/
-      - Average Stage Duration: "${this.getAverageStageDuration(opp.stage)"} days/;"/
-      - Stakeholder Engagement: "${opp.stakeholderEngagement.engagedStakeholders"}/${opp.stakeholderEngagement.totalStakeholders,,}"
-      - Decision Makers Engaged: "${opp.stakeholderEngagement.decisionMakersEngaged"}"
-      - Competition: ${opp.knownCompetitors.join(', ') || 'None identified'}"
-      - Last Activity: "${opp.lastActivity"}"
-      - Champion Status: ${opp.champion ? 'Identified' : 'Missing'}"
-      - Deal Age: "${opp.totalAge"} days;
-;"
-      Identify risks in these categories: "1. Budget risks (funding", approval,,, priorities);
-      2. Timeline risks (delays,,, urgency changes);
-      3. Stakeholder risks (champion loss,,, new decision makers);
-      4. Competitive threats (new entrants,,, incumbent advantages);
-      5. Technical risks (integration,,, requirements);
-      6. Relationship risks (trust,,, communication gaps);
-      7. Decision process risks (criteria changes,,, committee dynamics);
-      8. Procurement risks (legal,,, security,,, compliance);
-;
-      For each risk,,, provide: - Type and severity;
-      - Probability (0-1);
-      - Specific indicators observed;
-      - Impact description;
-      - Mitigation strategy;
-;
-      Return as JSON array:;
-      [;
-        {
-     "
-      "type": "budget|timeline|stakeholder|competition|technical|legal|relationship|decision_process|champion_risk|procurement",;"
-          "severity": "low|medium|high|critical",;"
-          "probability": number,,,;"
-          "impact": "Impact description",;"
-          "description": "Detailed description",;"
-          "indicators": ["indicator1", "indicator2"],;"
-          "mitigation": "Mitigation strategy",;"
-          "status": "identified";`
-        }`;`
-      ]`;`;`
-    `;
-/
-    try {/;"/
-      const response = await fetch('https: //api.anthropic.com/v1/messages', {"
-        method: 'POST',;/
-        headers: {/;"/
-          'Content-Type': 'application/json',;"
-          'x-api-key': this.env.ANTHROPIC_API_KEY,,,;"
-          'anthropic-version': '2023-06-01';
-        },;
-        body: JSON.stringify({"
-          model: 'claude-3-sonnet-20240229',;"
-          max_tokens: "2000",;
-          messages: [{"
-            role: 'user',;"
-            content: "prompt"}],;"
-          temperature: "0.4"});
-      });
-/
-      const result = await response.json() as any;/;/
-      const jsonMatch = result.content[0,].text.match(/\[[\s\S,]*\]/);
-
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0,]);
-      }
-    } catch (error) {
-    }/
-/;/
-    // Fallback risk identification;
-    return this.identifyFallbackRisks(opp);
+    this.predictiveScoring = new PredictiveScoring(env);
   }
-"
-  private async analyzeCompetition(opp: "Opportunity): Promise<CompetitiveAnalysis> {
-    const competitors = await this.identifyCompetitors(opp);"`
-    const battlecards = await this.generateBattlecards(opp", competitors);`;`
-`;`;`
-    const prompt = `;
-      Analyze our competitive position;"
-  for this opportunity: Known Competitors: ${opp.knownCompetitors.join(', ') || 'None identified'}"
-      Our Solution: ${opp.businessCase || 'Enterprise solution'}"
-      Customer Pain Points: ${opp.painPoints?.join(', ') || 'General business needs'}"
-      Decision Criteria: ${opp.decisionCriteria?.join(', ') || 'Unknown'}
 
-      Provide: 1. Our probability of winning against competition (0-100);
-      2. Our key strengths in this deal;
-      3. Our vulnerabilities;
-      4. Unique differentiators;
-      5. Recommended competitive strategy;
-;
-      Return as JSON:;
-      {"
-        "winProbabilityVsCompetition": number,,,;"
-        "ourStrengths": ["strength1", "strength2"],;"
-        "ourWeaknesses": ["weakness1", "weakness2"],;"
-        "differentiators": ["diff1", "diff2"],;"`
-        "competitiveStrategy": "Detailed strategy";`;`
-      }`;`;`
-    `;
-/
-    try {/;"/
-      const response = await fetch('https: //api.anthropic.com/v1/messages', {"
-        method: 'POST',;/
-        headers: {/;"/
-          'Content-Type': 'application/json',;"
-          'x-api-key': this.env.ANTHROPIC_API_KEY,,,;"
-          'anthropic-version': '2023-06-01';
-        },;
-        body: JSON.stringify({"
-          model: 'claude-3-sonnet-20240229',;"
-          max_tokens: "1000",;
-          messages: [{"
-            role: 'user',;"
-            content: "prompt"}],;"
-          temperature: "0.4"});
-      });
-/
-      const result = await response.json() as any;/;/
-      const jsonMatch = result.content[0,].text.match(/\{[\s\S,]*\}/);
+  async analyzeDeal(opportunity: Opportunity): Promise<DealIntelligence> {
+    const startTime = Date.now();
 
-      if (jsonMatch) {
-        const analysis = JSON.parse(jsonMatch[0,]);
-        return {"
-          knownCompetitors: "competitors",;
-          ...analysis,,,;
-          battlecards,,};
-      }
-    } catch (error) {
-    }
-
-    return {"
-      knownCompetitors: "competitors",;"
-      winProbabilityVsCompetition: "50",;"
-      ourStrengths: ['Product maturity', 'Customer support'],;"
-      ourWeaknesses: ['Price point'],;"
-      differentiators: ['AI-powered features'],;"
-      competitiveStrategy: 'Focus on value and ROI',;
-      battlecards,,};
-  }
-"/
-  private async mapStakeholders(opp: "Opportunity): Promise<StakeholderMap> {/;/
-    // Get stakeholder data from database;
-    const stakeholders = await this.getStakeholders(opp.id);/
-/;/
-    // Analyze power dynamics;
-    const powerDynamics = await this.analyzePowerDynamics(stakeholders);/
-/;/
-    // Map influence network;
-    const influenceNetwork = this.mapInfluenceNetwork(stakeholders);/
-/;/
-    // Determine decision process;"
-    const decisionProcess = await this.analyzeDecisionProcess(opp", stakeholders);/
-/;/
-    // Identify engagement gaps;
-    const engagementGaps = this.identifyEngagementGaps(stakeholders);/
-/;/
-    // Generate recommendations;
-    const recommendations = await this.generateStakeholderRecommendations(;
-      stakeholders,,,;
-      engagementGaps,,,;
-      powerDynamics;
-    );
+    // Perform comprehensive deal analysis
+    const [
+      scoring,
+      insights,
+      recommendations,
+      riskFactors,
+      nextActions,
+      competitiveAnalysis,
+      timeline,
+      forecast
+    ] = await Promise.all([
+      this.calculateDealScoring(opportunity),
+      this.generateDealInsights(opportunity),
+      this.generateRecommendations(opportunity),
+      this.identifyRiskFactors(opportunity),
+      this.generateNextActions(opportunity),
+      this.analyzeCompetition(opportunity),
+      this.buildDealTimeline(opportunity),
+      this.generateForecast(opportunity)
+    ]);
 
     return {
-      stakeholders,,,;
-      powerDynamics,,,;
-      influenceNetwork,,,;
-      decisionProcess,,,;
-      engagementGaps,,,;
-      recommendations,,};
-  }
-"
-  private async recommendActions(opp: "Opportunity): Promise<Action[]> {
-    const risks = await this.identifyRisks(opp);`
-    const stakeholderMap = await this.mapStakeholders(opp);`;`
-`;`;`
-    const prompt = `;
-      Generate prioritized next best actions for this opportunity:;
-;"
-      Opportunity Stage: ${opp.stage"}"
-      Days in Stage: "${opp.daysInStage"}"
-      Key Risks: "${risks.slice(0", 3).map(r => r.description).join('; ')}"
-      Engagement Gaps: ${stakeholderMap.engagementGaps.join('; ')}"
-      Next Step: ${opp.nextStep || 'Not defined'}
-
-      Generate 5-7 specific,,, actionable recommendations with: - Clear description;
-      - Priority level;
-      - Expected impact;
-      - Due date (relative to today);
-      - Success criteria;
-;
-      Focus on actions that will:;
-      - Advance the deal;
-      - Mitigate risks;
-      - Strengthen our position;
-      - Build stakeholder support;
-;
-      Return as JSON array:;
-      [;
-        {"
-          "id": "unique_id",;"
-          "priority": "urgent|high|medium|low",;
-     ;"
-      "type": "stakeholder_engagement|demo|proposal|negotiation|reference|proof_of_concept|executive_briefing|risk_mitigation|competitive_response",;"
-          "description": "Specific action",;"
-          "owner": "Sales Rep",;"
-          "dueDate": "ISO date",;"
-          "expectedImpact": "Impact description",;"
-          "status": "pending",;"
-          "successCriteria": "How to measure success";`
-        }`;`
-      ]`;`;`
-    `;
-/
-    try {/;"/
-      const response = await fetch('https: //api.anthropic.com/v1/messages', {"
-        method: 'POST',;/
-        headers: {/;"/
-          'Content-Type': 'application/json',;"
-          'x-api-key': this.env.ANTHROPIC_API_KEY,,,;"
-          'anthropic-version': '2023-06-01';
-        },;
-        body: JSON.stringify({"
-          model: 'claude-3-sonnet-20240229',;"
-          max_tokens: "1500",;
-          messages: [{"
-            role: 'user',;"
-            content: "prompt"}],;"
-          temperature: "0.5"});
-      });
-/
-      const result = await response.json() as any;/;/
-      const jsonMatch = result.content[0,].text.match(/\[[\s\S,]*\]/);
-
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0,]);
-      }
-    } catch (error) {
-    }
-
-    return this.generateFallbackActions(opp);
-  }`
-`;"`
-  private async identifyNegotiationLevers(opp: "Opportunity): Promise<NegotiationLever[]> {`;`;`
-    const prompt = `;
-      Identify negotiation levers for this opportunity:;
-;"
-      Deal Value: $${opp.value.toLocaleString()"}"
-      Stage: "${opp.stage"}"
-      Deal Type: "${opp.dealType"}"
-      Competition: ${opp.knownCompetitors.join(', ') || 'None'}"
-      Customer Pain Points: ${opp.painPoints?.join(', ') || 'General needs'}"
-      Decision Timeline: "${opp.closeDate"}
-"
-      Identify levers in these categories: "- Pricing (discounts", payment terms);
-      - Terms (contract length,,, SLAs);
-      - Timeline (implementation,,, go-live);
-      - Scope (features,,, services,,, support);
-      - References (case studies,,, customer calls);
-      - Business value (ROI,,, strategic impact);/
-/;/
-      For each lever,,, assess: - Strength (weak/moderate/strong);
-      - How to use effectively;
-      - Best timing to deploy;
-      - Expected outcome;
-;
-      Return as JSON array:;
-      [;
-        {
-     "
-      "type": "pricing|terms|timeline|scope|reference|competition|relationship|business_value|risk_reduction|partnership",;"
-          "strength": "weak|moderate|strong",;"
-          "description": "Description",;"
-          "howToUse": "Usage strategy",;"
-          "timing": "immediate|mid_negotiation|closing",;"
-          "expectedOutcome": "Expected result";`
-        }`;`
-      ]`;`;`
-    `;
-/
-    try {/;"/
-      const response = await fetch('https: //api.anthropic.com/v1/messages', {"
-        method: 'POST',;/
-        headers: {/;"/
-          'Content-Type': 'application/json',;"
-          'x-api-key': this.env.ANTHROPIC_API_KEY,,,;"
-          'anthropic-version': '2023-06-01';
-        },;
-        body: JSON.stringify({"
-          model: 'claude-3-sonnet-20240229',;"
-          max_tokens: "1500",;
-          messages: [{"
-            role: 'user',;"
-            content: "prompt"}],;"
-          temperature: "0.4"});
-      });
-/
-      const result = await response.json() as any;/;/
-      const jsonMatch = result.content[0,].text.match(/\[[\s\S,]*\]/);
-
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0,]);
-      }
-    } catch (error) {
-    }
-
-    return this.generateFallbackNegotiationLevers(opp);
-  }`
-`;"`
-  private async generateStrategy(context: "any): Promise<DealStrategy> {`;`;`
-    const prompt = `;
-      Generate a winning strategy for this opportunity:;
-;"
-      Win Probability: ${context.winProbability.percentage"}%;"
-      Top Risks: "${context.riskFactors.slice(0", 3).map((r: Risk) => r.description).join('; ')}"
-      Competitive Position: "${context.competitivePosition.competitiveStrategy"}"
-      Stakeholder Status: "${context.stakeholderMap.stakeholders.length"} stakeholders mapped;
-;
-      Create a comprehensive strategy;"
-  including: "1. Overall approach (value_selling", solution_selling,,, consultative,,, challenger,,, relationship,,, competitive_displacement);
-      2. Primary message to customer;
-      3. Value proposition;
-      4. Key differentiators to emphasize;
-      5. Win themes;
-      6. Execution plan with phases;
-      7. Contingency plans for risks;
-      8. Success metrics;
-;
-      Return as JSON: {"
-        "approach": "approach_type",;"
-        "primaryMessage": "Core message",;"
-        "valueProposition": "Value prop",;"
-        "differentiators": ["diff1", "diff2"],;"
-        "winThemes": ["theme1", "theme2"],;"
-        "executionPlan": [;
-          {"
-            "phase": "Phase name",;"
-            "actions": ["action1", "action2"],;"
-            "owner": "Owner",;"
-            "timeline": "Timeline",;"
-            "successCriteria": "Criteria";
-          }
-        ],;"
-        "contingencyPlans": [;
-          {"
-            "trigger": "Trigger event",;"
-            "response": "Response action",;"
-            "owner": "Owner";
-          }
-        ],;"`
-        "successMetrics": ["metric1", "metric2"];`;`
-      }`;`;`
-    `;
-/
-    try {/;"/
-      const response = await fetch('https: //api.anthropic.com/v1/messages', {"
-        method: 'POST',;/
-        headers: {/;"/
-          'Content-Type': 'application/json',;"
-          'x-api-key': this.env.ANTHROPIC_API_KEY,,,;"
-          'anthropic-version': '2023-06-01';
-        },;
-        body: JSON.stringify({"
-          model: 'claude-3-sonnet-20240229',;"
-          max_tokens: "2000",;
-          messages: [{"
-            role: 'user',;"
-            content: "prompt"}],;"
-          temperature: "0.5"});
-      });
-/
-      const result = await response.json() as any;/;/
-      const jsonMatch = result.content[0,].text.match(/\{[\s\S,]*\}/);
-
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0,]);
-      }
-    } catch (error) {
-    }
-
-    return this.generateFallbackStrategy();
-  }/
-/;/
-  // Helper methods;"/
-  private async getStakeholders(opportunityId: "string): Promise<Stakeholder[]> {/;"/
-    // In production", fetch from database/;/
-    // For now,,, return mock data;
-    return [;
-      {"
-        id: 'stake_1',;"
-        name: 'John Smith',;"
-        title: 'VP of Sales',;"
-        role: 'economic_buyer',;"
-        influence: 'high',;"
-        stance: 'supportive',;"
-        engagementLevel: "75",;"
-        concerns: ['ROI', 'Implementation timeline'],;"
-        motivations: ['Increase team productivity', 'Reduce costs'],;"
-        communicationStyle: 'Direct and data-driven',;"
-        lastContact: "new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()"},;
-      {"
-        id: 'stake_2',;"
-        name: 'Sarah Johnson',;"
-        title: 'Director of IT',;"
-        role: 'technical_buyer',;"
-        influence: 'high',;"
-        stance: 'neutral',;"
-        engagementLevel: "50",;"
-        concerns: ['Integration complexity', 'Security'],;"
-        motivations: ['Modernize tech stack', 'Improve reliability'],;"
-        communicationStyle: 'Technical and detailed'}
-    ];
-  }
-
-  private async analyzePowerDynamics(stakeholders: Stakeholder[]): Promise<PowerDynamic[]> {
-    const dynamics: PowerDynamic[] = [];/
-/;/
-    // Identify champion presence;"
-    const hasChampion = stakeholders.some(s => s.role === 'champion' && s.stance === 'champion');
-    if (!hasChampion) {
-      dynamics.push({"
-        description: 'No clear champion identified',;"
-        impact: 'negative',;"
-        actionRequired: "true",;"
-        strategy: 'Identify and develop a champion among supportive stakeholders'});
-    }/
-/;/
-    // Check decision maker engagement;
-    const decisionMakers = stakeholders.filter(s =>;"
-      s.role === 'economic_buyer' || s.role === 'technical_buyer';/
-    );/;/
-    const avgEngagement = decisionMakers.reduce((sum,,, s) => sum + s.engagementLevel,,, 0) / decisionMakers.length;
-
-    if (avgEngagement < 50) {
-      dynamics.push({"
-        description: 'Low decision maker engagement',;"
-        impact: 'negative',;"
-        actionRequired: "true",;"
-        strategy: 'Schedule executive briefing to increase engagement'});
-    }
-
-    return dynamics;
-  }
-
-  private mapInfluenceNetwork(stakeholders: Stakeholder[]): InfluenceLink[] {
-    const links: InfluenceLink[] = [];/
-/;/
-    // Create influence relationships based on roles;
-    for (let i = 0; i < stakeholders.length; i++) {
-      for (let j = i + 1; j < stakeholders.length; j++) {
-        const s1 = stakeholders[i,];
-        const s2 = stakeholders[j,];/
-/;/
-        // Economic buyer influences others;"
-        if (s1.role === 'economic_buyer' && s2.role !== 'economic_buyer') {
-          links.push({"
-            from: "s1.id",,,;"
-            to: "s2.id",;"
-            strength: 'strong',;"
-            type: 'influences'});
-        }/
-/;/
-        // Technical buyer influences end users;"
-        if (s1.role === 'technical_buyer' && s2.role === 'user_buyer') {
-          links.push({"
-            from: "s1.id",;"
-            to: "s2.id",;"
-            strength: 'medium',;"
-            type: 'influences'});
-        }
-      }
-    }
-
-    return links;
-  }
-
-  private async analyzeDecisionProcess(;"
-    opp: "Opportunity",;
-    stakeholders: Stakeholder[];
-  ): Promise<DecisionProcess> {
-    const decisionMakers = stakeholders;"
-      .filter(s => s.role === 'economic_buyer' || s.role === 'technical_buyer');
-      .map(s => s.name);
-"
-    const type = stakeholders.length > 5 ? 'committee' :;"
-                  stakeholders.length > 2 ? 'consensus' : 'individual';
-
-    return {
-      type,,,;"
-      stages: ['Requirements', 'Evaluation', 'Selection', 'Negotiation', 'Approval'],;"
-      currentStage: "this.mapStageToDecisionStage(opp.stage)",;"
-      keyDecisionMakers: "decisionMakers",;"
-      approvalRequired: "decisionMakers",;"/
-      estimatedTimeline: "Math.ceil(/;/
-        (new Date(opp.closeDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24);"
-      )"};
-  }
-"
-  private mapStageToDecisionStage(stage: "OpportunityStage): string {"
-    const mapping: Record<OpportunityStage", string> = {"
-      'prospecting': 'Requirements',;"
-      'qualification': 'Requirements',;"
-      'needs_analysis': 'Requirements',;"
-      'value_proposition': 'Evaluation',;"
-      'decision_maker_identification': 'Evaluation',;"
-      'perception_analysis': 'Evaluation',;"
-      'proposal': 'Selection',;"
-      'negotiation': 'Negotiation',;"
-      'closed_won': 'Approval',;"
-      'closed_lost': 'Closed';
+      opportunity,
+      scoring,
+      insights,
+      recommendations,
+      riskFactors,
+      nextActions,
+      competitiveAnalysis,
+      timeline,
+      forecast
     };
-"
-    return mapping[stage,] || 'Requirements';
   }
 
-  private identifyEngagementGaps(stakeholders: Stakeholder[]): string[] {
-    const gaps: string[] = [];/
-/;/
-    // Check for missing roles;
-    const roles = new Set(stakeholders.map(s => s.role));
-"
-    if (!roles.has('economic_buyer')) {"
-      gaps.push('Economic buyer not identified or engaged');}
-"
-    if (!roles.has('champion')) {"
-      gaps.push('No champion identified');
-    }/
-/;/
-    // Check engagement levels;`
-    const lowEngagement = stakeholders.filter(s => s.engagementLevel < 30);`;`
-    if (lowEngagement.length > 0) {`;`;`
-      gaps.push(`${lowEngagement.length,,} stakeholders with low engagement`);
-    }/
-/;/
-    // Check for blockers;"`
-    const blockers = stakeholders.filter(s => s.stance === 'opposed');`;`
-    if (blockers.length > 0) {`;`;`
-      gaps.push(`${blockers.length,,} stakeholders opposed`);
+  private async calculateDealScoring(opportunity: Opportunity): Promise<DealScoring> {
+    const breakdown = {
+      engagement: this.calculateEngagementScore(opportunity),
+      momentum: this.calculateMomentumScore(opportunity),
+      fit: this.calculateFitScore(opportunity),
+      urgency: this.calculateUrgencyScore(opportunity),
+      budget: this.calculateBudgetScore(opportunity),
+      authority: this.calculateAuthorityScore(opportunity),
+      need: this.calculateNeedScore(opportunity)
+    };
+
+    const overall = Object.values(breakdown).reduce((sum, score) => sum + score, 0) / Object.keys(breakdown).length;
+    const trend = this.calculateScoreTrend(opportunity);
+    const confidence = this.calculateScoreConfidence(opportunity);
+
+    return {
+      overall: Math.round(overall),
+      breakdown,
+      trend,
+      confidence,
+      lastUpdated: new Date().toISOString()
+    };
+  }
+
+  private calculateEngagementScore(opportunity: Opportunity): number {
+    const engagement = opportunity.stakeholderEngagement;
+    const engagementRatio = engagement.totalStakeholders > 0 
+      ? engagement.engagedStakeholders / engagement.totalStakeholders 
+      : 0;
+
+    let score = engagementRatio * 50; // Base score from engagement ratio
+
+    // Bonus for decision maker engagement
+    if (engagement.decisionMakersEngaged > 0) {
+      score += 20;
     }
 
-    return gaps;
+    // Bonus for high engagement level
+    if (engagement.engagementLevel === 'high') {
+      score += 20;
+    } else if (engagement.engagementLevel === 'medium') {
+      score += 10;
+    }
+
+    // Penalty for stale engagement
+    const daysSinceLastEngagement = this.calculateDaysSince(engagement.lastEngagement);
+    if (daysSinceLastEngagement > 30) {
+      score -= 20;
+    } else if (daysSinceLastEngagement > 14) {
+      score -= 10;
+    }
+
+    return Math.max(0, Math.min(100, score));
   }
 
-  private async generateStakeholderRecommendations(;"
-    stakeholders: "Stakeholder[]",;"
-    gaps: "string[]",;
-    dynamics: PowerDynamic[];
-  ): Promise<string[]> {
-    const recommendations: string[] = [];/
-/;/
-    // Address gaps;"
-    if (gaps.includes('No champion identified')) {"`
-      const potential = stakeholders.find(s => s.stance === 'supportive' && s.influence === 'high');`;`
-      if (potential) {`;`;`
-        recommendations.push(`Develop ${potential.name,,} as champion through exclusive benefits`);
+  private calculateMomentumScore(opportunity: Opportunity): number {
+    let score = 50; // Base score
+
+    // Days in current stage
+    if (opportunity.daysInStage < 7) {
+      score += 20; // Fresh momentum
+    } else if (opportunity.daysInStage > 30) {
+      score -= 30; // Stale
+    }
+
+    // Recent activity
+    const daysSinceActivity = this.calculateDaysSince(opportunity.lastActivity);
+    if (daysSinceActivity < 3) {
+      score += 20;
+    } else if (daysSinceActivity > 14) {
+      score -= 20;
+    }
+
+    // Stage progression
+    const stageScore = this.getStageScore(opportunity.stage);
+    score += stageScore;
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  private calculateFitScore(opportunity: Opportunity): number {
+    let score = 50; // Base score
+
+    // Deal type
+    if (opportunity.dealType === 'expansion') {
+      score += 20; // Existing customer
+    } else if (opportunity.dealType === 'renewal') {
+      score += 30; // High fit for renewals
+    }
+
+    // Value alignment
+    if (opportunity.value > 100000) {
+      score += 15; // Large deal
+    } else if (opportunity.value < 10000) {
+      score -= 10; // Small deal
+    }
+
+    // Source quality
+    if (opportunity.source === 'referral') {
+      score += 20;
+    } else if (opportunity.source === 'inbound') {
+      score += 10;
+    }
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  private calculateUrgencyScore(opportunity: Opportunity): number {
+    let score = 50; // Base score
+
+    // Close date proximity
+    const daysToClose = this.calculateDaysUntil(opportunity.closeDate);
+    if (daysToClose < 30) {
+      score += 30; // High urgency
+    } else if (daysToClose < 90) {
+      score += 15; // Medium urgency
+    } else if (daysToClose > 180) {
+      score -= 20; // Low urgency
+    }
+
+    // Stage urgency
+    const urgentStages = ['proposal', 'negotiation'];
+    if (urgentStages.includes(opportunity.stage)) {
+      score += 20;
+    }
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  private calculateBudgetScore(opportunity: Opportunity): number {
+    let score = 50; // Base score
+
+    // Contract value
+    if (opportunity.contractValue) {
+      if (opportunity.contractValue > opportunity.value) {
+        score += 20; // Budget confirmed
+      } else if (opportunity.contractValue < opportunity.value * 0.8) {
+        score -= 20; // Budget concerns
       }
-    }/
-/;/
-    // Address low engagement;`
-    const lowEngagement = stakeholders.filter(s => s.engagementLevel < 30);`;`
-    for (const stakeholder of lowEngagement) {`;`;`
-      recommendations.push(`Schedule 1: `;`;"`
-  "1 with ${stakeholder.name"} to address ${stakeholder.concerns[0,] || 'concerns'}`);
-    }/
-/;/
-    // Address opposition;"`
-    const opposed = stakeholders.filter(s => s.stance === 'opposed' || s.stance === 'skeptical');`;`
-    for (const stakeholder of opposed) {`;`;"`
-      recommendations.push(`Neutralize ${stakeholder.name,,}'s opposition via peer reference`);
+    }
+
+    // Deal size
+    if (opportunity.value > 50000) {
+      score += 15; // Substantial budget
+    }
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  private calculateAuthorityScore(opportunity: Opportunity): number {
+    let score = 50; // Base score
+
+    // Champion presence
+    if (opportunity.champion) {
+      score += 25;
+    }
+
+    // Decision maker engagement
+    const decisionMakers = opportunity.stakeholderEngagement.decisionMakersEngaged;
+    if (decisionMakers > 0) {
+      score += decisionMakers * 10;
+    }
+
+    // Decision criteria
+    if (opportunity.decisionCriteria && opportunity.decisionCriteria.length > 0) {
+      score += 15;
+    }
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  private calculateNeedScore(opportunity: Opportunity): number {
+    let score = 50; // Base score
+
+    // Pain points identified
+    if (opportunity.painPoints && opportunity.painPoints.length > 0) {
+      score += opportunity.painPoints.length * 10;
+    }
+
+    // Business case
+    if (opportunity.businessCase) {
+      score += 20;
+    }
+
+    // Stage indicates need validation
+    const needStages = ['needs_analysis', 'value_proposition'];
+    if (needStages.includes(opportunity.stage)) {
+      score += 15;
+    }
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  private getStageScore(stage: OpportunityStage): number {
+    const stageScores: Record<OpportunityStage, number> = {
+      'prospecting': 10,
+      'qualification': 20,
+      'needs_analysis': 30,
+      'value_proposition': 40,
+      'decision_maker_identification': 50,
+      'perception_analysis': 60,
+      'proposal': 70,
+      'negotiation': 80,
+      'closed_won': 100,
+      'closed_lost': 0
+    };
+
+    return stageScores[stage] || 0;
+  }
+
+  private calculateScoreTrend(opportunity: Opportunity): 'improving' | 'declining' | 'stable' {
+    // This would typically compare with historical data
+    // For now, return based on recent activity
+    const daysSinceActivity = this.calculateDaysSince(opportunity.lastActivity);
+    
+    if (daysSinceActivity < 7) {
+      return 'improving';
+    } else if (daysSinceActivity > 21) {
+      return 'declining';
+    }
+    
+    return 'stable';
+  }
+
+  private calculateScoreConfidence(opportunity: Opportunity): number {
+    let confidence = 0.5; // Base confidence
+
+    // More data points increase confidence
+    if (opportunity.stakeholderEngagement.totalStakeholders > 3) {
+      confidence += 0.2;
+    }
+
+    if (opportunity.decisionCriteria && opportunity.decisionCriteria.length > 2) {
+      confidence += 0.1;
+    }
+
+    if (opportunity.painPoints && opportunity.painPoints.length > 1) {
+      confidence += 0.1;
+    }
+
+    if (opportunity.businessCase) {
+      confidence += 0.1;
+    }
+
+    return Math.min(1.0, confidence);
+  }
+
+  private async generateDealInsights(opportunity: Opportunity): Promise<DealInsights> {
+    const keyInsights: string[] = [];
+    const strengths: string[] = [];
+    const weaknesses: string[] = [];
+    const opportunities: string[] = [];
+    const threats: string[] = [];
+    const criticalSuccessFactors: string[] = [];
+    const dealDrivers: string[] = [];
+    const potentialBlockers: string[] = [];
+
+    // Analyze engagement
+    const engagement = opportunity.stakeholderEngagement;
+    if (engagement.engagementLevel === 'high') {
+      strengths.push('High stakeholder engagement');
+      dealDrivers.push('Strong relationship building');
+    } else if (engagement.engagementLevel === 'low') {
+      weaknesses.push('Low stakeholder engagement');
+      potentialBlockers.push('Limited stakeholder buy-in');
+    }
+
+    // Analyze stage progression
+    if (opportunity.daysInStage > 30) {
+      weaknesses.push('Deal stalled in current stage');
+      potentialBlockers.push('Stage progression delay');
+    } else if (opportunity.daysInStage < 7) {
+      strengths.push('Recent stage progression');
+    }
+
+    // Analyze budget
+    if (opportunity.contractValue && opportunity.contractValue >= opportunity.value) {
+      strengths.push('Budget confirmed');
+      criticalSuccessFactors.push('Budget alignment');
+    } else if (opportunity.contractValue && opportunity.contractValue < opportunity.value * 0.8) {
+      weaknesses.push('Budget gap identified');
+      potentialBlockers.push('Budget constraints');
+    }
+
+    // Analyze competition
+    if (opportunity.knownCompetitors.length > 0) {
+      threats.push('Competitive pressure');
+      opportunities.push('Differentiation opportunity');
+    }
+
+    // Analyze timeline
+    const daysToClose = this.calculateDaysUntil(opportunity.closeDate);
+    if (daysToClose < 30) {
+      opportunities.push('Imminent close opportunity');
+      criticalSuccessFactors.push('Timeline management');
+    } else if (daysToClose > 180) {
+      potentialBlockers.push('Extended sales cycle');
+    }
+
+    // Analyze deal type
+    if (opportunity.dealType === 'expansion') {
+      strengths.push('Existing customer relationship');
+      dealDrivers.push('Customer expansion');
+    } else if (opportunity.dealType === 'renewal') {
+      strengths.push('Renewal opportunity');
+      criticalSuccessFactors.push('Customer satisfaction');
+    }
+
+    return {
+      keyInsights,
+      strengths,
+      weaknesses,
+      opportunities,
+      threats,
+      criticalSuccessFactors,
+      dealDrivers,
+      potentialBlockers
+    };
+  }
+
+  private async generateRecommendations(opportunity: Opportunity): Promise<DealRecommendation[]> {
+    const recommendations: DealRecommendation[] = [];
+
+    // Engagement recommendations
+    if (opportunity.stakeholderEngagement.engagementLevel === 'low') {
+      recommendations.push({
+        id: `rec_${Date.now()}_1`,
+        type: 'relationship',
+        priority: 'high',
+        title: 'Increase stakeholder engagement',
+        description: 'Schedule meetings with key stakeholders to build relationships',
+        rationale: 'Low engagement level indicates relationship building needed',
+        expectedImpact: 'Improved deal momentum and stakeholder buy-in',
+        effort: 'medium',
+        timeline: '1-2 weeks',
+        status: 'pending'
+      });
+    }
+
+    // Stage progression recommendations
+    if (opportunity.daysInStage > 30) {
+      recommendations.push({
+        id: `rec_${Date.now()}_2`,
+        type: 'action',
+        priority: 'high',
+        title: 'Advance deal stage',
+        description: 'Take specific actions to move deal to next stage',
+        rationale: 'Deal has been in current stage too long',
+        expectedImpact: 'Improved deal velocity',
+        effort: 'high',
+        timeline: '1 week',
+        status: 'pending'
+      });
+    }
+
+    // Budget recommendations
+    if (!opportunity.contractValue || opportunity.contractValue < opportunity.value) {
+      recommendations.push({
+        id: `rec_${Date.now()}_3`,
+        type: 'strategy',
+        priority: 'medium',
+        title: 'Validate budget and value',
+        description: 'Work with stakeholders to align budget with deal value',
+        rationale: 'Budget gap may prevent deal closure',
+        expectedImpact: 'Budget alignment and deal closure',
+        effort: 'medium',
+        timeline: '2-3 weeks',
+        status: 'pending'
+      });
+    }
+
+    // Competition recommendations
+    if (opportunity.knownCompetitors.length > 0) {
+      recommendations.push({
+        id: `rec_${Date.now()}_4`,
+        type: 'tactical',
+        priority: 'medium',
+        title: 'Address competitive threats',
+        description: 'Develop competitive differentiation strategy',
+        rationale: 'Competitive pressure identified',
+        expectedImpact: 'Improved competitive positioning',
+        effort: 'high',
+        timeline: '2-4 weeks',
+        status: 'pending'
+      });
     }
 
     return recommendations;
   }
-"
-  private async analyzeTimeline(opp: "Opportunity): Promise<DealTimeline> {
-    const criticalDates: CriticalDate[] = [;
-      {"
-        date: opp.closeDate",;"
-        event: 'Target Close Date',;"
-        importance: 'critical',;"
-        owner: "opp.owner",;"
-        status: 'scheduled'}
-    ];/
-/;/
-    // Add stage-specific critical dates;"
-    if (opp.stage === 'proposal') {
-      criticalDates.push({"
-        date: "new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()",;"
-        event: 'Proposal Presentation',;"
-        importance: 'high',;"
-        owner: "opp.owner",;"
-        status: 'scheduled'});
+
+  private async identifyRiskFactors(opportunity: Opportunity): Promise<RiskFactor[]> {
+    const risks: RiskFactor[] = [];
+
+    // Timeline risks
+    const daysToClose = this.calculateDaysUntil(opportunity.closeDate);
+    if (daysToClose < 30 && opportunity.stage !== 'closed_won') {
+      risks.push({
+        id: `risk_${Date.now()}_1`,
+        type: 'timeline',
+        severity: 'high',
+        probability: 0.7,
+        impact: 'Deal may not close on time',
+        mitigation: 'Accelerate decision-making process',
+        status: 'identified'
+      });
     }
 
-    const delayRisks = [];
-    if (opp.daysInStage > this.getAverageStageDuration(opp.stage)) {"
-      delayRisks.push('Exceeded average stage duration');
+    // Engagement risks
+    if (opportunity.stakeholderEngagement.engagementLevel === 'low') {
+      risks.push({
+        id: `risk_${Date.now()}_2`,
+        type: 'stakeholder',
+        severity: 'medium',
+        probability: 0.6,
+        impact: 'Low stakeholder buy-in may prevent closure',
+        mitigation: 'Increase stakeholder engagement activities',
+        status: 'identified'
+      });
     }
 
-    return {"
-      currentMilestone: "opp.stage",;"
-      nextMilestone: "this.getNextStage(opp.stage)",;
-      criticalDates,,,;"
-      expectedCloseDate: "opp.closeDate",;"
-      confidenceLevel: "0.7",;
-      delayRisks,,,;"
-      accelerationOpportunities: ['Executive sponsor involvement', 'Compress evaluation timeline'];
-    };
-  }
-"/
-  private async calculateHealthScore(opp: "Opportunity): Promise<number> {/;/
-    let score = 50; // Base score;/
-/;/
-    // Stage progression;
-    if (opp.daysInStage <= this.getAverageStageDuration(opp.stage)) {"
-      score += 10;"} else {
-      score -= 10;
-    }/
-/;/
-    // Stakeholder engagement/;/
-    const engagementRatio = opp.stakeholderEngagement.engagedStakeholders /;
-                           opp.stakeholderEngagement.totalStakeholders;
-    score += Math.floor(engagementRatio * 20);/
-/;/
-    // Recent activity;/
-    const daysSinceLastActivity = Math.floor(/;/
-      (Date.now() - new Date(opp.lastActivity).getTime()) / (1000 * 60 * 60 * 24);
-    );
-    if (daysSinceLastActivity <= 7) {
-      score += 10;
-    } else if (daysSinceLastActivity > 14) {
-      score -= 15;
-    }/
-/;/
-    // Champion presence;
-    if (opp.champion) {
-      score += 10;
+    // Budget risks
+    if (opportunity.contractValue && opportunity.contractValue < opportunity.value * 0.8) {
+      risks.push({
+        id: `risk_${Date.now()}_3`,
+        type: 'budget',
+        severity: 'high',
+        probability: 0.8,
+        impact: 'Budget gap may prevent deal closure',
+        mitigation: 'Work with stakeholders to increase budget or reduce scope',
+        status: 'identified'
+      });
     }
 
-    return Math.max(0,,, Math.min(100,,, score));
-  }
-"/
-  private async analyzeMomentum(opp: Opportunity): Promise<'accelerating' | 'steady' | 'slowing' | 'stalled'> {/;/
-    // Calculate momentum based on activity and progression;/
-    const daysSinceLastActivity = Math.floor(/;/
-      (Date.now() - new Date(opp.lastActivity).getTime()) / (1000 * 60 * 60 * 24);
-    );
-
-    if (daysSinceLastActivity > 14) {"
-      return 'stalled';}
-
-    if (opp.daysInStage > this.getAverageStageDuration(opp.stage) * 1.5) {"
-      return 'slowing';
-    }
-
-    if (opp.daysInStage < this.getAverageStageDuration(opp.stage) * 0.7) {"
-      return 'accelerating';
-    }
-"
-    return 'steady';
-  }
-"
-  private async generateKeyInsights(context: "any): Promise<string[]> {
-    const insights: string[] = [];/
-/;`/
-    // Win probability insight;`;`
-    if (context.winProbability.percentage > 70) {`;`;"`
-      insights.push(`High win probability (${context.winProbability.percentage"}%) - focus on acceleration`);`;`
-    } else if (context.winProbability.percentage < 30) {`;`;`
-      insights.push(`Low win probability (${context.winProbability.percentage,,}%) - consider qualification`);
-    }/
-/;/
-    // Risk insights;"`
-    const criticalRisks = context.riskFactors.filter((r: Risk) => r.severity === 'critical');`;`
-    if (criticalRisks.length > 0) {`;`;`
-      insights.push(`${criticalRisks.length,,} critical risks require immediate attention`);
-    }/
-/;/
-    // Momentum insight;"
-    if (context.momentum === 'stalled') {"
-      insights.push('Deal momentum has stalled - urgent re-engagement needed');"
-    } else if (context.momentum === 'accelerating') {"
-      insights.push('Strong momentum - maintain cadence and push for close');
-    }/
-/;/
-    // Stakeholder insight;`
-    const gaps = context.stakeholderMap.engagementGaps;`;`
-    if (gaps.length > 0) {`;`;`
-      insights.push(`${gaps.length,,} stakeholder gaps may delay decision`);
-    }
-
-    return insights;
-  }/
-/;/
-  // Utility methods;"
-  private getAverageStageDuration(stage: "OpportunityStage): number {"
-    const averages: Record<OpportunityStage", number> = {"
-      'prospecting': 7,,,;"
-      'qualification': 14,,,;"
-      'needs_analysis': 21,,,;"
-      'value_proposition': 14,,,;"
-      'decision_maker_identification': 7,,,;"
-      'perception_analysis': 14,,,;"
-      'proposal': 21,,,;"
-      'negotiation': 14,,,;"
-      'closed_won': 0,,,;"
-      'closed_lost': 0,,};
-
-    return averages[stage,] || 14;
-  }
-
-  private getNextStage(currentStage: OpportunityStage): string {
-    const stages: OpportunityStage[] = [;"
-      'prospecting',;"
-      'qualification',;"
-      'needs_analysis',;"
-      'value_proposition',;"
-      'decision_maker_identification',;"
-      'perception_analysis',;"
-      'proposal',;"
-      'negotiation',;"
-      'closed_won';
-    ];
-
-    const currentIndex = stages.indexOf(currentStage);"
-    return stages[currentIndex + 1,] || 'closed_won';
-  }
-"/
-  private async getBenchmarkWinRate(stage: "OpportunityStage): Promise<number> {/;"/
-    // In production", calculate from historical data;"
-    const benchmarks: "Record<OpportunityStage", number> = {"
-      'prospecting': 10,,,;"
-      'qualification': 20,,,;"
-      'needs_analysis': 30,,,;"
-      'value_proposition': 40,,,;"
-      'decision_maker_identification': 50,,,;"
-      'perception_analysis': 60,,,;"
-      'proposal': 70,,,;"
-      'negotiation': 80,,,;"
-      'closed_won': 100,,,;"
-      'closed_lost': 0,,};
-
-    return benchmarks[stage,] || 50;
-  }
-"
-  private async identifyCompetitors(opp: "Opportunity): Promise<Competitor[]> {
-    const competitors: Competitor[] = [];
-
-    for (const competitorName of opp.knownCompetitors) {
-      competitors.push({"
-        name: competitorName",;"
-        threatLevel: 'medium',;"
-        strengths: ['Market presence', 'Brand recognition'],;"
-        weaknesses: ['Higher price', 'Less flexible'],;"
-        likelyStrategy: 'Emphasize brand and stability',;"
-        counterStrategy: 'Focus on innovation and ROI',;"
-        incumbent: "false"});
-    }
-
-    return competitors;
-  }
-"
-  private async generateBattlecards(opp: "Opportunity", competitors: "Competitor[]): Promise<BattleCard[]> {
-    const battlecards: BattleCard[] = [];
-
-    for (const competitor of competitors) {
-      battlecards.push({"
-        competitor: competitor.name",;"
-        scenario: 'Price objection',;"
-        ourResponse: 'Emphasize total cost of ownership and ROI',;"
-        proofPoints: ['Case study showing 40% cost reduction', 'ROI calculator'],;"
-        traps: ['Avoid direct price comparison without context']});
-    }
-
-    return battlecards;
-  }/
-/;/
-  // Fallback methods;"
-  private calculateFallbackWinProbability(opp: "Opportunity): WinProbability {
-    const baseProb = this.getBaseP robabilityByStage(opp.stage);
-
-    return {"
-      percentage: baseProb",;"
-      confidence: "0.5",;"
-      factors: "[]",;"
-      trend: 'stable',;"
-      comparisonToBenchmark: "0",;"
-      predictedCloseDate: "opp.closeDate",;"
-      predictedValue: "opp.value"};
-  }
-"
-  private getBaseProbabilityByStage(stage: "OpportunityStage): number {"
-    const probabilities: Record<OpportunityStage", number> = {"
-      'prospecting': 10,,,;"
-      'qualification': 20,,,;"
-      'needs_analysis': 30,,,;"
-      'value_proposition': 40,,,;"
-      'decision_maker_identification': 50,,,;"
-      'perception_analysis': 60,,,;"
-      'proposal': 70,,,;"
-      'negotiation': 80,,,;"
-      'closed_won': 100,,,;"
-      'closed_lost': 0,,};
-
-    return probabilities[stage,] || 50;
-  }
-
-  private identifyFallbackRisks(opp: Opportunity): Risk[] {
-    const risks: Risk[] = [];/
-/;/
-    // Check for stalled deals;
-    if (opp.daysInStage > this.getAverageStageDuration(opp.stage) * 2) {
-      risks.push({"
-        type: 'timeline',;"
-        severity: 'high',;"
-        probability: "0.7",;"`
-        impact: 'Deal may be stalled',;`;"`
-        description: 'Exceeded typical stage duration significantly',`;`;"`
-        indicators: "[`${opp.daysInStage"} days in ${opp.stage,,} stage`],;"
-        mitigation: 'Re-engage with new value proposition or executive sponsor',;"
-        status: 'identified'});
-    }/
-/;/
-    // Check for champion risk;
-    if (!opp.champion) {
-      risks.push({"
-        type: 'champion_risk',;"
-        severity: 'high',;"
-        probability: "0.6",;"
-        impact: 'No internal advocate',;"
-        description: 'Missing champion to drive internal consensus',;"
-        indicators: ['No champion identified'],;"
-        mitigation: 'Identify and develop champion among stakeholders',;"
-        status: 'identified'});
+    // Competition risks
+    if (opportunity.knownCompetitors.length > 0) {
+      risks.push({
+        id: `risk_${Date.now()}_4`,
+        type: 'competitive',
+        severity: 'medium',
+        probability: 0.5,
+        impact: 'Competitive pressure may result in deal loss',
+        mitigation: 'Strengthen competitive differentiation',
+        status: 'identified'
+      });
     }
 
     return risks;
   }
 
-  private generateFallbackActions(opp: Opportunity): Action[] {
-    const actions: Action[] = [];/
-/;/
-    // Always recommend stakeholder engagement;
-    actions.push({"
-      id: 'action_1',;"
-      priority: 'high',;"
-      type: 'stakeholder_engagement',;"
-      description: 'Schedule meeting with key decision makers',;"
-      owner: "opp.owner",;"
-      dueDate: "new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()",;"
-      expectedImpact: 'Increase engagement and accelerate decision',;"
-      status: 'pending'});/
-/;/
-    // Stage-specific actions;"
-    if (opp.stage === 'proposal') {
-      actions.push({"
-        id: 'action_2',;"
-        priority: 'urgent',;"
-        type: 'proposal',;"
-        description: 'Finalize and present proposal',;"
-        owner: "opp.owner",;"
-        dueDate: "new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()",;"
-        expectedImpact: 'Move to negotiation stage',;"
-        status: 'pending'});
+  private async generateNextActions(opportunity: Opportunity): Promise<NextAction[]> {
+    const actions: NextAction[] = [];
+
+    // Follow-up actions based on stage
+    const daysSinceActivity = this.calculateDaysSince(opportunity.lastActivity);
+    if (daysSinceActivity > 7) {
+      actions.push({
+        id: `action_${Date.now()}_1`,
+        type: 'follow_up',
+        title: 'Follow up on recent activity',
+        description: 'Check in with stakeholders on recent progress',
+        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        priority: 'high',
+        owner: opportunity.owner,
+        status: 'pending'
+      });
+    }
+
+    // Stage-specific actions
+    if (opportunity.stage === 'needs_analysis') {
+      actions.push({
+        id: `action_${Date.now()}_2`,
+        type: 'meeting',
+        title: 'Conduct needs analysis meeting',
+        description: 'Deep dive into customer requirements and pain points',
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        priority: 'high',
+        owner: opportunity.owner,
+        status: 'pending'
+      });
+    } else if (opportunity.stage === 'proposal') {
+      actions.push({
+        id: `action_${Date.now()}_3`,
+        type: 'proposal',
+        title: 'Prepare and deliver proposal',
+        description: 'Create comprehensive proposal addressing customer needs',
+        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        priority: 'critical',
+        owner: opportunity.owner,
+        status: 'pending'
+      });
+    }
+
+    // Engagement actions
+    if (opportunity.stakeholderEngagement.engagementLevel === 'low') {
+      actions.push({
+        id: `action_${Date.now()}_4`,
+        type: 'meeting',
+        title: 'Schedule stakeholder meetings',
+        description: 'Meet with key stakeholders to build relationships',
+        dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+        priority: 'medium',
+        owner: opportunity.owner,
+        status: 'pending'
+      });
     }
 
     return actions;
   }
 
-  private generateFallbackNegotiationLevers(opp: Opportunity): NegotiationLever[] {
-    return [;
-      {"
-        type: 'pricing',;"
-        strength: 'moderate',;"
-        description: 'Volume discount for multi-year commitment',;"
-        howToUse: 'Offer tiered pricing based on contract length',;"
-        timing: 'mid_negotiation',;"
-        expectedOutcome: 'Increase deal value while providing customer value'},;
-      {"
-        type: 'timeline',;"
-        strength: 'strong',;"
-        description: 'Accelerated implementation',;"
-        howToUse: 'Offer priority implementation resources',;"
-        timing: 'closing',;"
-        expectedOutcome: 'Create urgency to close this quarter'}
+  private async analyzeCompetition(opportunity: Opportunity): Promise<CompetitiveAnalysis> {
+    const competitors: CompetitorInfo[] = [];
+    
+    // Analyze known competitors
+    for (const competitorName of opportunity.knownCompetitors) {
+      competitors.push({
+        name: competitorName,
+        strength: this.calculateCompetitorStrength(competitorName),
+        weakness: this.identifyCompetitorWeaknesses(competitorName),
+        pricing: this.assessCompetitorPricing(competitorName),
+        lastEncountered: new Date().toISOString(),
+        winRate: this.calculateWinRateAgainst(competitorName)
+      });
+    }
+
+    const ourPosition = this.assessOurPosition(competitors);
+    const winRate = this.calculateOverallWinRate(competitors);
+    const differentiators = this.identifyDifferentiators();
+    const threats = this.identifyCompetitiveThreats(competitors);
+    const opportunities = this.identifyCompetitiveOpportunities(competitors);
+
+    return {
+      competitors,
+      ourPosition,
+      winRate,
+      differentiators,
+      threats,
+      opportunities
+    };
+  }
+
+  private calculateCompetitorStrength(competitorName: string): number {
+    // Mock competitor strength calculation
+    const strengths: Record<string, number> = {
+      'salesforce': 85,
+      'hubspot': 80,
+      'pipedrive': 75,
+      'zoho': 70,
+      'monday.com': 75
+    };
+
+    return strengths[competitorName.toLowerCase()] || 60;
+  }
+
+  private identifyCompetitorWeaknesses(competitorName: string): string[] {
+    // Mock competitor weakness identification
+    const weaknesses: Record<string, string[]> = {
+      'salesforce': ['Complex setup', 'High cost', 'Steep learning curve'],
+      'hubspot': ['Limited customization', 'Pricing complexity'],
+      'pipedrive': ['Limited features', 'Basic reporting'],
+      'zoho': ['Integration issues', 'Support quality'],
+      'monday.com': ['Limited CRM features', 'Pricing tiers']
+    };
+
+    return weaknesses[competitorName.toLowerCase()] || ['Unknown weaknesses'];
+  }
+
+  private assessCompetitorPricing(competitorName: string): 'higher' | 'similar' | 'lower' {
+    // Mock pricing assessment
+    const pricing: Record<string, 'higher' | 'similar' | 'lower'> = {
+      'salesforce': 'higher',
+      'hubspot': 'similar',
+      'pipedrive': 'lower',
+      'zoho': 'lower',
+      'monday.com': 'similar'
+    };
+
+    return pricing[competitorName.toLowerCase()] || 'similar';
+  }
+
+  private calculateWinRateAgainst(competitorName: string): number {
+    // Mock win rate calculation
+    const winRates: Record<string, number> = {
+      'salesforce': 0.6,
+      'hubspot': 0.7,
+      'pipedrive': 0.8,
+      'zoho': 0.75,
+      'monday.com': 0.65
+    };
+
+    return winRates[competitorName.toLowerCase()] || 0.5;
+  }
+
+  private assessOurPosition(competitors: CompetitorInfo[]): CompetitivePosition {
+    if (competitors.length === 0) {
+      return {
+        overall: 'unknown',
+        pricing: 'competitive',
+        features: 'comparable',
+        relationship: 'moderate'
+      };
+    }
+
+    const avgStrength = competitors.reduce((sum, comp) => sum + comp.strength, 0) / competitors.length;
+    const avgWinRate = competitors.reduce((sum, comp) => sum + comp.winRate, 0) / competitors.length;
+
+    let overall: 'leading' | 'competitive' | 'behind' | 'unknown';
+    if (avgWinRate > 0.7) {
+      overall = 'leading';
+    } else if (avgWinRate > 0.5) {
+      overall = 'competitive';
+    } else {
+      overall = 'behind';
+    }
+
+    return {
+      overall,
+      pricing: 'competitive',
+      features: avgStrength > 75 ? 'superior' : 'comparable',
+      relationship: 'moderate'
+    };
+  }
+
+  private calculateOverallWinRate(competitors: CompetitorInfo[]): number {
+    if (competitors.length === 0) return 0.5;
+    
+    return competitors.reduce((sum, comp) => sum + comp.winRate, 0) / competitors.length;
+  }
+
+  private identifyDifferentiators(): string[] {
+    return [
+      'Advanced AI capabilities',
+      'Seamless integration',
+      'Superior customer support',
+      'Flexible pricing',
+      'Easy implementation'
     ];
   }
 
-  private generateFallbackStrategy(): DealStrategy {
-    return {"
-      approach: 'consultative',;"
-      primaryMessage: 'Partner for digital transformation',;"
-      valueProposition: 'Accelerate growth through automation',;"
-      differentiators: ['AI-powered insights', 'Proven ROI'],;"
-      winThemes: ['Innovation', 'Partnership', 'Results'],;
-      executionPlan: [;
-        {"
-          phase: 'Discovery',;"
-          actions: ['Understand needs', 'Map stakeholders'],;"
-          owner: 'Sales Team',;"
-          timeline: '2 weeks',;"
-          successCriteria: 'Complete needs assessment'}
-      ],;"
-      contingencyPlans: "[]",;"
-      successMetrics: ['Stakeholder engagement', 'Value alignment'];
+  private identifyCompetitiveThreats(competitors: CompetitorInfo[]): string[] {
+    const threats: string[] = [];
+
+    for (const competitor of competitors) {
+      if (competitor.strength > 80) {
+        threats.push(`Strong competitor: ${competitor.name}`);
+      }
+      if (competitor.pricing === 'lower') {
+        threats.push(`Price pressure from ${competitor.name}`);
+      }
+    }
+
+    return threats;
+  }
+
+  private identifyCompetitiveOpportunities(competitors: CompetitorInfo[]): string[] {
+    const opportunities: string[] = [];
+
+    for (const competitor of competitors) {
+      if (competitor.strength < 70) {
+        opportunities.push(`Weak competitor: ${competitor.name}`);
+      }
+      if (competitor.pricing === 'higher') {
+        opportunities.push(`Price advantage over ${competitor.name}`);
+      }
+    }
+
+    return opportunities;
+  }
+
+  private async buildDealTimeline(opportunity: Opportunity): Promise<DealTimeline> {
+    const stages = this.getStageProgression(opportunity.stage);
+    const currentStage = opportunity.stage;
+    const estimatedClose = opportunity.closeDate;
+    const confidence = this.calculateTimelineConfidence(opportunity);
+    const milestones = this.identifyMilestones(opportunity);
+
+    return {
+      stages,
+      currentStage,
+      estimatedClose,
+      confidence,
+      milestones
     };
   }
-"
-  private async storeAnalysis(analysis: "DealAnalysis): Promise<void> {`
-    const db = this.env.DB_CRM;`;`
-`;`;`
-    await db.prepare(`;
-      INSERT INTO deal_analyses (;"
-        opportunity_id", win_probability,,, health_score,,, momentum,,,;`
-        risk_count,,, analysis_data,,, created_at;`;`
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`;`;`
-    `).bind(;
-      analysis.opportunityId,,,;
-      analysis.winProbability.percentage,,,;
-      analysis.healthScore,,,;
-      analysis.momentum,,,;
-      analysis.riskFactors.length,,,;
-      JSON.stringify(analysis),;
-      analysis.analysisDate;
-    ).run();`
-  }`;`/
-}`/;`;"`/
+
+  private getStageProgression(currentStage: OpportunityStage): TimelineStage[] {
+    const allStages: OpportunityStage[] = [
+      'prospecting',
+      'qualification',
+      'needs_analysis',
+      'value_proposition',
+      'decision_maker_identification',
+      'perception_analysis',
+      'proposal',
+      'negotiation',
+      'closed_won'
+    ];
+
+    const currentIndex = allStages.indexOf(currentStage);
+    const stages: TimelineStage[] = [];
+
+    for (let i = 0; i < allStages.length; i++) {
+      const stage = allStages[i];
+      const isCompleted = i < currentIndex;
+      const isCurrent = i === currentIndex;
+      const isUpcoming = i > currentIndex;
+
+      stages.push({
+        name: stage,
+        startDate: new Date(Date.now() - (currentIndex - i) * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        endDate: new Date(Date.now() + (i - currentIndex) * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        duration: 7,
+        status: isCompleted ? 'completed' : isCurrent ? 'current' : 'upcoming',
+        probability: this.calculateStageProbability(stage, i, currentIndex)
+      });
+    }
+
+    return stages;
+  }
+
+  private calculateStageProbability(stage: OpportunityStage, stageIndex: number, currentIndex: number): number {
+    if (stageIndex < currentIndex) return 1.0;
+    if (stageIndex === currentIndex) return 0.8;
+    
+    // Decreasing probability for future stages
+    const stagesAhead = stageIndex - currentIndex;
+    return Math.max(0.1, 0.8 - (stagesAhead * 0.1));
+  }
+
+  private calculateTimelineConfidence(opportunity: Opportunity): number {
+    let confidence = 0.5;
+
+    // More data points increase confidence
+    if (opportunity.stakeholderEngagement.totalStakeholders > 3) {
+      confidence += 0.2;
+    }
+
+    if (opportunity.decisionCriteria && opportunity.decisionCriteria.length > 2) {
+      confidence += 0.1;
+    }
+
+    if (opportunity.businessCase) {
+      confidence += 0.1;
+    }
+
+    // Recent activity increases confidence
+    const daysSinceActivity = this.calculateDaysSince(opportunity.lastActivity);
+    if (daysSinceActivity < 7) {
+      confidence += 0.1;
+    }
+
+    return Math.min(1.0, confidence);
+  }
+
+  private identifyMilestones(opportunity: Opportunity): Milestone[] {
+    const milestones: Milestone[] = [];
+
+    // Add key milestones based on stage
+    if (opportunity.stage === 'proposal' || opportunity.stage === 'negotiation') {
+      milestones.push({
+        name: 'Proposal delivered',
+        date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'pending',
+        critical: true
+      });
+    }
+
+    if (opportunity.stage === 'negotiation') {
+      milestones.push({
+        name: 'Contract signed',
+        date: opportunity.closeDate,
+        status: 'pending',
+        critical: true
+      });
+    }
+
+    // Add follow-up milestones
+    milestones.push({
+      name: 'Next stakeholder meeting',
+      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      status: 'pending',
+      critical: false
+    });
+
+    return milestones;
+  }
+
+  private async generateForecast(opportunity: Opportunity): Promise<DealForecast> {
+    const probability = opportunity.probability / 100;
+    const expectedValue = opportunity.value * probability;
+    const bestCase = opportunity.value * 1.2;
+    const worstCase = opportunity.value * 0.3;
+    const confidence = this.calculateForecastConfidence(opportunity);
+    const factors = this.identifyForecastFactors(opportunity);
+    const scenarios = this.generateForecastScenarios(opportunity);
+
+    return {
+      probability,
+      expectedValue,
+      bestCase,
+      worstCase,
+      confidence,
+      factors,
+      scenarios
+    };
+  }
+
+  private calculateForecastConfidence(opportunity: Opportunity): number {
+    let confidence = 0.5;
+
+    // More data points increase confidence
+    if (opportunity.stakeholderEngagement.totalStakeholders > 3) {
+      confidence += 0.2;
+    }
+
+    if (opportunity.decisionCriteria && opportunity.decisionCriteria.length > 2) {
+      confidence += 0.1;
+    }
+
+    if (opportunity.businessCase) {
+      confidence += 0.1;
+    }
+
+    if (opportunity.contractValue) {
+      confidence += 0.1;
+    }
+
+    return Math.min(1.0, confidence);
+  }
+
+  private identifyForecastFactors(opportunity: Opportunity): ForecastFactor[] {
+    const factors: ForecastFactor[] = [];
+
+    // Engagement factor
+    factors.push({
+      name: 'Stakeholder engagement',
+      impact: opportunity.stakeholderEngagement.engagementLevel === 'high' ? 0.2 : -0.1,
+      probability: 0.8,
+      description: 'Level of stakeholder engagement affects deal closure'
+    });
+
+    // Timeline factor
+    const daysToClose = this.calculateDaysUntil(opportunity.closeDate);
+    factors.push({
+      name: 'Timeline pressure',
+      impact: daysToClose < 30 ? 0.1 : -0.05,
+      probability: 0.7,
+      description: 'Time pressure affects decision making'
+    });
+
+    // Competition factor
+    if (opportunity.knownCompetitors.length > 0) {
+      factors.push({
+        name: 'Competitive pressure',
+        impact: -0.15,
+        probability: 0.6,
+        description: 'Competitive alternatives may impact closure'
+      });
+    }
+
+    return factors;
+  }
+
+  private generateForecastScenarios(opportunity: Opportunity): ForecastScenario[] {
+    const scenarios: ForecastScenario[] = [];
+
+    // Best case scenario
+    scenarios.push({
+      name: 'Best case',
+      probability: 0.2,
+      value: opportunity.value * 1.2,
+      description: 'All factors align positively'
+    });
+
+    // Most likely scenario
+    scenarios.push({
+      name: 'Most likely',
+      probability: 0.6,
+      value: opportunity.value * (opportunity.probability / 100),
+      description: 'Current trajectory continues'
+    });
+
+    // Worst case scenario
+    scenarios.push({
+      name: 'Worst case',
+      probability: 0.2,
+      value: opportunity.value * 0.3,
+      description: 'Deal stalls or reduces in value'
+    });
+
+    return scenarios;
+  }
+
+  // Utility methods
+  private calculateDaysSince(dateString: string): number {
+    const date = new Date(dateString);
+    const now = new Date();
+    return Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  private calculateDaysUntil(dateString: string): number {
+    const date = new Date(dateString);
+    const now = new Date();
+    return Math.floor((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  // Public methods for real-time updates
+  async updateDealIntelligence(opportunity: Opportunity): Promise<DealIntelligence> {
+    return this.analyzeDeal(opportunity);
+  }
+
+  async getDealInsights(opportunityId: string): Promise<DealIntelligence | null> {
+    // This would typically fetch from cache or database
+    return null;
+  }
+
+  async trackDealProgress(opportunityId: string, updates: Partial<Opportunity>): Promise<void> {
+    // This would typically update the deal in the database
+    console.log(`Tracking deal progress for ${opportunityId}:`, updates);
+  }
+}
+

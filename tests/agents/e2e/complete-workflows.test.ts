@@ -5,13 +5,11 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
-  TestEnvironmentFactory,
-  BusinessContextGenerator,
-  TaskGenerator,
-  PerformanceMonitor,
-  setupAgentTests,
-  type TestEnvironment
-} from '../test-harness';
+  SimpleTestEnvironmentFactory,
+  SimpleTaskGenerator,
+  SimplePerformanceMonitor,
+  type MockTestEnvironment
+} from './test-utils';
 import {
   AgentTask,
   BusinessContext,
@@ -20,20 +18,18 @@ import {
 } from '../../../src/modules/agents/types';
 
 describe('Complete Agent Workflows E2E', () => {
-  let testEnv: TestEnvironment;
+  let testEnv: MockTestEnvironment;
   let businessContext: BusinessContext;
-  let performanceMonitor: PerformanceMonitor;
-
-  setupAgentTests();
+  let performanceMonitor: SimplePerformanceMonitor;
 
   beforeEach(async () => {
-    testEnv = await TestEnvironmentFactory.create();
+    testEnv = await SimpleTestEnvironmentFactory.create();
     businessContext = testEnv.businessContext;
-    performanceMonitor = new PerformanceMonitor();
+    performanceMonitor = new SimplePerformanceMonitor();
   });
 
   afterEach(async () => {
-    await TestEnvironmentFactory.cleanup(testEnv);
+    await SimpleTestEnvironmentFactory.cleanup(testEnv);
   });
 
   describe('Sales and CRM Workflows', () => {
@@ -42,7 +38,7 @@ describe('Complete Agent Workflows E2E', () => {
       performanceMonitor.start();
 
       // Step 1: Lead Capture and Initial Processing
-      const leadCaptureTask = TaskGenerator.generate({
+      const leadCaptureTask = SimpleTaskGenerator.generate({
         capability: 'lead_processing',
         context: businessContext,
         input: {
@@ -75,7 +71,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(leadResult.status).toBe('completed');
 
       // Step 2: Lead Qualification and Scoring
-      const qualificationTask = TaskGenerator.generate({
+      const qualificationTask = SimpleTaskGenerator.generate({
         capability: 'lead_qualification',
         context: businessContext,
         input: {
@@ -101,7 +97,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(qualificationResult.status).toBe('completed');
 
       // Step 3: Sales Assignment and Territory Routing
-      const assignmentTask = TaskGenerator.generate({
+      const assignmentTask = SimpleTaskGenerator.generate({
         capability: 'sales_assignment',
         context: businessContext,
         input: {
@@ -127,7 +123,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(assignmentResult.status).toBe('completed');
 
       // Step 4: Opportunity Creation and Tracking
-      const opportunityTask = TaskGenerator.generate({
+      const opportunityTask = SimpleTaskGenerator.generate({
         capability: 'opportunity_management',
         context: businessContext,
         input: {
@@ -155,7 +151,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(opportunityResult.status).toBe('completed');
 
       // Step 5: Automated Follow-up and Nurturing
-      const nurturingTask = TaskGenerator.generate({
+      const nurturingTask = SimpleTaskGenerator.generate({
         capability: 'lead_nurturing',
         context: businessContext,
         input: {
@@ -205,7 +201,7 @@ describe('Complete Agent Workflows E2E', () => {
       const workflowId = 'customer-onboarding-e2e-001';
 
       // Step 1: Customer Account Setup
-      const accountSetupTask = TaskGenerator.generate({
+      const accountSetupTask = SimpleTaskGenerator.generate({
         capability: 'account_management',
         context: businessContext,
         input: {
@@ -233,7 +229,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(accountResult.status).toBe('completed');
 
       // Step 2: Training and Knowledge Transfer
-      const trainingTask = TaskGenerator.generate({
+      const trainingTask = SimpleTaskGenerator.generate({
         capability: 'training_coordination',
         context: businessContext,
         input: {
@@ -260,7 +256,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(trainingResult.status).toBe('completed');
 
       // Step 3: Success Metrics and Monitoring Setup
-      const monitoringTask = TaskGenerator.generate({
+      const monitoringTask = SimpleTaskGenerator.generate({
         capability: 'success_monitoring',
         context: businessContext,
         input: {
@@ -303,7 +299,7 @@ describe('Complete Agent Workflows E2E', () => {
       performanceMonitor.start();
 
       // Step 1: Data Collection and Validation
-      const dataCollectionTask = TaskGenerator.generate({
+      const dataCollectionTask = SimpleTaskGenerator.generate({
         capability: 'data_collection',
         context: businessContext,
         input: {
@@ -330,7 +326,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(dataResult.status).toBe('completed');
 
       // Step 2: Financial Analysis and Insights
-      const analysisTask = TaskGenerator.generate({
+      const analysisTask = SimpleTaskGenerator.generate({
         capability: 'financial_analysis',
         context: businessContext,
         input: {
@@ -363,7 +359,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(analysisResult.status).toBe('completed');
 
       // Step 3: Report Generation and Formatting
-      const reportGenerationTask = TaskGenerator.generate({
+      const reportGenerationTask = SimpleTaskGenerator.generate({
         capability: 'report_generation',
         context: businessContext,
         input: {
@@ -392,7 +388,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(reportResult.status).toBe('completed');
 
       // Step 4: Distribution and Communication
-      const distributionTask = TaskGenerator.generate({
+      const distributionTask = SimpleTaskGenerator.generate({
         capability: 'communication_automation',
         context: businessContext,
         input: {
@@ -442,7 +438,7 @@ describe('Complete Agent Workflows E2E', () => {
       const workflowId = 'budget-planning-2024';
 
       // Step 1: Budget Data Preparation
-      const budgetPrepTask = TaskGenerator.generate({
+      const budgetPrepTask = SimpleTaskGenerator.generate({
         capability: 'budget_planning',
         context: businessContext,
         input: {
@@ -469,7 +465,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(budgetPrepResult.status).toBe('completed');
 
       // Step 2: Department-Level Budget Creation
-      const deptBudgetTask = TaskGenerator.generate({
+      const deptBudgetTask = SimpleTaskGenerator.generate({
         capability: 'departmental_budgeting',
         context: businessContext,
         input: {
@@ -495,7 +491,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(deptBudgetResult.status).toBe('completed');
 
       // Step 3: Budget Review and Approval Process
-      const approvalTask = TaskGenerator.generate({
+      const approvalTask = SimpleTaskGenerator.generate({
         capability: 'approval_workflow',
         context: businessContext,
         input: {
@@ -535,7 +531,7 @@ describe('Complete Agent Workflows E2E', () => {
       const workflowId = 'employee-onboarding-001';
 
       // Step 1: Pre-boarding Preparation
-      const preboardingTask = TaskGenerator.generate({
+      const preboardingTask = SimpleTaskGenerator.generate({
         capability: 'hr_automation',
         context: businessContext,
         input: {
@@ -563,7 +559,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(preboardingResult.status).toBe('completed');
 
       // Step 2: First Day Activities
-      const firstDayTask = TaskGenerator.generate({
+      const firstDayTask = SimpleTaskGenerator.generate({
         capability: 'onboarding_coordination',
         context: businessContext,
         input: {
@@ -591,7 +587,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(firstDayResult.status).toBe('completed');
 
       // Step 3: 30-60-90 Day Check-ins
-      const checkinTask = TaskGenerator.generate({
+      const checkinTask = SimpleTaskGenerator.generate({
         capability: 'employee_development',
         context: businessContext,
         input: {
@@ -628,7 +624,7 @@ describe('Complete Agent Workflows E2E', () => {
       const workflowId = 'performance-review-q1-2024';
 
       // Step 1: Review Preparation and Goal Setting
-      const reviewPrepTask = TaskGenerator.generate({
+      const reviewPrepTask = SimpleTaskGenerator.generate({
         capability: 'performance_management',
         context: businessContext,
         input: {
@@ -660,7 +656,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(reviewPrepResult.status).toBe('completed');
 
       // Step 2: 360-Degree Feedback Collection
-      const feedbackTask = TaskGenerator.generate({
+      const feedbackTask = SimpleTaskGenerator.generate({
         capability: 'feedback_coordination',
         context: businessContext,
         input: {
@@ -687,7 +683,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(feedbackResult.status).toBe('completed');
 
       // Step 3: Performance Analysis and Recommendations
-      const analysisTask = TaskGenerator.generate({
+      const analysisTask = SimpleTaskGenerator.generate({
         capability: 'performance_analysis',
         context: businessContext,
         input: {
@@ -728,7 +724,7 @@ describe('Complete Agent Workflows E2E', () => {
       performanceMonitor.start();
 
       // Step 1: Pre-launch Planning and Coordination
-      const planningTask = TaskGenerator.generate({
+      const planningTask = SimpleTaskGenerator.generate({
         capability: 'project_coordination',
         context: businessContext,
         input: {
@@ -760,7 +756,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(planningResult.status).toBe('completed');
 
       // Step 2: Marketing Campaign Development
-      const marketingTask = TaskGenerator.generate({
+      const marketingTask = SimpleTaskGenerator.generate({
         capability: 'marketing_automation',
         context: businessContext,
         input: {
@@ -788,7 +784,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(marketingResult.status).toBe('completed');
 
       // Step 3: Sales Enablement and Training
-      const salesEnablementTask = TaskGenerator.generate({
+      const salesEnablementTask = SimpleTaskGenerator.generate({
         capability: 'sales_enablement',
         context: businessContext,
         input: {
@@ -815,7 +811,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(salesResult.status).toBe('completed');
 
       // Step 4: Launch Execution and Monitoring
-      const launchTask = TaskGenerator.generate({
+      const launchTask = SimpleTaskGenerator.generate({
         capability: 'launch_execution',
         context: businessContext,
         input: {
@@ -865,7 +861,7 @@ describe('Complete Agent Workflows E2E', () => {
       const workflowId = 'crisis-response-001';
 
       // Step 1: Crisis Detection and Assessment
-      const detectionTask = TaskGenerator.generate({
+      const detectionTask = SimpleTaskGenerator.generate({
         capability: 'crisis_management',
         context: businessContext,
         input: {
@@ -892,7 +888,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(detectionResult.status).toBe('completed');
 
       // Step 2: Response Team Activation
-      const responseTeamTask = TaskGenerator.generate({
+      const responseTeamTask = SimpleTaskGenerator.generate({
         capability: 'emergency_coordination',
         context: businessContext,
         input: {
@@ -920,7 +916,7 @@ describe('Complete Agent Workflows E2E', () => {
       expect(responseResult.status).toBe('completed');
 
       // Step 3: Stakeholder Communication
-      const communicationTask = TaskGenerator.generate({
+      const communicationTask = SimpleTaskGenerator.generate({
         capability: 'crisis_communication',
         context: businessContext,
         input: {
@@ -969,7 +965,7 @@ describe('Complete Agent Workflows E2E', () => {
       performanceMonitor.start();
 
       const workflowPromises = concurrentWorkflows.map(async (workflowType, index) => {
-        const task = TaskGenerator.generate({
+        const task = SimpleTaskGenerator.generate({
           capability: 'workflow_orchestration',
           context: businessContext,
           input: {
@@ -1012,7 +1008,7 @@ describe('Complete Agent Workflows E2E', () => {
       for (const step of riskyWorkflow) {
         testEnv.mockAgent.shouldFail = step.shouldFail;
 
-        const task = TaskGenerator.generate({
+        const task = SimpleTaskGenerator.generate({
           capability: 'workflow_step',
           context: businessContext,
           input: {

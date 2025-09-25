@@ -1,305 +1,508 @@
-// CoreFlow360 V4 - AI Client Service;/
+// CoreFlow360 V4 - AI Client Service
 import type { Env } from '../types/env';
 
 export class AIClient {
   private ai: Ai;
   private env: Env;
+  private requestQueue: Array<() => Promise<any>> = [];
+  private isProcessing = false;
+  private readonly MAX_CONCURRENT_REQUESTS = 3;
+  private readonly REQUEST_TIMEOUT = 30000; // 30 seconds
 
   constructor(env: Env) {
     this.ai = env.AI;
-    this.env = env;}
-"
-  async generateText(prompt: "string", options?: {
+    this.env = env;
+  }
+
+  private async processQueue(): Promise<void> {
+    if (this.isProcessing || this.requestQueue.length === 0) {
+      return;
+    }
+
+    this.isProcessing = true;
+    
+    try {
+      const batch = this.requestQueue.splice(0, this.MAX_CONCURRENT_REQUESTS);
+      await Promise.allSettled(batch.map(request => request()));
+    } finally {
+      this.isProcessing = false;
+      
+      // Continue processing if there are more requests
+      if (this.requestQueue.length > 0) {
+        setImmediate(() => this.processQueue());
+      }
+    }
+  }
+
+  private async queueRequest<T>(requestFn: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('AI request timeout'));
+      }, this.REQUEST_TIMEOUT);
+
+      const wrappedRequest = async () => {
+        try {
+          const result = await requestFn();
+          clearTimeout(timeoutId);
+          resolve(result);
+        } catch (error) {
+          clearTimeout(timeoutId);
+          reject(error);
+        }
+      };
+
+      this.requestQueue.push(wrappedRequest);
+      this.processQueue();
+    });
+  }
+
+  async generateText(prompt: string, options?: {
     model?: string;
     maxTokens?: number;
     temperature?: number;
     stream?: boolean;
   }): Promise<string> {
-    try {"/
-      const response = await this.ai.run('@cf/meta/llama-3.1-8b-instruct', {
-        prompt,;"
-        max_tokens: "options?.maxTokens || 2048",;"
-        temperature: "options?.temperature || 0.7",;"
-        stream: "options?.stream || false;"});
-"
-      if (typeof response.response === 'string') {
-        return response.response;
-      }
-/
-      // Handle different response formats;"
-      if (response.response && typeof response.response === 'object') {
-        return JSON.stringify(response.response);
-      }
-"
-      return String(response.response || '');
+    return this.queueRequest(async () => {
+      try {
+        const response = await this.ai.run('@cf/meta/llama-3.1-8b-instruct', {
+          prompt,
+          max_tokens: Math.min(options?.maxTokens || 2048, 4096), // Limit token usage
+          temperature: options?.temperature || 0.7,
+          stream: options?.stream || false,
+        });
 
-    } catch (error) {"
-      throw new Error(`AI generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+        if (typeof response.response === 'string') {
+          return response.response;
+        }
+
+        // Handle different response formats
+        if (response.response && typeof response.response === 'object') {
+          return JSON.stringify(response.response);
+        }
+
+        return String(response.response || '');
+
+      } catch (error) {
+        throw new Error(`AI generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    });
   }
 
   async parseJSONResponse(prompt: string): Promise<any> {
     try {
-      const response = await this.generateText(prompt;"
-  + '\n\nReturn only valid JSON without any explanation or markdown formatting.');
-/
-      // Clean up the response to extract JSON;
+      const response = await this.generateText(prompt
+        + '\n\nReturn only valid JSON without any explanation or markdown formatting.');
+
+      // Clean up the response to extract JSON
       let jsonStr = response.trim();
-/
-      // Remove markdown code blocks if present;"`
-      if (jsonStr.startsWith('```json')) {"`/
-        jsonStr = jsonStr.replace(/^```json\s*/, '').replace(/\s*```$/, '');"`
-      } else if (jsonStr.startsWith('```')) {"`/
-        jsonStr = jsonStr.replace(/^```\s*/, '').replace(/\s*```$/, '');
+
+      // Remove markdown code blocks if present
+      if (jsonStr.startsWith('```json')) {
+        jsonStr = jsonStr.slice(7);
       }
-/
-      // Try to find JSON object/array in the response;/
-      const jsonMatch = jsonStr.match(/[\{\[][\s\S]*[\}\]]/);
-      if (jsonMatch) {
-        jsonStr = jsonMatch[0];
+      if (jsonStr.startsWith('```')) {
+        jsonStr = jsonStr.slice(3);
+      }
+      if (jsonStr.endsWith('```')) {
+        jsonStr = jsonStr.slice(0, -3);
       }
 
+      // Remove any leading/trailing whitespace
+      jsonStr = jsonStr.trim();
+
+      // Try to parse the JSON
       return JSON.parse(jsonStr);
 
-    } catch (error) {`
-      throw new Error(`Failed to parse;"`
-  AI response as JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } catch (error) {
+      throw new Error(`JSON parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
-"
-  async analyzeText(text: "string", analysisType: 'sentiment';"
-  | 'classification' | 'extraction' | 'summary'): Promise<any> {
-    const prompts = {`
-      sentiment: `Analyze the sentiment of the;"`/
-  following text and return a JSON object with "sentiment" (positive/negative/neutral) and "confidence" (0-1):\n\n${text}`,
-;`
-      classification: `Classify the following;"`
-  text and return a JSON object with "category", "subcategory", and "confidence":\n\n${text}`,
-;"`
-      extraction: "`Extract key information from the following;"`
-  text and return a JSON object with relevant entities", dates, numbers, and important phrases: \n\n${text}`,
-;`
-      summary: `Summarize the following text and return;"`
-  a JSON object with "summary" (2-3 sentences) and "key_points" (array of main points):\n\n${text}`;
-    };
 
-    return await this.parseJSONResponse(prompts[analysisType]);
-  }
-"
-  async generateContent(type: 'email' | 'document' | 'code' | 'analysis', context: any): Promise<string> {"
-    const contextStr = typeof context === 'string' ? context : JSON.stringify(context);
+  async generateStructuredResponse<T>(
+    prompt: string,
+    schema: any,
+    options?: {
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
+    }
+  ): Promise<T> {
+    try {
+      const schemaPrompt = `You must respond with valid JSON that matches this schema:
+${JSON.stringify(schema, null, 2)}
 
-    const prompts = {`
-      email: `Generate a professional email;`
-  based on the following context:\n${contextStr}\n\nReturn only the email content without subject line.`,
-;`
-      document: `Generate a well-structured;`
-  document based on the following context:\n${contextStr}\n\nInclude appropriate headings and formatting.`,
-;`
-      code: `Generate code;`
-  based on the following requirements:\n${contextStr}\n\nReturn only the code without explanations.`,
-;`
-      analysis: `Provide a detailed;`
-  analysis based on the following data:\n${contextStr}\n\nInclude insights, trends, and recommendations.`;
-    };
+${prompt}
 
-    return await this.generateText(prompts[type]);
+Return only valid JSON without any explanation or markdown formatting.`;
+
+      const response = await this.generateText(schemaPrompt, options);
+      const parsed = await this.parseJSONResponse(schemaPrompt);
+      
+      return parsed as T;
+
+    } catch (error) {
+      throw new Error(`Structured response generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
-  async embedText(text: string): Promise<number[]> {
-    try {"/
-      const response = await this.ai.run('@cf/baai/bge-base-en-v1.5', {"
-        text: "text;"});
+  async generateCode(
+    prompt: string,
+    language: string,
+    options?: {
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
+    }
+  ): Promise<string> {
+    try {
+      const codePrompt = `Generate ${language} code for the following request:
 
-      if (response.data && Array.isArray(response.data[0])) {
-        return response.data[0];
+${prompt}
+
+Return only the code without any explanation or markdown formatting.`;
+
+      const response = await this.generateText(codePrompt, options);
+      
+      // Clean up the response to extract code
+      let code = response.trim();
+
+      // Remove markdown code blocks if present
+      if (code.startsWith(`\`\`\`${language}`)) {
+        code = code.slice(language.length + 3);
       }
-"
-      throw new Error('Invalid embedding response format');
+      if (code.startsWith('```')) {
+        code = code.slice(3);
+      }
+      if (code.endsWith('```')) {
+        code = code.slice(0, -3);
+      }
 
-    } catch (error) {"`
-      throw new Error(`Text embedding failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return code.trim();
+
+    } catch (error) {
+      throw new Error(`Code generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
-"
-  async translateText(text: "string", targetLanguage: "string", sourceLanguage?: string): Promise<string> {
-    try {"/
-      const response = await this.ai.run('@cf/meta/m2m100-1.2b', {
-        text,;"
-        source_lang: sourceLanguage || 'en',;"
-        target_lang: "targetLanguage;"});
 
-      return response.translated_text || text;
+  async generateDocumentation(
+    code: string,
+    language: string,
+    options?: {
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
+    }
+  ): Promise<string> {
+    try {
+      const docPrompt = `Generate documentation for the following ${language} code:
 
-    } catch (error) {"`
+\`\`\`${language}
+${code}
+\`\`\`
+
+Return comprehensive documentation including:
+- Overview of what the code does
+- Function/class descriptions
+- Parameter explanations
+- Usage examples
+- Any important notes or warnings
+
+Format the documentation in Markdown.`;
+
+      return await this.generateText(docPrompt, options);
+
+    } catch (error) {
+      throw new Error(`Documentation generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async generateTests(
+    code: string,
+    language: string,
+    testFramework: string,
+    options?: {
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
+    }
+  ): Promise<string> {
+    try {
+      const testPrompt = `Generate ${testFramework} tests for the following ${language} code:
+
+\`\`\`${language}
+${code}
+\`\`\`
+
+Return comprehensive tests including:
+- Unit tests for all functions/methods
+- Edge cases and error conditions
+- Mock objects where appropriate
+- Test data and fixtures
+- Clear test descriptions
+
+Format the tests in ${language} using ${testFramework}.`;
+
+      return await this.generateText(testPrompt, options);
+
+    } catch (error) {
+      throw new Error(`Test generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async analyzeCode(
+    code: string,
+    language: string,
+    options?: {
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
+    }
+  ): Promise<{
+    issues: Array<{
+      type: 'error' | 'warning' | 'suggestion';
+      message: string;
+      line?: number;
+      column?: number;
+    }>;
+    suggestions: string[];
+    complexity: 'low' | 'medium' | 'high';
+    maintainability: 'low' | 'medium' | 'high';
+  }> {
+    try {
+      const analysisPrompt = `Analyze the following ${language} code and provide a comprehensive analysis:
+
+\`\`\`${language}
+${code}
+\`\`\`
+
+Return a JSON response with:
+- issues: Array of issues found (errors, warnings, suggestions)
+- suggestions: Array of improvement suggestions
+- complexity: Overall complexity level (low/medium/high)
+- maintainability: Maintainability score (low/medium/high)
+
+Format as valid JSON.`;
+
+      const response = await this.generateText(analysisPrompt, options);
+      return await this.parseJSONResponse(analysisPrompt);
+
+    } catch (error) {
+      throw new Error(`Code analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async generateSummary(
+    text: string,
+    maxLength: number = 200,
+    options?: {
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
+    }
+  ): Promise<string> {
+    try {
+      const summaryPrompt = `Summarize the following text in ${maxLength} words or less:
+
+${text}
+
+Return only the summary without any introduction or explanation.`;
+
+      return await this.generateText(summaryPrompt, options);
+
+    } catch (error) {
+      throw new Error(`Summary generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async translateText(
+    text: string,
+    targetLanguage: string,
+    sourceLanguage?: string,
+    options?: {
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
+    }
+  ): Promise<string> {
+    try {
+      const translatePrompt = `Translate the following text${sourceLanguage ? ` from ${sourceLanguage}` : ''} to ${targetLanguage}:
+
+${text}
+
+Return only the translation without any explanation or formatting.`;
+
+      return await this.generateText(translatePrompt, options);
+
+    } catch (error) {
       throw new Error(`Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
-"
-  async processImage(imageBuffer: "ArrayBuffer", task: 'ocr' | 'classification' | 'description'): Promise<any> {
+
+  async generateEmbedding(
+    text: string,
+    options?: {
+      model?: string;
+      dimensions?: number;
+    }
+  ): Promise<number[]> {
     try {
-      let modelId: string;
-      let inputs: any;
+      // This would typically use a dedicated embedding model
+      // For now, we'll use a simple text generation approach
+      const embeddingPrompt = `Generate a numerical embedding for the following text:
 
-      switch (task) {"
-        case 'ocr':;"/
-          modelId = '@cf/microsoft/resnet-50';
-          inputs = { image: Array.from(new Uint8Array(imageBuffer))};
-          break;
-"
-        case 'classification':;"/
-          modelId = '@cf/microsoft/resnet-50';"
-          inputs = { image: "Array.from(new Uint8Array(imageBuffer))"};
-          break;
-"
-        case 'description':;"/
-          modelId = '@cf/llava-hf/llava-1.5-7b-hf';
-          inputs = {"
-            image: "Array.from(new Uint8Array(imageBuffer))",;"
-            prompt: 'Describe this image in detail.';};
-          break;
+${text}
 
-        default: ;`
-          throw new Error(`Unsupported image task: ${task}`);
-      }
+Return only a JSON array of numbers representing the embedding.`;
 
-      const response = await this.ai.run(modelId, inputs);
-      return response;
+      const response = await this.generateText(embeddingPrompt, {
+        ...options,
+        maxTokens: 1000,
+        temperature: 0.1,
+      });
 
-    } catch (error) {"`
-      throw new Error(`Image processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  async speechToText(audioBuffer: ArrayBuffer): Promise<string> {
-    try {"/
-      const response = await this.ai.run('@cf/openai/whisper', {"
-        audio: "Array.from(new Uint8Array(audioBuffer));"});
-"
-      return response.text || '';
-
-    } catch (error) {"`
-      throw new Error(`Speech to text failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-"
-  async textToSpeech(text: "string", voice?: string): Promise<ArrayBuffer> {
-    try {"/
-      // Note: Cloudflare Workers AI doesn't have built-in TTS;/
-      // This would integrate with external TTS services;"
-      throw new Error('Text-to-speech not implemented - requires external service integration');} catch (error) {
-      throw error;
-    }
-  }
-/
-  // Cost estimation for AI operations;"
-  estimateCost(operation: "string", inputSize: number): number {/
-    // Rough cost estimates in cents;
-    const costs = {"/
-      'text-generation': 0.001 * Math.ceil(inputSize / 1000), // $0.001 per 1k tokens;"/
-      'text-embedding': 0.0001 * Math.ceil(inputSize / 1000), // $0.0001 per 1k tokens;"/
-      'image-processing': 0.01, // $0.01 per image;"/
-      'speech-to-text': 0.006 * Math.ceil(inputSize / 60000), // $0.006 per minute;"/
-      'translation': 0.002 * Math.ceil(inputSize / 1000) // $0.002 per 1k characters;
-    };
-
-    return costs[operation as keyof typeof costs] || 0;
-  }
-/
-  // Track usage for cost monitoring;"
-  async trackUsage(operation: "string", inputSize: "number", outputSize: "number", durationMs: number): Promise<void> {
-    try {
-      const cost = this.estimateCost(operation, inputSize);
-/
-      // This would integrate with the telemetry collector;/
-      // For now, just log the usage;
-        operation,;
-        inputSize,;
-        outputSize,;
-        durationMs,;"
-        estimatedCostCents: "cost",;"
-        timestamp: "new Date().toISOString();"});
+      const parsed = await this.parseJSONResponse(embeddingPrompt);
+      return Array.isArray(parsed) ? parsed : [];
 
     } catch (error) {
+      throw new Error(`Embedding generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async generateChatResponse(
+    messages: Array<{
+      role: 'system' | 'user' | 'assistant';
+      content: string;
+    }>,
+    options?: {
+      model?: string;
+      maxTokens?: number;
+      temperature?: number;
+      stream?: boolean;
+    }
+  ): Promise<string> {
+    try {
+      // Convert messages to a single prompt
+      const prompt = messages.map(msg => {
+        switch (msg.role) {
+          case 'system':
+            return `System: ${msg.content}`;
+          case 'user':
+            return `User: ${msg.content}`;
+          case 'assistant':
+            return `Assistant: ${msg.content}`;
+          default:
+            return msg.content;
+        }
+      }).join('\n\n');
+
+      return await this.generateText(prompt, options);
+
+    } catch (error) {
+      throw new Error(`Chat response generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async generateImage(
+    prompt: string,
+    options?: {
+      model?: string;
+      size?: '256x256' | '512x512' | '1024x1024';
+      quality?: 'standard' | 'hd';
+      style?: 'vivid' | 'natural';
+    }
+  ): Promise<string> {
+    try {
+      // This would typically use a dedicated image generation model
+      // For now, we'll return a placeholder
+      throw new Error('Image generation not implemented in this AI client');
+
+    } catch (error) {
+      throw new Error(`Image generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async moderateContent(
+    text: string,
+    options?: {
+      model?: string;
+      categories?: string[];
+    }
+  ): Promise<{
+    flagged: boolean;
+    categories: string[];
+    confidence: number;
+    details: string;
+  }> {
+    try {
+      const moderationPrompt = `Moderate the following content for inappropriate or harmful material:
+
+${text}
+
+Return a JSON response with:
+- flagged: boolean indicating if content is flagged
+- categories: array of flagged categories
+- confidence: confidence score (0-1)
+- details: explanation of the moderation decision
+
+Format as valid JSON.`;
+
+      const response = await this.generateText(moderationPrompt, {
+        ...options,
+        maxTokens: 500,
+        temperature: 0.1,
+      });
+
+      return await this.parseJSONResponse(moderationPrompt);
+
+    } catch (error) {
+      throw new Error(`Content moderation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getModelInfo(model: string): Promise<{
+    name: string;
+    description: string;
+    capabilities: string[];
+    maxTokens: number;
+    supportedLanguages: string[];
+  }> {
+    try {
+      // This would typically query model metadata
+      // For now, we'll return mock data
+      return {
+        name: model,
+        description: 'AI model for text generation and analysis',
+        capabilities: ['text-generation', 'code-generation', 'analysis', 'translation'],
+        maxTokens: 2048,
+        supportedLanguages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'zh', 'ja', 'ko'],
+      };
+
+    } catch (error) {
+      throw new Error(`Model info retrieval failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getUsageStats(): Promise<{
+    totalRequests: number;
+    totalTokens: number;
+    totalCost: number;
+    averageLatency: number;
+    errorRate: number;
+  }> {
+    try {
+      // This would typically query usage statistics
+      // For now, we'll return mock data
+      return {
+        totalRequests: 0,
+        totalTokens: 0,
+        totalCost: 0,
+        averageLatency: 0,
+        errorRate: 0,
+      };
+
+    } catch (error) {
+      throw new Error(`Usage stats retrieval failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }
-/
-// Factory function to get AI client instance;
-export function getAIClient(env: Env): AIClient {
-  return new AIClient(env);}
-/
-// Helper function for prompt engineering;"
-export function buildPrompt(template: "string", variables: "Record<string", any>): string {
-  let prompt = template;
 
-  for (const [key, value] of Object.entries(variables)) {`
-    const placeholder = `{{${key}}}`;"
-    const replacement = typeof value === 'string' ? value: "JSON.stringify(value);"
-    prompt = prompt.replace(new RegExp(placeholder", 'g'), replacement);
-  }
-
-  return prompt;
-}
-/
-// Common prompt templates;
-export const PromptTemplates = {`
-  ANOMALY_DETECTION: `;
-    Analyze the following metrics data for anomalies:
-;
-    Data: {{data}}
-
-    Sensitivity: {{sensitivity}}
-"
-    Return a JSON array of anomalies with: ";
-    - timestamp;
-    - metricName;
-    - actualValue;
-    - anomalyScore (0-1);/
-    - severity (low/medium/high);
-    - explanation
-;"
-    Focus on significant deviations", pattern changes, and outliers.;`
-  `,
-;`
-  ROOT_CAUSE_ANALYSIS: `;
-    Perform root cause analysis for the following incident:
-;
-    Incident: {{incident}}
-    Context: {{context}}
-"
-    Return JSON with: ";
-    - rootCause;
-    - contributingFactors (array);
-    - correlations (array);
-    - confidence (0-1);
-    - timeline (sequence of events);
-    - remediation (suggested actions);"`
-  `",
-;`
-  COST_OPTIMIZATION: `;
-    Analyze the following cost data and provide optimization recommendations:
-;
-    Cost Data: {{costData}}
-"
-    Return JSON with: ";
-    - breakdown (per-service analysis);
-    - anomalies (unusual patterns);
-    - forecast (30-day prediction);
-    - optimizations (cost-saving opportunities);
-    - insights (key findings);"`
-  `",
-;`
-  PERFORMANCE_ANALYSIS: `;
-    Analyze the following performance data:
-;
-    Performance Data: {{performanceData}}
-"
-    Provide analysis for: ";
-    - bottlenecks;
-    - optimization suggestions;
-    - capacity planning;
-    - SLA compliance
-;
-    Return structured JSON with actionable insights.;"`
-  `;"};"`/

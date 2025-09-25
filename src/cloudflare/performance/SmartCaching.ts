@@ -177,12 +177,32 @@ export class SmartCaching {
     };
   }
 
+  // Global memory cache (Workers global scope)
+  private static memoryCache = new Map<string, {data: any; expires: number; size: number}>();
+  private static maxMemoryCacheSize = 50 * 1024 * 1024; // 50MB limit
+  private static currentMemoryUsage = 0;
+
   /**
-   * Get from memory cache (simulated with Map for demonstration)
+   * Get from memory cache with LRU eviction
    */
   private async getFromMemory<T>(key: string, options: CacheGetOptions): Promise<CacheResult<T>> {
-    // In a real implementation, this would use a memory cache
-    // For Workers, we'd use a global Map or similar
+    const cached = SmartCaching.memoryCache.get(key);
+    
+    if (cached && Date.now() < cached.expires) {
+      return {
+        hit: true,
+        data: cached.data as T,
+        source: 'memory',
+        cachedAt: cached.expires - (300 * 1000) // Assuming 300s TTL
+      };
+    }
+    
+    if (cached) {
+      // Expired, remove it
+      SmartCaching.memoryCache.delete(key);
+      SmartCaching.currentMemoryUsage -= cached.size;
+    }
+    
     return { hit: false, data: null, source: 'memory' };
   }
 
@@ -213,7 +233,7 @@ export class SmartCaching {
       return { hit: false, data: null, source: 'kv' };
 
     } catch (error) {
-      return { hit: false, data: null, source: 'kv', error: error.message };
+      return { hit: false, data: null, source: 'kv', error: error instanceof Error ? error.message : String(error) };
     }
   }
 
@@ -227,19 +247,19 @@ export class SmartCaching {
       const cached = await cache.match(cacheKey);
 
       if (cached) {
-        const data = await cached.json();
+        const data = await cached.json() as T;
         return {
           hit: true,
           data,
           source: 'cache_api',
-          cachedAt: cached.headers.get('date')
+          cachedAt: cached.headers.get('date') || undefined
         };
       }
 
       return { hit: false, data: null, source: 'cache_api' };
 
     } catch (error) {
-      return { hit: false, data: null, source: 'cache_api', error: error.message };
+      return { hit: false, data: null, source: 'cache_api', error: error instanceof Error ? error.message : String(error) };
     }
   }
 
@@ -263,48 +283,87 @@ export class SmartCaching {
       return { hit: false, data: null, source: 'r2' };
 
     } catch (error) {
-      return { hit: false, data: null, source: 'r2', error: error.message };
+      return { hit: false, data: null, source: 'r2', error: error instanceof Error ? error.message : String(error) };
     }
   }
 
   /**
-   * Get from multi-tier cache (memory -> KV -> Cache API)
+   * Get from multi-tier cache with parallel fallback (memory -> KV || Cache API)
    */
   private async getFromMultiTier<T>(key: string, options: CacheGetOptions): Promise<CacheResult<T>> {
-    // Try memory first
+    // Try memory first (fastest)
     let result = await this.getFromMemory<T>(key, options);
     if (result.hit) {
       return result;
     }
 
-    // Try KV second
-    result = await this.getFromKV<T>(key, options);
-    if (result.hit) {
+    // Try KV and Cache API in parallel (faster fallback)
+    const [kvResult, cacheApiResult] = await Promise.allSettled([
+      this.getFromKV<T>(key, options),
+      this.getFromCacheAPI<T>(key, options)
+    ]);
+
+    // Use first successful result
+    let fallbackResult: CacheResult<T> | null = null;
+    
+    if (kvResult.status === 'fulfilled' && kvResult.value.hit) {
+      fallbackResult = kvResult.value;
       // Populate memory cache
-      await this.setInMemory(key, result.data, { ttl: 300 });
-      return result;
-    }
-
-    // Try Cache API last
-    result = await this.getFromCacheAPI<T>(key, options);
-    if (result.hit) {
-      // Populate higher tiers
+      await this.setInMemory(key, fallbackResult.data, { ttl: 300 });
+    } else if (cacheApiResult.status === 'fulfilled' && cacheApiResult.value.hit) {
+      fallbackResult = cacheApiResult.value;
+      // Populate both memory and KV
       await Promise.all([
-        this.setInMemory(key, result.data, { ttl: 300 }),
-        this.setInKV(key, result.data, { ttl: 1800 })
+        this.setInMemory(key, fallbackResult.data, { ttl: 300 }),
+        this.setInKV(key, fallbackResult.data, { ttl: 1800 })
       ]);
-      return result;
     }
 
-    return { hit: false, data: null, source: 'multi_tier' };
+    return fallbackResult || { hit: false, data: null, source: 'multi_tier' };
   }
 
   /**
-   * Set in memory cache
+   * Set in memory cache with size management
    */
   private async setInMemory<T>(key: string, data: T, options: CacheSetOptions): Promise<void> {
-    // Memory cache implementation would go here
-    // For Workers, this might be a global Map with TTL tracking
+    const ttl = (options.ttl || 300) * 1000; // Convert to ms
+    const expires = Date.now() + ttl;
+    const serialized = JSON.stringify(data);
+    const size = serialized.length;
+    
+    // Skip caching if data is too large for memory
+    if (size > 5 * 1024 * 1024) { // 5MB limit per item
+      return;
+    }
+    
+    // Evict if necessary
+    while (SmartCaching.currentMemoryUsage + size > SmartCaching.maxMemoryCacheSize) {
+      const oldestKey = this.findOldestCacheKey();
+      if (!oldestKey) break;
+      
+      const oldEntry = SmartCaching.memoryCache.get(oldestKey);
+      if (oldEntry) {
+        SmartCaching.currentMemoryUsage -= oldEntry.size;
+      }
+      SmartCaching.memoryCache.delete(oldestKey);
+    }
+    
+    SmartCaching.memoryCache.set(key, { data, expires, size });
+    SmartCaching.currentMemoryUsage += size;
+  }
+  
+  private findOldestCacheKey(): string | null {
+    let oldestKey: string | null = null;
+    let oldestTime = Infinity;
+    
+    for (const [key, value] of SmartCaching.memoryCache) {
+      if (value.expires < oldestTime) {
+        oldestTime = value.expires;
+        oldestKey = key;
+      }
+    }
+    
+    return oldestKey;
   }
 
   /**
@@ -364,15 +423,26 @@ export class SmartCaching {
   }
 
   /**
-   * Set in multi-tier cache
+   * Set in multi-tier cache with intelligent distribution
    */
   private async setInMultiTier<T>(key: string, data: T, options: CacheSetOptions): Promise<void> {
-    // Set in all tiers with appropriate TTLs
-    await Promise.all([
-      this.setInMemory(key, data, { ttl: 300 }),
-      this.setInKV(key, data, { ttl: options.ttl || 1800 }),
-      this.setInCacheAPI(key, data, { ttl: options.ttl || 1800 })
-    ]);
+    const dataSize = JSON.stringify(data).length;
+    const isLargeData = dataSize > 100000; // 100KB threshold
+    
+    if (isLargeData) {
+      // Large data: Memory + KV only (skip Cache API)
+      await Promise.all([
+        this.setInMemory(key, data, { ttl: 180 }), // Shorter TTL for large data
+        this.setInKV(key, data, { ttl: options.ttl || 1800 })
+      ]);
+    } else {
+      // Small data: All tiers for maximum performance
+      await Promise.all([
+        this.setInMemory(key, data, { ttl: 300 }),
+        this.setInKV(key, data, { ttl: options.ttl || 1800 }),
+        this.setInCacheAPI(key, data, { ttl: options.ttl || 1800 })
+      ]);
+    }
   }
 
   /**

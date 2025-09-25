@@ -77,7 +77,7 @@ export interface BusinessContext {
  * Memory context for agents
  */
 export interface MemoryContext {
-  shortTerm: Memory;
+  shortTerm: Memory[];
   longTerm: Knowledge[];
   conversationHistory: ConversationEntry[];
 }

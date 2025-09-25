@@ -3,7 +3,7 @@
  * Testing rate limiting system under various load conditions
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   RateLimiter,
   RateLimitError,

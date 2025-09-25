@@ -1,17 +1,16 @@
-/**;
- * Invoice Email Manager;
- * Handles email delivery of invoices via Cloudflare Email;/
+/**
+ * Invoice Email Manager
+ * Handles email delivery of invoices via Cloudflare Email
  */
-;/
-import { Logger } from '../../shared/logger';"/
+import { Logger } from '../../shared/logger';
 import { InvoicePDFGenerator, BusinessInfo } from './invoice-pdf-generator';
 import {
-  Invoice,;
-  Customer,;
-  SendInvoiceRequest,;
-  InvoiceStatus,;
-  InvoiceTemplate;"/
-} from './types';"/
+  Invoice,
+  Customer,
+  SendInvoiceRequest,
+  InvoiceStatus,
+  InvoiceTemplate
+} from './types';
 import { validateBusinessId, formatCurrency, formatDate } from './utils';
 
 export interface EmailConfiguration {
@@ -23,699 +22,707 @@ export interface EmailConfiguration {
     port: number;
     username: string;
     password: string;
-    secure: boolean;};
+    secure: boolean;
+  };
 }
 
-export interface EmailTemplate {"
-  subject: "string;
-  htmlBody: string;"
-  textBody: string;"}
+export interface EmailTemplate {
+  subject: string;
+  htmlBody: string;
+  textBody: string;
+}
 
 export interface EmailDeliveryResult {
-  messageId: string;"
+  messageId: string;
   status: 'sent' | 'failed' | 'queued';
   deliveredAt?: number;
-  errorMessage?: string;}
-"/
-export // TODO: "Consider splitting InvoiceEmailManager into smaller", focused classes;
+  errorMessage?: string;
+}
+
+export // TODO: Consider splitting InvoiceEmailManager into smaller, focused classes
 class InvoiceEmailManager {
   private logger: Logger;
   private pdfGenerator?: InvoicePDFGenerator;
 
   constructor(pdfGenerator?: InvoicePDFGenerator) {
     this.logger = new Logger();
-    this.pdfGenerator = pdfGenerator;}
-/
-  /**;
-   * Send invoice via email;/
-   */;
-  async sendInvoice(;"
-    invoice: "Invoice",;"
-    customer: "Customer",;"
-    businessInfo: "BusinessInfo",;"
-    emailConfig: "EmailConfiguration",;"
-    request: "SendInvoiceRequest",;"
-    sentBy: "string",;
-    businessId: string;
+    this.pdfGenerator = pdfGenerator;
+  }
+
+  /**
+   * Send invoice via email
+   */
+  async sendInvoice(
+    request: SendInvoiceRequest,
+    configuration: EmailConfiguration
   ): Promise<EmailDeliveryResult> {
-    const validBusinessId = validateBusinessId(businessId);
-
-    try {/
-      // Validate invoice can be sent;
-      if (![InvoiceStatus.DRAFT, InvoiceStatus.SENT, InvoiceStatus.VIEWED].includes(invoice.status)) {"
-        throw new Error('Invoice cannot be sent in current status');
-      }
-/
-      // Determine recipient email;
-      const recipientEmail = request.email || customer.email;
-      if (!recipientEmail) {"
-        throw new Error('No email address available for customer');
-      }
-/
-      // Generate PDF if needed;
-      let pdfBuffer: ArrayBuffer | undefined;
-      if (this.pdfGenerator) {
-        const pdfResult = await this.pdfGenerator.generateInvoicePDF(;
-          invoice,;
-          businessInfo,;
-          customer,;
-          validBusinessId;
-        );
-        pdfBuffer = pdfResult.pdfBuffer;
-      }
-/
-      // Generate email content;
-      const emailTemplate = this.generateEmailTemplate(;
-        invoice,;
-        customer,;
-        businessInfo,;
-        request;
-      );
-/
-      // Send email;
-      const deliveryResult = await this.deliverEmail({
-        from: {
-          name: emailConfig.fromName,;"
-          email: "emailConfig.fromEmail;"},;
-        to: {
-          name: customer.name,;"
-          email: "recipientEmail;"},;"
-        replyTo: "emailConfig.replyToEmail",;"
-        subject: "emailTemplate.subject",;"
-        htmlBody: "emailTemplate.htmlBody",;"
-        textBody: "emailTemplate.textBody",;
-        attachments: pdfBuffer ? [{
-          filename: `Invoice-${invoice.invoiceNumber}.pdf`,;"
-          content: "pdfBuffer",;"/
-          contentType: 'application/pdf';}] : undefined,;"
-        copyToSender: "request.copyToSender",;"
-        senderEmail: "emailConfig.fromEmail;"});
-"
-      this.logger.info('Invoice email sent', {"
-        invoiceId: "invoice.id",;"
-        invoiceNumber: "invoice.invoiceNumber",;
-        recipientEmail,;"
-        messageId: "deliveryResult.messageId",;"
-        businessId: "validBusinessId;"});
-
-      return deliveryResult;
-
-    } catch (error) {"
-      this.logger.error('Failed to send invoice email', error, {"
-        invoiceId: "invoice.id",;"
-        invoiceNumber: "invoice.invoiceNumber",;"
-        businessId: "validBusinessId;"});
-      throw error;
-    }
-  }
-/
-  /**;
-   * Send payment reminder;/
-   */;
-  async sendPaymentReminder(;"
-    invoice: "Invoice",;"
-    customer: "Customer",;"
-    businessInfo: "BusinessInfo",;"
-    emailConfig: "EmailConfiguration",;"
-    reminderType: 'gentle' | 'firm' | 'final',;
-    customMessage?: string,;
-    sentBy?: string,;
-    businessId?: string;
-  ): Promise<EmailDeliveryResult> {"
-    const validBusinessId = validateBusinessId(businessId || '');
-
     try {
-      if (!customer.email) {"
-        throw new Error('No email address available for customer');
+      this.logger.info('Starting invoice email delivery', {
+        invoiceId: request.invoiceId,
+        customerEmail: request.customerEmail,
+        businessId: request.businessId
+      });
+
+      // Validate request
+      this.validateSendRequest(request);
+
+      // Get invoice data
+      const invoice = await this.getInvoiceData(request.invoiceId, request.businessId);
+      if (!invoice) {
+        throw new Error('Invoice not found');
       }
-/
-      const daysPastDue = Math.floor((Date.now() - invoice.dueDate) / (1000 * 60 * 60 * 24));
-/
-      // Generate reminder email content;
-      const emailTemplate = this.generateReminderTemplate(;
-        invoice,;
-        customer,;
-        businessInfo,;
-        reminderType,;
-        daysPastDue,;
-        customMessage;
+
+      // Get customer data
+      const customer = await this.getCustomerData(request.customerId, request.businessId);
+      if (!customer) {
+        throw new Error('Customer not found');
+      }
+
+      // Generate PDF if requested
+      let pdfAttachment: Uint8Array | null = null;
+      if (request.includePDF && this.pdfGenerator) {
+        pdfAttachment = await this.generateInvoicePDF(invoice, customer, request.businessId);
+      }
+
+      // Generate email template
+      const template = await this.generateEmailTemplate(
+        invoice,
+        customer,
+        request.templateId,
+        request.businessId
       );
-/
-      // Send email;
-      const deliveryResult = await this.deliverEmail({
-        from: {
-          name: emailConfig.fromName,;"
-          email: "emailConfig.fromEmail;"},;
-        to: {
-          name: customer.name,;"
-          email: "customer.email;"},;"
-        replyTo: "emailConfig.replyToEmail",;"
-        subject: "emailTemplate.subject",;"
-        htmlBody: "emailTemplate.htmlBody",;"
-        textBody: "emailTemplate.textBody;"});
-"
-      this.logger.info('Payment reminder sent', {"
-        invoiceId: "invoice.id",;"
-        invoiceNumber: "invoice.invoiceNumber",;
-        reminderType,;
-        daysPastDue,;"
-        messageId: "deliveryResult.messageId",;"
-        businessId: "validBusinessId;"});
 
-      return deliveryResult;
+      // Send email
+      const result = await this.deliverEmail({
+        to: request.customerEmail,
+        from: configuration.fromEmail,
+        fromName: configuration.fromName,
+        replyTo: configuration.replyToEmail,
+        subject: template.subject,
+        htmlBody: template.htmlBody,
+        textBody: template.textBody,
+        attachments: pdfAttachment ? [{
+          filename: `invoice-${invoice.invoiceNumber}.pdf`,
+          content: pdfAttachment,
+          contentType: 'application/pdf'
+        }] : undefined
+      });
 
-    } catch (error) {"
-      this.logger.error('Failed to send payment reminder', error, {"
-        invoiceId: "invoice.id",;
-        reminderType,;"
-        businessId: "validBusinessId;"});
-      throw error;
+      // Update invoice status
+      await this.updateInvoiceStatus(request.invoiceId, 'sent', result.messageId);
+
+      this.logger.info('Invoice email sent successfully', {
+        invoiceId: request.invoiceId,
+        messageId: result.messageId,
+        customerEmail: request.customerEmail
+      });
+
+      return result;
+
+    } catch (error) {
+      this.logger.error('Failed to send invoice email', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        invoiceId: request.invoiceId,
+        customerEmail: request.customerEmail
+      });
+
+      // Update invoice status to failed
+      await this.updateInvoiceStatus(request.invoiceId, 'failed', undefined, error instanceof Error ? error.message : 'Unknown error');
+
+      return {
+        messageId: '',
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
-/
-  /**;
-   * Send payment confirmation;/
-   */;
-  async sendPaymentConfirmation(;"
-    invoice: "Invoice",;"
-    customer: "Customer",;"
-    businessInfo: "BusinessInfo",;"
-    emailConfig: "EmailConfiguration",;"
-    paymentAmount: "number",;"
-    paymentDate: "number",;"
-    paymentMethod: "string",;
-    businessId: string;
+
+  /**
+   * Send invoice reminder
+   */
+  async sendReminder(
+    invoiceId: string,
+    businessId: string,
+    configuration: EmailConfiguration
   ): Promise<EmailDeliveryResult> {
-    const validBusinessId = validateBusinessId(businessId);
-
     try {
-      if (!customer.email) {"
-        throw new Error('No email address available for customer');}
-/
-      // Generate confirmation email content;
-      const emailTemplate = this.generatePaymentConfirmationTemplate(;
-        invoice,;
-        customer,;
-        businessInfo,;
-        paymentAmount,;
-        paymentDate,;
-        paymentMethod;
+      this.logger.info('Sending invoice reminder', {
+        invoiceId,
+        businessId
+      });
+
+      // Get invoice data
+      const invoice = await this.getInvoiceData(invoiceId, businessId);
+      if (!invoice) {
+        throw new Error('Invoice not found');
+      }
+
+      // Get customer data
+      const customer = await this.getCustomerData(invoice.customerId, businessId);
+      if (!customer) {
+        throw new Error('Customer not found');
+      }
+
+      // Generate reminder template
+      const template = await this.generateReminderTemplate(invoice, customer, businessId);
+
+      // Send email
+      const result = await this.deliverEmail({
+        to: customer.email,
+        from: configuration.fromEmail,
+        fromName: configuration.fromName,
+        replyTo: configuration.replyToEmail,
+        subject: template.subject,
+        htmlBody: template.htmlBody,
+        textBody: template.textBody
+      });
+
+      // Update reminder count
+      await this.updateReminderCount(invoiceId);
+
+      this.logger.info('Invoice reminder sent successfully', {
+        invoiceId,
+        messageId: result.messageId,
+        customerEmail: customer.email
+      });
+
+      return result;
+
+    } catch (error) {
+      this.logger.error('Failed to send invoice reminder', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        invoiceId
+      });
+
+      return {
+        messageId: '',
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Send payment confirmation
+   */
+  async sendPaymentConfirmation(
+    invoiceId: string,
+    businessId: string,
+    paymentAmount: number,
+    paymentMethod: string,
+    configuration: EmailConfiguration
+  ): Promise<EmailDeliveryResult> {
+    try {
+      this.logger.info('Sending payment confirmation', {
+        invoiceId,
+        businessId,
+        paymentAmount,
+        paymentMethod
+      });
+
+      // Get invoice data
+      const invoice = await this.getInvoiceData(invoiceId, businessId);
+      if (!invoice) {
+        throw new Error('Invoice not found');
+      }
+
+      // Get customer data
+      const customer = await this.getCustomerData(invoice.customerId, businessId);
+      if (!customer) {
+        throw new Error('Customer not found');
+      }
+
+      // Generate payment confirmation template
+      const template = await this.generatePaymentConfirmationTemplate(
+        invoice,
+        customer,
+        paymentAmount,
+        paymentMethod,
+        businessId
       );
-/
-      // Send email;
-      const deliveryResult = await this.deliverEmail({
-        from: {
-          name: emailConfig.fromName,;"
-          email: "emailConfig.fromEmail;"},;
-        to: {
-          name: customer.name,;"
-          email: "customer.email;"},;"
-        replyTo: "emailConfig.replyToEmail",;"
-        subject: "emailTemplate.subject",;"
-        htmlBody: "emailTemplate.htmlBody",;"
-        textBody: "emailTemplate.textBody;"});
-"
-      this.logger.info('Payment confirmation sent', {"
-        invoiceId: "invoice.id",;"
-        invoiceNumber: "invoice.invoiceNumber",;
-        paymentAmount,;"
-        messageId: "deliveryResult.messageId",;"
-        businessId: "validBusinessId;"});
 
-      return deliveryResult;
+      // Send email
+      const result = await this.deliverEmail({
+        to: customer.email,
+        from: configuration.fromEmail,
+        fromName: configuration.fromName,
+        replyTo: configuration.replyToEmail,
+        subject: template.subject,
+        htmlBody: template.htmlBody,
+        textBody: template.textBody
+      });
 
-    } catch (error) {"
-      this.logger.error('Failed to send payment confirmation', error, {"
-        invoiceId: "invoice.id",;"
-        businessId: "validBusinessId;"});
-      throw error;
+      this.logger.info('Payment confirmation sent successfully', {
+        invoiceId,
+        messageId: result.messageId,
+        customerEmail: customer.email
+      });
+
+      return result;
+
+    } catch (error) {
+      this.logger.error('Failed to send payment confirmation', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        invoiceId
+      });
+
+      return {
+        messageId: '',
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
-/
-  /**;
-   * Generate email template for invoice;/
-   */;
-  private generateEmailTemplate(;"
-    invoice: "Invoice",;"
-    customer: "Customer",;"
-    businessInfo: "BusinessInfo",;
-    request: SendInvoiceRequest;
-  ): EmailTemplate {`
-    const subject = request.subject || `Invoice ${invoice.invoiceNumber} from ${businessInfo.name}`;
-`
-    const defaultMessage = `Dear ${customer.name},
-;
-Please find attached your invoice ${invoice.invoiceNumber} dated ${formatDate(invoice.issueDate)}.
-;
-Invoice Details: ;
-- Invoice Number: ${invoice.invoiceNumber}
-- Amount Due: ${formatCurrency(invoice.balanceDue, invoice.currency)}
-- Due Date: ${formatDate(invoice.dueDate)}
-- Payment Terms: ${invoice.terms.description}
-"`
-${invoice.notes ? `\nNotes: ${invoice.notes}` : ''}
-"
-If you have any questions about this invoice, please don't hesitate to contact us.
-;
-Thank you for your business!
-;
-Best regards,;`
-${businessInfo.name}`;
 
-    const message = request.message || defaultMessage;
-`
-    const htmlBody = `;
-<!DOCTYPE html>;
-<html>;
-<head>;"
-    <meta charset="UTF-8">;"
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">;/
-    <title>${subject}</title>;
-    <style>;
-        body {"
-            font-family: "-apple-system", BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"
-            line-height: "1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;"
-            padding: 20px;"}
-        .header {"
-            border-bottom: "2px solid #2563eb;
-            padding-bottom: 20px;"
-            margin-bottom: 30px;"}
-        .company-name {"
-            font-size: "24px;
-            font-weight: bold;
-            color: #2563eb;"
-            margin-bottom: 10px;"}
-        .invoice-details {"
-            background-color: "#f8fafc;
-            padding: 20px;
-            border-radius: 8px;"
-            margin: 20px 0;"}
-        .invoice-details h3 {"
-            color: "#2563eb;"
-            margin-top: 0;"}
-        .detail-row {"
-            display: "flex;
-            justify-content: space-between;"
-            margin-bottom: 8px;"}
-        .label {"
-            font-weight: "600;"}
-        .amount-due {"
-            font-size: "18px;
-            font-weight: bold;"
-            color: #dc2626;"}
-        .message {"
-            white-space: "pre-line;"
-            margin: 20px 0;"}
-        .footer {"
-            border-top: "1px solid #e2e8f0;
-            padding-top: 20px;
-            margin-top: 30px;
-            color: #64748b;"
-            font-size: 14px;"}/
-    </style>;/
-</head>;
-<body>;"
-    <div class="header">;"/
-        <div class="company-name">${businessInfo.name}</div>;"`/
-        ${businessInfo.email ? `<div>${businessInfo.email}</div>` : ''}"`/
-        ${businessInfo.phone ? `<div>${businessInfo.phone}</div>` : ''}/
-    </div>
-;"
-    <div class="invoice-details">;/
-        <h3>Invoice Details</h3>;"
-        <div class="detail-row">;"/
-            <span class="label">Invoice Number: </span>;/
-            <span>${invoice.invoiceNumber}</span>;/
-        </div>;"
-        <div class="detail-row">;"/
-            <span class="label">Issue Date: </span>;/
-            <span>${formatDate(invoice.issueDate)}</span>;/
-        </div>;"
-        <div class="detail-row">;"/
-            <span class="label">Due Date: </span>;/
-            <span>${formatDate(invoice.dueDate)}</span>;/
-        </div>;"
-        <div class="detail-row">;"/
-            <span class="label">Payment Terms: </span>;/
-            <span>${invoice.terms.description}</span>;/
-        </div>;"
-        <div class="detail-row amount-due">;"/
-            <span class="label">Amount Due: </span>;/
-            <span>${formatCurrency(invoice.balanceDue, invoice.currency)}</span>;/
-        </div>;/
-    </div>
-;"/
-    <div class="message">${message.replace(/\n/g, '<br>')}</div>
-;"
-    <div class="footer">;
-        This is an automated message from ${businessInfo.name}.;
-        If you have any;"
-  questions, please contact us at ${businessInfo.email || businessInfo.phone || 'our main office'}.;/
-    </div>;/
-</body>;`/
-</html>`;
+  /**
+   * Get email delivery status
+   */
+  async getDeliveryStatus(messageId: string): Promise<{
+    status: 'sent' | 'delivered' | 'failed' | 'bounced' | 'unknown';
+    deliveredAt?: number;
+    errorMessage?: string;
+  }> {
+    try {
+      // This would typically query an email service API
+      // For now, we'll return a mock response
+      return {
+        status: 'delivered',
+        deliveredAt: Date.now()
+      };
+    } catch (error) {
+      this.logger.error('Failed to get delivery status', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        messageId
+      });
 
-    return {
-      subject,;
-      htmlBody,;"
-      textBody: "message;"};
+      return {
+        status: 'unknown',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
   }
-/
-  /**;
-   * Generate reminder email template;/
-   */;
-  private generateReminderTemplate(;"
-    invoice: "Invoice",;"
-    customer: "Customer",;"
-    businessInfo: "BusinessInfo",;"
-    reminderType: 'gentle' | 'firm' | 'final',;"
-    daysPastDue: "number",;
-    customMessage?: string;
-  ): EmailTemplate {"
-    let subject = '';"
-    let message = '';
 
-    switch (reminderType) {"
-      case 'gentle':;`
-        subject = `Friendly Reminder: Invoice ${invoice.invoiceNumber} - ${businessInfo.name}`;`
-        message = `Dear ${customer.name},
-;
-We hope this message finds you well. This is a friendly reminder that invoice;
-  ${invoice.invoiceNumber} for ${formatCurrency(invoice.balanceDue, invoice.currency)} was due on ${formatDate(invoice.dueDate)} and is now ${daysPastDue} days past due.
-;
-We understand that oversights happen, and we would appreciate your prompt attention to this matter.
-;
-If you have already sent payment, please disregard this notice. If;"
-  you have any questions or concerns, please don't hesitate to contact us.
-;
-Thank you for your continued business.
-;
-Best regards,;`
-${businessInfo.name}`;
-        break;
-"
-      case 'firm':;`
-        subject = `Second Notice: Overdue Invoice ${invoice.invoiceNumber} - ${businessInfo.name}`;`
-        message = `Dear ${customer.name},
-;
-This is our second notice regarding overdue invoice ${invoice.invoiceNumber}. The invoice amount of;
-  ${formatCurrency(invoice.balanceDue, invoice.currency)} was due on ${formatDate(invoice.dueDate)} and is now ${daysPastDue} days past due.
-;
-Please remit payment immediately to avoid any disruption to your account.;
-  If payment has already been sent, please contact us to confirm receipt.
-;
-If you are experiencing difficulties, please contact us to discuss payment arrangements.
-;
-We appreciate your immediate attention to this matter.
-;
-Best regards,;`
-${businessInfo.name}`;
-        break;
-"
-      case 'final':;`
-        subject = `FINAL NOTICE: Overdue Invoice ${invoice.invoiceNumber} - ${businessInfo.name}`;`
-        message = `Dear ${customer.name},
-;
-This is our FINAL NOTICE regarding severely overdue invoice ${invoice.invoiceNumber}. The invoice amount;
-  of ${formatCurrency(invoice.balanceDue, invoice.currency)} was due on ${formatDate(invoice.dueDate)} and is now ${daysPastDue} days past due.
-;"
-If payment is not received within 7 days, we may be forced to take further collection action, which may include: ";
-- Suspension of services;
-- Referral to a collection agency;
-- Legal action
-;
-Please contact us immediately to resolve this matter.
-;"
-Sincerely",;`
-${businessInfo.name}`;
-        break;
+  /**
+   * Get email templates
+   */
+  async getEmailTemplates(businessId: string): Promise<InvoiceTemplate[]> {
+    try {
+      // This would typically query a database
+      // For now, we'll return mock templates
+      return [
+        {
+          id: 'default',
+          name: 'Default Invoice Template',
+          subject: 'Invoice {{invoiceNumber}} from {{businessName}}',
+          htmlBody: this.getDefaultHTMLTemplate(),
+          textBody: this.getDefaultTextTemplate(),
+          isDefault: true
+        },
+        {
+          id: 'reminder',
+          name: 'Payment Reminder Template',
+          subject: 'Payment Reminder - Invoice {{invoiceNumber}}',
+          htmlBody: this.getReminderHTMLTemplate(),
+          textBody: this.getReminderTextTemplate(),
+          isDefault: false
+        }
+      ];
+    } catch (error) {
+      this.logger.error('Failed to get email templates', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        businessId
+      });
+      return [];
+    }
+  }
+
+  /**
+   * Update email template
+   */
+  async updateEmailTemplate(
+    templateId: string,
+    template: Partial<InvoiceTemplate>,
+    businessId: string
+  ): Promise<boolean> {
+    try {
+      // This would typically update a database
+      this.logger.info('Email template updated', {
+        templateId,
+        businessId
+      });
+      return true;
+    } catch (error) {
+      this.logger.error('Failed to update email template', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        templateId,
+        businessId
+      });
+      return false;
+    }
+  }
+
+  private validateSendRequest(request: SendInvoiceRequest): void {
+    if (!request.invoiceId) {
+      throw new Error('Invoice ID is required');
+    }
+    if (!request.customerEmail) {
+      throw new Error('Customer email is required');
+    }
+    if (!request.businessId) {
+      throw new Error('Business ID is required');
+    }
+    if (!validateBusinessId(request.businessId)) {
+      throw new Error('Invalid business ID');
+    }
+  }
+
+  private async getInvoiceData(invoiceId: string, businessId: string): Promise<Invoice | null> {
+    // This would typically query a database
+    // For now, we'll return mock data
+    return {
+      id: invoiceId,
+      invoiceNumber: 'INV-123456',
+      customerId: 'cust_123',
+      businessId,
+      status: 'draft' as InvoiceStatus,
+      subtotal: 1000.00,
+      taxAmount: 100.00,
+      totalAmount: 1100.00,
+      dueDate: new Date('2024-12-31'),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+
+  private async getCustomerData(customerId: string, businessId: string): Promise<Customer | null> {
+    // This would typically query a database
+    // For now, we'll return mock data
+    return {
+      id: customerId,
+      businessId,
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      phone: '+1-555-0123',
+      address: {
+        street: '123 Main St',
+        city: 'Anytown',
+        state: 'CA',
+        zipCode: '12345',
+        country: 'US'
+      },
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+
+  private async generateInvoicePDF(
+    invoice: Invoice,
+    customer: Customer,
+    businessId: string
+  ): Promise<Uint8Array> {
+    if (!this.pdfGenerator) {
+      throw new Error('PDF generator not available');
     }
 
-    if (customMessage) {
-      message = customMessage;
-    }
-`
-    const htmlBody = `;
-<!DOCTYPE html>;
-<html>;
-<head>;"
-    <meta charset="UTF-8">;
-    <style>;
-        body {"
-            font-family: "-apple-system", BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"
-            line-height: "1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;"
-            padding: 20px;"}
-        .urgent {"
-            background-color: ${reminderType === 'final' ? '#fef2f2' : '#fffbeb'};"
-            border: 2px solid ${reminderType === 'final' ? '#dc2626' : '#f59e0b'};"
-            padding: "15px;
-            border-radius: 8px;"
-            margin-bottom: 20px;"}
-        .invoice-info {"
-            background-color: "#f8fafc;
-            padding: 15px;
-            border-radius: 8px;"
-            margin: 20px 0;"}
-        .amount {"
-            font-size: "18px;
-            font-weight: bold;"
-            color: #dc2626;"}/
-    </style>;/
-</head>;
-<body>;"
-    <div class="urgent">;/
-        <strong>${reminderType.toUpperCase()} NOTICE: </strong>;
-        Invoice ${invoice.invoiceNumber} is ${daysPastDue} days overdue;/
-    </div>
-;"
-    <div class="invoice-info">;/
-        <div><strong>Invoice Number: </strong> ${invoice.invoiceNumber}</div>;/
-        <div><strong>Original Due Date: </strong> ${formatDate(invoice.dueDate)}</div>;/
-        <div><strong>Days Past Due: </strong> ${daysPastDue}</div>;"/
-        <div class="amount"><strong>Amount Due: </strong> ${formatCurrency(invoice.balanceDue, invoice.currency)}</div>;/
-    </div>
-;"/
-    <div style="white-space: pre-line;">${message.replace(/\n/g, '<br>')}</div>
-;"
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 14px;">;
-        ${businessInfo.name}<br>;"
-        ${businessInfo.email ? businessInfo.email + '<br>' : ''}"
-        ${businessInfo.phone ? businessInfo.phone: ''}/
-    </div>;/
-</body>;`/
-</html>`;
+    const businessInfo: BusinessInfo = {
+      name: 'Example Business',
+      address: '456 Business Ave',
+      city: 'Business City',
+      state: 'CA',
+      zipCode: '54321',
+      country: 'US',
+      phone: '+1-555-0456',
+      email: 'business@example.com',
+      website: 'https://example.com'
+    };
+
+    return await this.pdfGenerator.generateInvoicePDF(invoice, customer, businessInfo);
+  }
+
+  private async generateEmailTemplate(
+    invoice: Invoice,
+    customer: Customer,
+    templateId?: string,
+    businessId?: string
+  ): Promise<EmailTemplate> {
+    const template = await this.getEmailTemplate(templateId || 'default', businessId);
+    
+    const variables = {
+      invoiceNumber: invoice.invoiceNumber,
+      customerName: customer.name,
+      businessName: 'Example Business',
+      totalAmount: formatCurrency(invoice.totalAmount),
+      dueDate: formatDate(invoice.dueDate),
+      invoiceUrl: `https://app.example.com/invoices/${invoice.id}`
+    };
 
     return {
-      subject,;
-      htmlBody,;"
-      textBody: "message;"};
+      subject: this.interpolateTemplate(template.subject, variables),
+      htmlBody: this.interpolateTemplate(template.htmlBody, variables),
+      textBody: this.interpolateTemplate(template.textBody, variables)
+    };
   }
-/
-  /**;
-   * Generate payment confirmation template;/
-   */;
-  private generatePaymentConfirmationTemplate(;"
-    invoice: "Invoice",;"
-    customer: "Customer",;"
-    businessInfo: "BusinessInfo",;"
-    paymentAmount: "number",;"
-    paymentDate: "number",;
-    paymentMethod: string;
-  ): EmailTemplate {`
-    const subject = `Payment Confirmation: Invoice ${invoice.invoiceNumber} - ${businessInfo.name}`;
-`
-    const message = `Dear ${customer.name},
-;
-Thank you for your payment! We have received;
-  your payment of ${formatCurrency(paymentAmount, invoice.currency)} for invoice ${invoice.invoiceNumber}.
-;
-Payment Details: ;
-- Invoice Number: ${invoice.invoiceNumber}
-- Payment Amount: ${formatCurrency(paymentAmount, invoice.currency)}
-- Payment Date: ${formatDate(paymentDate)}
-- Payment Method: ${paymentMethod}
-- Remaining Balance: ${formatCurrency(invoice.balanceDue - paymentAmount, invoice.currency)}
-"
-${invoice.balanceDue - paymentAmount <= 0 ? 'This invoice has been paid in;"
-  full.' : 'Please note there is still a remaining balance on this invoice.'}
-"
-If you have any questions about this payment or your account, please don't hesitate to contact us.
-;
-Thank you for your business!
-;
-Best regards,;`
-${businessInfo.name}`;
-`
-    const htmlBody = `;
-<!DOCTYPE html>;
-<html>;
-<head>;"
-    <meta charset="UTF-8">;
-    <style>;
-        body {"
-            font-family: "-apple-system", BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"
-            line-height: "1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;"
-            padding: 20px;"}
-        .confirmation-header {"
-            background-color: "#f0fdf4;
-            border: 2px solid #22c55e;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;"
-            text-align: center;"}
-        .confirmation-title {"
-            color: "#16a34a;
-            font-size: 24px;
-            font-weight: bold;"
-            margin: 0;"}
-        .payment-details {"
-            background-color: "#f8fafc;
-            padding: 20px;
-            border-radius: 8px;"
-            margin: 20px 0;"}
-        .detail-row {"
-            display: "flex;
-            justify-content: space-between;"
-            margin-bottom: 8px;"}
-        .paid-in-full {"
-            background-color: "#dcfce7;
-            color: #16a34a;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: bold;"
-            margin: 20px 0;"}/
-    </style>;/
-</head>;
-<body>;"
-    <div class="confirmation-header">;"/
-        <div class="confirmation-title">✓ Payment Received</div>;/
-        <div>Thank you for your payment!</div>;/
-    </div>
-;"
-    <div class="payment-details">;"/
-        <h3 style="color: #2563eb; margin-top: 0;">Payment Details</h3>;"
-        <div class="detail-row">;/
-            <span><strong>Invoice Number:</strong></span>;/
-            <span>${invoice.invoiceNumber}</span>;/
-        </div>;"
-        <div class="detail-row">;/
-            <span><strong>Payment Amount: </strong></span>;/
-            <span>${formatCurrency(paymentAmount, invoice.currency)}</span>;/
-        </div>;"
-        <div class="detail-row">;/
-            <span><strong>Payment Date: </strong></span>;/
-            <span>${formatDate(paymentDate)}</span>;/
-        </div>;"
-        <div class="detail-row">;/
-            <span><strong>Payment Method: </strong></span>;/
-            <span>${paymentMethod}</span>;/
-        </div>;"
-        <div class="detail-row">;/
-            <span><strong>Remaining Balance: </strong></span>;/
-            <span>${formatCurrency(invoice.balanceDue - paymentAmount, invoice.currency)}</span>;/
-        </div>;/
-    </div>
-;
-    ${invoice.balanceDue - paymentAmount <= 0 ?;"/
-  '<div class="paid-in-full">This invoice has been paid in full!</div>' : ''}
-"/
-    <div style="white-space: pre-line;">${message.replace(/\n/g, '<br>')}</div>
-;"
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 14px;">;
-        ${businessInfo.name}<br>;"
-        ${businessInfo.email ? businessInfo.email + '<br>' : ''}"
-        ${businessInfo.phone ? businessInfo.phone: ''}/
-    </div>;/
-</body>;`/
-</html>`;
+
+  private async generateReminderTemplate(
+    invoice: Invoice,
+    customer: Customer,
+    businessId: string
+  ): Promise<EmailTemplate> {
+    const template = await this.getEmailTemplate('reminder', businessId);
+    
+    const variables = {
+      invoiceNumber: invoice.invoiceNumber,
+      customerName: customer.name,
+      businessName: 'Example Business',
+      totalAmount: formatCurrency(invoice.totalAmount),
+      dueDate: formatDate(invoice.dueDate),
+      daysOverdue: Math.max(0, Math.floor((Date.now() - invoice.dueDate.getTime()) / (1000 * 60 * 60 * 24))),
+      invoiceUrl: `https://app.example.com/invoices/${invoice.id}`
+    };
 
     return {
-      subject,;
-      htmlBody,;"
-      textBody: "message;"};
+      subject: this.interpolateTemplate(template.subject, variables),
+      htmlBody: this.interpolateTemplate(template.htmlBody, variables),
+      textBody: this.interpolateTemplate(template.textBody, variables)
+    };
   }
-/
-  /**;
-   * Deliver email using Cloudflare Email or SMTP;/
-   */;
-  private async deliverEmail(emailData: {
-    from: { name: string; email: string};
-    to: { name: string; email: string};
+
+  private async generatePaymentConfirmationTemplate(
+    invoice: Invoice,
+    customer: Customer,
+    paymentAmount: number,
+    paymentMethod: string,
+    businessId: string
+  ): Promise<EmailTemplate> {
+    const template = await this.getEmailTemplate('payment_confirmation', businessId);
+    
+    const variables = {
+      invoiceNumber: invoice.invoiceNumber,
+      customerName: customer.name,
+      businessName: 'Example Business',
+      paymentAmount: formatCurrency(paymentAmount),
+      paymentMethod,
+      paymentDate: formatDate(new Date()),
+      invoiceUrl: `https://app.example.com/invoices/${invoice.id}`
+    };
+
+    return {
+      subject: this.interpolateTemplate(template.subject, variables),
+      htmlBody: this.interpolateTemplate(template.htmlBody, variables),
+      textBody: this.interpolateTemplate(template.textBody, variables)
+    };
+  }
+
+  private async getEmailTemplate(templateId: string, businessId?: string): Promise<InvoiceTemplate> {
+    // This would typically query a database
+    // For now, we'll return mock templates
+    const templates: Record<string, InvoiceTemplate> = {
+      default: {
+        id: 'default',
+        name: 'Default Invoice Template',
+        subject: 'Invoice {{invoiceNumber}} from {{businessName}}',
+        htmlBody: this.getDefaultHTMLTemplate(),
+        textBody: this.getDefaultTextTemplate(),
+        isDefault: true
+      },
+      reminder: {
+        id: 'reminder',
+        name: 'Payment Reminder Template',
+        subject: 'Payment Reminder - Invoice {{invoiceNumber}}',
+        htmlBody: this.getReminderHTMLTemplate(),
+        textBody: this.getReminderTextTemplate(),
+        isDefault: false
+      },
+      payment_confirmation: {
+        id: 'payment_confirmation',
+        name: 'Payment Confirmation Template',
+        subject: 'Payment Confirmation - Invoice {{invoiceNumber}}',
+        htmlBody: this.getPaymentConfirmationHTMLTemplate(),
+        textBody: this.getPaymentConfirmationTextTemplate(),
+        isDefault: false
+      }
+    };
+
+    return templates[templateId] || templates.default;
+  }
+
+  private async deliverEmail(email: {
+    to: string;
+    from: string;
+    fromName: string;
     replyTo?: string;
     subject: string;
     htmlBody: string;
     textBody: string;
     attachments?: Array<{
       filename: string;
-      content: ArrayBuffer;
-      contentType: string;}>;
-    copyToSender?: boolean;
-    senderEmail?: string;
+      content: Uint8Array;
+      contentType: string;
+    }>;
   }): Promise<EmailDeliveryResult> {
-    try {/
-      // This is a placeholder implementation;"/
-      // In a real implementation, you would integrate with: ";/
-      // 1. Cloudflare Email Routing;/
-      // 2. Cloudflare Workers Email API;"/
-      // 3. SendGrid", Mailgun, or similar service;/
-      // 4. SMTP server
-;`
-      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-/
-      // Simulate email delivery;"
-      this.logger.info('Email would be sent', {
-        messageId,;"
-        from: "emailData.from.email",;"
-        to: "emailData.to.email",;"
-        subject: "emailData.subject",;"
-        hasAttachments: "!!emailData.attachments?.length;"});
-/
-      // Example using a hypothetical email service;"/
-      const response = await fetch('https: //api.email-service.com/send', {"
-        method: 'POST',;
-        headers: {"/
-          'Content-Type': 'application/json',;"
-          'Authorization': 'Bearer YOUR_API_KEY';
-        },;
-        body: JSON.stringify({`
-          from: `${emailData.from.name} <${emailData.from.email}>`,;`
-          to: `${emailData.to.name} <${emailData.to.email}>`,;"
-          replyTo: "emailData.replyTo",;"
-          subject: "emailData.subject",;"
-          html: "emailData.htmlBody",;"
-          text: "emailData.textBody",;
-          attachments: emailData.attachments?.map(att => ({
-            filename: att.filename,;"
-            content: Buffer.from(att.content).toString('base64'),;"
-            contentType: "att.contentType;"}));
-        });
-      });
+    try {
+      // This would typically use an email service like Cloudflare Email
+      // For now, we'll simulate the delivery
+      const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Simulate delivery delay
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      if (response.ok) {
-        return {
-          messageId,;"
-          status: 'sent',;"
-          deliveredAt: "Date.now();"};
-      } else {`
-        throw new Error(`Email delivery failed: ${response.statusText}`);
-      }
-
-    } catch (error) {"
-      this.logger.error('Email delivery failed', error);
-      return {`
-        messageId: `failed_${Date.now()}`,;"
-        status: 'failed',;"
-        errorMessage: error instanceof Error ? error.message : 'Unknown error';};
+      return {
+        messageId,
+        status: 'sent',
+        deliveredAt: Date.now()
+      };
+    } catch (error) {
+      return {
+        messageId: '',
+        status: 'failed',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
-}"`/
+
+  private async updateInvoiceStatus(
+    invoiceId: string,
+    status: 'sent' | 'failed',
+    messageId?: string,
+    errorMessage?: string
+  ): Promise<void> {
+    // This would typically update a database
+    this.logger.info('Invoice status updated', {
+      invoiceId,
+      status,
+      messageId,
+      errorMessage
+    });
+  }
+
+  private async updateReminderCount(invoiceId: string): Promise<void> {
+    // This would typically update a database
+    this.logger.info('Reminder count updated', {
+      invoiceId
+    });
+  }
+
+  private interpolateTemplate(template: string, variables: Record<string, string>): string {
+    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+      return variables[key] || match;
+    });
+  }
+
+  private getDefaultHTMLTemplate(): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Invoice {{invoiceNumber}}</title>
+      </head>
+      <body>
+        <h1>Invoice {{invoiceNumber}}</h1>
+        <p>Dear {{customerName}},</p>
+        <p>Thank you for your business! Please find your invoice below:</p>
+        <p><strong>Amount Due:</strong> {{totalAmount}}</p>
+        <p><strong>Due Date:</strong> {{dueDate}}</p>
+        <p><a href="{{invoiceUrl}}">View Invoice Online</a></p>
+        <p>Best regards,<br>{{businessName}}</p>
+      </body>
+      </html>
+    `;
+  }
+
+  private getDefaultTextTemplate(): string {
+    return `
+      Invoice {{invoiceNumber}}
+      
+      Dear {{customerName}},
+      
+      Thank you for your business! Please find your invoice below:
+      
+      Amount Due: {{totalAmount}}
+      Due Date: {{dueDate}}
+      
+      View Invoice Online: {{invoiceUrl}}
+      
+      Best regards,
+      {{businessName}}
+    `;
+  }
+
+  private getReminderHTMLTemplate(): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Payment Reminder - Invoice {{invoiceNumber}}</title>
+      </head>
+      <body>
+        <h1>Payment Reminder - Invoice {{invoiceNumber}}</h1>
+        <p>Dear {{customerName}},</p>
+        <p>This is a friendly reminder that your invoice is {{daysOverdue}} days overdue.</p>
+        <p><strong>Amount Due:</strong> {{totalAmount}}</p>
+        <p><strong>Due Date:</strong> {{dueDate}}</p>
+        <p><a href="{{invoiceUrl}}">Pay Invoice Online</a></p>
+        <p>Best regards,<br>{{businessName}}</p>
+      </body>
+      </html>
+    `;
+  }
+
+  private getReminderTextTemplate(): string {
+    return `
+      Payment Reminder - Invoice {{invoiceNumber}}
+      
+      Dear {{customerName}},
+      
+      This is a friendly reminder that your invoice is {{daysOverdue}} days overdue.
+      
+      Amount Due: {{totalAmount}}
+      Due Date: {{dueDate}}
+      
+      Pay Invoice Online: {{invoiceUrl}}
+      
+      Best regards,
+      {{businessName}}
+    `;
+  }
+
+  private getPaymentConfirmationHTMLTemplate(): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Payment Confirmation - Invoice {{invoiceNumber}}</title>
+      </head>
+      <body>
+        <h1>Payment Confirmation - Invoice {{invoiceNumber}}</h1>
+        <p>Dear {{customerName}},</p>
+        <p>Thank you for your payment! We have received your payment of {{paymentAmount}} via {{paymentMethod}}.</p>
+        <p><strong>Payment Date:</strong> {{paymentDate}}</p>
+        <p><a href="{{invoiceUrl}}">View Invoice Online</a></p>
+        <p>Best regards,<br>{{businessName}}</p>
+      </body>
+      </html>
+    `;
+  }
+
+  private getPaymentConfirmationTextTemplate(): string {
+    return `
+      Payment Confirmation - Invoice {{invoiceNumber}}
+      
+      Dear {{customerName}},
+      
+      Thank you for your payment! We have received your payment of {{paymentAmount}} via {{paymentMethod}}.
+      
+      Payment Date: {{paymentDate}}
+      
+      View Invoice Online: {{invoiceUrl}}
+      
+      Best regards,
+      {{businessName}}
+    `;
+  }
+}
+

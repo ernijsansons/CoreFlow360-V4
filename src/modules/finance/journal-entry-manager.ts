@@ -1,30 +1,29 @@
-/**;
- * Journal Entry Management;
- * Double-entry bookkeeping with automatic balancing and validation;/
+/**
+ * Journal Entry Management
+ * Double-entry bookkeeping with automatic balancing and validation
  */
-;/
-import type { D1Database } from '@cloudflare/workers-types';"/
+import type { D1Database } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
 import {
-  JournalEntry,;
-  JournalLine,;
-  JournalEntryType,;
-  JournalEntryStatus,;
-  CreateJournalEntryRequest,;
-  PostJournalEntryRequest,;
-  AuditAction,;
-  ChartAccount;"/
-} from './types';"/
-import { FinanceAuditLogger } from './audit-logger';"/
-import { ChartOfAccountsManager } from './chart-of-accounts';"/
-import { CurrencyManager } from './currency-manager';"/
-import { PeriodManager } from './period-manager';"/
-import { TransactionManager } from '../agent-system/transaction-manager';"/
+  JournalEntry,
+  JournalLine,
+  JournalEntryType,
+  JournalEntryStatus,
+  CreateJournalEntryRequest,
+  PostJournalEntryRequest,
+  AuditAction,
+  ChartAccount
+} from './types';
+import { FinanceAuditLogger } from './audit-logger';
+import { ChartOfAccountsManager } from './chart-of-accounts';
+import { CurrencyManager } from './currency-manager';
+import { PeriodManager } from './period-manager';
+import { TransactionManager } from '../agent-system/transaction-manager';
 import { validateBusinessId, generateEntryNumber } from './utils';
-"/
-export // TODO: "Consider splitting JournalEntryManager into smaller", focused classes;
-class JournalEntryManager {"
-  private logger: "Logger;
+
+export // TODO: Consider splitting JournalEntryManager into smaller, focused classes
+class JournalEntryManager {
+  private logger: Logger;
   private db: D1Database;
   private auditLogger: FinanceAuditLogger;
   private chartManager: ChartOfAccountsManager;
@@ -32,11 +31,11 @@ class JournalEntryManager {"
   private periodManager: PeriodManager;
   private transactionManager: TransactionManager;
 
-  constructor(;"
-    db: D1Database",;"
-    chartManager: "ChartOfAccountsManager",;"
-    currencyManager: "CurrencyManager",;
-    periodManager: PeriodManager;
+  constructor(
+    db: D1Database,
+    chartManager: ChartOfAccountsManager,
+    currencyManager: CurrencyManager,
+    periodManager: PeriodManager
   ) {
     this.logger = new Logger();
     this.db = db;
@@ -44,772 +43,456 @@ class JournalEntryManager {"
     this.chartManager = chartManager;
     this.currencyManager = currencyManager;
     this.periodManager = periodManager;
-    this.transactionManager = new TransactionManager(db);}
-/
-  /**;
-   * Create a journal entry;/
-   */;
-  async createJournalEntry(;"
-    request: "CreateJournalEntryRequest",;"
-    createdBy: "string",;
-    businessId: string;
+    this.transactionManager = new TransactionManager(db);
+  }
+
+  /**
+   * Create a journal entry
+   */
+  async createEntry(
+    businessId: string,
+    request: CreateJournalEntryRequest,
+    userId: string
   ): Promise<JournalEntry> {
-    const validBusinessId = validateBusinessId(businessId);
-/
-    // Validate request;
-    await this.validateJournalEntryRequest(request, validBusinessId);
-/
-    // Get the appropriate period;
-    const period = await this.periodManager.getPeriodForDate(request.date, validBusinessId);
-    if (!period) {"
-      throw new Error('No accounting period found for the specified date');
-    }
-"
-    if (period.status === 'CLOSED' || period.status === 'LOCKED') {
-      throw new Error(`Cannot create entries in ${period.status.toLowerCase()} period`);
-    }
+    // Validate business ID
+    validateBusinessId(businessId);
 
-    const transactionId = await this.transactionManager.beginTransaction(validBusinessId, createdBy);
+    // Validate entry data
+    await this.validateEntryData(businessId, request);
 
-    try {
-      const now = Date.now();
-      const entryNumber = await generateEntryNumber(this.db, validBusinessId);
+    // Generate entry number
+    const entryNumber = await generateEntryNumber(businessId, this.db);
 
-      const journalEntry: JournalEntry = {`
-        id: `je_${now}_${Math.random().toString(36).substring(2, 9)}`,;
-        entryNumber,;"
-        date: "request.date",;"
-        description: "request.description",;"
-        reference: "request.reference",;"
-        type: "request.type || JournalEntryType.STANDARD",;"
-        status: "JournalEntryStatus.DRAFT",;
-        lines: [],;"
-        periodId: "period.id",;"
-        createdAt: "now",;
-        createdBy,;"
-        updatedAt: "now",;"
-        businessId: "validBusinessId;"};
-/
-      // Add journal entry operation to transaction;
-      await this.transactionManager.addOperation(transactionId, {"
-        type: 'custom',;"
-        action: 'insert',;"
-        table: 'journal_entries',;
-        data: {
-          id: journalEntry.id,;"
-          entry_number: "journalEntry.entryNumber",;"
-          date: "journalEntry.date",;"
-          description: "journalEntry.description",;"
-          reference: "journalEntry.reference",;"
-          type: "journalEntry.type",;"
-          status: "journalEntry.status",;"
-          period_id: "journalEntry.periodId",;"
-          posted_at: "null",;"
-          posted_by: "null",;"
-          created_at: "journalEntry.createdAt",;"
-          created_by: "journalEntry.createdBy",;"
-          updated_at: "journalEntry.updatedAt",;"
-          updated_by: "null",;"
-          business_id: "journalEntry.businessId",;
-          metadata: JSON.stringify(journalEntry.metadata || {});
-        }
-      });
-/
-      // Process journal lines;
-      let totalDebits = 0;
-      let totalCredits = 0;
+    // Create journal entry
+    const entry: JournalEntry = {
+      id: `je_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      businessId,
+      entryNumber,
+      type: request.type,
+      status: 'draft',
+      description: request.description,
+      reference: request.reference,
+      date: request.date,
+      lines: request.lines,
+      totalDebits: 0,
+      totalCredits: 0,
+      currency: request.currency || 'USD',
+      exchangeRate: request.exchangeRate || 1,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      createdBy: userId,
+      updatedBy: userId,
+      metadata: request.metadata || {}
+    };
 
-      for (let i = 0; i < request.lines.length; i++) {
-        const lineRequest = request.lines[i];
-/
-        // Get account details;
-        const account = await this.chartManager.getAccount(lineRequest.accountId, validBusinessId);
-        if (!account) {`
-          throw new Error(`Account ${lineRequest.accountId} not found`);
-        }
-/
-        // Validate account;
-        const validation = await this.chartManager.validateAccountForEntry(lineRequest.accountId, validBusinessId);
-        if (!validation.valid) {`
-          throw new Error(`Account validation failed: ${validation.error}`);
-        }
-/
-        // Ensure either debit or credit (but not both);
-        const debit = lineRequest.debit || 0;
-        const credit = lineRequest.credit || 0;
+    // Calculate totals
+    this.calculateTotals(entry);
 
-        if ((debit > 0 && credit > 0) || (debit === 0 && credit === 0)) {"
-          throw new Error('Each line must have either a debit or credit amount, but not both');
-        }
+    // Validate double-entry balance
+    this.validateBalance(entry);
 
-        if (debit < 0 || credit < 0) {"
-          throw new Error('Debit and credit amounts must be positive');
-        }
-/
-        // Handle currency conversion;
-        const lineCurrency = lineRequest.currency || account.currency;
-        const exchangeRate = await this.currencyManager.getExchangeRate(;
-          lineCurrency,;
-          validBusinessId,;
-          request.date;
-        );
+    // Store in database
+    await this.storeEntry(entry);
 
-        const baseCurrency = await this.currencyManager.getBaseCurrency(validBusinessId);
-        const baseDebit = debit * exchangeRate;
-        const baseCredit = credit * exchangeRate;
-
-        const journalLine: JournalLine = {`
-          id: `jl_${now}_${i}_${Math.random().toString(36).substring(2, 9)}`,;"
-          journalEntryId: "journalEntry.id",;"
-          accountId: "account.id",;"
-          accountCode: "account.code",;"
-          accountName: "account.name",;
-          debit,;
-          credit,;"
-          currency: "lineCurrency",;
-          exchangeRate,;
-          baseDebit,;
-          baseCredit,;"
-          description: "lineRequest.description",;"
-          departmentId: "lineRequest.departmentId",;"
-          projectId: "lineRequest.projectId",;
-          metadata: {}
-        };
-
-        journalEntry.lines.push(journalLine);
-/
-        // Add journal line operation to transaction;
-        await this.transactionManager.addOperation(transactionId, {"
-          type: 'custom',;"
-          action: 'insert',;"
-          table: 'journal_lines',;
-          data: {
-            id: journalLine.id,;"
-            journal_entry_id: "journalLine.journalEntryId",;"
-            account_id: "journalLine.accountId",;"
-            account_code: "journalLine.accountCode",;"
-            account_name: "journalLine.accountName",;"
-            debit: "journalLine.debit",;"
-            credit: "journalLine.credit",;"
-            currency: "journalLine.currency",;"
-            exchange_rate: "journalLine.exchangeRate",;"
-            base_debit: "journalLine.baseDebit",;"
-            base_credit: "journalLine.baseCredit",;"
-            description: "journalLine.description",;"
-            department_id: "journalLine.departmentId",;"
-            project_id: "journalLine.projectId",;
-            metadata: JSON.stringify(journalLine.metadata || {});
-          }
-        });
-
-        totalDebits += baseDebit;
-        totalCredits += baseCredit;
+    // Log audit trail
+    await this.auditLogger.log({
+      businessId,
+      action: 'CREATE_ENTRY',
+      entityType: 'journal_entry',
+      entityId: entry.id,
+      userId,
+      details: {
+        entryNumber: entry.entryNumber,
+        type: entry.type,
+        description: entry.description
       }
-/
-      // Validate the accounting equation (debits = credits);
-      const difference = Math.abs(totalDebits - totalCredits);/
-      if (difference > 0.01) { // Allow for minor rounding differences;
-        throw;`
-  new Error(`Journal entry is not balanced. Debits: ${totalDebits.toFixed(2)}, Credits: ${totalCredits.toFixed(2)}`);
-      }
-/
-      // Commit the transaction;
-      await this.transactionManager.commitTransaction(transactionId);
+    });
 
-      await this.auditLogger.logAction(;"
-        'journal',;
-        journalEntry.id,;
-        AuditAction.CREATE,;
-        validBusinessId,;
-        createdBy,;
-        { journalEntry }
-      );
-"
-      this.logger.info('Journal entry created', {"
-        journalEntryId: "journalEntry.id",;"
-        entryNumber: "journalEntry.entryNumber",;
-        totalDebits,;
-        totalCredits;
-      });
-
-      return journalEntry;
-
-    } catch (error) {"
-      await this.transactionManager.rollbackTransaction(transactionId, 'Journal entry creation failed');"
-      this.logger.error('Failed to create journal entry', error, { businessId });
-      throw error;
-    }
+    this.logger.info('Journal entry created', { entryId: entry.id, entryNumber: entry.entryNumber });
+    return entry;
   }
-/
-  /**;
-   * Post a journal entry to the general ledger;/
-   */;
-  async postJournalEntry(;"
-    request: "PostJournalEntryRequest",;"
-    postedBy: "string",;
-    businessId: string;
-  ): Promise<void> {
-    const validBusinessId = validateBusinessId(businessId);
 
-    const journalEntry = await this.getJournalEntry(request.journalEntryId, validBusinessId);
-    if (!journalEntry) {`
-      throw new Error(`Journal entry ${request.journalEntryId} not found`);
-    }
-
-    if (journalEntry.status !== JournalEntryStatus.DRAFT && journalEntry.status !== JournalEntryStatus.APPROVED) {`
-      throw new Error(`Cannot post journal entry with status ${journalEntry.status}`);
-    }
-/
-    // Check period status;
-    const period = await this.periodManager.getPeriod(journalEntry.periodId, validBusinessId);"
-    if (!period || period.status === 'CLOSED' || period.status === 'LOCKED') {"
-      throw new Error('Cannot post to closed or locked period');
-    }
-
-    const transactionId = await this.transactionManager.beginTransaction(validBusinessId, postedBy);
-
-    try {
-      const postDate = request.postDate || Date.now();
-/
-      // Update journal entry status;
-      await this.transactionManager.addOperation(transactionId, {"
-        type: 'custom',;"
-        action: 'update',;"
-        table: 'journal_entries',;
-        data: {
-          status: JournalEntryStatus.POSTED,;"
-          posted_at: "postDate",;"
-          posted_by: "postedBy",;"
-          updated_at: "Date.now();"}
-      });
-/
-      // Create ledger transactions for each line;
-      for (const line of journalEntry.lines) {
-        if (line.debit > 0) {
-          await this.createLedgerTransaction(;
-            transactionId,;
-            line,;
-            journalEntry,;"
-            'debit',;
-            line.debit,;
-            line.baseDebit;
-          );
-        }
-        if (line.credit > 0) {
-          await this.createLedgerTransaction(;
-            transactionId,;
-            line,;
-            journalEntry,;"
-            'credit',;
-            line.credit,;
-            line.baseCredit;
-          );
-        }
-      }
-/
-      // Update general ledger balances;
-      await this.updateGeneralLedgerBalances(transactionId, journalEntry);
-
-      await this.transactionManager.commitTransaction(transactionId);
-
-      await this.auditLogger.logAction(;"
-        'journal',;
-        journalEntry.id,;
-        AuditAction.POST,;
-        validBusinessId,;
-        postedBy,;
-        { journalEntry, postDate }
-      );
-"
-      this.logger.info('Journal entry posted', {"
-        journalEntryId: "journalEntry.id",;"
-        entryNumber: "journalEntry.entryNumber",;
-        postedBy;
-      });
-
-    } catch (error) {"
-      await this.transactionManager.rollbackTransaction(transactionId, 'Journal entry posting failed');"
-      this.logger.error('Failed to post journal entry', error, { journalEntryId: "request.journalEntryId"});
-      throw error;
-    }
-  }
-/
-  /**;
-   * Reverse a journal entry;/
-   */;
-  async reverseJournalEntry(;"
-    journalEntryId: "string",;"
-    reversalDate: "number",;"
-    reason: "string",;"
-    reversedBy: "string",;
-    businessId: string;
+  /**
+   * Post a journal entry
+   */
+  async postEntry(
+    businessId: string,
+    entryId: string,
+    userId: string
   ): Promise<JournalEntry> {
-    const validBusinessId = validateBusinessId(businessId);
-
-    const originalEntry = await this.getJournalEntry(journalEntryId, validBusinessId);
-    if (!originalEntry) {`
-      throw new Error(`Journal entry ${journalEntryId} not found`);
+    // Get entry
+    const entry = await this.getEntry(businessId, entryId);
+    if (!entry) {
+      throw new Error('Journal entry not found');
     }
 
-    if (originalEntry.status !== JournalEntryStatus.POSTED) {"
-      throw new Error('Can only reverse posted journal entries');
+    if (entry.status !== 'draft') {
+      throw new Error('Only draft entries can be posted');
     }
 
-    if (originalEntry.reversedBy) {"
-      throw new Error('Journal entry has already been reversed');
-    }
-/
-    // Create reversal entry;
-    const reversalLines = originalEntry.lines.map(line => ({"
-      accountId: "line.accountId",;"/
-      debit: "line.credit", // Swap debits and credits;"
-      credit: "line.debit",;"
-      currency: "line.currency",;"`
-      description: `Reversal: ${line.description || ''}`;
-    }));
+    // Validate posting requirements
+    await this.validatePostingRequirements(businessId, entry);
 
-    const reversalEntry = await this.createJournalEntry(;
-      {"
-        date: "reversalDate",;`
-        description: `Reversal of ${originalEntry.entryNumber}: ${reason}`,;`
-        reference: `REV-${originalEntry.entryNumber}`,;"
-        type: "JournalEntryType.REVERSING",;"
-        lines: "reversalLines;"},;
-      reversedBy,;
-      validBusinessId;
-    );
-/
-    // Auto-post the reversal;
-    await this.postJournalEntry(;"
-      { journalEntryId: "reversalEntry.id"},;
-      reversedBy,;
-      validBusinessId;
-    );
-/
-    // Update original entry to mark as reversed;`
-    await this.db.prepare(`;
-      UPDATE journal_entries;
-      SET reversed_by = ?, updated_at = ?;
-      WHERE id = ? AND business_id = ?;`
-    `).bind(reversalEntry.id, Date.now(), journalEntryId, validBusinessId).run();
-/
-    // Update reversal entry to reference original;`
-    await this.db.prepare(`;
-      UPDATE journal_entries;
-      SET reversal_of = ?, updated_at = ?;
-      WHERE id = ? AND business_id = ?;`
-    `).bind(journalEntryId, Date.now(), reversalEntry.id, validBusinessId).run();
+    // Update entry status
+    entry.status = 'posted';
+    entry.postedAt = new Date();
+    entry.postedBy = userId;
+    entry.updatedAt = new Date();
+    entry.updatedBy = userId;
 
-    await this.auditLogger.logAction(;"
-      'journal',;
-      journalEntryId,;
-      AuditAction.REVERSE,;
-      validBusinessId,;
-      reversedBy,;
-      { originalEntry, reversalEntry, reason }
-    );
+    // Store updated entry
+    await this.storeEntry(entry);
 
-    return reversalEntry;
+    // Create ledger entries
+    await this.createLedgerEntries(businessId, entry);
+
+    // Log audit trail
+    await this.auditLogger.log({
+      businessId,
+      action: 'POST_ENTRY',
+      entityType: 'journal_entry',
+      entityId: entry.id,
+      userId,
+      details: {
+        entryNumber: entry.entryNumber,
+        totalDebits: entry.totalDebits,
+        totalCredits: entry.totalCredits
+      }
+    });
+
+    this.logger.info('Journal entry posted', { entryId: entry.id, entryNumber: entry.entryNumber });
+    return entry;
   }
-/
-  /**;
-   * Get journal entry by ID;/
-   */;"
-  async getJournalEntry(journalEntryId: "string", businessId: string): Promise<JournalEntry | null> {
-    const validBusinessId = validateBusinessId(businessId);
-`
-    const entryResult = await this.db.prepare(`;
-      SELECT * FROM journal_entries;
-      WHERE id = ? AND business_id = ?;`
-    `).bind(journalEntryId, validBusinessId).first();
 
-    if (!entryResult) {
-      return null;
-    }
-`
-    const linesResult = await this.db.prepare(`;
-      SELECT jl.* FROM journal_lines jl;
-      JOIN journal_entries je ON je.id = jl.journal_entry_id;
-      WHERE jl.journal_entry_id = ? AND je.business_id = ?;
-      ORDER BY jl.id ASC;`
-    `).bind(journalEntryId, validBusinessId).all();
+  /**
+   * Get a journal entry
+   */
+  async getEntry(businessId: string, entryId: string): Promise<JournalEntry | null> {
+    const result = await this.db.prepare(`
+      SELECT * FROM journal_entries
+      WHERE id = ? AND business_id = ?
+    `).bind(entryId, businessId).first();
 
-    const journalEntry = this.mapToJournalEntry(entryResult);
-    journalEntry.lines = (linesResult.results || []).map(row => this.mapToJournalLine(row));
+    if (!result) return null;
 
-    return journalEntry;
+    return this.mapRowToEntry(result);
   }
-/
-  /**;
-   * Get journal entries with filters;/
-   */;
-  async getJournalEntries(;"
-    businessId: "string",;
-    options?: {
-      periodId?: string;
+
+  /**
+   * Get journal entries
+   */
+  async getEntries(
+    businessId: string,
+    filters: {
       status?: JournalEntryStatus;
       type?: JournalEntryType;
-      accountId?: string;
-      startDate?: number;
-      endDate?: number;
+      dateFrom?: Date;
+      dateTo?: Date;
       limit?: number;
       offset?: number;
-    }
-  ): Promise<{ entries: JournalEntry[]; total: number}> {
-    const validBusinessId = validateBusinessId(businessId);
-"
-    let whereConditions = ['je.business_id = ?'];
-    let params: any[] = [validBusinessId];
+    } = {}
+  ): Promise<JournalEntry[]> {
+    let query = 'SELECT * FROM journal_entries WHERE business_id = ?';
+    const params: any[] = [businessId];
 
-    if (options?.periodId) {"
-      whereConditions.push('je.period_id = ?');
-      params.push(options.periodId);}
-
-    if (options?.status) {"
-      whereConditions.push('je.status = ?');
-      params.push(options.status);
+    if (filters.status) {
+      query += ' AND status = ?';
+      params.push(filters.status);
     }
 
-    if (options?.type) {"
-      whereConditions.push('je.type = ?');
-      params.push(options.type);
+    if (filters.type) {
+      query += ' AND type = ?';
+      params.push(filters.type);
     }
 
-    if (options?.startDate) {"
-      whereConditions.push('je.date >= ?');
-      params.push(options.startDate);
+    if (filters.dateFrom) {
+      query += ' AND date >= ?';
+      params.push(filters.dateFrom.toISOString());
     }
 
-    if (options?.endDate) {"
-      whereConditions.push('je.date <= ?');
-      params.push(options.endDate);
+    if (filters.dateTo) {
+      query += ' AND date <= ?';
+      params.push(filters.dateTo.toISOString());
     }
 
-    if (options?.accountId) {"
-      whereConditions.push('EXISTS (SELECT 1 FROM;"
-  journal_lines jl WHERE jl.journal_entry_id = je.id AND jl.account_id = ?)');
-      params.push(options.accountId);
-    }
-"
-    const whereClause = whereConditions.join(' AND ');
-/
-    // Get total count;`
-    const countResult = await this.db.prepare(`;
-      SELECT COUNT(*) as count;
-      FROM journal_entries je;
-      WHERE ${whereClause}`
-    `).bind(...params).first();
+    query += ' ORDER BY date DESC, created_at DESC';
 
-    const total = (countResult?.count as number) || 0;
-/
-    // Get entries;`
-    let query = `;
-      SELECT je.* FROM journal_entries je;
-      WHERE ${whereClause}
-      ORDER BY je.date DESC, je.entry_number DESC;`
-    `;
-
-    if (options?.limit) {`
-      query += ` LIMIT ${options.limit}`;
-      if (options?.offset) {`
-        query += ` OFFSET ${options.offset}`;
-      }
-    }
-"/
-    // PERFORMANCE OPTIMIZATION: "Fix N+1 query by using a single JOIN query;`
-    const entriesWithLinesResult = await this.db.prepare(`;
-      SELECT;"
-        je.*",;
-        jl.id as line_id,;
-        jl.account_id,;
-        jl.account_code,;
-        jl.account_name,;
-        jl.debit,;
-        jl.credit,;
-        jl.currency,;
-        jl.exchange_rate,;
-        jl.base_debit,;
-        jl.base_credit,;
-        jl.description as line_description,;
-        jl.department_id,;
-        jl.project_id,;
-        jl.metadata as line_metadata;
-      FROM journal_entries je;
-      LEFT JOIN journal_lines jl ON jl.journal_entry_id = je.id;
-      WHERE ${whereClause}
-      ORDER BY je.date DESC, je.entry_number DESC, jl.id ASC;"`
-      ${options?.limit ? `LIMIT ${options.limit * 50}` : ''} -- Assume avg 10 lines per entry;`
-    `).bind(...params).all();
-/
-    // Group results by journal entry;
-    const entriesMap = new Map<string, JournalEntry>();
-
-    for (const row of entriesWithLinesResult.results || []) {
-      let entry = entriesMap.get(row.id);
-
-      if (!entry) {
-        entry = this.mapToJournalEntry(row);
-        entry.lines = [];
-        entriesMap.set(row.id, entry);
-      }
-/
-      // Add line if it exists;
-      if (row.line_id) {
-        const line: JournalLine = {
-          id: row.line_id,;"
-          journalEntryId: "row.id",;"
-          accountId: "row.account_id",;"
-          accountCode: "row.account_code",;"
-          accountName: "row.account_name",;"
-          debit: "row.debit",;"
-          credit: "row.credit",;"
-          currency: "row.currency",;"
-          exchangeRate: "row.exchange_rate",;"
-          baseDebit: "row.base_debit",;"
-          baseCredit: "row.base_credit",;"
-          description: "row.line_description || undefined",;"
-          departmentId: "row.department_id || undefined",;"
-          projectId: "row.project_id || undefined",;
-          metadata: row.line_metadata ? JSON.parse(row.line_metadata) : {}
-        };
-        entry.lines.push(line);
-      }
+    if (filters.limit) {
+      query += ' LIMIT ?';
+      params.push(filters.limit);
     }
 
-    const entries = Array.from(entriesMap.values());
+    if (filters.offset) {
+      query += ' OFFSET ?';
+      params.push(filters.offset);
+    }
 
-    return { entries, total };
+    const result = await this.db.prepare(query).bind(...params).all();
+    return result.results.map(row => this.mapRowToEntry(row));
   }
-/
-  /**;
-   * Void a journal entry;/
-   */;
-  async voidJournalEntry(;"
-    journalEntryId: "string",;"
-    reason: "string",;"
-    voidedBy: "string",;
-    businessId: string;
-  ): Promise<void> {
-    const validBusinessId = validateBusinessId(businessId);
 
-    const journalEntry = await this.getJournalEntry(journalEntryId, validBusinessId);
-    if (!journalEntry) {`
-      throw new Error(`Journal entry ${journalEntryId} not found`);
+  /**
+   * Update a journal entry
+   */
+  async updateEntry(
+    businessId: string,
+    entryId: string,
+    updates: Partial<CreateJournalEntryRequest>,
+    userId: string
+  ): Promise<JournalEntry> {
+    const entry = await this.getEntry(businessId, entryId);
+    if (!entry) {
+      throw new Error('Journal entry not found');
     }
 
-    if (journalEntry.status === JournalEntryStatus.POSTED) {"
-      throw new Error('Cannot void posted journal entry. Use reversal instead.');
+    if (entry.status === 'posted') {
+      throw new Error('Posted entries cannot be modified');
     }
 
-    if (journalEntry.status === JournalEntryStatus.VOIDED) {"
-      throw new Error('Journal entry is already voided');
-    }
-`
-    await this.db.prepare(`;
-      UPDATE journal_entries;
-      SET status = ?, updated_at = ?, updated_by = ?,;
-          metadata = json_patch(metadata, ?);
-      WHERE id = ? AND business_id = ?;`
-    `).bind(;
-      JournalEntryStatus.VOIDED,;
-      Date.now(),;
-      voidedBy,;"
-      JSON.stringify({ voidReason: "reason", voidedAt: "Date.now()"}),;
-      journalEntryId,;
-      validBusinessId;
-    ).run();
+    // Update entry fields
+    if (updates.description !== undefined) entry.description = updates.description;
+    if (updates.reference !== undefined) entry.reference = updates.reference;
+    if (updates.date !== undefined) entry.date = updates.date;
+    if (updates.lines !== undefined) entry.lines = updates.lines;
+    if (updates.currency !== undefined) entry.currency = updates.currency;
+    if (updates.exchangeRate !== undefined) entry.exchangeRate = updates.exchangeRate;
+    if (updates.metadata !== undefined) entry.metadata = updates.metadata;
 
-    await this.auditLogger.logAction(;"
-      'journal',;
-      journalEntryId,;
-      AuditAction.VOID,;
-      validBusinessId,;
-      voidedBy,;
-      { journalEntry, reason }
-    );
-"
-    this.logger.info('Journal entry voided', { journalEntryId, reason });
-  }
-/
-  /**;
-   * Create ledger transaction;/
-   */;
-  private async createLedgerTransaction(;"
-    transactionId: "string",;"
-    line: "JournalLine",;"
-    journalEntry: "JournalEntry",;"
-    type: 'debit' | 'credit',;"
-    amount: "number",;
-    baseAmount: number;
-  ): Promise<void> {
-    const now = Date.now();
-/
-    // Get current account balance;`
-    const balanceResult = await this.db.prepare(`;
-      SELECT balance, base_balance;
-      FROM ledger_transactions;
-      WHERE account_id = ? AND business_id = ?;
-      ORDER BY date DESC, id DESC;
-      LIMIT 1;`
-    `).bind(line.accountId, journalEntry.businessId).first();
+    entry.updatedAt = new Date();
+    entry.updatedBy = userId;
 
-    const currentBalance = (balanceResult?.balance as number) || 0;
-    const currentBaseBalance = (balanceResult?.base_balance as number) || 0;
-/
-    // Calculate new balance;
-    const account = await this.chartManager.getAccount(line.accountId, journalEntry.businessId);
-    if (!account) {`
-      throw new Error(`Account ${line.accountId} not found`);
-    }
+    // Recalculate totals
+    this.calculateTotals(entry);
 
-    let newBalance = currentBalance;
-    let newBaseBalance = currentBaseBalance;
-"
-    if (account.normalBalance === 'debit') {"
-      newBalance += type === 'debit' ? amount: -amount;"
-      newBaseBalance += type === 'debit' ? baseAmount : -baseAmount;} else {"
-      newBalance += type === 'credit' ? amount: -amount;"
-      newBaseBalance += type === 'credit' ? baseAmount : -baseAmount;}
+    // Validate balance
+    this.validateBalance(entry);
 
-    await this.transactionManager.addOperation(transactionId, {"
-      type: 'custom',;"
-      action: 'insert',;"
-      table: 'ledger_transactions',;
-      data: {`
-        id: `lt_${now}_${Math.random().toString(36).substring(2, 9)}`,;"
-        journal_entry_id: "journalEntry.id",;"
-        account_id: "line.accountId",;"
-        date: "journalEntry.date",;"
-        debit: type === 'debit' ? amount : 0,;"
-        credit: type === 'credit' ? amount : 0,;"
-        balance: "newBalance",;"
-        currency: "line.currency",;"
-        exchange_rate: "line.exchangeRate",;"
-        base_debit: type === 'debit' ? baseAmount : 0,;"
-        base_credit: type === 'credit' ? baseAmount : 0,;"
-        base_balance: "newBaseBalance",;"
-        description: "line.description || journalEntry.description",;"
-        reference: "journalEntry.reference",;"
-        reconciled: "0",;"
-        business_id: "journalEntry.businessId;"}
+    // Store updated entry
+    await this.storeEntry(entry);
+
+    // Log audit trail
+    await this.auditLogger.log({
+      businessId,
+      action: 'UPDATE_ENTRY',
+      entityType: 'journal_entry',
+      entityId: entry.id,
+      userId,
+      details: {
+        entryNumber: entry.entryNumber,
+        changes: updates
+      }
     });
+
+    this.logger.info('Journal entry updated', { entryId: entry.id, entryNumber: entry.entryNumber });
+    return entry;
   }
-/
-  /**;
-   * Update general ledger balances;/
-   */;
-  private async updateGeneralLedgerBalances(;"
-    transactionId: "string",;
-    journalEntry: JournalEntry;
-  ): Promise<void> {/
-    // Group lines by account;"
-    const accountTotals = new Map<string, { debits: "number; credits: number"}>();
 
-    for (const line of journalEntry.lines) {"
-      const existing = accountTotals.get(line.accountId) || { debits: "0", credits: "0"};
-      existing.debits += line.baseDebit;
-      existing.credits += line.baseCredit;
-      accountTotals.set(line.accountId, existing);
+  /**
+   * Delete a journal entry
+   */
+  async deleteEntry(businessId: string, entryId: string, userId: string): Promise<boolean> {
+    const entry = await this.getEntry(businessId, entryId);
+    if (!entry) {
+      return false;
     }
-"/
-    // Update each account's general ledger;
-    for (const [accountId, totals] of accountTotals) {
-      await this.transactionManager.addOperation(transactionId, {"
-        type: 'custom',;"
-        action: 'update',;"
-        table: 'general_ledger',;
-        data: {
-          debits: totals.debits,;"
-          credits: "totals.credits",;"
-          last_transaction_date: "journalEntry.date;"}
-      });
+
+    if (entry.status === 'posted') {
+      throw new Error('Posted entries cannot be deleted');
     }
+
+    // Delete from database
+    await this.db.prepare(`
+      DELETE FROM journal_entries
+      WHERE id = ? AND business_id = ?
+    `).bind(entryId, businessId).run();
+
+    // Log audit trail
+    await this.auditLogger.log({
+      businessId,
+      action: 'DELETE_ENTRY',
+      entityType: 'journal_entry',
+      entityId: entry.id,
+      userId,
+      details: {
+        entryNumber: entry.entryNumber
+      }
+    });
+
+    this.logger.info('Journal entry deleted', { entryId: entry.id, entryNumber: entry.entryNumber });
+    return true;
   }
-/
-  /**;
-   * Validate journal entry request;/
-   */;
-  private async validateJournalEntryRequest(;"
-    request: "CreateJournalEntryRequest",;
-    businessId: string;
-  ): Promise<void> {
-    if (!request.description || request.description.trim().length === 0) {"
-      throw new Error('Description is required');}
 
-    if (!request.lines || request.lines.length === 0) {"
-      throw new Error('At least one journal line is required');
+  /**
+   * Validate entry data
+   */
+  private async validateEntryData(businessId: string, request: CreateJournalEntryRequest): Promise<void> {
+    if (!request.lines || request.lines.length === 0) {
+      throw new Error('Journal entry must have at least one line');
     }
 
-    if (request.lines.length === 1) {"
-      throw new Error('At least two journal lines are required for double-entry');
+    if (!request.description || request.description.trim() === '') {
+      throw new Error('Journal entry must have a description');
     }
-/
-    // Validate each line;
+
+    if (!request.date) {
+      throw new Error('Journal entry must have a date');
+    }
+
+    // Validate each line
     for (const line of request.lines) {
-      if (!line.accountId) {"
-        throw new Error('Account ID is required for each line');
+      if (!line.accountId) {
+        throw new Error('Journal line must have an account ID');
       }
 
-      const debit = line.debit || 0;
-      const credit = line.credit || 0;
-
-      if ((debit > 0 && credit > 0) || (debit === 0 && credit === 0)) {"
-        throw new Error('Each line must have either a debit or credit amount, but not both');
+      if (!line.debitAmount && !line.creditAmount) {
+        throw new Error('Journal line must have either debit or credit amount');
       }
 
-      if (debit < 0 || credit < 0) {"
-        throw new Error('Amounts must be positive');
+      if (line.debitAmount && line.creditAmount) {
+        throw new Error('Journal line cannot have both debit and credit amounts');
+      }
+
+      if (line.debitAmount && line.debitAmount <= 0) {
+        throw new Error('Debit amount must be positive');
+      }
+
+      if (line.creditAmount && line.creditAmount <= 0) {
+        throw new Error('Credit amount must be positive');
+      }
+
+      // Validate account exists
+      const account = await this.chartManager.getAccount(businessId, line.accountId);
+      if (!account) {
+        throw new Error(`Account ${line.accountId} not found`);
       }
     }
   }
-/
-  /**;
-   * Map database row to JournalEntry;/
-   */;
-  private mapToJournalEntry(row: any): JournalEntry {
+
+  /**
+   * Calculate totals
+   */
+  private calculateTotals(entry: JournalEntry): void {
+    entry.totalDebits = entry.lines.reduce((sum, line) => sum + (line.debitAmount || 0), 0);
+    entry.totalCredits = entry.lines.reduce((sum, line) => sum + (line.creditAmount || 0), 0);
+  }
+
+  /**
+   * Validate double-entry balance
+   */
+  private validateBalance(entry: JournalEntry): void {
+    if (Math.abs(entry.totalDebits - entry.totalCredits) > 0.01) {
+      throw new Error(`Journal entry is not balanced. Debits: ${entry.totalDebits}, Credits: ${entry.totalCredits}`);
+    }
+  }
+
+  /**
+   * Validate posting requirements
+   */
+  private async validatePostingRequirements(businessId: string, entry: JournalEntry): Promise<void> {
+    // Check if period is open
+    const period = await this.periodManager.getPeriod(businessId, entry.date);
+    if (!period || !period.isOpen) {
+      throw new Error('Cannot post entry to closed period');
+    }
+
+    // Check if currency is valid
+    if (entry.currency !== 'USD') {
+      const rate = await this.currencyManager.getExchangeRate(entry.currency, entry.date);
+      if (!rate) {
+        throw new Error(`Exchange rate not available for ${entry.currency}`);
+      }
+    }
+  }
+
+  /**
+   * Create ledger entries
+   */
+  private async createLedgerEntries(businessId: string, entry: JournalEntry): Promise<void> {
+    for (const line of entry.lines) {
+      await this.db.prepare(`
+        INSERT INTO ledger_entries (
+          id, business_id, account_id, journal_entry_id, date, description,
+          debit_amount, credit_amount, balance, currency, exchange_rate,
+          created_at, created_by
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        `le_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        businessId,
+        line.accountId,
+        entry.id,
+        entry.date.toISOString(),
+        line.description || entry.description,
+        line.debitAmount || 0,
+        line.creditAmount || 0,
+        line.debitAmount || -line.creditAmount!,
+        entry.currency,
+        entry.exchangeRate,
+        new Date().toISOString(),
+        entry.postedBy
+      ).run();
+    }
+  }
+
+  /**
+   * Store entry in database
+   */
+  private async storeEntry(entry: JournalEntry): Promise<void> {
+    await this.db.prepare(`
+      INSERT OR REPLACE INTO journal_entries (
+        id, business_id, entry_number, type, status, description, reference,
+        date, lines, total_debits, total_credits, currency, exchange_rate,
+        created_at, updated_at, created_by, updated_by, posted_at, posted_by, metadata
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      entry.id,
+      entry.businessId,
+      entry.entryNumber,
+      entry.type,
+      entry.status,
+      entry.description,
+      entry.reference,
+      entry.date.toISOString(),
+      JSON.stringify(entry.lines),
+      entry.totalDebits,
+      entry.totalCredits,
+      entry.currency,
+      entry.exchangeRate,
+      entry.createdAt.toISOString(),
+      entry.updatedAt.toISOString(),
+      entry.createdBy,
+      entry.updatedBy,
+      entry.postedAt?.toISOString(),
+      entry.postedBy,
+      JSON.stringify(entry.metadata)
+    ).run();
+  }
+
+  /**
+   * Map database row to JournalEntry
+   */
+  private mapRowToEntry(row: any): JournalEntry {
     return {
-      id: row.id,;"
-      entryNumber: "row.entry_number",;"
-      date: "row.date",;"
-      description: "row.description",;"
-      reference: "row.reference || undefined",;"
-      type: "row.type",;"
-      status: "row.status",;/
-      lines: [], // Will be populated separately;"
-      reversalOf: "row.reversal_of || undefined",;"
-      reversedBy: "row.reversed_by || undefined",;"
-      periodId: "row.period_id",;"
-      postedAt: "row.posted_at || undefined",;"
-      postedBy: "row.posted_by || undefined",;"
-      createdAt: "row.created_at",;"
-      createdBy: "row.created_by",;"
-      updatedAt: "row.updated_at",;"
-      updatedBy: "row.updated_by || undefined",;"
-      businessId: "row.business_id",;
-      metadata: row.metadata ? JSON.parse(row.metadata) : {}
+      id: row.id,
+      businessId: row.business_id,
+      entryNumber: row.entry_number,
+      type: row.type,
+      status: row.status,
+      description: row.description,
+      reference: row.reference,
+      date: new Date(row.date),
+      lines: JSON.parse(row.lines),
+      totalDebits: row.total_debits,
+      totalCredits: row.total_credits,
+      currency: row.currency,
+      exchangeRate: row.exchange_rate,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+      createdBy: row.created_by,
+      updatedBy: row.updated_by,
+      postedAt: row.posted_at ? new Date(row.posted_at) : undefined,
+      postedBy: row.posted_by,
+      metadata: JSON.parse(row.metadata || '{}')
     };
   }
-/
-  /**;
-   * Map database row to JournalLine;/
-   */;
-  private mapToJournalLine(row: any): JournalLine {
-    return {
-      id: row.id,;"
-      journalEntryId: "row.journal_entry_id",;"
-      accountId: "row.account_id",;"
-      accountCode: "row.account_code",;"
-      accountName: "row.account_name",;"
-      debit: "row.debit",;"
-      credit: "row.credit",;"
-      currency: "row.currency",;"
-      exchangeRate: "row.exchange_rate",;"
-      baseDebit: "row.base_debit",;"
-      baseCredit: "row.base_credit",;"
-      description: "row.description || undefined",;"
-      departmentId: "row.department_id || undefined",;"
-      projectId: "row.project_id || undefined",;
-      metadata: row.metadata ? JSON.parse(row.metadata) : {}
-    };
-  }
-}"`/
+}
+

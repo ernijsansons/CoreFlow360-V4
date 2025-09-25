@@ -7,8 +7,8 @@ import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader } from '../ui/card'
 import { Button } from '../ui/button'
-import { Badge } from '../ui/Badge'
-import { Modal, ConfirmModal } from '../ui/Modal'
+import { Badge } from '../ui/badge'
+import { ConfirmModal } from '../ui/Modal'
 import {
   Download,
   Send,

@@ -1,0 +1,278 @@
+# Artillery Load Testing Configuration
+# Comprehensive API performance testing for CoreFlow360 V4
+
+config:
+  target: "http://localhost:8787"
+  phases:
+    # Warm-up phase
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm-up"
+    
+    # Ramp-up phase
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 50
+      name: "Ramp-up load"
+    
+    # Sustained load phase
+    - duration: 180
+      arrivalRate: 50
+      name: "Sustained load"
+    
+    # Peak load phase
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 100
+      name: "Peak load"
+    
+    # Cool-down phase
+    - duration: 30
+      arrivalRate: 100
+      rampTo: 5
+      name: "Cool-down"
+  
+  # Global configuration
+  timeout: 30
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      User-Agent: "Artillery Load Test"
+  
+  # Performance SLA definitions
+  ensure:
+    # Response time SLAs
+    p95: 200  # 95th percentile should be under 200ms
+    p99: 500  # 99th percentile should be under 500ms
+    maxErrorRate: 1  # Error rate should be under 1%
+    
+  # Custom metrics
+  metrics:
+    - name: "business_operations_latency"
+      unit: "ms"
+    - name: "database_query_time"
+      unit: "ms"
+    - name: "cache_hit_rate"
+      unit: "percent"
+
+# Test data generators
+payload:
+  # Test business IDs
+  businessIds:
+    - "biz_test_001"
+    - "biz_test_002" 
+    - "biz_test_003"
+    - "biz_test_004"
+    - "biz_test_005"
+  
+  # Test user IDs
+  userIds:
+    - "user_test_001"
+    - "user_test_002"
+    - "user_test_003"
+    - "user_test_004"
+    - "user_test_005"
+  
+  # Sample financial report parameters
+  reportParams:
+    - type: "PROFIT_AND_LOSS"
+      startDate: "2024-01-01"
+      endDate: "2024-03-31"
+    - type: "BALANCE_SHEET"
+      asOfDate: "2024-03-31"
+    - type: "CASH_FLOW"
+      startDate: "2024-01-01"
+      endDate: "2024-03-31"
+
+scenarios:
+  # === CORE API PERFORMANCE TESTS ===
+  
+  - name: "Health Check Performance"
+    weight: 10
+    flow:
+      - get:
+          url: "/health"
+          expect:
+            - statusCode: 200
+            - contentType: "application/json"
+            - hasProperty: "status"
+          capture:
+            - header: "x-response-time"
+              as: "health_response_time"
+      
+  - name: "Authentication Performance"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "test@coreflow360.com"
+            password: "TestPassword123!"
+          expect:
+            - statusCode: [200, 401]  # Allow both success and auth failure
+          capture:
+            - json: "$.token"
+              as: "auth_token"
+            - header: "x-response-time"
+              as: "auth_response_time"
+
+  # === FINANCIAL REPORTING PERFORMANCE ===
+  
+  - name: "Financial Reports API Performance"
+    weight: 25
+    flow:
+      # List reports performance
+      - get:
+          url: "/api/v1/finance/reports"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+          qs:
+            businessId: "{{ $randomChoice(businessIds) }}"
+            limit: 20
+          expect:
+            - statusCode: [200, 401, 403]
+          capture:
+            - header: "x-response-time"
+              as: "list_reports_time"
+      
+      # Generate report performance (async)
+      - post:
+          url: "/api/v1/finance/reports/generate"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+          json:
+            businessId: "{{ $randomChoice(businessIds) }}"
+            type: "{{ $randomChoice(reportParams.type) }}"
+            parameters:
+              startDate: "{{ $randomChoice(reportParams.startDate) }}"
+              endDate: "{{ $randomChoice(reportParams.endDate) }}"
+            saveToHistory: true
+          expect:
+            - statusCode: [200, 202, 401, 403, 429]  # Allow rate limiting
+          capture:
+            - json: "$.reportId"
+              as: "report_id"
+            - header: "x-response-time"  
+              as: "generate_report_time"
+
+  # === AGENT SYSTEM PERFORMANCE ===
+  
+  - name: "Agent System Performance"
+    weight: 20
+    flow:
+      # List available agents
+      - get:
+          url: "/api/v1/agents"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+          expect:
+            - statusCode: [200, 401]
+          capture:
+            - header: "x-response-time"
+              as: "list_agents_time"
+      
+      # Execute agent task
+      - post:
+          url: "/api/v1/agents/execute"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+          json:
+            businessId: "{{ $randomChoice(businessIds) }}"
+            task:
+              id: "task_{{ $uuid() }}"
+              capability: "finance.invoice.create"
+              input:
+                customerName: "Test Customer"
+                amount: 1000.00
+                currency: "USD"
+              priority: "normal"
+          expect:
+            - statusCode: [200, 202, 401, 403, 429]
+          capture:
+            - json: "$.taskId"
+              as: "task_id"
+            - header: "x-response-time"
+              as: "agent_execute_time"
+
+  # === WORKFLOW ENGINE PERFORMANCE ===
+  
+  - name: "Workflow Engine Performance"
+    weight: 15
+    flow:
+      # Create workflow
+      - post:
+          url: "/api/v1/workflows"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+          json:
+            businessId: "{{ $randomChoice(businessIds) }}"
+            name: "Test Workflow {{ $uuid() }}"
+            steps:
+              - name: "step1"
+                type: "data_fetch"
+                config: {}
+              - name: "step2"
+                type: "data_process"
+                config: {}
+          expect:
+            - statusCode: [201, 401, 403, 429]
+          capture:
+            - json: "$.workflowId"
+              as: "workflow_id"
+            - header: "x-response-time"
+              as: "create_workflow_time"
+      
+      # Execute workflow
+      - post:
+          url: "/api/v1/workflows/{{ workflow_id }}/execute"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+          json:
+            parameters: {}
+          expect:
+            - statusCode: [200, 202, 401, 403, 404]
+          capture:
+            - header: "x-response-time"
+              as: "execute_workflow_time"
+
+  # === DATABASE INTENSIVE OPERATIONS ===
+  
+  - name: "Database Heavy Operations"
+    weight: 15
+    flow:
+      # Complex financial query
+      - get:
+          url: "/api/v1/finance/analytics"
+          headers:
+            Authorization: "Bearer {{ auth_token }}"
+          qs:
+            businessId: "{{ $randomChoice(businessIds) }}"
+            startDate: "2024-01-01"
+            endDate: "2024-12-31"
+            includeDetails: true
+            groupBy: "month"
+          expect:
+            - statusCode: [200, 401, 403, 429]
+          capture:
+            - header: "x-response-time"
+              as: "analytics_query_time"
+            - header: "x-db-query-time"
+              as: "db_query_time"
+            - header: "x-cache-hit"
+              as: "cache_hit"
+
+# === CUSTOM PERFORMANCE TRACKING ===
+
+before:
+  flow:
+    - log: "Starting API performance test suite"
+    - log: "Target: {{ $target }}"
+    - log: "Test duration: {{ $testDuration }}s"
+
+after:
+  flow:
+    - log: "API performance test completed"
+    - function: "logPerformanceMetrics"
+
+# Custom functions for enhanced metrics
+processor: "./tests/performance/custom-processor.js"

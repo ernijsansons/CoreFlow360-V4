@@ -1,7 +1,7 @@
 // AI Voice Agent Types for CoreFlow360
 // Real-time phone conversations with instant lead calling
 
-import type { Lead, Contact, Company } from './crm';
+// Voice Agent Types for CoreFlow360 AI-Native CRM
 
 export interface VoiceAgentConfig {
   twilio: {

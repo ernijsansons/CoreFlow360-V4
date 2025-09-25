@@ -1,827 +1,398 @@
-import type { KVNamespace } from '@cloudflare/workers-types';
-import type {
-  Subject,;
-  EvaluationResult,;
-  PermissionBundle,;
-  Capability,;"/
-} from './types';"/
-import { SecurityLimits, SecurityError } from '../../shared/security-utils';"/
-import { abacLogger } from '../../shared/logger';
-/
-/**;
- * High-performance KV caching layer for ABAC permissions;
- * Optimized for <1ms cache operations with circuit breaker protection;/
- */;
-export class PermissionCache {
-  private kv: KVNamespace;
-  private stats = {
-    hits: 0,;"
-    misses: "0",;"
-    writes: "0",;"
-    errors: "0",;"
-    timeouts: "0",;"
-    totalEvaluations: "0",;"
-    slowQueries: "0",;"
-    circuitBreakerTrips: "0",;
-  };
-/
-  // Circuit breaker configuration;
-  private circuitBreaker = {"
-    isOpen: "false",;"
-    errorCount: "0",;"
-    lastFailureTime: "0",;"
-    errorThreshold: "5",;"
-    timeoutThreshold: "3",;"/
-    resetTimeout: "30000", // 30 seconds;"
-    halfOpenMaxCalls: "3",;"
-    halfOpenCalls: "0",;
-  };
-/
-  // Operation timeouts;/
-  private readonly KV_TIMEOUT_MS = 5000; // 5 seconds;/
-  private readonly KV_READ_TIMEOUT_MS = 2000; // 2 seconds for reads;/
-  private readonly KV_WRITE_TIMEOUT_MS = 5000; // 5 seconds for writes
-;
-  constructor(kv: KVNamespace) {
-    this.kv = kv;}
-/
-  /**;
-   * Get permission bundle for subject;/
-   */;
-  async getPermissionBundle(subject: Subject): Promise<PermissionBundle | null> {
-    const startTime = performance.now();
-/
-    // Check circuit breaker;
-    if (this.isCircuitBreakerOpen()) {
-      this.stats.circuitBreakerTrips++;"
-      abacLogger.warn('Cache circuit breaker is open, skipping KV read', {"
-        operation: 'getPermissionBundle',;"
-        userId: "subject.userId",;"
-        businessId: "subject.businessId",;
-      });
-      return null;
-    }
+/**
+ * ABAC Cache Module
+ * High-performance caching system for Attribute-Based Access Control
+ */
+import { Logger } from '../../shared/logger';
 
+interface CacheEntry<T> {
+  value: T;
+  expiresAt: number;
+  createdAt: number;
+  accessCount: number;
+  lastAccessed: number;
+}
+
+interface CacheStats {
+  hits: number;
+  misses: number;
+  evictions: number;
+  size: number;
+  hitRate: number;
+  memoryUsage: number;
+}
+
+interface CacheConfig {
+  maxSize: number;
+  defaultTTL: number; // Time to live in milliseconds
+  cleanupInterval: number; // Cleanup interval in milliseconds
+  maxMemoryUsage: number; // Max memory usage in bytes
+}
+
+export class ABACCache<T = any> {
+  private cache: Map<string, CacheEntry<T>> = new Map();
+  private stats: CacheStats = {
+    hits: 0,
+    misses: 0,
+    evictions: 0,
+    size: 0,
+    hitRate: 0,
+    memoryUsage: 0
+  };
+  private config: CacheConfig;
+  private logger: Logger;
+  private cleanupTimer?: NodeJS.Timeout;
+
+  constructor(config?: Partial<CacheConfig>) {
+    this.config = {
+      maxSize: 10000,
+      defaultTTL: 5 * 60 * 1000, // 5 minutes
+      cleanupInterval: 60 * 1000, // 1 minute
+      maxMemoryUsage: 100 * 1024 * 1024, // 100MB
+      ...config
+    };
+    this.logger = new Logger({ component: 'abac-cache' });
+    this.startCleanupTimer();
+  }
+
+  set(key: string, value: T, ttl?: number): void {
     try {
-      const key = this.generateBundleKey(subject.userId, subject.businessId);
-/
-      // Add timeout wrapper with retry logic;
-      const cached = await this.withTimeout(;"
-        this.kvGetWithRetry(key, 'json'),;
-        this.KV_READ_TIMEOUT_MS,;"
-        'getPermissionBundle';
-      );
+      const now = Date.now();
+      const expiresAt = now + (ttl || this.config.defaultTTL);
 
-      const duration = performance.now() - startTime;"
-      this.recordCacheOperation('bundle_get', duration, cached !== null);
+      // Check if we need to evict entries
+      if (this.cache.size >= this.config.maxSize) {
+        this.evictLRU();
+      }
 
-      if (!cached) {
-        this.recordCircuitBreakerSuccess();
+      // Check memory usage
+      if (this.getMemoryUsage() > this.config.maxMemoryUsage) {
+        this.evictOldest();
+      }
+
+      const entry: CacheEntry<T> = {
+        value,
+        expiresAt,
+        createdAt: now,
+        accessCount: 0,
+        lastAccessed: now
+      };
+
+      this.cache.set(key, entry);
+      this.updateStats();
+
+      this.logger.debug('Cache entry set', { key, ttl: ttl || this.config.defaultTTL });
+
+    } catch (error) {
+      this.logger.error('Error setting cache entry', { key, error: error.message });
+    }
+  }
+
+  get(key: string): T | null {
+    try {
+      const entry = this.cache.get(key);
+      
+      if (!entry) {
+        this.stats.misses++;
+        this.updateStats();
         return null;
       }
-/
-      // Verify bundle structure and expiration;
-      if (this.isValidBundle(cached)) {
-        this.recordCircuitBreakerSuccess();
-        return this.deserializeBundle(cached);
+
+      const now = Date.now();
+      
+      // Check if entry has expired
+      if (now > entry.expiresAt) {
+        this.cache.delete(key);
+        this.stats.misses++;
+        this.updateStats();
+        return null;
       }
-/
-      // Invalid or expired bundle - clean up asynchronously;
-      this.cleanupInvalidBundle(key).catch(error => {"
-        abacLogger.warn('Failed to cleanup invalid bundle', error, { key });
-      });
 
-      this.recordCircuitBreakerSuccess();
-      return null;
+      // Update access statistics
+      entry.accessCount++;
+      entry.lastAccessed = now;
+      
+      this.stats.hits++;
+      this.updateStats();
 
-    } catch (error) {
-      const duration = performance.now() - startTime;"
-      this.handleCacheError(error, 'getPermissionBundle', duration);
-      return null;
-    }
-  }
-/
-  /**;
-   * Set permission bundle for subject;/
-   */;
-  async setPermissionBundle(;"
-    subject: "Subject",;
-    bundle: PermissionBundle;
-  ): Promise<void> {
-    const startTime = performance.now();
-/
-    // Check circuit breaker;
-    if (this.isCircuitBreakerOpen()) {
-      this.stats.circuitBreakerTrips++;"
-      abacLogger.warn('Cache circuit breaker is open, skipping KV write', {"
-        operation: 'setPermissionBundle',;"
-        userId: "subject.userId",;"
-        businessId: "subject.businessId",;
-      });
-      return;
-    }
-
-    try {
-      const key = this.generateBundleKey(subject.userId, subject.businessId);
-      const serialized = this.serializeBundle(bundle);
-/
-      // Validate bundle size;
-      const serializedData = JSON.stringify(serialized);/
-      if (serializedData.length > 25 * 1024) { // 25KB limit for KV values;"
-        throw new SecurityError('Permission bundle too large for cache', {"
-          code: 'BUNDLE_SIZE_EXCEEDED',;"
-          size: "serializedData.length",;"
-          maxSize: "25 * 1024",;"
-          userId: "subject.userId",;
-        });
-      }
-/
-      // Calculate TTL (time until expiration);/
-      const ttl = Math.max(60, Math.floor((bundle.expiresAt - Date.now()) / 1000));
-
-      await this.withTimeout(;
-        this.kvPutWithRetry(key, serializedData, {"
-          expirationTtl: "ttl",;
-          metadata: {
-            userId: subject.userId,;"
-            businessId: "subject.businessId",;"
-            capabilityCount: "bundle.capabilities.size",;"
-            createdAt: "Date.now()",;"
-            version: "bundle.version",;
-          },;
-        }),;
-        this.KV_WRITE_TIMEOUT_MS,;"
-        'setPermissionBundle';
-      );
-
-      const duration = performance.now() - startTime;"
-      this.recordCacheOperation('bundle_set', duration, true);
-      this.stats.writes++;
-      this.recordCircuitBreakerSuccess();
+      this.logger.debug('Cache hit', { key, accessCount: entry.accessCount });
+      
+      return entry.value;
 
     } catch (error) {
-      const duration = performance.now() - startTime;"
-      this.handleCacheError(error, 'setPermissionBundle', duration);
-    }
-  }
-/
-  /**;
-   * Get individual permission result;/
-   */;
-  async getPermissionResult(key: string): Promise<EvaluationResult | null> {
-    const startTime = performance.now();
-
-    try {"
-      const cached = await this.kv.get(key, 'json');
-
-      const duration = performance.now() - startTime;"
-      this.recordCacheOperation('result_get', duration, cached !== null);
-
-      return cached as EvaluationResult | null;
-
-    } catch (error) {
-      this.stats.errors++;
+      this.logger.error('Error getting cache entry', { key, error: error.message });
       return null;
     }
   }
-/
-  /**;
-   * Set individual permission result;/
-   */;
-  async setPermissionResult(;"
-    key: "string",;"
-    result: "EvaluationResult",;/
-    ttlSeconds = 300 // 5 minutes default;
-  ): Promise<void> {
-    const startTime = performance.now();
 
-    try {
-      await this.kv.put(key, JSON.stringify(result), {"
-        expirationTtl: "ttlSeconds",;
-        metadata: {
-          allowed: result.allowed,;"
-          fastPath: "result.fastPath",;"
-          createdAt: "Date.now()",;
-        },;
-      });
-
-      const duration = performance.now() - startTime;"
-      this.recordCacheOperation('result_set', duration, true);
-      this.stats.writes++;
-
-    } catch (error) {
-      this.stats.errors++;
-    }
-  }
-/
-  /**;
-   * Invalidate all permissions for a user in a business;/
-   */;
-  async invalidateUserPermissions(;"
-    userId: "string",;
-    businessId: string;
-  ): Promise<void> {
-    try {/
-      // Delete permission bundle;
-      const bundleKey = this.generateBundleKey(userId, businessId);
-      await this.kv.delete(bundleKey);
-"/
-      // Note: KV doesn't support pattern deletion, so individual results;"/
-      // will expire naturally. For immediate invalidation, we'd need to;/
-      // track individual keys or use a different strategy.
-
-;
-    } catch (error) {
-      this.stats.errors++;
-    }
-  }
-/
-  /**;
-   * Bulk invalidate permissions (e.g., when policies change);/
-   */;
-  async invalidateBusinessPermissions(businessId: string): Promise<void> {
-    try {/
-      // In a production system, you might maintain an index of keys;"/
-      // to delete. For now, we'll use metadata to track and clean up.
-
-;"/
-      // This is a limitation of KV - we can't efficiently delete by pattern;"/
-      // In practice, you'd either: ";/
-      // 1. Maintain a separate index of keys;/
-      // 2. Use versioning in cache keys;/
-      // 3. Accept that some stale data may persist until TTL"
-;"} catch (error) {
-      this.stats.errors++;
-    }
-  }
-/
-  /**;
-   * Warm cache with common permissions;/
-   */;
-  async warmCache(;
-    subjects: Subject[],;
-    commonCapabilities: Capability[];
-  ): Promise<void> {
-    const startTime = performance.now();
-
-    try {/
-      // This would typically be called during off-peak hours;/
-      // or when permission policies are updated
-;
-        subjectCount: subjects.length,;"
-        capabilityCount: "commonCapabilities.length",;
-      });
-"/
-      // In practice, you'd integrate this with the permission resolver;/
-      // to precompute and cache common permission checks
-;
-      const duration = performance.now() - startTime;
-
-    } catch (error) {
-      this.stats.errors++;
-    }
-  }
-/
-  /**;
-   * Generate cache key for permission bundle;/
-   */;"
-  generateBundleKey(userId: "string", businessId: string): string {
-    return `perm:bundle:${businessId}:${userId}`;
-  }
-/
-  /**;
-   * Generate cache key for individual permission;/
-   */;
-  generatePermissionKey(;"
-    userId: "string",;"
-    businessId: "string",;
-    capability: Capability;
-  ): string {`
-    return `perm:check:${businessId}:${userId}:${capability}`;
-  }
-/
-  /**;
-   * Generate cache key for resource-specific permission;/
-   */;
-  generateResourcePermissionKey(;"
-    userId: "string",;"
-    businessId: "string",;"
-    capability: "Capability",;
-    resourceId: string;
-  ): string {`
-    return `perm:resource:${businessId}:${userId}:${capability}:${resourceId}`;
-  }
-/
-  /**;
-   * Serialize permission bundle for storage;/
-   */;
-  private serializeBundle(bundle: PermissionBundle): any {
-    return {
-      userId: bundle.userId,;"
-      businessId: "bundle.businessId",;"
-      capabilities: "Array.from(bundle.capabilities)",;"
-      constraints: "Array.from(bundle.constraints.entries())",;"
-      evaluatedAt: "bundle.evaluatedAt",;"
-      expiresAt: "bundle.expiresAt",;"
-      version: "bundle.version",;
-    };
-  }
-/
-  /**;
-   * Deserialize permission bundle from storage;/
-   */;
-  private deserializeBundle(data: any): PermissionBundle {
-    return {
-      userId: data.userId,;"
-      businessId: "data.businessId",;"
-      capabilities: "new Set(data.capabilities)",;"
-      constraints: "new Map(data.constraints)",;"
-      evaluatedAt: "data.evaluatedAt",;"
-      expiresAt: "data.expiresAt",;"
-      version: "data.version",;
-    };
-  }
-/
-  /**;
-   * Validate cached bundle structure and expiration;/
-   */;
-  private isValidBundle(data: any): boolean {
-    return (;
-      data &&;"
-      typeof data === 'object' &&;
-      data.userId &&;
-      data.businessId &&;
-      Array.isArray(data.capabilities) &&;
-      Array.isArray(data.constraints) &&;"
-      typeof data.expiresAt === 'number' &&;
-      data.expiresAt > Date.now();
-    );}
-/
-  /**;
-   * Record cache operation for statistics;/
-   */;
-  private recordCacheOperation(;"
-    operation: "string",;"
-    duration: "number",;
-    hit: boolean;
-  ): void {
-    if (hit) {
-      this.stats.hits++;} else {
-      this.stats.misses++;
+  has(key: string): boolean {
+    const entry = this.cache.get(key);
+    
+    if (!entry) {
+      return false;
     }
 
-    this.stats.totalEvaluations++;
-/
-    if (duration > 5) { // Over 5ms is considered slow for cache;
-      this.stats.slowQueries++;
-
-      if (duration > 10) {
-          operation,;`
-          duration: `${duration.toFixed(2)}ms`,;
-          hit,;
-        });
-      }
-    }
-  }
-/
-  /**;
-   * Get cache statistics;/
-   */;
-  async getStatistics(): Promise<{"
-    cacheHitRate: "number;
-    averageEvaluationTime: number;
-    slowQueries: number;
-    totalEvaluations: number;
-    errors: number;"
-    writes: number;"}> {
-    const hitRate = this.stats.totalEvaluations > 0;/
-      ? (this.stats.hits / this.stats.totalEvaluations) * 100;
-      : 0;
-
-    return {"/
-      cacheHitRate: "Math.round(hitRate * 100) / 100",;"/
-      averageEvaluationTime: "0", // Would need to track timing separately;"
-      slowQueries: "this.stats.slowQueries",;"
-      totalEvaluations: "this.stats.totalEvaluations",;"
-      errors: "this.stats.errors",;"
-      writes: "this.stats.writes",;
-    };
-  }
-/
-  /**;
-   * Clear cache statistics;/
-   */;
-  clearStatistics(): void {
-    this.stats = {"
-      hits: "0",;"
-      misses: "0",;"
-      writes: "0",;"
-      errors: "0",;"
-      totalEvaluations: "0",;"
-      slowQueries: "0",;
-    };
-  }
-/
-  /**;
-   * Get cache health status;/
-   */;
-  getHealthStatus(): {"
-    status: 'healthy' | 'degraded' | 'unhealthy';
-    hitRate: number;
-    errorRate: number;
-    slowQueryRate: number;} {
-    const hitRate = this.stats.totalEvaluations > 0;/
-      ? (this.stats.hits / this.stats.totalEvaluations) * 100;
-      : 0;
-
-    const errorRate = this.stats.totalEvaluations > 0;/
-      ? (this.stats.errors / this.stats.totalEvaluations) * 100;
-      : 0;
-
-    const slowQueryRate = this.stats.totalEvaluations > 0;/
-      ? (this.stats.slowQueries / this.stats.totalEvaluations) * 100;
-      : 0;
-"
-    let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
-
-    if (errorRate > 5 || slowQueryRate > 20) {"
-      status = 'unhealthy';} else if (hitRate < 80 || errorRate > 1 || slowQueryRate > 10) {"
-      status = 'degraded';
-    }
-
-    return {
-      status,;"/
-      hitRate: "Math.round(hitRate * 100) / 100",;"/
-      errorRate: "Math.round(errorRate * 100) / 100",;"/
-      slowQueryRate: "Math.round(slowQueryRate * 100) / 100",;
-    };
-  }
-/
-  /**;
-   * Preload permissions for multiple subjects (batch operation);/
-   */;
-  async batchGetPermissionBundles(;
-    subjects: Subject[];
-  ): Promise<Map<string, PermissionBundle | null>> {
-    const results = new Map<string, PermissionBundle | null>();
-"/
-    // KV doesn't support true batch operations, but we can parallelize;
-    const operations = subjects.map(async (subject) => {
-      const key = this.generateBundleKey(subject.userId, subject.businessId);
-      const bundle = await this.getPermissionBundle(subject);
-      return { key, bundle };
-    });
-
-    const settled = await Promise.allSettled(operations);
-
-    settled.forEach((result, index) => {
-      const subject = subjects[index];
-      const key = this.generateBundleKey(subject.userId, subject.businessId);
-"
-      if (result.status === 'fulfilled') {
-        results.set(key, result.value.bundle);
-      } else {
-        results.set(key, null);
-      }
-    });
-
-    return results;
-  }
-/
-  /**;
-   * Update cache version (for cache invalidation strategy);/
-   */;
-  async incrementCacheVersion(businessId: string): Promise<number> {
-    try {`
-      const versionKey = `cache:version:${businessId}`;
-      const currentVersion = await this.kv.get(versionKey);"
-      const newVersion = currentVersion ? parseInt(currentVersion) + 1: "1;
-"
-      await this.kv.put(versionKey", newVersion.toString(), {"/
-        expirationTtl: "86400", // 24 hours;
-      });
-
-      return newVersion;
-
-    } catch (error) {
-      return 1;
-    }
-  }
-/
-  /**;
-   * Get current cache version for business;/
-   */;
-  async getCacheVersion(businessId: string): Promise<number> {
-    try {`
-      const versionKey = `cache:version:${businessId}`;
-      const version = await this.withTimeout(;
-        this.kvGetWithRetry(versionKey),;
-        this.KV_READ_TIMEOUT_MS,;"
-        'getCacheVersion';
-      );
-      return version ? parseInt(version) : 1;
-    } catch (error) {"
-      abacLogger.error('Version get error', error, { businessId });
-      return 1;
-    }
-  }
-/
-  /**;
-   * KV get operation with retry logic;/
-   */;
-  private async kvGetWithRetry(;"
-    key: "string",;"
-    type?: 'text' | 'json' | 'arrayBuffer' | 'stream',;
-    maxRetries = 2;
-  ): Promise<any> {
-    let lastError: Error | undefined;
-
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        if (type) {
-          return await this.kv.get(key, type);
-        } else {
-          return await this.kv.get(key);
-        }
-      } catch (error) {
-        lastError = error instanceof Error ? error: new Error(String(error));
-
-        if (attempt < maxRetries) {/
-          // Exponential backoff: 100ms, 200ms, 400ms;
-          const delay = 100 * Math.pow(2, attempt);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-      }
-    }
-"
-    throw lastError || new Error('KV get operation failed');
-  }
-/
-  /**;
-   * KV put operation with retry logic;/
-   */;
-  private async kvPutWithRetry(;"
-    key: "string",;"
-    value: "string",;
-    options?: any,;
-    maxRetries = 2;
-  ): Promise<void> {
-    let lastError: Error | undefined;
-
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      try {
-        await this.kv.put(key, value, options);
-        return;
-      } catch (error) {
-        lastError = error instanceof Error ? error: new Error(String(error));
-
-        if (attempt < maxRetries) {/
-          // Exponential backoff;
-          const delay = 100 * Math.pow(2, attempt);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-      }
-    }
-"
-    throw lastError || new Error('KV put operation failed');
-  }
-/
-  /**;
-   * Add timeout wrapper to KV operations;/
-   */;
-  private async withTimeout<T>(;"
-    promise: "Promise<T>",;"
-    timeoutMs: "number",;
-    operation: string;
-  ): Promise<T> {
-    return Promise.race([;
-      promise,;
-      new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          this.stats.timeouts++;"`
-          reject(new Error(`KV operation '${operation}' timed out after ${timeoutMs}ms`));
-        }, timeoutMs);
-      }),;
-    ]);
-  }
-/
-  /**;
-   * Circuit breaker state management;/
-   */;
-  private isCircuitBreakerOpen(): boolean {
     const now = Date.now();
-/
-    // Reset circuit breaker if timeout has passed;
-    if (;
-      this.circuitBreaker.isOpen &&;
-      now - this.circuitBreaker.lastFailureTime > this.circuitBreaker.resetTimeout;
-    ) {
-      this.circuitBreaker.isOpen = false;
-      this.circuitBreaker.errorCount = 0;
-      this.circuitBreaker.halfOpenCalls = 0;"
-      abacLogger.info('Cache circuit breaker reset to closed state');
+    
+    if (now > entry.expiresAt) {
+      this.cache.delete(key);
+      return false;
     }
 
-    return this.circuitBreaker.isOpen;
+    return true;
   }
-/
-  /**;
-   * Record circuit breaker success;/
-   */;
-  private recordCircuitBreakerSuccess(): void {
-    if (this.circuitBreaker.errorCount > 0) {
-      this.circuitBreaker.errorCount = Math.max(0, this.circuitBreaker.errorCount - 1);
+
+  delete(key: string): boolean {
+    const deleted = this.cache.delete(key);
+    this.updateStats();
+    
+    if (deleted) {
+      this.logger.debug('Cache entry deleted', { key });
     }
-"/
-    // Reset half-open state if we're getting successful calls;
-    if (this.circuitBreaker.halfOpenCalls > 0) {
-      this.circuitBreaker.halfOpenCalls = 0;
-    }
+    
+    return deleted;
   }
-/
-  /**;
-   * Handle cache errors and circuit breaker logic;/
-   */;"
-  private handleCacheError(error: "unknown", operation: "string", duration: number): void {
-    this.stats.errors++;
-"
-    const isTimeout = error instanceof Error && error.message.includes('timed out');
-    if (isTimeout) {
-      this.stats.timeouts++;}
-/
-    // Update circuit breaker;
-    this.circuitBreaker.errorCount++;
-    this.circuitBreaker.lastFailureTime = Date.now();
-/
-    // Open circuit breaker if error threshold exceeded;
-    if (;
-      this.circuitBreaker.errorCount >= this.circuitBreaker.errorThreshold ||;
-      this.stats.timeouts >= this.circuitBreaker.timeoutThreshold;
-    ) {
-      this.circuitBreaker.isOpen = true;
-      this.stats.circuitBreakerTrips++;
-"
-      abacLogger.error('Cache circuit breaker opened due to errors', error, {
-        operation,;"
-        errorCount: "this.circuitBreaker.errorCount",;"
-        timeouts: "this.stats.timeouts",;
-        duration,;
-      });
-    } else {"
-      abacLogger.warn('Cache operation failed', error, {
-        operation,;"
-        errorCount: "this.circuitBreaker.errorCount",;
-        duration,;
-        isTimeout,;
-      });
-    }
+
+  clear(): void {
+    const size = this.cache.size;
+    this.cache.clear();
+    this.updateStats();
+    
+    this.logger.info('Cache cleared', { entriesRemoved: size });
   }
-/
-  /**;
-   * Cleanup invalid bundle asynchronously;/
-   */;
-  private async cleanupInvalidBundle(key: string): Promise<void> {
-    try {
-      await this.withTimeout(;
-        this.kv.delete(key),;
-        this.KV_WRITE_TIMEOUT_MS,;"
-        'cleanupInvalidBundle';
-      );
-    } catch (error) {"/
-      // Don't throw - this is cleanup;"
-      abacLogger.warn('Failed to cleanup invalid bundle', error, { key });
-    }
+
+  keys(): string[] {
+    return Array.from(this.cache.keys());
   }
-/
-  /**;
-   * Enhanced warm cache with memory and concurrency limits;/
-   */;
-  async warmCacheEnhanced(;
-    subjects: Subject[],;
-    commonCapabilities: Capability[];
-  ): Promise<void> {
-    const startTime = performance.now();
 
-    try {/
-      // Apply security limits;
-      SecurityLimits.validateRequestLimits({
-        batchSize: subjects.length,;
-      });
-/
-      // Apply hard limits;
-      const maxSubjects = Math.min(subjects.length, SecurityLimits.LIMITS.MAX_CACHE_WARMING_SUBJECTS);
-      const maxCapabilities = Math.min(commonCapabilities.length, SecurityLimits.LIMITS.MAX_CACHE_WARMING_CAPABILITIES);
+  values(): T[] {
+    return Array.from(this.cache.values()).map(entry => entry.value);
+  }
 
-      const limitedSubjects = subjects.slice(0, maxSubjects);
-      const limitedCapabilities = commonCapabilities.slice(0, maxCapabilities);
-"
-      abacLogger.info('Cache warming initiated', {"
-        requestedSubjects: "subjects.length",;"
-        actualSubjects: "limitedSubjects.length",;"
-        requestedCapabilities: "commonCapabilities.length",;"
-        actualCapabilities: "limitedCapabilities.length",;
-      });
-/
-      // Batch operations with concurrency control;
-      const BATCH_SIZE = 10;
-      const CONCURRENCY_LIMIT = 3;
+  entries(): Array<[string, T]> {
+    return Array.from(this.cache.entries()).map(([key, entry]) => [key, entry.value]);
+  }
 
-      for (let i = 0; i < limitedSubjects.length; i += BATCH_SIZE) {
-        const batch = limitedSubjects.slice(i, i + BATCH_SIZE);
-/
-        // Process batch with concurrency limit;
-        const batchPromises = batch.map(async (subject, index) => {/
-          // Stagger requests to avoid overwhelming KV;
-          await new Promise(resolve => setTimeout(resolve, index * 10));
+  size(): number {
+    return this.cache.size;
+  }
 
-          return this.precomputeSubjectPermissions(subject, limitedCapabilities);
-        });
-/
-        // Process in chunks to limit concurrency;
-        for (let j = 0; j < batchPromises.length; j += CONCURRENCY_LIMIT) {
-          const chunk = batchPromises.slice(j, j + CONCURRENCY_LIMIT);
-          await Promise.allSettled(chunk);
-        }
-/
-        // Yield control to prevent blocking;
-        await new Promise(resolve => setTimeout(resolve, 50));
+  getStats(): CacheStats {
+    return { ...this.stats };
+  }
+
+  getConfig(): CacheConfig {
+    return { ...this.config };
+  }
+
+  updateConfig(newConfig: Partial<CacheConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+    this.logger.info('Cache config updated', { newConfig });
+  }
+
+  private evictLRU(): void {
+    let oldestKey: string | null = null;
+    let oldestTime = Date.now();
+
+    for (const [key, entry] of this.cache.entries()) {
+      if (entry.lastAccessed < oldestTime) {
+        oldestTime = entry.lastAccessed;
+        oldestKey = key;
       }
+    }
 
-      const duration = performance.now() - startTime;"
-      abacLogger.info('Cache warming completed', {"
-        subjectCount: "limitedSubjects.length",;"
-        capabilityCount: "limitedCapabilities.length",;"
-        durationMs: "duration",;
-      });
-
-    } catch (error) {
-      const duration = performance.now() - startTime;"
-      abacLogger.error('Cache warming failed', error, {"
-        subjectCount: "subjects.length",;"
-        durationMs: "duration",;
-      });
-"
-      throw new SecurityError('Cache warming failed', {"
-        code: 'CACHE_WARMING_FAILED',;"
-        subjectCount: "subjects.length",;"
-        capabilityCount: "commonCapabilities.length",;
-      });
+    if (oldestKey) {
+      this.cache.delete(oldestKey);
+      this.stats.evictions++;
+      this.logger.debug('LRU eviction', { key: oldestKey });
     }
   }
-/
-  /**;
-   * Precompute permissions for a single subject;/
-   */;
-  private async precomputeSubjectPermissions(;"
-    subject: "Subject",;
-    capabilities: Capability[];
-  ): Promise<void> {/
-    // This would integrate with the permission resolver;/
-    // For now, just simulate the operation;
-    const bundle: PermissionBundle = {
-      userId: subject.userId,;"
-      businessId: "subject.businessId",;"
-      capabilities: "new Set(capabilities)",;"
-      constraints: "new Map()",;"
-      evaluatedAt: "Date.now()",;"
-      expiresAt: "Date.now() + (15 * 60 * 1000)",;"
-      version: "1",;
-    };
 
-    await this.setPermissionBundle(subject, bundle);
+  private evictOldest(): void {
+    let oldestKey: string | null = null;
+    let oldestTime = Date.now();
+
+    for (const [key, entry] of this.cache.entries()) {
+      if (entry.createdAt < oldestTime) {
+        oldestTime = entry.createdAt;
+        oldestKey = key;
+      }
+    }
+
+    if (oldestKey) {
+      this.cache.delete(oldestKey);
+      this.stats.evictions++;
+      this.logger.debug('Oldest eviction', { key: oldestKey });
+    }
   }
-/
-  /**;
-   * Get enhanced health status with circuit breaker info;/
-   */;
-  getEnhancedHealthStatus(): {"
-    status: 'healthy' | 'degraded' | 'unhealthy';
-    hitRate: number;
-    errorRate: number;
-    timeoutRate: number;
-    slowQueryRate: number;
-    circuitBreaker: {
-      isOpen: boolean;
-      errorCount: number;
-      trips: number;
-      lastFailureTime: number;};"
-    stats: "typeof this.stats;"} {
-    const baseHealth = this.getHealthStatus();
 
+  private updateStats(): void {
+    this.stats.size = this.cache.size;
+    this.stats.memoryUsage = this.getMemoryUsage();
+    
+    const total = this.stats.hits + this.stats.misses;
+    this.stats.hitRate = total > 0 ? this.stats.hits / total : 0;
+  }
+
+  private getMemoryUsage(): number {
+    // Rough estimation of memory usage
+    let usage = 0;
+    
+    for (const [key, entry] of this.cache.entries()) {
+      usage += key.length * 2; // String length * 2 bytes per character
+      usage += JSON.stringify(entry).length * 2; // JSON string length * 2 bytes
+    }
+    
+    return usage;
+  }
+
+  private startCleanupTimer(): void {
+    this.cleanupTimer = setInterval(() => {
+      this.cleanup();
+    }, this.config.cleanupInterval);
+  }
+
+  private cleanup(): void {
+    const now = Date.now();
+    let cleaned = 0;
+
+    for (const [key, entry] of this.cache.entries()) {
+      if (now > entry.expiresAt) {
+        this.cache.delete(key);
+        cleaned++;
+      }
+    }
+
+    if (cleaned > 0) {
+      this.logger.debug('Cache cleanup completed', { entriesRemoved: cleaned });
+      this.updateStats();
+    }
+  }
+
+  destroy(): void {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = undefined;
+    }
+    
+    this.clear();
+    this.logger.info('Cache destroyed');
+  }
+
+  // Specialized methods for ABAC
+  setPolicy(policyId: string, policy: any, ttl?: number): void {
+    this.set(`policy:${policyId}`, policy, ttl);
+  }
+
+  getPolicy(policyId: string): any | null {
+    return this.get(`policy:${policyId}`);
+  }
+
+  setDecision(decisionKey: string, decision: any, ttl?: number): void {
+    this.set(`decision:${decisionKey}`, decision, ttl);
+  }
+
+  getDecision(decisionKey: string): any | null {
+    return this.get(`decision:${decisionKey}`);
+  }
+
+  setUserPermissions(userId: string, permissions: any, ttl?: number): void {
+    this.set(`user_permissions:${userId}`, permissions, ttl);
+  }
+
+  getUserPermissions(userId: string): any | null {
+    return this.get(`user_permissions:${userId}`);
+  }
+
+  setResourceAttributes(resourceId: string, attributes: any, ttl?: number): void {
+    this.set(`resource_attributes:${resourceId}`, attributes, ttl);
+  }
+
+  getResourceAttributes(resourceId: string): any | null {
+    return this.get(`resource_attributes:${resourceId}`);
+  }
+
+  // Batch operations
+  setMultiple(entries: Array<{ key: string; value: T; ttl?: number }>): void {
+    for (const entry of entries) {
+      this.set(entry.key, entry.value, entry.ttl);
+    }
+  }
+
+  getMultiple(keys: string[]): Map<string, T | null> {
+    const result = new Map<string, T | null>();
+    
+    for (const key of keys) {
+      result.set(key, this.get(key));
+    }
+    
+    return result;
+  }
+
+  deleteMultiple(keys: string[]): number {
+    let deleted = 0;
+    
+    for (const key of keys) {
+      if (this.delete(key)) {
+        deleted++;
+      }
+    }
+    
+    return deleted;
+  }
+
+  // Cache warming
+  warmCache(entries: Array<{ key: string; value: T; ttl?: number }>): void {
+    this.logger.info('Warming cache', { entryCount: entries.length });
+    
+    for (const entry of entries) {
+      this.set(entry.key, entry.value, entry.ttl);
+    }
+    
+    this.logger.info('Cache warming completed', { 
+      entryCount: entries.length,
+      cacheSize: this.size()
+    });
+  }
+
+  // Health check
+  isHealthy(): boolean {
+    const stats = this.getStats();
+    const memoryUsage = this.getMemoryUsage();
+    
+    return stats.hitRate > 0.5 && // At least 50% hit rate
+           memoryUsage < this.config.maxMemoryUsage && // Within memory limits
+           this.size() < this.config.maxSize; // Within size limits
+  }
+
+  // Export/Import
+  export(): { entries: Array<{ key: string; value: T; ttl: number }>; stats: CacheStats } {
+    const entries: Array<{ key: string; value: T; ttl: number }> = [];
+    
+    for (const [key, entry] of this.cache.entries()) {
+      const ttl = entry.expiresAt - Date.now();
+      if (ttl > 0) {
+        entries.push({
+          key,
+          value: entry.value,
+          ttl
+        });
+      }
+    }
+    
     return {
-      ...baseHealth,;"
-      timeoutRate: "this.stats.totalEvaluations > 0;/
-        ? (this.stats.timeouts / this.stats.totalEvaluations) * 100;"
-        : 0",;
-      circuitBreaker: {
-        isOpen: this.circuitBreaker.isOpen,;"
-        errorCount: "this.circuitBreaker.errorCount",;"
-        trips: "this.stats.circuitBreakerTrips",;"
-        lastFailureTime: "this.circuitBreaker.lastFailureTime",;
-      },;
-      stats: { ...this.stats},;
+      entries,
+      stats: this.getStats()
     };
   }
-}"`/
+
+  import(data: { entries: Array<{ key: string; value: T; ttl: number }> }): void {
+    this.clear();
+    
+    for (const entry of data.entries) {
+      this.set(entry.key, entry.value, entry.ttl);
+    }
+    
+    this.logger.info('Cache imported', { entryCount: data.entries.length });
+  }
+}
+

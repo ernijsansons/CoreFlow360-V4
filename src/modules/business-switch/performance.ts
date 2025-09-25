@@ -1,13 +1,13 @@
-/**;
- * Performance monitoring for business switching;/
- */;
+/**
+ * Performance monitoring for business switching
+ */
 export class PerformanceMonitor {
-  private metrics: "Map<string", number[]> = new Map();
+  private metrics: Map<string, number[]> = new Map();
   private readonly maxSamples = 100;
-/
-  /**;
-   * Start timing an operation;/
-   */;
+
+  /**
+   * Start timing an operation
+   */
   startTimer(operationId: string): () => number {
     const startTime = performance.now();
 
@@ -17,24 +17,25 @@ export class PerformanceMonitor {
       return duration;
     };
   }
-/
-  /**;
-   * Record a metric;/
-   */;"
-  recordMetric(operation: "string", duration: number): void {
+
+  /**
+   * Record a metric
+   */
+  recordMetric(operation: string, duration: number): void {
     const samples = this.metrics.get(operation) || [];
     samples.push(duration);
-/
-    // Keep only recent samples;
+
+    // Keep only recent samples
     if (samples.length > this.maxSamples) {
-      samples.shift();}
+      samples.shift();
+    }
 
     this.metrics.set(operation, samples);
   }
-/
-  /**;
-   * Get statistics for an operation;/
-   */;
+
+  /**
+   * Get statistics for an operation
+   */
   getStats(operation: string): {
     count: number;
     min: number;
@@ -42,253 +43,311 @@ export class PerformanceMonitor {
     avg: number;
     p50: number;
     p95: number;
-    p99: number;} | null {
+    p99: number;
+  } | null {
     const samples = this.metrics.get(operation);
     if (!samples || samples.length === 0) {
       return null;
     }
 
-    const sorted = [...samples].sort((a, b) => a - b);
-    const count = sorted.length;
+    const sortedSamples = [...samples].sort((a, b) => a - b);
+    const count = sortedSamples.length;
+    const min = sortedSamples[0];
+    const max = sortedSamples[count - 1];
+    const avg = sortedSamples.reduce((sum, val) => sum + val, 0) / count;
+    const p50 = this.percentile(sortedSamples, 50);
+    const p95 = this.percentile(sortedSamples, 95);
+    const p99 = this.percentile(sortedSamples, 99);
 
     return {
-      count,;
-      min: sorted[0]!,;
-      max: sorted[count - 1]!,;"/
-      avg: "samples.reduce((a", b) => a + b, 0) / count,;"
-      p50: "this.percentile(sorted", 0.5),;"
-      p95: "this.percentile(sorted", 0.95),;"
-      p99: "this.percentile(sorted", 0.99),;
+      count,
+      min,
+      max,
+      avg,
+      p50,
+      p95,
+      p99,
     };
   }
-/
-  /**;
-   * Calculate percentile;/
-   */;
-  private percentile(sorted: number[], p: number): number {
-    const index = Math.ceil(sorted.length * p) - 1;
-    return sorted[Math.max(0, index)]!;
-  }
-/
-  /**;
-   * Get all metrics;/
-   */;
-  getAllStats(): Record<string, any> {"
-    const stats: "Record<string", any> = {};
 
-    for (const [operation, _] of this.metrics) {
-      stats[operation] = this.getStats(operation);
-    }
-
-    return stats;
+  /**
+   * Get all metrics
+   */
+  getAllMetrics(): Map<string, number[]> {
+    return new Map(this.metrics);
   }
-/
-  /**;
-   * Clear metrics;/
-   */;
-  clear(): void {
+
+  /**
+   * Clear metrics for an operation
+   */
+  clearMetrics(operation: string): void {
+    this.metrics.delete(operation);
+  }
+
+  /**
+   * Clear all metrics
+   */
+  clearAllMetrics(): void {
     this.metrics.clear();
   }
-/
-  /**;
-   * Log slow operations;/
-   */;
-  logSlowOperation(;"
-    operation: "string",;"
-    duration: "number",;"
-    threshold: "number",;
-    metadata?: Record<string, any>;
-  ): void {
-    if (duration > threshold) {
-        duration: `${duration.toFixed(2)}ms`,;`
-        threshold: `${threshold}ms`,;
-        ...metadata,;
-      });
-    }
-  }
-/
-  /**;
-   * Create a detailed performance report;/
-   */;
-  generateReport(): string {
-    const stats = this.getAllStats();"
-    const report: string[] = ['=== Performance Report ==='];
 
-    for (const [operation, stat] of Object.entries(stats)) {
-      if (stat) {`
-        report.push(`\n${operation}:`);`
-        report.push(`  Samples: ${stat.count}`);`
-        report.push(`  Min: ${stat.min.toFixed(2)}ms`);`
-        report.push(`  Avg: ${stat.avg.toFixed(2)}ms`);`
-        report.push(`  P50: ${stat.p50.toFixed(2)}ms`);`
-        report.push(`  P95: ${stat.p95.toFixed(2)}ms`);`
-        report.push(`  P99: ${stat.p99.toFixed(2)}ms`);`
-        report.push(`  Max: ${stat.max.toFixed(2)}ms`);
+  /**
+   * Get performance summary
+   */
+  getPerformanceSummary(): {
+    totalOperations: number;
+    averagePerformance: number;
+    slowestOperation: string | null;
+    fastestOperation: string | null;
+    operations: Array<{
+      operation: string;
+      count: number;
+      avg: number;
+      p95: number;
+    }>;
+  } {
+    const operations: Array<{
+      operation: string;
+      count: number;
+      avg: number;
+      p95: number;
+    }> = [];
+
+    let totalOperations = 0;
+    let totalDuration = 0;
+    let slowestOperation: string | null = null;
+    let fastestOperation: string | null = null;
+    let slowestAvg = 0;
+    let fastestAvg = Infinity;
+
+    for (const [operation, samples] of this.metrics) {
+      const stats = this.getStats(operation);
+      if (stats) {
+        operations.push({
+          operation,
+          count: stats.count,
+          avg: stats.avg,
+          p95: stats.p95,
+        });
+
+        totalOperations += stats.count;
+        totalDuration += stats.avg * stats.count;
+
+        if (stats.avg > slowestAvg) {
+          slowestAvg = stats.avg;
+          slowestOperation = operation;
+        }
+
+        if (stats.avg < fastestAvg) {
+          fastestAvg = stats.avg;
+          fastestOperation = operation;
+        }
       }
     }
-"
-    return report.join('\n');
-  }
-}
-/
-/**;
- * Performance logger for structured logging;/
- */;
-export class PerformanceLogger {
-  private logs: Array<{
-    timestamp: number;
-    operation: string;
-    duration: number;
-    metadata: Record<string, any>;
-  }> = [];
-/
-  /**;
-   * Log a performance event;/
-   */;"
-  log(operation: "string", duration: "number", metadata?: Record<string, any>): void {
-    this.logs.push({"
-      timestamp: "Date.now()",;
-      operation,;
-      duration,;
-      metadata: metadata || {},;
-    });
-/
-    // Limit log size;
-    if (this.logs.length > 1000) {
-      this.logs.shift();
-    }
-/
-    // Also log to console in development;"
-    if (process.env.NODE_ENV === 'development') {
-    }
-  }
-/
-  /**;
-   * Get recent logs;/
-   */;
-  getRecentLogs(count: number = 100): typeof this.logs {
-    return this.logs.slice(-count);}
-/
-  /**;
-   * Export logs for analysis;/
-   */;
-  exportLogs(): string {
-    return JSON.stringify(this.logs, null, 2);
-  }
-/
-  /**;
-   * Clear logs;/
-   */;
-  clear(): void {
-    this.logs = [];
-  }
-}
-/
-/**;
- * Track business switch performance;/
- */;
-export class SwitchPerformanceTracker {
-  private monitor: PerformanceMonitor;
-  private logger: PerformanceLogger;
 
-  constructor() {
-    this.monitor = new PerformanceMonitor();
-    this.logger = new PerformanceLogger();}
-/
-  /**;
-   * Track a complete switch operation;/
-   */;
-  trackSwitch(;"
-    userId: "string",;"
-    fromBusinessId: "string",;
-    toBusinessId: string;
-  ): {
-    recordStep: (step: string) => () => void;
-    complete: () => void;} {`
-    const operationId = `switch_${Date.now()}`;"
-    const steps: "Record<string", number> = {};"
-    const totalTimer = this.monitor.startTimer('business_switch_total');
+    const averagePerformance = totalOperations > 0 ? totalDuration / totalOperations : 0;
 
     return {
-      recordStep: (step: string) => {`
-        const stepTimer = this.monitor.startTimer(`business_switch_${step}`);
-
-        return () => {
-          const duration = stepTimer();
-          steps[step] = duration;
-`
-          this.logger.log(`business_switch_${step}`, duration, {
-            operationId,;
-            userId,;
-            fromBusinessId,;
-            toBusinessId,;
-          });
-/
-          // Log slow steps;
-          this.monitor.logSlowOperation(;`
-            `business_switch_${step}`,;
-            duration,;/
-            50, // 50ms threshold for individual steps;
-            { operationId, userId }
-          );
-        };
-      },
-;
-      complete: () => {
-        const totalDuration = totalTimer();
-"
-        this.logger.log('business_switch_complete', totalDuration, {
-          operationId,;
-          userId,;
-          fromBusinessId,;
-          toBusinessId,;
-          steps,;
-        });
-/
-        // Log if total time exceeds 100ms;
-        if (totalDuration > 100) {`
-            totalDuration: `${totalDuration.toFixed(2)}ms`,;
-            steps,;
-          });
-        }
-/
-        // Send metrics to analytics;
-        this.sendToAnalytics({"
-          event: 'business_switch',;"
-          duration: "totalDuration",;
-          userId,;
-          fromBusinessId,;
-          toBusinessId,;
-          steps,;
-        });
-      },;
+      totalOperations,
+      averagePerformance,
+      slowestOperation,
+      fastestOperation,
+      operations: operations.sort((a, b) => b.avg - a.avg),
     };
   }
-/
-  /**;
-   * Get performance statistics;/
-   */;
-  getStatistics(): Record<string, any> {
-    return this.monitor.getAllStats();
+
+  /**
+   * Check if performance is within acceptable limits
+   */
+  isPerformanceAcceptable(
+    operation: string,
+    maxDuration: number = 1000
+  ): boolean {
+    const stats = this.getStats(operation);
+    if (!stats) {
+      return true; // No data means no performance issues
+    }
+
+    return stats.p95 <= maxDuration;
   }
-/
-  /**;
-   * Get performance report;/
-   */;
-  getReport(): string {
-    return this.monitor.generateReport();
+
+  /**
+   * Get performance alerts
+   */
+  getPerformanceAlerts(
+    thresholds: Record<string, number> = {}
+  ): Array<{
+    operation: string;
+    currentP95: number;
+    threshold: number;
+    severity: 'warning' | 'critical';
+  }> {
+    const alerts: Array<{
+      operation: string;
+      currentP95: number;
+      threshold: number;
+      severity: 'warning' | 'critical';
+    }> = [];
+
+    const defaultThresholds = {
+      'business_switch': 2000,
+      'context_load': 1000,
+      'permission_check': 500,
+      'data_sync': 3000,
+    };
+
+    const allThresholds = { ...defaultThresholds, ...thresholds };
+
+    for (const [operation, samples] of this.metrics) {
+      const stats = this.getStats(operation);
+      if (!stats) continue;
+
+      const threshold = allThresholds[operation] || 1000;
+      const severity = stats.p95 > threshold * 2 ? 'critical' : 'warning';
+
+      if (stats.p95 > threshold) {
+        alerts.push({
+          operation,
+          currentP95: stats.p95,
+          threshold,
+          severity,
+        });
+      }
+    }
+
+    return alerts.sort((a, b) => b.currentP95 - a.currentP95);
   }
-/
-  /**;
-   * Send metrics to analytics (placeholder);/
-   */;
-  private sendToAnalytics(data: any): void {/
-    // In production, this would send to Analytics Engine or external service;"
-    if (process.env.NODE_ENV === 'production') {"/
-      // analytics.track('business_switch', data);
+
+  /**
+   * Export metrics data
+   */
+  exportMetrics(): {
+    timestamp: number;
+    metrics: Record<string, {
+      samples: number[];
+      stats: {
+        count: number;
+        min: number;
+        max: number;
+        avg: number;
+        p50: number;
+        p95: number;
+        p99: number;
+      };
+    }>;
+  } {
+    const exportedMetrics: Record<string, {
+      samples: number[];
+      stats: {
+        count: number;
+        min: number;
+        max: number;
+        avg: number;
+        p50: number;
+        p95: number;
+        p99: number;
+      };
+    }> = {};
+
+    for (const [operation, samples] of this.metrics) {
+      const stats = this.getStats(operation);
+      if (stats) {
+        exportedMetrics[operation] = {
+          samples: [...samples],
+          stats,
+        };
+      }
+    }
+
+    return {
+      timestamp: Date.now(),
+      metrics: exportedMetrics,
+    };
+  }
+
+  /**
+   * Import metrics data
+   */
+  importMetrics(data: {
+    timestamp: number;
+    metrics: Record<string, {
+      samples: number[];
+      stats: {
+        count: number;
+        min: number;
+        max: number;
+        avg: number;
+        p50: number;
+        p95: number;
+        p99: number;
+      };
+    }>;
+  }): void {
+    for (const [operation, data] of Object.entries(data.metrics)) {
+      this.metrics.set(operation, [...data.samples]);
     }
   }
+
+  /**
+   * Calculate percentile
+   */
+  private percentile(sortedArray: number[], percentile: number): number {
+    const index = (percentile / 100) * (sortedArray.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    const weight = index % 1;
+
+    if (upper >= sortedArray.length) {
+      return sortedArray[sortedArray.length - 1];
+    }
+
+    return sortedArray[lower] * (1 - weight) + sortedArray[upper] * weight;
+  }
+
+  /**
+   * Get memory usage
+   */
+  getMemoryUsage(): {
+    metricsCount: number;
+    totalSamples: number;
+    estimatedMemoryKB: number;
+  } {
+    let totalSamples = 0;
+    for (const samples of this.metrics.values()) {
+      totalSamples += samples.length;
+    }
+
+    // Rough estimate: each number is 8 bytes, plus Map overhead
+    const estimatedMemoryKB = (totalSamples * 8 + this.metrics.size * 100) / 1024;
+
+    return {
+      metricsCount: this.metrics.size,
+      totalSamples,
+      estimatedMemoryKB: Math.round(estimatedMemoryKB * 100) / 100,
+    };
+  }
+
+  /**
+   * Cleanup old metrics
+   */
+  cleanupOldMetrics(maxAgeMs: number = 3600000): void {
+    const cutoffTime = Date.now() - maxAgeMs;
+    
+    for (const [operation, samples] of this.metrics) {
+      // This is a simplified cleanup - in a real implementation,
+      // you'd want to track timestamps for each sample
+      if (samples.length > this.maxSamples) {
+        const cleanedSamples = samples.slice(-this.maxSamples);
+        this.metrics.set(operation, cleanedSamples);
+      }
+    }
+  }
+
+  /**
+   * Reset performance monitor
+   */
+  reset(): void {
+    this.metrics.clear();
+  }
 }
-/
-// Global instance for singleton usage;
-export const switchPerformanceTracker = new SwitchPerformanceTracker();"`/
+

@@ -3,7 +3,7 @@
  * Testing comprehensive data export capabilities with sample data
  */
 
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   GDPRDataExportService,
   GDPRExportRequest,

@@ -6,10 +6,10 @@
 
 import type { ExecutionContext, MessageBatch, ScheduledEvent, Message,
   DurableObjectNamespace, R2Bucket, AnalyticsEngineDataset, KVNamespace } from '../types/cloudflare';
-import { CloudflareIntegration } from '../CloudflareIntegration.js';
-import { createCors } from '../utils/cors.js';
-import { createSecurityHeaders } from '../utils/security.js';
-import { createLogger } from '../utils/logger.js';
+import { CloudflareIntegration } from '../CloudflareIntegration';
+import { createCors } from '../utils/cors';
+import { createSecurityHeaders } from '../utils/security';
+import { createLogger } from '../utils/logger';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {

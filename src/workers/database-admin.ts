@@ -4,17 +4,8 @@ import type { Env } from '../types/env';
 import { MigrationRunner, type MigrationFile } from '../modules/database/migration-runner';
 
 // Import migration files (in production, these would be loaded from R2 or KV)
-import migration001 from '../../database/migrations/001_core_tenant_users.sql?raw';
-import migration002 from '../../database/migrations/002_rbac_departments.sql?raw';
-import migration003 from '../../database/migrations/003_double_entry_ledger.sql?raw';
-import migration004 from '../../database/migrations/004_audit_workflows.sql?raw';
-import migration005 from '../../database/migrations/005_additional_indexes.sql?raw';
+import { loadMigrations, loadRollbacks } from './migration-sql';
 
-import rollback001 from '../../database/rollbacks/rollback_001_core_tenant_users.sql?raw';
-import rollback002 from '../../database/rollbacks/rollback_002_rbac_departments.sql?raw';
-import rollback003 from '../../database/rollbacks/rollback_003_double_entry_ledger.sql?raw';
-import rollback004 from '../../database/rollbacks/rollback_004_audit_workflows.sql?raw';
-import rollback005 from '../../database/rollbacks/rollback_005_additional_indexes.sql?raw';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -58,32 +49,32 @@ app.post('/migrations/run', async (c) => {
       {
         version: '001',
         name: 'core_tenant_users',
-        sql: migration001,
-        checksum: await MigrationRunner.calculateChecksum(migration001),
+        sql: loadMigrations()['001'] || '-- Migration not found',
+        checksum: await MigrationRunner.calculateChecksum(loadMigrations()['001'] || '-- Migration not found'),
       },
       {
         version: '002',
         name: 'rbac_departments',
-        sql: migration002,
-        checksum: await MigrationRunner.calculateChecksum(migration002),
+        sql: loadMigrations()['002'] || '-- Migration not found',
+        checksum: await MigrationRunner.calculateChecksum(loadMigrations()['002'] || '-- Migration not found'),
       },
       {
         version: '003',
         name: 'double_entry_ledger',
-        sql: migration003,
-        checksum: await MigrationRunner.calculateChecksum(migration003),
+        sql: loadMigrations()['003'] || '-- Migration not found',
+        checksum: await MigrationRunner.calculateChecksum(loadMigrations()['003'] || '-- Migration not found'),
       },
       {
         version: '004',
         name: 'audit_workflows',
-        sql: migration004,
-        checksum: await MigrationRunner.calculateChecksum(migration004),
+        sql: loadMigrations()['004'] || '-- Migration not found',
+        checksum: await MigrationRunner.calculateChecksum(loadMigrations()['004'] || '-- Migration not found'),
       },
       {
         version: '005',
         name: 'additional_indexes',
-        sql: migration005,
-        checksum: await MigrationRunner.calculateChecksum(migration005),
+        sql: loadMigrations()['005'] || '-- Migration not found',
+        checksum: await MigrationRunner.calculateChecksum(loadMigrations()['005'] || '-- Migration not found'),
       },
     ];
 
@@ -116,11 +107,11 @@ app.post('/migrations/rollback/:version', async (c) => {
     const version = c.req.param('version');
 
     const rollbacks: Record<string, string> = {
-      '001': rollback001,
-      '002': rollback002,
-      '003': rollback003,
-      '004': rollback004,
-      '005': rollback005,
+      '001': loadRollbacks()['001'] || '-- Rollback not found',
+      '002': loadRollbacks()['002'] || '-- Rollback not found',
+      '003': loadRollbacks()['003'] || '-- Rollback not found',
+      '004': loadRollbacks()['004'] || '-- Rollback not found',
+      '005': loadRollbacks()['005'] || '-- Rollback not found',
     };
 
     if (!rollbacks[version]) {

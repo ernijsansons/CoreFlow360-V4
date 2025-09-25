@@ -307,7 +307,7 @@ describe('Security Integration Tests', () => {
 
   describe('Zero-Trust Secrets Manager', () => {
     test('should store and retrieve secrets securely', async () => {
-      const secretValue = 'super-secret-api-key-12345';
+      const secretValue = 'Super-Secret-API-Key-12345-Long-Enough-For-Validation!#';
 
       const metadata = await secretsManager.storeSecret(
         'test-api-key',
@@ -349,7 +349,7 @@ describe('Security Integration Tests', () => {
     test('should enforce access policies', async () => {
       const metadata = await secretsManager.storeSecret(
         'restricted-secret',
-        'secret-value',
+        'Secret-Value-That-Meets-Requirements-32-Chars-Min!#',
         'encryption_key',
         'test-business',
         {
@@ -395,7 +395,7 @@ describe('Security Integration Tests', () => {
     test('should rotate secrets', async () => {
       const metadata = await secretsManager.storeSecret(
         'rotation-test',
-        'original-value',
+        'Original-Value-That-Meets-Length-Requirements-32!@',
         'jwt_secret',
         'test-business',
         {
@@ -417,7 +417,7 @@ describe('Security Integration Tests', () => {
 
       const newMetadata = await secretsManager.rotateSecret(
         metadata.id,
-        'new-rotated-value',
+        'New-Rotated-Value-That-Meets-Length-Requirements!#',
         'test-user',
         true
       );
@@ -433,7 +433,7 @@ describe('Security Integration Tests', () => {
         'rotation test'
       );
 
-      expect(retrieved.value).toBe('new-rotated-value');
+      expect(retrieved.value).toBe('New-Rotated-Value-That-Meets-Length-Requirements!#');
     });
   });
 
@@ -661,7 +661,7 @@ describe('Security Integration Tests', () => {
     test('should maintain comprehensive audit logs', async () => {
       const secretMetadata = await secretsManager.storeSecret(
         'audit-test',
-        'test-value',
+        'Test-Value-That-Meets-Minimum-Length-Requirements!@',
         'api_key',
         'test-business',
         {

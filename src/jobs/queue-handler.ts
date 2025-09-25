@@ -1,7 +1,7 @@
 // src/jobs/queue-handler.ts
-import { createDatabase, Database } from '../database/db.js';
-import { createAIService, AIService } from '../ai/ai-service.js';
-import { createWebSocketService } from '../realtime/websocket-service.js';
+import { createDatabase, Database } from '../database/db';
+import { createAIService, AIService } from '../ai/ai-service';
+import { createWebSocketService } from '../realtime/websocket-service';
 import type {
   Env,
   Message,
