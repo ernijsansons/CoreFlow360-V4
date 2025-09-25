@@ -73,7 +73,8 @@ import { ExampleValidators } from './examples';
  * Capability Manager
  * High-level interface for managing and executing capabilities
  */
-export class CapabilityManager {
+export // TODO: Consider splitting CapabilityManager into smaller, focused classes
+class CapabilityManager {
   private logger: Logger;
   private validator: CapabilityValidator;
   private executor: CapabilityExecutor;

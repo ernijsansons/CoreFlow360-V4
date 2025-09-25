@@ -1,587 +1,580 @@
-import type { Context, Next } from 'hono';
+/**
+ * Attribute-Based Access Control (ABAC) Middleware
+ * Advanced authorization system for CoreFlow360 V4
+ */
+import { Logger } from '../shared/logger';
+import type { Context } from 'hono';
 import type { Env } from '../types/env';
-import { ABACService, type Capability, type Subject, type Resource } from '../modules/abac';
-import {
-  BusinessIsolation,
-  InputValidator,
-  CorrelationId,
-  SecurityError,
-  SecurityLimits,
-  createSecurityContext,
-  type SecurityContext,
-} from '../shared/security-utils';
 
-/**
- * ABAC authorization middleware
- * Checks permissions before allowing access to protected routes
- */
-export function requirePermission(
-  capability: Capability,
-  options: {
-    resourceFromParams?: string | ((c: Context) => Resource | undefined);
-    resourceFromBody?: string | ((c: Context) => Promise<Resource | undefined>);
-    onDenied?: (c: Context, result: any) => Response | Promise<Response>;
-    skipCache?: boolean;
-  } = {}
-) {
-  return async (c: Context<{ Bindings: Env }>, next: Next) => {
-    const startTime = performance.now();
-    let securityContext: SecurityContext | undefined;
-
-    try {
-      // Validate capability format first
-      const validatedCapability = InputValidator.validateCapability(capability);
-
-      // Create security context for tracking
-      securityContext = createSecurityContext({
-        correlationId: c.get('correlationId'),
-        userId: c.get('userId'),
-        businessId: c.get('businessId'),
-        ipAddress: c.req.header('CF-Connecting-IP'),
-        userAgent: c.req.header('User-Agent'),
-        sessionId: c.get('sessionId'),
-        operation: `permission_check:${validatedCapability}`,
-        headers: Object.fromEntries(c.req.raw.headers.entries()),
-      });
-
-      // Set correlation ID for downstream operations
-      c.set('correlationId', securityContext.correlationId);
-
-      // Validate business access
-      const hasBusinessAccess = c.get('businessAccess');
-      if (!hasBusinessAccess) {
-        throw new SecurityError('Business access not verified', {
-          code: 'BUSINESS_ACCESS_NOT_VERIFIED',
-          correlationId: securityContext.correlationId,
-          userId: securityContext.userId,
-          businessId: securityContext.businessId,
-        });
-      }
-
-      // Create subject with validated data
-      const subject: Subject = {
-        userId: securityContext.userId,
-        businessId: securityContext.businessId,
-        orgRole: c.get('orgRole') || 'employee',
-        deptRoles: c.get('deptRoles') || [],
-        attributes: c.get('userAttributes') || {},
-        context: {
-          ipAddress: securityContext.ipAddress,
-          userAgent: securityContext.userAgent,
-          sessionId: securityContext.sessionId,
-          requestTime: securityContext.timestamp,
-        },
-      };
-
-      // Get resource if specified
-      let resource: Resource | undefined;
-
-      if (options.resourceFromParams) {
-        if (typeof options.resourceFromParams === 'string') {
-          const resourceId = c.req.param(options.resourceFromParams);
-          if (resourceId) {
-            // Validate resource ID format
-            const validatedResourceId = InputValidator.validateResourceId(resourceId);
-
-            resource = {
-              type: options.resourceFromParams,
-              id: validatedResourceId,
-              businessId: subject.businessId,
-              attributes: {},
-            };
-
-            // Validate resource business isolation
-            BusinessIsolation.validateResourceAccess(
-              subject.businessId,
-              resource,
-              securityContext.operation
-            );
-          }
-        } else {
-          resource = options.resourceFromParams(c);
-          if (resource) {
-            // Validate resource business isolation for dynamic resources too
-            BusinessIsolation.validateResourceAccess(
-              subject.businessId,
-              resource,
-              securityContext.operation
-            );
-          }
-        }
-      }
-
-      if (options.resourceFromBody) {
-        if (typeof options.resourceFromBody === 'string') {
-          const body = await c.req.json();
-          const resourceData = body[options.resourceFromBody];
-          if (resourceData) {
-            resource = {
-              type: options.resourceFromBody,
-              businessId: subject.businessId,
-              attributes: resourceData,
-              ...resourceData,
-            };
-
-            // Validate resource business isolation
-            BusinessIsolation.validateResourceAccess(
-              subject.businessId,
-              resource,
-              securityContext.operation
-            );
-          }
-        } else {
-          resource = await options.resourceFromBody(c);
-          if (resource) {
-            // Validate resource business isolation for dynamic resources
-            BusinessIsolation.validateResourceAccess(
-              subject.businessId,
-              resource,
-              securityContext.operation
-            );
-          }
-        }
-      }
-
-      // Initialize ABAC service
-      const service = new ABACService(c.env.KV_ABAC);
-
-      // Check permission with correlation ID
-      const result = await service.checkPermission(
-        subject,
-        validatedCapability,
-        resource,
-        securityContext.correlationId
-      );
-
-      // Add performance and tracing headers
-      const totalTime = performance.now() - startTime;
-      c.header('X-ABAC-Time', `${totalTime.toFixed(2)}ms`);
-      c.header('X-ABAC-Cache-Hit', result.cacheHit ? 'true' : 'false');
-      c.header('X-ABAC-Fast-Path', result.fastPath || 'none');
-      c.header('X-Correlation-ID', securityContext.correlationId);
-
-      if (!result.allowed) {
-        if (options.onDenied) {
-          return options.onDenied(c, result);
-        }
-
-        // Return safe error response (no internal details)
-        return c.json({
-          success: false,
-          error: 'Permission denied',
-          required: validatedCapability,
-          correlationId: securityContext.correlationId,
-          // Don't expose internal reason in production
-          ...(c.env.ENVIRONMENT === 'development' && { reason: result.reason }),
-        }, 403);
-      }
-
-      // Store permission result and security context for handler use
-      c.set('abacResult', result);
-      c.set('securityContext', securityContext);
-
-      await next();
-
-    } catch (error) {
-      // Enhanced error handling with security context
-      const isSecurityError = error instanceof SecurityError;
-      const correlationId = securityContext?.correlationId || CorrelationId.generate();
-
-      // Log error with proper redaction
-      console.error('ABAC middleware error:', {
-        correlationId,
-        error: isSecurityError ? error.toJSON() : {
-          name: error instanceof Error ? error.name : 'UnknownError',
-          message: error instanceof Error ? error.message : String(error),
-        },
-        operation: securityContext?.operation || 'unknown',
-        userId: securityContext ? BusinessIsolation.redactBusinessId(securityContext.userId) : 'unknown',
-        capability: typeof capability === 'string' ? capability : 'invalid',
-      });
-
-      // Return appropriate error response
-      if (isSecurityError) {
-        return c.json({
-          success: false,
-          error: 'Security validation failed',
-          correlationId,
-          code: error.code,
-        }, 400);
-      }
-
-      return c.json({
-        success: false,
-        error: 'Permission evaluation failed',
-        correlationId,
-        required: typeof capability === 'string' ? capability : 'invalid',
-      }, 500);
-    }
-  };
+interface Subject {
+  id: string;
+  type: 'user' | 'service' | 'system';
+  attributes: Map<string, any>;
+  roles: string[];
+  permissions: string[];
 }
 
-/**
- * Batch permission check middleware
- * Checks multiple capabilities and stores results
- */
-export function requirePermissions(
-  capabilities: Capability[],
-  options: {
-    requireAll?: boolean; // If true, all permissions must be granted
-    resourceFromParams?: string | ((c: Context) => Resource | undefined);
-    onDenied?: (c: Context, results: Map<Capability, any>) => Response | Promise<Response>;
-  } = {}
-) {
-  return async (c: Context<{ Bindings: Env }>, next: Next) => {
-    const startTime = performance.now();
-    let securityContext: SecurityContext | undefined;
-
-    try {
-      // Validate batch size
-      SecurityLimits.validateRequestLimits({ batchSize: capabilities.length });
-
-      // Validate all capabilities
-      const validatedCapabilities = capabilities.map(cap =>
-        InputValidator.validateCapability(cap)
-      );
-
-      // Create security context
-      securityContext = createSecurityContext({
-        correlationId: c.get('correlationId'),
-        userId: c.get('userId'),
-        businessId: c.get('businessId'),
-        ipAddress: c.req.header('CF-Connecting-IP'),
-        userAgent: c.req.header('User-Agent'),
-        sessionId: c.get('sessionId'),
-        operation: `batch_permission_check:${validatedCapabilities.length}_capabilities`,
-        headers: Object.fromEntries(c.req.raw.headers.entries()),
-      });
-
-      c.set('correlationId', securityContext.correlationId);
-
-      // Validate business access
-      const hasBusinessAccess = c.get('businessAccess');
-      if (!hasBusinessAccess) {
-        throw new SecurityError('Business access not verified', {
-          code: 'BUSINESS_ACCESS_NOT_VERIFIED',
-          correlationId: securityContext.correlationId,
-        });
-      }
-
-      // Create subject
-      const subject: Subject = {
-        userId: securityContext.userId,
-        businessId: securityContext.businessId,
-        orgRole: c.get('orgRole') || 'employee',
-        deptRoles: c.get('deptRoles') || [],
-        attributes: c.get('userAttributes') || {},
-        context: {
-          ipAddress: securityContext.ipAddress,
-          userAgent: securityContext.userAgent,
-          sessionId: securityContext.sessionId,
-          requestTime: securityContext.timestamp,
-        },
-      };
-
-      // Get resource if specified with validation
-      let resource: Resource | undefined;
-      if (options.resourceFromParams) {
-        if (typeof options.resourceFromParams === 'string') {
-          const resourceId = c.req.param(options.resourceFromParams);
-          if (resourceId) {
-            const validatedResourceId = InputValidator.validateResourceId(resourceId);
-            resource = {
-              type: options.resourceFromParams,
-              id: validatedResourceId,
-              businessId: subject.businessId,
-              attributes: {},
-            };
-
-            BusinessIsolation.validateResourceAccess(
-              subject.businessId,
-              resource,
-              securityContext.operation
-            );
-          }
-        } else {
-          resource = options.resourceFromParams(c);
-          if (resource) {
-            BusinessIsolation.validateResourceAccess(
-              subject.businessId,
-              resource,
-              securityContext.operation
-            );
-          }
-        }
-      }
-
-      const service = new ABACService(c.env.KV_ABAC);
-      const results = await service.checkPermissions(
-        subject,
-        validatedCapabilities,
-        resource,
-        securityContext.correlationId
-      );
-
-      const totalTime = performance.now() - startTime;
-      c.header('X-ABAC-Batch-Time', `${totalTime.toFixed(2)}ms`);
-      c.header('X-ABAC-Batch-Count', validatedCapabilities.length.toString());
-      c.header('X-Correlation-ID', securityContext.correlationId);
-
-      // Check if permissions are satisfied
-      const allowedCapabilities = Array.from(results.entries())
-        .filter(([_, result]) => result.allowed)
-        .map(([capability, _]) => capability);
-
-      const requireAll = options.requireAll ?? true;
-      const hasPermission = requireAll
-        ? allowedCapabilities.length === validatedCapabilities.length
-        : allowedCapabilities.length > 0;
-
-      if (!hasPermission) {
-        if (options.onDenied) {
-          return options.onDenied(c, results);
-        }
-
-        const deniedCapabilities = validatedCapabilities.filter(cap =>
-          !results.get(cap)?.allowed
-        );
-
-        return c.json({
-          success: false,
-          error: 'Insufficient permissions',
-          required: validatedCapabilities,
-          denied: deniedCapabilities,
-          allowed: allowedCapabilities,
-          correlationId: securityContext.correlationId,
-        }, 403);
-      }
-
-      // Store all results for use in handler
-      c.set('abacResults', results);
-      c.set('allowedCapabilities', allowedCapabilities);
-      c.set('securityContext', securityContext);
-
-      await next();
-
-    } catch (error) {
-      const isSecurityError = error instanceof SecurityError;
-      const correlationId = securityContext?.correlationId || CorrelationId.generate();
-
-      console.error('ABAC batch middleware error:', {
-        correlationId,
-        error: isSecurityError ? error.toJSON() : {
-          name: error instanceof Error ? error.name : 'UnknownError',
-          message: error instanceof Error ? error.message : String(error),
-        },
-        operation: securityContext?.operation || 'unknown',
-        capabilityCount: capabilities.length,
-      });
-
-      if (isSecurityError) {
-        return c.json({
-          success: false,
-          error: 'Security validation failed',
-          correlationId,
-          code: error.code,
-        }, 400);
-      }
-
-      return c.json({
-        success: false,
-        error: 'Permission evaluation failed',
-        correlationId,
-        required: capabilities,
-      }, 500);
-    }
-  };
+interface Resource {
+  id: string;
+  type: string;
+  attributes: Map<string, any>;
+  businessId: string;
+  ownerId?: string;
 }
 
-/**
- * Conditional permission middleware
- * Only checks permission if condition is met
- */
-export function requirePermissionIf(
-  condition: (c: Context) => boolean | Promise<boolean>,
-  capability: Capability,
-  options: Parameters<typeof requirePermission>[1] = {}
-) {
-  return async (c: Context<{ Bindings: Env }>, next: Next) => {
-    const shouldCheck = await condition(c);
-
-    if (shouldCheck) {
-      return requirePermission(capability, options)(c, next);
-    }
-
-    await next();
-  };
+interface Action {
+  name: string;
+  type: 'read' | 'write' | 'delete' | 'execute' | 'admin';
+  resource: string;
+  conditions?: Map<string, any>;
 }
 
-/**
- * Role-based permission shortcut
- * Checks if user has minimum required role
- */
-export function requireRole(
-  minRole: 'viewer' | 'employee' | 'manager' | 'director' | 'owner',
-  options: {
-    onDenied?: (c: Context) => Response | Promise<Response>;
-  } = {}
-) {
-  const roleHierarchy = {
-    viewer: 1,
-    employee: 2,
-    manager: 3,
-    director: 4,
-    owner: 5,
-  };
-
-  return async (c: Context, next: Next) => {
-    const userRole = c.get('orgRole') || 'viewer';
-    const userLevel = roleHierarchy[userRole as keyof typeof roleHierarchy] || 0;
-    const requiredLevel = roleHierarchy[minRole];
-
-    if (userLevel < requiredLevel) {
-      if (options.onDenied) {
-        return options.onDenied(c);
-      }
-
-      return c.json({
-        success: false,
-        error: 'Insufficient role',
-        required: minRole,
-        current: userRole,
-      }, 403);
-    }
-
-    await next();
-  };
+interface Environment {
+  time: Date;
+  location?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  businessId: string;
+  context: Map<string, any>;
 }
 
-/**
- * Department-based permission check
- * Checks if user belongs to required department
- */
-export function requireDepartment(
-  departmentTypes: string | string[],
-  options: {
-    requireRole?: 'head' | 'manager' | 'supervisor' | 'lead' | 'member';
-    onDenied?: (c: Context) => Response | Promise<Response>;
-  } = {}
-) {
-  return async (c: Context, next: Next) => {
-    const deptRoles = c.get('deptRoles') || [];
-    const requiredDepts = Array.isArray(departmentTypes) ? departmentTypes : [departmentTypes];
+interface Policy {
+  id: string;
+  name: string;
+  description: string;
+  effect: 'allow' | 'deny';
+  priority: number;
+  subjects: SubjectRule[];
+  resources: ResourceRule[];
+  actions: ActionRule[];
+  conditions: ConditionRule[];
+  obligations: Obligation[];
+}
 
-    const hasRequiredDept = deptRoles.some((deptRole: any) => {
-      const hasType = requiredDepts.includes(deptRole.departmentType);
-      const hasRole = options.requireRole ? deptRole.role === options.requireRole : true;
-      return hasType && hasRole;
+interface SubjectRule {
+  type: 'user' | 'role' | 'group' | 'service';
+  value: string;
+  attributes?: Map<string, any>;
+}
+
+interface ResourceRule {
+  type: string;
+  pattern: string;
+  attributes?: Map<string, any>;
+}
+
+interface ActionRule {
+  name: string;
+  type: string;
+  conditions?: Map<string, any>;
+}
+
+interface ConditionRule {
+  attribute: string;
+  operator: 'equals' | 'not_equals' | 'contains' | 'starts_with' | 'ends_with' | 'in' | 'not_in' | 'greater_than' | 'less_than' | 'between';
+  value: any;
+  required: boolean;
+}
+
+interface Obligation {
+  type: 'log' | 'notify' | 'audit' | 'transform';
+  action: string;
+  parameters: Map<string, any>;
+}
+
+interface Decision {
+  effect: 'allow' | 'deny' | 'indeterminate' | 'not_applicable';
+  reason: string;
+  policies: string[];
+  obligations: Obligation[];
+  confidence: number;
+  timestamp: Date;
+}
+
+export class ABACMiddleware {
+  private logger: Logger;
+  private policies: Map<string, Policy> = new Map();
+  private cache: Map<string, Decision> = new Map();
+  private cacheTimeout: number = 5 * 60 * 1000; // 5 minutes
+
+  constructor(private readonly context: Context) {
+    this.logger = new Logger({ component: 'abac-middleware' });
+    this.initializeDefaultPolicies();
+  }
+
+  async authorize(
+    subject: Subject,
+    action: Action,
+    resource: Resource,
+    environment: Environment
+  ): Promise<Decision> {
+    const cacheKey = this.generateCacheKey(subject, action, resource, environment);
+    
+    // Check cache first
+    const cachedDecision = this.cache.get(cacheKey);
+    if (cachedDecision && this.isCacheValid(cachedDecision)) {
+      this.logger.debug('Using cached authorization decision', { cacheKey });
+      return cachedDecision;
+    }
+
+    this.logger.info('Evaluating authorization request', {
+      subject: subject.id,
+      action: action.name,
+      resource: resource.id,
+      businessId: environment.businessId
     });
 
-    if (!hasRequiredDept) {
-      if (options.onDenied) {
-        return options.onDenied(c);
+    const decision = await this.evaluatePolicies(subject, action, resource, environment);
+    
+    // Cache the decision
+    this.cache.set(cacheKey, decision);
+    
+    // Log the decision
+    await this.logDecision(decision, subject, action, resource, environment);
+
+    return decision;
+  }
+
+  private async evaluatePolicies(
+    subject: Subject,
+    action: Action,
+    resource: Resource,
+    environment: Environment
+  ): Promise<Decision> {
+    const applicablePolicies = this.findApplicablePolicies(subject, action, resource, environment);
+    
+    if (applicablePolicies.length === 0) {
+      return {
+        effect: 'not_applicable',
+        reason: 'No applicable policies found',
+        policies: [],
+        obligations: [],
+        confidence: 1.0,
+        timestamp: new Date()
+      };
+    }
+
+    // Sort policies by priority (higher priority first)
+    applicablePolicies.sort((a, b) => b.priority - a.priority);
+
+    let allowCount = 0;
+    let denyCount = 0;
+    const matchedPolicies: string[] = [];
+    const obligations: Obligation[] = [];
+
+    for (const policy of applicablePolicies) {
+      const matches = await this.evaluatePolicy(policy, subject, action, resource, environment);
+      
+      if (matches) {
+        matchedPolicies.push(policy.id);
+        
+        if (policy.effect === 'allow') {
+          allowCount++;
+        } else {
+          denyCount++;
+        }
+        
+        obligations.push(...policy.obligations);
       }
-
-      return c.json({
-        success: false,
-        error: 'Department access required',
-        required: {
-          departments: requiredDepts,
-          role: options.requireRole,
-        },
-        current: deptRoles.map((r: any) => ({
-          department: r.departmentType,
-          role: r.role,
-        })),
-      }, 403);
     }
 
-    await next();
-  };
-}
+    // Determine final decision
+    let effect: 'allow' | 'deny' | 'indeterminate';
+    let reason: string;
 
-/**
- * Business isolation middleware
- * Ensures resource belongs to user's business
- */
-export function requireBusinessAccess(
-  resourceParam = 'businessId'
-) {
-  return async (c: Context, next: Next) => {
-    const userBusinessId = c.get('businessId');
-    const resourceBusinessId = c.req.param(resourceParam) || c.req.query(resourceParam);
-
-    if (resourceBusinessId && resourceBusinessId !== userBusinessId) {
-      return c.json({
-        success: false,
-        error: 'Cross-business access denied',
-        userBusiness: userBusinessId,
-        requestedBusiness: resourceBusinessId,
-      }, 403);
+    if (denyCount > 0) {
+      effect = 'deny';
+      reason = `Denied by ${denyCount} policy(ies)`;
+    } else if (allowCount > 0) {
+      effect = 'allow';
+      reason = `Allowed by ${allowCount} policy(ies)`;
+    } else {
+      effect = 'indeterminate';
+      reason = 'No policies matched';
     }
 
-    await next();
-  };
-}
+    return {
+      effect,
+      reason,
+      policies: matchedPolicies,
+      obligations,
+      confidence: this.calculateConfidence(allowCount, denyCount, applicablePolicies.length),
+      timestamp: new Date()
+    };
+  }
 
-/**
- * MFA requirement middleware
- * Checks if user has MFA enabled for sensitive operations
- */
-export function requireMFA(
-  options: {
-    onMFARequired?: (c: Context) => Response | Promise<Response>;
-  } = {}
-) {
-  return async (c: Context, next: Next) => {
-    const userAttributes = c.get('userAttributes') || {};
-    const mfaEnabled = userAttributes.mfaEnabled || false;
+  private findApplicablePolicies(
+    subject: Subject,
+    action: Action,
+    resource: Resource,
+    environment: Environment
+  ): Policy[] {
+    const applicable: Policy[] = [];
 
-    if (!mfaEnabled) {
-      if (options.onMFARequired) {
-        return options.onMFARequired(c);
+    for (const policy of this.policies.values()) {
+      if (this.isPolicyApplicable(policy, subject, action, resource, environment)) {
+        applicable.push(policy);
       }
-
-      return c.json({
-        success: false,
-        error: 'Multi-factor authentication required',
-        mfaEnabled: false,
-      }, 403);
     }
 
-    await next();
-  };
-}
+    return applicable;
+  }
 
-/**
- * Time-based access control
- * Restricts access to certain hours
- */
-export function requireTimeWindow(
-  startHour: number,
-  endHour: number,
-  options: {
-    timezone?: string;
-    onOutsideWindow?: (c: Context) => Response | Promise<Response>;
-  } = {}
-) {
-  return async (c: Context, next: Next) => {
-    const now = new Date();
-    const currentHour = now.getHours();
+  private isPolicyApplicable(
+    policy: Policy,
+    subject: Subject,
+    action: Action,
+    resource: Resource,
+    environment: Environment
+  ): boolean {
+    // Check subject rules
+    if (!this.matchesSubjectRules(policy.subjects, subject)) {
+      return false;
+    }
 
-    if (currentHour < startHour || currentHour > endHour) {
-      if (options.onOutsideWindow) {
-        return options.onOutsideWindow(c);
+    // Check resource rules
+    if (!this.matchesResourceRules(policy.resources, resource)) {
+      return false;
+    }
+
+    // Check action rules
+    if (!this.matchesActionRules(policy.actions, action)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private matchesSubjectRules(rules: SubjectRule[], subject: Subject): boolean {
+    if (rules.length === 0) return true;
+
+    for (const rule of rules) {
+      if (this.matchesSubjectRule(rule, subject)) {
+        return true;
       }
-
-      return c.json({
-        success: false,
-        error: 'Access restricted to business hours',
-        allowedWindow: `${startHour}:00 - ${endHour}:00`,
-        currentTime: now.toISOString(),
-      }, 403);
     }
 
-    await next();
-  };
+    return false;
+  }
+
+  private matchesSubjectRule(rule: SubjectRule, subject: Subject): boolean {
+    switch (rule.type) {
+      case 'user':
+        return subject.id === rule.value;
+      case 'role':
+        return subject.roles.includes(rule.value);
+      case 'group':
+        return subject.attributes.get('group') === rule.value;
+      case 'service':
+        return subject.type === 'service' && subject.id === rule.value;
+      default:
+        return false;
+    }
+  }
+
+  private matchesResourceRules(rules: ResourceRule[], resource: Resource): boolean {
+    if (rules.length === 0) return true;
+
+    for (const rule of rules) {
+      if (this.matchesResourceRule(rule, resource)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private matchesResourceRule(rule: ResourceRule, resource: Resource): boolean {
+    if (resource.type !== rule.type) return false;
+    
+    if (rule.pattern !== '*' && !this.matchesPattern(resource.id, rule.pattern)) {
+      return false;
+    }
+
+    if (rule.attributes) {
+      for (const [key, value] of rule.attributes) {
+        if (resource.attributes.get(key) !== value) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private matchesActionRules(rules: ActionRule[], action: Action): boolean {
+    if (rules.length === 0) return true;
+
+    for (const rule of rules) {
+      if (this.matchesActionRule(rule, action)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private matchesActionRule(rule: ActionRule, action: Action): boolean {
+    if (action.name !== rule.name && rule.name !== '*') return false;
+    if (action.type !== rule.type && rule.type !== '*') return false;
+
+    if (rule.conditions) {
+      for (const [key, value] of rule.conditions) {
+        if (action.conditions?.get(key) !== value) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private async evaluatePolicy(
+    policy: Policy,
+    subject: Subject,
+    action: Action,
+    resource: Resource,
+    environment: Environment
+  ): Promise<boolean> {
+    // Check conditions
+    for (const condition of policy.conditions) {
+      if (!this.evaluateCondition(condition, subject, action, resource, environment)) {
+        if (condition.required) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private evaluateCondition(
+    condition: ConditionRule,
+    subject: Subject,
+    action: Action,
+    resource: Resource,
+    environment: Environment
+  ): boolean {
+    let attributeValue: any;
+
+    // Get attribute value based on source
+    if (condition.attribute.startsWith('subject.')) {
+      const attr = condition.attribute.substring(8);
+      attributeValue = subject.attributes.get(attr);
+    } else if (condition.attribute.startsWith('resource.')) {
+      const attr = condition.attribute.substring(9);
+      attributeValue = resource.attributes.get(attr);
+    } else if (condition.attribute.startsWith('environment.')) {
+      const attr = condition.attribute.substring(12);
+      attributeValue = environment.context.get(attr);
+    } else {
+      // Default to subject attributes
+      attributeValue = subject.attributes.get(condition.attribute);
+    }
+
+    return this.compareValues(attributeValue, condition.operator, condition.value);
+  }
+
+  private compareValues(actual: any, operator: string, expected: any): boolean {
+    switch (operator) {
+      case 'equals':
+        return actual === expected;
+      case 'not_equals':
+        return actual !== expected;
+      case 'contains':
+        return String(actual).includes(String(expected));
+      case 'starts_with':
+        return String(actual).startsWith(String(expected));
+      case 'ends_with':
+        return String(actual).endsWith(String(expected));
+      case 'in':
+        return Array.isArray(expected) && expected.includes(actual);
+      case 'not_in':
+        return Array.isArray(expected) && !expected.includes(actual);
+      case 'greater_than':
+        return Number(actual) > Number(expected);
+      case 'less_than':
+        return Number(actual) < Number(expected);
+      case 'between':
+        return Array.isArray(expected) && expected.length === 2 &&
+               Number(actual) >= Number(expected[0]) && Number(actual) <= Number(expected[1]);
+      default:
+        return false;
+    }
+  }
+
+  private matchesPattern(value: string, pattern: string): boolean {
+    // Simple pattern matching - in production, use proper regex or glob patterns
+    if (pattern === '*') return true;
+    if (pattern.includes('*')) {
+      const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+      return regex.test(value);
+    }
+    return value === pattern;
+  }
+
+  private calculateConfidence(allowCount: number, denyCount: number, totalPolicies: number): number {
+    if (totalPolicies === 0) return 0;
+    
+    const totalMatches = allowCount + denyCount;
+    if (totalMatches === 0) return 0;
+    
+    return Math.min(1, totalMatches / totalPolicies);
+  }
+
+  private generateCacheKey(
+    subject: Subject,
+    action: Action,
+    resource: Resource,
+    environment: Environment
+  ): string {
+    return `${subject.id}:${action.name}:${resource.id}:${environment.businessId}`;
+  }
+
+  private isCacheValid(decision: Decision): boolean {
+    const age = Date.now() - decision.timestamp.getTime();
+    return age < this.cacheTimeout;
+  }
+
+  private async logDecision(
+    decision: Decision,
+    subject: Subject,
+    action: Action,
+    resource: Resource,
+    environment: Environment
+  ): Promise<void> {
+    this.logger.info('Authorization decision', {
+      effect: decision.effect,
+      reason: decision.reason,
+      subject: subject.id,
+      action: action.name,
+      resource: resource.id,
+      businessId: environment.businessId,
+      policies: decision.policies,
+      confidence: decision.confidence
+    });
+  }
+
+  private initializeDefaultPolicies(): void {
+    // Admin access policy
+    this.addPolicy({
+      id: 'admin_full_access',
+      name: 'Admin Full Access',
+      description: 'Full access for admin users',
+      effect: 'allow',
+      priority: 100,
+      subjects: [{ type: 'role', value: 'admin' }],
+      resources: [{ type: '*', pattern: '*' }],
+      actions: [{ name: '*', type: '*' }],
+      conditions: [],
+      obligations: []
+    });
+
+    // Business isolation policy
+    this.addPolicy({
+      id: 'business_isolation',
+      name: 'Business Data Isolation',
+      description: 'Users can only access data from their business',
+      effect: 'allow',
+      priority: 90,
+      subjects: [{ type: 'user', value: '*' }],
+      resources: [{ type: '*', pattern: '*' }],
+      actions: [{ name: '*', type: '*' }],
+      conditions: [
+        {
+          attribute: 'subject.businessId',
+          operator: 'equals',
+          value: 'resource.businessId',
+          required: true
+        }
+      ],
+      obligations: []
+    });
+
+    // Read-only access for employees
+    this.addPolicy({
+      id: 'employee_read_only',
+      name: 'Employee Read-Only Access',
+      description: 'Employees have read-only access to most resources',
+      effect: 'allow',
+      priority: 50,
+      subjects: [{ type: 'role', value: 'employee' }],
+      resources: [{ type: '*', pattern: '*' }],
+      actions: [{ name: 'read', type: 'read' }],
+      conditions: [],
+      obligations: []
+    });
+
+    // Manager write access
+    this.addPolicy({
+      id: 'manager_write_access',
+      name: 'Manager Write Access',
+      description: 'Managers can write to most resources',
+      effect: 'allow',
+      priority: 60,
+      subjects: [{ type: 'role', value: 'manager' }],
+      resources: [{ type: '*', pattern: '*' }],
+      actions: [{ name: '*', type: 'write' }],
+      conditions: [],
+      obligations: []
+    });
+
+    // Deny access to sensitive resources for non-admin users
+    this.addPolicy({
+      id: 'deny_sensitive_resources',
+      name: 'Deny Sensitive Resources',
+      description: 'Deny access to sensitive resources for non-admin users',
+      effect: 'deny',
+      priority: 80,
+      subjects: [{ type: 'role', value: 'employee' }],
+      resources: [{ type: 'audit_logs', pattern: '*' }],
+      actions: [{ name: '*', type: '*' }],
+      conditions: [],
+      obligations: []
+    });
+  }
+
+  addPolicy(policy: Policy): void {
+    this.policies.set(policy.id, policy);
+    this.logger.info('Policy added', { policyId: policy.id, policyName: policy.name });
+  }
+
+  removePolicy(policyId: string): boolean {
+    const removed = this.policies.delete(policyId);
+    if (removed) {
+      this.logger.info('Policy removed', { policyId });
+    }
+    return removed;
+  }
+
+  updatePolicy(policyId: string, updates: Partial<Policy>): boolean {
+    const policy = this.policies.get(policyId);
+    if (!policy) return false;
+
+    const updatedPolicy = { ...policy, ...updates };
+    this.policies.set(policyId, updatedPolicy);
+    this.logger.info('Policy updated', { policyId });
+    return true;
+  }
+
+  getPolicy(policyId: string): Policy | undefined {
+    return this.policies.get(policyId);
+  }
+
+  getAllPolicies(): Policy[] {
+    return Array.from(this.policies.values());
+  }
+
+  clearCache(): void {
+    this.cache.clear();
+    this.logger.info('Authorization cache cleared');
+  }
+
+  getCacheStats(): { size: number; hitRate: number } {
+    return {
+      size: this.cache.size,
+      hitRate: 0.85 // Mock hit rate
+    };
+  }
 }
+

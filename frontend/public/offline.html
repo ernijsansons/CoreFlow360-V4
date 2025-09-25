@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreFlow360 - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 500px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .features {
+            display: grid;
+            gap: 1rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+        }
+
+        .feature-text {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .connection-status {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-online {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .status-offline {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .pulse {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .pulse-green {
+            background: #22c55e;
+        }
+
+        .pulse-red {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📱</div>
+
+        <h1>You're Offline</h1>
+
+        <p class="subtitle">
+            CoreFlow360 isn't available right now, but don't worry - your data is safe and will sync when you're back online.
+        </p>
+
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">💾</span>
+                <span class="feature-text">Your data is safely stored locally</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🔄</span>
+                <span class="feature-text">Changes will sync automatically when reconnected</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">⚡</span>
+                <span class="feature-text">Core features available in offline mode</span>
+            </div>
+        </div>
+
+        <div class="connection-status" id="connectionStatus">
+            <span class="pulse pulse-red" id="statusIndicator"></span>
+            <span id="statusText">Checking connection...</span>
+        </div>
+
+        <div class="actions">
+            <button onclick="checkConnection()">Check Connection</button>
+            <button onclick="goHome()">Go to Dashboard</button>
+        </div>
+    </div>
+
+    <script>
+        function updateConnectionStatus() {
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            const connectionStatus = document.getElementById('connectionStatus');
+
+            if (navigator.onLine) {
+                statusIndicator.className = 'pulse pulse-green';
+                statusText.textContent = 'Connection restored! Redirecting...';
+                connectionStatus.className = 'connection-status status-online';
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                statusIndicator.className = 'pulse pulse-red';
+                statusText.textContent = 'No internet connection detected';
+                connectionStatus.className = 'connection-status status-offline';
+            }
+        }
+
+        function checkConnection() {
+            statusText.textContent = 'Checking connection...';
+
+            // Try to fetch a small resource to test connectivity
+            fetch('/manifest.json', {
+                method: 'HEAD',
+                cache: 'no-cache'
+            })
+            .then(() => {
+                updateConnectionStatus();
+            })
+            .catch(() => {
+                updateConnectionStatus();
+            });
+        }
+
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // Listen for online/offline events
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        // Initial status check
+        updateConnectionStatus();
+
+        // Periodic connection checks
+        setInterval(checkConnection, 30000); // Check every 30 seconds
+    </script>
+</body>
+</html>

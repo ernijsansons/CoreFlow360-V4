@@ -49,357 +49,363 @@ business.get('/list', authenticate(), asyncHandler(async (c) => {
 }));
 
 /**
+ * Switch to a different business
+ * POST /business/switch
+ */
+business.post('/switch', authenticate(), rateLimiters.businessSwitch, asyncHandler(async (c) => {
+  const startTime = performance.now();
+  const userId = c.get('userId');
+  const body = await c.req.json();
+
+  // Parse and validate request
+  const params = SwitchBusinessRequestSchema.parse(body);
+
+  const service = new BusinessSwitchService(c.env);
+  const result = await service.switchBusiness(userId, params.businessId, params.reason);
+
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
+  c.header('X-Switch-Success', result.success ? 'true' : 'false');
+
+  return c.json({
+    success: result.success,
+    business: result.business,
+    session: result.session,
+    metadata: {
+      switchTimeMs: result.switchTimeMs,
+      responseTimeMs: performance.now() - startTime,
+      fromCache: result.fromCache,
+    },
+  });
+}));
+
+/**
  * Get current business context
  * GET /business/current
  */
 business.get('/current', authenticate(), asyncHandler(async (c) => {
-  const businessId = c.get('businessId');
+  const startTime = performance.now();
   const userId = c.get('userId');
 
-  if (!businessId) {
-    return c.json({
-      success: false,
-      error: 'No active business selected',
-    }, 400);
-  }
-
   const service = new BusinessSwitchService(c.env);
+  const result = await service.getCurrentBusiness(userId);
 
-  // Get business details with context
-  const business = await c.env.DB_MAIN
-    .prepare(`
-      SELECT
-        b.id,
-        b.name,
-        b.email,
-        b.subscription_tier,
-        b.subscription_status,
-        b.settings,
-        bm.role,
-        bm.job_title,
-        bm.department
-      FROM businesses b
-      JOIN business_memberships bm ON bm.business_id = b.id
-      WHERE b.id = ? AND bm.user_id = ?
-    `)
-    .bind(businessId, userId)
-    .first();
-
-  if (!business) {
-    return c.json({
-      success: false,
-      error: 'Business not found',
-    }, 404);
-  }
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
+  c.header('X-Cache-Hit', result.fromCache ? 'true' : 'false');
 
   return c.json({
     success: true,
-    business: {
-      id: business.id,
-      name: business.name,
-      email: business.email,
-      subscriptionTier: business.subscription_tier,
-      subscriptionStatus: business.subscription_status,
-      settings: JSON.parse(business.settings || '{}'),
-      userRole: business.role,
-      userJobTitle: business.job_title,
-      userDepartment: business.department,
+    business: result.business,
+    session: result.session,
+    metadata: {
+      fromCache: result.fromCache,
+      fetchTimeMs: result.fetchTimeMs,
+      responseTimeMs: performance.now() - startTime,
     },
   });
 }));
 
 /**
- * Switch to a different business
- * POST /business/switch
+ * Get business details
+ * GET /business/:id
  */
-business.post('/switch', authenticate(), rateLimiters.api, asyncHandler(async (c) => {
-  const totalStartTime = performance.now();
+business.get('/:id', authenticate(), asyncHandler(async (c) => {
+  const startTime = performance.now();
   const userId = c.get('userId');
-  const sessionId = c.get('sessionId');
-  const body = await c.req.json();
-
-  // Validate request
-  const request = SwitchBusinessRequestSchema.parse(body);
+  const businessId = c.req.param('id');
 
   const service = new BusinessSwitchService(c.env);
-
-  // Perform the switch
-  const result = await service.switchBusiness(
-    userId,
-    sessionId,
-    request,
-    c.req.header('CF-Connecting-IP') || 'unknown',
-    c.req.header('User-Agent') || 'unknown'
-  );
+  const result = await service.getBusinessDetails(userId, businessId);
 
   // Add performance headers
-  c.header('X-Response-Time', `${result.switchTimeMs.toFixed(2)}ms`);
-  c.header('X-Cache-Hit', result.cacheHit ? 'true' : 'false');
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
 
-  // Performance breakdown headers for debugging
-  if (c.env.ENVIRONMENT === 'development') {
-    c.header('X-Perf-DB-Query', `${result.metrics.dbQueryMs.toFixed(2)}ms`);
-    c.header('X-Perf-Cache-Read', `${result.metrics.cacheReadMs.toFixed(2)}ms`);
-    c.header('X-Perf-Cache-Write', `${result.metrics.cacheWriteMs.toFixed(2)}ms`);
-    c.header('X-Perf-Token-Gen', `${result.metrics.tokenGenerationMs.toFixed(2)}ms`);
-    c.header('X-Perf-Prefetch', `${result.metrics.prefetchMs.toFixed(2)}ms`);
-  }
+  return c.json({
+    success: true,
+    business: result.business,
+    permissions: result.permissions,
+    metadata: {
+      responseTimeMs: performance.now() - startTime,
+    },
+  });
+}));
 
-  // Generate client state clear instructions
-  const clientStateClear = service.generateClientStateClear(
-    c.get('businessId') || ''
-  );
+/**
+ * Update business settings
+ * PUT /business/:id
+ */
+business.put('/:id', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c) => {
+  const startTime = performance.now();
+  const userId = c.get('userId');
+  const businessId = c.req.param('id');
+  const body = await c.req.json();
 
-  const totalTime = performance.now() - totalStartTime;
+  const service = new BusinessSwitchService(c.env);
+  const result = await service.updateBusiness(userId, businessId, body);
 
-  // Log warning if over 100ms target
-  if (totalTime > 100) {
-    console.warn('Business switch exceeded 100ms target:', {
-      totalTime: `${totalTime.toFixed(2)}ms`,
-      breakdown: result.metrics,
-      userId,
-      targetBusinessId: request.targetBusinessId,
-    });
-  }
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
+
+  return c.json({
+    success: true,
+    business: result.business,
+    metadata: {
+      responseTimeMs: performance.now() - startTime,
+    },
+  });
+}));
+
+/**
+ * Get business statistics
+ * GET /business/:id/stats
+ */
+business.get('/:id/stats', authenticate(), asyncHandler(async (c) => {
+  const startTime = performance.now();
+  const userId = c.get('userId');
+  const businessId = c.req.param('id');
+  const query = c.req.query();
+
+  const period = query.period || '30d';
+  const service = new BusinessSwitchService(c.env);
+  const result = await service.getBusinessStats(userId, businessId, period);
+
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
+
+  return c.json({
+    success: true,
+    stats: result.stats,
+    metadata: {
+      period,
+      responseTimeMs: performance.now() - startTime,
+    },
+  });
+}));
+
+/**
+ * Get business users
+ * GET /business/:id/users
+ */
+business.get('/:id/users', authenticate(), asyncHandler(async (c) => {
+  const startTime = performance.now();
+  const userId = c.get('userId');
+  const businessId = c.req.param('id');
+  const query = c.req.query();
+
+  const page = parseInt(query.page || '1');
+  const limit = parseInt(query.limit || '20');
+  const search = query.search;
+
+  const service = new BusinessSwitchService(c.env);
+  const result = await service.getBusinessUsers(userId, businessId, {
+    page,
+    limit,
+    search,
+  });
+
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
+
+  return c.json({
+    success: true,
+    users: result.users,
+    pagination: result.pagination,
+    metadata: {
+      responseTimeMs: performance.now() - startTime,
+    },
+  });
+}));
+
+/**
+ * Add user to business
+ * POST /business/:id/users
+ */
+business.post('/:id/users', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c) => {
+  const startTime = performance.now();
+  const userId = c.get('userId');
+  const businessId = c.req.param('id');
+  const body = await c.req.json();
+
+  const service = new BusinessSwitchService(c.env);
+  const result = await service.addUserToBusiness(userId, businessId, body);
+
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
+
+  return c.json({
+    success: true,
+    user: result.user,
+    metadata: {
+      responseTimeMs: performance.now() - startTime,
+    },
+  });
+}));
+
+/**
+ * Remove user from business
+ * DELETE /business/:id/users/:userId
+ */
+business.delete('/:id/users/:userId', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c) => {
+  const startTime = performance.now();
+  const userId = c.get('userId');
+  const businessId = c.req.param('id');
+  const targetUserId = c.req.param('userId');
+
+  const service = new BusinessSwitchService(c.env);
+  const result = await service.removeUserFromBusiness(userId, businessId, targetUserId);
+
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
 
   return c.json({
     success: result.success,
-    accessToken: result.accessToken,
-    refreshToken: result.refreshToken,
-    businessContext: result.businessContext,
-    clientStateClear,
+    message: result.message,
     metadata: {
-      switchTimeMs: result.switchTimeMs,
-      cacheHit: result.cacheHit,
-      performanceMetrics: result.metrics,
-      totalResponseTimeMs: totalTime,
+      responseTimeMs: performance.now() - startTime,
     },
   });
 }));
 
 /**
- * Prefetch likely businesses for faster switching
- * POST /business/prefetch
+ * Get business permissions
+ * GET /business/:id/permissions
  */
-business.post('/prefetch', authenticate(), asyncHandler(async (c) => {
+business.get('/:id/permissions', authenticate(), asyncHandler(async (c) => {
+  const startTime = performance.now();
   const userId = c.get('userId');
-  const service = new BusinessSwitchService(c.env);
+  const businessId = c.req.param('id');
 
-  // Run prefetch in background
-  c.executionCtx.waitUntil(
-    service.prefetchLikelyBusinesses(userId)
-  );
+  const service = new BusinessSwitchService(c.env);
+  const result = await service.getBusinessPermissions(userId, businessId);
+
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
 
   return c.json({
     success: true,
-    message: 'Prefetch initiated',
+    permissions: result.permissions,
+    metadata: {
+      responseTimeMs: performance.now() - startTime,
+    },
   });
 }));
 
 /**
- * Get business switch statistics
- * GET /business/switch-stats
+ * Update user permissions
+ * PUT /business/:id/users/:userId/permissions
  */
-business.get('/switch-stats', authenticate(), asyncHandler(async (c) => {
+business.put('/:id/users/:userId/permissions', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c) => {
+  const startTime = performance.now();
   const userId = c.get('userId');
-  const service = new BusinessSwitchService(c.env);
-
-  const stats = await service.getSwitchStatistics(userId);
-
-  return c.json({
-    success: true,
-    statistics: stats,
-  });
-}));
-
-/**
- * Update primary business
- * PUT /business/primary
- */
-business.put('/primary', authenticate(), asyncHandler(async (c) => {
-  const userId = c.get('userId');
+  const businessId = c.req.param('id');
+  const targetUserId = c.req.param('userId');
   const body = await c.req.json();
-  const { businessId } = body;
 
-  if (!businessId) {
-    return c.json({
-      success: false,
-      error: 'Business ID is required',
-    }, 400);
-  }
-
-  // Verify user has access to this business
-  const membership = await c.env.DB_MAIN
-    .prepare(`
-      SELECT id FROM business_memberships
-      WHERE user_id = ? AND business_id = ? AND status = 'active'
-    `)
-    .bind(userId, businessId)
-    .first();
-
-  if (!membership) {
-    return c.json({
-      success: false,
-      error: 'You do not have access to this business',
-    }, 403);
-  }
-
-  // Update primary business
-  await c.env.DB_MAIN
-    .prepare(`
-      UPDATE business_memberships
-      SET is_primary = CASE
-        WHEN business_id = ? THEN 1
-        ELSE 0
-      END,
-      updated_at = datetime('now')
-      WHERE user_id = ?
-    `)
-    .bind(businessId, userId)
-    .run();
-
-  // Invalidate cache
   const service = new BusinessSwitchService(c.env);
-  await service['cache'].invalidateUserCache(userId);
+  const result = await service.updateUserPermissions(userId, businessId, targetUserId, body);
+
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
 
   return c.json({
-    success: true,
-    message: 'Primary business updated',
-  });
-}));
-
-/**
- * Get business members
- * GET /business/:businessId/members
- */
-business.get('/:businessId/members', authenticate(), asyncHandler(async (c) => {
-  const businessId = c.req.param('businessId');
-  const userId = c.get('userId');
-
-  // Verify user has access to this business
-  const access = await c.env.DB_MAIN
-    .prepare(`
-      SELECT role FROM business_memberships
-      WHERE user_id = ? AND business_id = ? AND status = 'active'
-    `)
-    .bind(userId, businessId)
-    .first();
-
-  if (!access) {
-    return c.json({
-      success: false,
-      error: 'You do not have access to this business',
-    }, 403);
-  }
-
-  // Get members
-  const members = await c.env.DB_MAIN
-    .prepare(`
-      SELECT
-        u.id,
-        u.email,
-        u.first_name,
-        u.last_name,
-        u.avatar_url,
-        bm.role,
-        bm.job_title,
-        bm.department,
-        bm.joined_at,
-        bm.status
-      FROM business_memberships bm
-      JOIN users u ON u.id = bm.user_id
-      WHERE bm.business_id = ?
-      ORDER BY
-        CASE bm.role
-          WHEN 'owner' THEN 1
-          WHEN 'director' THEN 2
-          WHEN 'manager' THEN 3
-          WHEN 'employee' THEN 4
-          WHEN 'viewer' THEN 5
-        END,
-        u.first_name, u.last_name
-    `)
-    .bind(businessId)
-    .all();
-
-  return c.json({
-    success: true,
-    members: members.results || [],
+    success: result.success,
+    permissions: result.permissions,
+    message: result.message,
     metadata: {
-      count: members.results?.length || 0,
-      businessId,
+      responseTimeMs: performance.now() - startTime,
     },
   });
 }));
 
 /**
- * Get business departments
- * GET /business/:businessId/departments
+ * Get business audit log
+ * GET /business/:id/audit
  */
-business.get('/:businessId/departments', authenticate(), asyncHandler(async (c) => {
-  const businessId = c.req.param('businessId');
+business.get('/:id/audit', authenticate(), asyncHandler(async (c) => {
+  const startTime = performance.now();
   const userId = c.get('userId');
+  const businessId = c.req.param('id');
+  const query = c.req.query();
 
-  // Verify access
-  const access = await c.env.DB_MAIN
-    .prepare(`
-      SELECT id FROM business_memberships
-      WHERE user_id = ? AND business_id = ? AND status = 'active'
-    `)
-    .bind(userId, businessId)
-    .first();
+  const page = parseInt(query.page || '1');
+  const limit = parseInt(query.limit || '50');
+  const action = query.action;
+  const startDate = query.startDate;
+  const endDate = query.endDate;
 
-  if (!access) {
-    return c.json({
-      success: false,
-      error: 'You do not have access to this business',
-    }, 403);
-  }
+  const service = new BusinessSwitchService(c.env);
+  const result = await service.getBusinessAuditLog(userId, businessId, {
+    page,
+    limit,
+    action,
+    startDate: startDate ? new Date(startDate) : undefined,
+    endDate: endDate ? new Date(endDate) : undefined,
+  });
 
-  // Get departments
-  const departments = await c.env.DB_MAIN
-    .prepare(`
-      SELECT
-        id,
-        code,
-        name,
-        description,
-        type,
-        parent_department_id,
-        department_head_user_id,
-        (SELECT COUNT(*) FROM department_roles WHERE department_id = d.id AND status = 'active') as member_count
-      FROM departments d
-      WHERE business_id = ? AND status = 'active'
-      ORDER BY name
-    `)
-    .bind(businessId)
-    .all();
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
 
   return c.json({
     success: true,
-    departments: departments.results || [],
+    auditLog: result.auditLog,
+    pagination: result.pagination,
     metadata: {
-      count: departments.results?.length || 0,
-      businessId,
+      responseTimeMs: performance.now() - startTime,
     },
   });
 }));
 
 /**
- * Health check for business service
- * GET /business/health
+ * Get business health status
+ * GET /business/:id/health
  */
-business.get('/health', (c) => {
+business.get('/:id/health', authenticate(), asyncHandler(async (c) => {
+  const startTime = performance.now();
+  const userId = c.get('userId');
+  const businessId = c.req.param('id');
+
+  const service = new BusinessSwitchService(c.env);
+  const result = await service.getBusinessHealth(userId, businessId);
+
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
+
   return c.json({
-    status: 'healthy',
-    service: 'business-switch',
-    timestamp: new Date().toISOString(),
-    features: {
-      caching: true,
-      prefetching: true,
-      performanceMonitoring: true,
+    success: true,
+    health: result.health,
+    metadata: {
+      responseTimeMs: performance.now() - startTime,
     },
   });
-});
+}));
+
+/**
+ * Get business performance metrics
+ * GET /business/:id/performance
+ */
+business.get('/:id/performance', authenticate(), asyncHandler(async (c) => {
+  const startTime = performance.now();
+  const userId = c.get('userId');
+  const businessId = c.req.param('id');
+  const query = c.req.query();
+
+  const period = query.period || '24h';
+  const service = new BusinessSwitchService(c.env);
+  const result = await service.getBusinessPerformance(userId, businessId, period);
+
+  // Add performance headers
+  c.header('X-Response-Time', `${(performance.now() - startTime).toFixed(2)}ms`);
+
+  return c.json({
+    success: true,
+    performance: result.performance,
+    metadata: {
+      period,
+      responseTimeMs: performance.now() - startTime,
+    },
+  });
+}));
 
 export default business;
+

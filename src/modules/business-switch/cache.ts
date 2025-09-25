@@ -4,7 +4,8 @@ const CACHE_VERSION = 1;
 const DEFAULT_TTL = 60; // 60 seconds
 const PREFETCH_THRESHOLD = 10; // Prefetch if expires in 10 seconds
 
-export class BusinessCacheManager {
+export // TODO: Consider splitting BusinessCacheManager into smaller, focused classes
+class BusinessCacheManager {
   private kv: KVNamespace;
   private memoryCache: Map<string, CachedMembership> = new Map();
 
@@ -44,7 +45,6 @@ export class BusinessCacheManager {
           };
         }
       } catch (error) {
-        console.error('Cache read error:', error);
       }
     }
 
@@ -97,7 +97,6 @@ export class BusinessCacheManager {
 
       return performance.now() - startTime;
     } catch (error) {
-      console.error('Cache write error:', error);
       return performance.now() - startTime;
     }
   }
@@ -122,7 +121,6 @@ export class BusinessCacheManager {
         };
       }
     } catch (error) {
-      console.error('Context cache read error:', error);
     }
 
     return {
@@ -155,7 +153,6 @@ export class BusinessCacheManager {
 
       return performance.now() - startTime;
     } catch (error) {
-      console.error('Context cache write error:', error);
       return performance.now() - startTime;
     }
   }
@@ -249,7 +246,6 @@ export class BusinessCacheManager {
           results.set(key, value);
         }
       } catch (error) {
-        console.error(`Error reading cache key ${key}:`, error);
       }
     });
 

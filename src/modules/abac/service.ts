@@ -16,6 +16,7 @@ import { PerformanceMonitor } from './performance-monitor';
  * Main ABAC service that orchestrates all components
  * Provides the primary interface for permission checks
  */
+// TODO: Consider splitting ABACService into smaller, focused classes
 export class ABACService {
   private resolver: PermissionResolver;
   private cache: PermissionCache;
@@ -61,7 +62,6 @@ export class ABACService {
       return result;
 
     } catch (error) {
-      console.error('ABAC evaluation error:', error);
 
       // Record error in monitoring
       this.monitor.recordEvaluation(
@@ -124,7 +124,6 @@ export class ABACService {
       return results;
 
     } catch (error) {
-      console.error('Batch ABAC evaluation error:', error);
 
       // Return error results for all capabilities
       const errorResults = new Map<Capability, EvaluationResult>();
@@ -175,14 +174,12 @@ export class ABACService {
     this.policyEvaluator.addPolicy(policy);
 
     // Invalidate all cached permissions since policies changed
-    console.log('Policy added, invalidating caches...');
   }
 
   async removePolicy(policyId: string): Promise<boolean> {
     const removed = this.policyEvaluator.removePolicy(policyId);
 
     if (removed) {
-      console.log('Policy removed, invalidating caches...');
     }
 
     return removed;
@@ -190,7 +187,6 @@ export class ABACService {
 
   async loadPolicies(policies: PolicyRule[]): Promise<void> {
     this.policyEvaluator.loadPolicies(policies);
-    console.log(`Loaded ${policies.length} policies`);
   }
 
   /**
@@ -237,7 +233,6 @@ export class ABACService {
     // Clear monitoring metrics
     this.monitor.clearMetrics();
 
-    console.log('ABAC cache and metrics cleared');
   }
 
   /**

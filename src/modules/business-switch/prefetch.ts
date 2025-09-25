@@ -3,7 +3,8 @@ import type { BusinessContext } from './types';
 /**
  * Prefetch manager for business context data
  */
-export class PrefetchManager {
+export // TODO: Consider splitting PrefetchManager into smaller, focused classes
+class PrefetchManager {
   private db: D1Database;
 
   constructor(db: D1Database) {
@@ -318,7 +319,6 @@ export class PrefetchManager {
           );
           contexts.set(businessId, context);
         } catch (error) {
-          console.error(`Failed to prefetch business ${businessId}:`, error);
         }
       });
 

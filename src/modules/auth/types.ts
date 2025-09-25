@@ -135,8 +135,9 @@ export interface MFAConfig {
   email?: string; // For email
   backupCodes: string[];
   enabled: boolean;
-  verifiedAt?: number;
-  lastUsedAt?: number;
+  createdAt: number;
+  verifiedAt?: number | null;
+  lastUsedAt?: number | null;
 }
 
 // Rate Limit Config
@@ -178,7 +179,7 @@ export interface AuthResponse {
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: Record<string, string | number | boolean>;
   };
 }
 
@@ -207,7 +208,8 @@ export interface AuthAuditEntry {
   id: string;
   userId?: string;
   businessId?: string;
-  event: 'login' | 'logout' | 'register' | 'password_reset' | 'mfa_enable' | 'mfa_disable' | 'session_expired' | 'token_refresh';
+  event: 'login' | 'logout' | 'register' |
+  'password_reset' | 'mfa_enable' | 'mfa_disable' | 'session_expired' | 'token_refresh';
   success: boolean;
   ipAddress: string;
   userAgent: string;

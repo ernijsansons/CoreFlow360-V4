@@ -16,6 +16,7 @@ export { PolicyEvaluator } from './policy-evaluator';
 export { PermissionCache } from './cache';
 export { PerformanceMonitor } from './performance-monitor';
 export { capabilityRegistry, CapabilityRegistry } from './capability-registry';
+export { ABACPermissionEngine, PermissionEngine } from './permission-engine';
 
 export type {
   Subject,

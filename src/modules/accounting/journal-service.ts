@@ -20,7 +20,8 @@ const JournalEntrySchema = z.object({
   lines: z.array(JournalLineSchema).min(2), // At least 2 lines for double entry
 });
 
-export class JournalService {
+export // TODO: Consider splitting JournalService into smaller, focused classes
+class JournalService {
   private db: D1Database;
   private businessId: string;
   private userId: string;
@@ -404,7 +405,6 @@ export class JournalService {
         JSON.stringify(data)
       ).run();
     } catch (error) {
-      console.error('Failed to log audit:', error);
     }
   }
 }

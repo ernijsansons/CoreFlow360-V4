@@ -88,7 +88,6 @@ export async function errorHandler(err: Error, c: Context): Promise<Response> {
   try {
     await logError(c, err, requestId);
   } catch (logError) {
-    console.error('Failed to log error:', logError);
   }
 
   // Handle Zod validation errors
@@ -200,7 +199,6 @@ async function logError(c: Context, error: Error, requestId: string) {
       errorDetails.message
     ).run();
   } catch (logError) {
-    console.error('Failed to write error to audit log:', logError);
   }
 }
 

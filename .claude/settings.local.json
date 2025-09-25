@@ -1,0 +1,49 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell:*)",
+      "WebSearch",
+      "mcp__ide__getDiagnostics",
+      "Bash(./FigmaSetup.exe)",
+      "WebFetch(domain:stackoverflow.com)",
+      "WebFetch(domain:forum.figma.com)",
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(tasklist)",
+      "WebFetch(domain:127.0.0.1)",
+      "Read(//c/Users/ernij/**)",
+      "Bash(bun:*)",
+      "Bash(bunx cursor-talk-to-figma-mcp@latest:*)",
+      "Bash(bunx claude-talk-to-figma-mcp@latest:*)",
+      "Bash(npm install:*)",
+      "Bash(wrangler:*)",
+      "Bash(npm run build:*)",
+      "Bash(docker build:*)",
+      "Bash(docker run:*)",
+      "Bash(docker tag:*)",
+      "Bash(docker push:*)",
+      "Bash(start http://localhost:8080)",
+      "Bash(node:*)",
+      "Bash(find:*)",
+      "Bash(npm run typecheck:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "mcpServers": {
+    "TalkToFigma": {
+      "command": "bunx",
+      "args": [
+        "cursor-talk-to-figma-mcp@latest"
+      ]
+    },
+    "ClaudeCodeFigma": {
+      "command": "bunx",
+      "args": [
+        "claude-talk-to-figma-mcp@latest"
+      ]
+    }
+  }
+}
