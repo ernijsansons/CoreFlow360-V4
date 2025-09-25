@@ -11,6 +11,7 @@ import { addSecurityHeaders, rateLimitByIP, validateJWT,
 import { createAnalyticsDashboard, AnalyticsDashboard } from './analytics/dashboard';
 import { SupernovaIntegration } from './supernova/supernova-integration';
 import { memoryOptimizer } from './monitoring/memory-optimizer';
+import { handleAPIRequest } from './routes'; // Import our Hono API routes
 import type { Ai } from '@cloudflare/ai';
 import type {
   D1Database,
@@ -27,6 +28,7 @@ import type {
 export interface Env {
   // Core services
   DB: D1Database;
+  DB_MAIN: D1Database; // Alias for compatibility with finance routes
   CACHE: KVNamespace;
   R2_DOCUMENTS: R2Bucket;
   R2_ASSETS: R2Bucket;
@@ -46,6 +48,13 @@ export interface Env {
   API_BASE_URL: string;
   ENVIRONMENT: string;
   ALLOWED_ORIGINS: string;
+
+  // Payment Gateway Secrets
+  STRIPE_SECRET_KEY: string;
+  STRIPE_PUBLISHABLE_KEY: string;
+  STRIPE_WEBHOOK_SECRET: string;
+  PAYPAL_CLIENT_ID: string;
+  PAYPAL_CLIENT_SECRET: string;
 }
 
 // Global instances - initialized once per Worker with performance optimization
@@ -258,11 +267,16 @@ router.post('/api/supernova/integrate', async (request: Request, env: Env) => {
 // SUPERNOVA report endpoint
 router.get('/api/supernova/report', async (request: Request, env: Env) => {
   if (!supernova) return new Response('SUPERNOVA not initialized', { status: 500 });
-  
+
   const report = await supernova.generateReport();
   return new Response(JSON.stringify(report), {
     headers: { 'Content-Type': 'application/json' }
   });
+});
+
+// API Routes Handler - delegates all /api/v1/* requests to Hono routes
+router.all('/api/v1/*', async (request: Request, env: Env, ctx: ExecutionContext) => {
+  return handleAPIRequest(request, env, ctx);
 });
 
 // Main fetch handler

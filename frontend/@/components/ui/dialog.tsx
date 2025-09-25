@@ -141,3 +141,202 @@ export {
   DialogTitle,
   DialogTrigger,
 }
+
+// Enhanced Dialog Components
+import { Button } from "./button"
+import { AlertTriangle, Info, CheckCircle, XCircle } from "lucide-react"
+
+export interface ConfirmDialogProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  title: string
+  description?: string
+  confirmText?: string
+  cancelText?: string
+  onConfirm: () => void
+  onCancel?: () => void
+  variant?: "default" | "destructive"
+  loading?: boolean
+}
+
+export function ConfirmDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  onConfirm,
+  onCancel,
+  variant = "default",
+  loading = false
+}: ConfirmDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          {description && (
+            <DialogDescription>{description}</DialogDescription>
+          )}
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => {
+              onCancel?.()
+              onOpenChange?.(false)
+            }}
+            disabled={loading}
+          >
+            {cancelText}
+          </Button>
+          <Button
+            variant={variant}
+            onClick={() => {
+              onConfirm()
+              if (!loading) {
+                onOpenChange?.(false)
+              }
+            }}
+            disabled={loading}
+          >
+            {loading ? "Processing..." : confirmText}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export interface AlertDialogProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  title: string
+  description?: string
+  type?: "info" | "warning" | "error" | "success"
+  actionText?: string
+  onAction?: () => void
+}
+
+export function AlertDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  type = "info",
+  actionText = "OK",
+  onAction
+}: AlertDialogProps) {
+  const icons = {
+    info: Info,
+    warning: AlertTriangle,
+    error: XCircle,
+    success: CheckCircle
+  }
+
+  const iconColors = {
+    info: "text-blue-500",
+    warning: "text-yellow-500",
+    error: "text-red-500",
+    success: "text-green-500"
+  }
+
+  const Icon = icons[type]
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "rounded-full p-2",
+              type === "info" && "bg-blue-100 dark:bg-blue-900/20",
+              type === "warning" && "bg-yellow-100 dark:bg-yellow-900/20",
+              type === "error" && "bg-red-100 dark:bg-red-900/20",
+              type === "success" && "bg-green-100 dark:bg-green-900/20"
+            )}>
+              <Icon className={cn("h-5 w-5", iconColors[type])} />
+            </div>
+            <DialogTitle>{title}</DialogTitle>
+          </div>
+          {description && (
+            <DialogDescription className="mt-3">
+              {description}
+            </DialogDescription>
+          )}
+        </DialogHeader>
+        <DialogFooter className="sm:justify-center">
+          <Button
+            onClick={() => {
+              onAction?.()
+              onOpenChange?.(false)
+            }}
+          >
+            {actionText}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export interface FormDialogProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  title: string
+  description?: string
+  children: React.ReactNode
+  onSubmit: () => void
+  submitText?: string
+  cancelText?: string
+  loading?: boolean
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl"
+}
+
+export function FormDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+  onSubmit,
+  submitText = "Submit",
+  cancelText = "Cancel",
+  loading = false,
+  maxWidth = "lg"
+}: FormDialogProps) {
+  const maxWidthClasses = {
+    sm: "sm:max-w-sm",
+    md: "sm:max-w-md",
+    lg: "sm:max-w-lg",
+    xl: "sm:max-w-xl",
+    "2xl": "sm:max-w-2xl"
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className={maxWidthClasses[maxWidth]}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          {description && (
+            <DialogDescription>{description}</DialogDescription>
+          )}
+        </DialogHeader>
+        <div className="py-4">{children}</div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange?.(false)}
+            disabled={loading}
+          >
+            {cancelText}
+          </Button>
+          <Button onClick={onSubmit} disabled={loading}>
+            {loading ? "Processing..." : submitText}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

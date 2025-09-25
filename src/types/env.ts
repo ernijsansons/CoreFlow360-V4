@@ -79,6 +79,21 @@ export interface Env {
   DATADOG_API_KEY?: string;
   CLICKHOUSE_ENDPOINT?: string;
   CLICKHOUSE_TOKEN?: string;
+
+  // Payment Gateway Secrets
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_PUBLISHABLE_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  PAYPAL_CLIENT_ID?: string;
+  PAYPAL_CLIENT_SECRET?: string;
+
+  // AI Service Keys
+  ANTHROPIC_API_KEY?: string;
+  OPENAI_API_KEY?: string;
+
+  // Other Configuration
+  API_BASE_URL?: string;
+  ALLOWED_ORIGINS?: string;
 }
 
 // Context type for Hono

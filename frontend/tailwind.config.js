@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+import { tokenTheme, designTokensPlugin } from '../tailwind.tokens.cjs';
+
 export default {
   darkMode: ["class"],
   content: [
@@ -14,8 +16,14 @@ export default {
       },
     },
     extend: {
+      // Merge design tokens with existing config
+      ...tokenTheme,
       colors: {
+        // Design tokens (take priority)
+        ...tokenTheme.colors,
+        // Keep existing shadcn/ui mappings for backward compatibility
         border: "hsl(var(--border))",
+        'border-default': 'var(--border-default)',
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -177,5 +185,7 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    designTokensPlugin,
+  ],
 }

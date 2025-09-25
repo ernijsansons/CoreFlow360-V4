@@ -23,6 +23,12 @@ database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
 migrations_dir = "database/migrations"
 
 [[d1_databases]]
+binding = "DB_MAIN"
+database_name = "coreflow360-agents"
+database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
+migrations_dir = "database/migrations"
+
+[[d1_databases]]
 binding = "DB_ANALYTICS"
 database_name = "mustbeviral-db"
 database_id = "4cdeab75-a1b4-477e-a92c-de996065578c"
@@ -81,7 +87,14 @@ mode = "smart"
 # AUTH_SECRET - JWT signing secret
 # ENCRYPTION_KEY - Data encryption key
 # JWT_SECRET - JWT token secret
-# STRIPE_SECRET_KEY - Stripe payment processing
+# STRIPE_SECRET_KEY - Stripe payment processing API key
+# STRIPE_PUBLISHABLE_KEY - Stripe publishable key for frontend
+# STRIPE_WEBHOOK_SECRET - Stripe webhook signature secret
+# PAYPAL_CLIENT_ID - PayPal client ID
+# PAYPAL_CLIENT_SECRET - PayPal client secret
 # OPENAI_API_KEY - OpenAI API access
+# ANTHROPIC_API_KEY - Anthropic Claude API access
 # EMAIL_API_KEY - Email service API key
 # SENTRY_DSN - Sentry error tracking DSN
+# API_BASE_URL - Base URL for API endpoints
+# ALLOWED_ORIGINS - Comma-separated list of allowed CORS origins
