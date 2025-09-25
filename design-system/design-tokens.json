@@ -262,131 +262,146 @@
           "value": "#581c87",
           "type": "color"
         }
+      },
+      "primary": {
+        "value": "{global.colors.blue.600}",
+        "type": "color",
+        "description": "Primary brand color"
       }
     },
     "typography": {
       "fontFamily": {
         "sans": {
-          "value": ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-          "type": "fontFamilies",
+          "value": [
+            "Inter",
+            "ui-sans-serif",
+            "system-ui",
+            "sans-serif"
+          ],
+          "type": "fontFamily",
           "description": "Primary sans-serif font stack"
         },
         "mono": {
-          "value": ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
-          "type": "fontFamilies",
+          "value": [
+            "JetBrains Mono",
+            "ui-monospace",
+            "SFMono-Regular",
+            "monospace"
+          ],
+          "type": "fontFamily",
           "description": "Monospace font for code"
         }
       },
       "fontSize": {
         "xs": {
           "value": "0.75rem",
-          "type": "fontSizes",
+          "type": "fontSize",
           "description": "12px"
         },
         "sm": {
           "value": "0.875rem",
-          "type": "fontSizes",
+          "type": "fontSize",
           "description": "14px"
         },
         "base": {
           "value": "1rem",
-          "type": "fontSizes",
+          "type": "fontSize",
           "description": "16px - Base font size"
         },
         "lg": {
           "value": "1.125rem",
-          "type": "fontSizes",
+          "type": "fontSize",
           "description": "18px"
         },
         "xl": {
           "value": "1.25rem",
-          "type": "fontSizes",
+          "type": "fontSize",
           "description": "20px"
         },
         "2xl": {
           "value": "1.5rem",
-          "type": "fontSizes",
+          "type": "fontSize",
           "description": "24px"
         },
         "3xl": {
           "value": "1.875rem",
-          "type": "fontSizes",
+          "type": "fontSize",
           "description": "30px"
         },
         "4xl": {
           "value": "2.25rem",
-          "type": "fontSizes",
+          "type": "fontSize",
           "description": "36px"
         },
         "5xl": {
           "value": "3rem",
-          "type": "fontSizes",
+          "type": "fontSize",
           "description": "48px"
         },
         "6xl": {
           "value": "3.75rem",
-          "type": "fontSizes",
+          "type": "fontSize",
           "description": "60px"
         }
       },
       "fontWeight": {
         "thin": {
           "value": "100",
-          "type": "fontWeights"
+          "type": "fontWeight"
         },
         "extralight": {
           "value": "200",
-          "type": "fontWeights"
+          "type": "fontWeight"
         },
         "light": {
           "value": "300",
-          "type": "fontWeights"
+          "type": "fontWeight"
         },
         "normal": {
           "value": "400",
-          "type": "fontWeights"
+          "type": "fontWeight"
         },
         "medium": {
           "value": "500",
-          "type": "fontWeights"
+          "type": "fontWeight"
         },
         "semibold": {
           "value": "600",
-          "type": "fontWeights"
+          "type": "fontWeight"
         },
         "bold": {
           "value": "700",
-          "type": "fontWeights"
+          "type": "fontWeight"
         },
         "extrabold": {
           "value": "800",
-          "type": "fontWeights"
+          "type": "fontWeight"
         },
         "black": {
           "value": "900",
-          "type": "fontWeights"
+          "type": "fontWeight"
         }
       },
       "lineHeight": {
         "tight": {
           "value": "1.25",
-          "type": "lineHeights"
+          "type": "lineHeight"
         },
         "snug": {
           "value": "1.375",
-          "type": "lineHeights"
+          "type": "lineHeight"
         },
         "normal": {
           "value": "1.5",
-          "type": "lineHeights"
+          "type": "lineHeight"
         },
         "relaxed": {
           "value": "1.625",
-          "type": "lineHeights"
+          "type": "lineHeight"
         },
         "loose": {
           "value": "2",
-          "type": "lineHeights"
+          "type": "lineHeight"
         }
       },
       "letterSpacing": {
@@ -485,82 +500,41 @@
         "value": "8rem",
         "type": "spacing",
         "description": "128px"
-      }
-    },
-    "borderRadius": {
-      "none": {
-        "value": "0",
-        "type": "borderRadius"
+      },
+      "xs": {
+        "value": "0.25rem",
+        "type": "spacing",
+        "description": "4px"
       },
       "sm": {
-        "value": "0.125rem",
-        "type": "borderRadius",
-        "description": "2px"
-      },
-      "base": {
-        "value": "0.25rem",
-        "type": "borderRadius",
-        "description": "4px - Default radius"
+        "value": "0.5rem",
+        "type": "spacing",
+        "description": "8px - Base spacing unit"
       },
       "md": {
-        "value": "0.375rem",
-        "type": "borderRadius",
-        "description": "6px"
-      },
-      "lg": {
-        "value": "0.5rem",
-        "type": "borderRadius",
-        "description": "8px"
-      },
-      "xl": {
-        "value": "0.75rem",
-        "type": "borderRadius",
-        "description": "12px"
-      },
-      "2xl": {
         "value": "1rem",
-        "type": "borderRadius",
+        "type": "spacing",
         "description": "16px"
       },
-      "3xl": {
+      "lg": {
         "value": "1.5rem",
-        "type": "borderRadius",
+        "type": "spacing",
         "description": "24px"
       },
-      "full": {
-        "value": "9999px",
-        "type": "borderRadius",
-        "description": "Fully rounded"
-      }
-    },
-    "boxShadow": {
-      "none": {
-        "value": "none",
-        "type": "boxShadow"
-      },
-      "sm": {
-        "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-        "type": "boxShadow"
-      },
-      "base": {
-        "value": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
-        "type": "boxShadow"
-      },
-      "md": {
-        "value": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-        "type": "boxShadow"
-      },
-      "lg": {
-        "value": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-        "type": "boxShadow"
-      },
       "xl": {
-        "value": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-        "type": "boxShadow"
+        "value": "2rem",
+        "type": "spacing",
+        "description": "32px"
       },
       "2xl": {
-        "value": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-        "type": "boxShadow"
+        "value": "2.5rem",
+        "type": "spacing",
+        "description": "40px"
+      },
+      "3xl": {
+        "value": "3rem",
+        "type": "spacing",
+        "description": "48px"
       }
     },
     "breakpoints": {
@@ -624,6 +598,226 @@
         "easeInOut": {
           "value": "ease-in-out",
           "type": "cubicBezier"
+        }
+      }
+    },
+    "radius": {
+      "none": {
+        "value": "0",
+        "type": "dimension"
+      },
+      "sm": {
+        "value": "0.125rem",
+        "type": "dimension",
+        "description": "2px"
+      },
+      "base": {
+        "value": "0.25rem",
+        "type": "dimension",
+        "description": "4px - Default radius"
+      },
+      "md": {
+        "value": "0.375rem",
+        "type": "dimension",
+        "description": "6px"
+      },
+      "lg": {
+        "value": "0.5rem",
+        "type": "dimension",
+        "description": "8px"
+      },
+      "xl": {
+        "value": "0.75rem",
+        "type": "dimension",
+        "description": "12px"
+      },
+      "2xl": {
+        "value": "1rem",
+        "type": "dimension",
+        "description": "16px"
+      },
+      "3xl": {
+        "value": "1.5rem",
+        "type": "dimension",
+        "description": "24px"
+      },
+      "full": {
+        "value": "9999px",
+        "type": "dimension",
+        "description": "Fully rounded"
+      }
+    },
+    "shadows": {
+      "none": {
+        "value": "none",
+        "type": "shadow"
+      },
+      "sm": {
+        "value": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "type": "shadow"
+      },
+      "base": {
+        "value": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        "type": "shadow"
+      },
+      "md": {
+        "value": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        "type": "shadow"
+      },
+      "lg": {
+        "value": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+        "type": "shadow"
+      },
+      "xl": {
+        "value": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+        "type": "shadow"
+      },
+      "2xl": {
+        "value": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+        "type": "shadow"
+      }
+    },
+    "effects": {
+      "blur": {
+        "sm": {
+          "value": "4px",
+          "type": "dimension",
+          "description": "Small blur effect"
+        },
+        "base": {
+          "value": "8px",
+          "type": "dimension",
+          "description": "Default blur effect"
+        },
+        "md": {
+          "value": "12px",
+          "type": "dimension",
+          "description": "Medium blur effect"
+        },
+        "lg": {
+          "value": "16px",
+          "type": "dimension",
+          "description": "Large blur effect"
+        },
+        "xl": {
+          "value": "24px",
+          "type": "dimension",
+          "description": "Extra large blur effect"
+        }
+      },
+      "opacity": {
+        "0": {
+          "value": "0",
+          "type": "opacity",
+          "description": "Fully transparent"
+        },
+        "5": {
+          "value": "0.05",
+          "type": "opacity"
+        },
+        "10": {
+          "value": "0.1",
+          "type": "opacity"
+        },
+        "20": {
+          "value": "0.2",
+          "type": "opacity"
+        },
+        "25": {
+          "value": "0.25",
+          "type": "opacity"
+        },
+        "30": {
+          "value": "0.3",
+          "type": "opacity"
+        },
+        "40": {
+          "value": "0.4",
+          "type": "opacity"
+        },
+        "50": {
+          "value": "0.5",
+          "type": "opacity"
+        },
+        "60": {
+          "value": "0.6",
+          "type": "opacity"
+        },
+        "70": {
+          "value": "0.7",
+          "type": "opacity"
+        },
+        "75": {
+          "value": "0.75",
+          "type": "opacity"
+        },
+        "80": {
+          "value": "0.8",
+          "type": "opacity"
+        },
+        "90": {
+          "value": "0.9",
+          "type": "opacity"
+        },
+        "95": {
+          "value": "0.95",
+          "type": "opacity"
+        },
+        "100": {
+          "value": "1",
+          "type": "opacity",
+          "description": "Fully opaque"
+        }
+      },
+      "transition": {
+        "duration": {
+          "fast": {
+            "value": "150ms",
+            "type": "duration",
+            "description": "Fast transition"
+          },
+          "base": {
+            "value": "250ms",
+            "type": "duration",
+            "description": "Default transition"
+          },
+          "slow": {
+            "value": "400ms",
+            "type": "duration",
+            "description": "Slow transition"
+          },
+          "slower": {
+            "value": "600ms",
+            "type": "duration",
+            "description": "Slower transition"
+          }
+        },
+        "timing": {
+          "ease": {
+            "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+            "type": "cubicBezier",
+            "description": "Default ease curve"
+          },
+          "easeIn": {
+            "value": "cubic-bezier(0.4, 0, 1, 1)",
+            "type": "cubicBezier",
+            "description": "Ease in curve"
+          },
+          "easeOut": {
+            "value": "cubic-bezier(0, 0, 0.2, 1)",
+            "type": "cubicBezier",
+            "description": "Ease out curve"
+          },
+          "easeInOut": {
+            "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+            "type": "cubicBezier",
+            "description": "Ease in-out curve"
+          },
+          "linear": {
+            "value": "cubic-bezier(0, 0, 1, 1)",
+            "type": "cubicBezier",
+            "description": "Linear transition"
+          }
         }
       }
     }
@@ -903,46 +1097,309 @@
     },
     "radii": {
       "button": {
-        "value": "{global.borderRadius.md}",
-        "type": "borderRadius",
+        "value": "{global.radius.md}",
+        "type": "dimension",
         "description": "Button border radius"
       },
       "card": {
-        "value": "{global.borderRadius.lg}",
-        "type": "borderRadius",
+        "value": "{global.radius.lg}",
+        "type": "dimension",
         "description": "Card border radius"
       },
       "input": {
-        "value": "{global.borderRadius.base}",
-        "type": "borderRadius",
+        "value": "{global.radius.base}",
+        "type": "dimension",
         "description": "Input border radius"
       },
       "modal": {
-        "value": "{global.borderRadius.xl}",
-        "type": "borderRadius",
+        "value": "{global.radius.xl}",
+        "type": "dimension",
         "description": "Modal border radius"
       }
     },
     "shadows": {
       "button": {
-        "value": "{global.boxShadow.sm}",
-        "type": "boxShadow",
+        "value": "{global.shadows.sm}",
+        "type": "shadow",
         "description": "Button shadow"
       },
       "card": {
-        "value": "{global.boxShadow.base}",
-        "type": "boxShadow",
+        "value": "{global.shadows.base}",
+        "type": "shadow",
         "description": "Card shadow"
       },
       "modal": {
-        "value": "{global.boxShadow.xl}",
-        "type": "boxShadow",
+        "value": "{global.shadows.xl}",
+        "type": "shadow",
         "description": "Modal shadow"
       },
       "dropdown": {
-        "value": "{global.boxShadow.lg}",
-        "type": "boxShadow",
+        "value": "{global.shadows.lg}",
+        "type": "shadow",
         "description": "Dropdown shadow"
+      }
+    }
+  },
+  "component": {
+    "button": {
+      "primary": {
+        "background": {
+          "value": "{semantic.colors.accent.primary}",
+          "type": "color",
+          "description": "Primary button background"
+        },
+        "backgroundHover": {
+          "value": "{semantic.colors.accent.primaryHover}",
+          "type": "color",
+          "description": "Primary button hover background"
+        },
+        "text": {
+          "value": "{semantic.colors.text.inverse}",
+          "type": "color",
+          "description": "Primary button text color"
+        },
+        "padding": {
+          "x": {
+            "value": "{semantic.spacing.component.md}",
+            "type": "spacing",
+            "description": "Primary button horizontal padding"
+          },
+          "y": {
+            "value": "{semantic.spacing.component.sm}",
+            "type": "spacing",
+            "description": "Primary button vertical padding"
+          }
+        },
+        "radius": {
+          "value": "{semantic.radii.button}",
+          "type": "dimension",
+          "description": "Primary button border radius"
+        },
+        "shadow": {
+          "value": "{semantic.shadows.button}",
+          "type": "shadow",
+          "description": "Primary button shadow"
+        }
+      },
+      "secondary": {
+        "background": {
+          "value": "transparent",
+          "type": "color",
+          "description": "Secondary button background"
+        },
+        "backgroundHover": {
+          "value": "{semantic.colors.background.muted}",
+          "type": "color",
+          "description": "Secondary button hover background"
+        },
+        "text": {
+          "value": "{semantic.colors.accent.primary}",
+          "type": "color",
+          "description": "Secondary button text color"
+        },
+        "border": {
+          "value": "{semantic.colors.accent.primary}",
+          "type": "color",
+          "description": "Secondary button border color"
+        },
+        "padding": {
+          "x": {
+            "value": "{semantic.spacing.component.md}",
+            "type": "spacing",
+            "description": "Secondary button horizontal padding"
+          },
+          "y": {
+            "value": "{semantic.spacing.component.sm}",
+            "type": "spacing",
+            "description": "Secondary button vertical padding"
+          }
+        },
+        "radius": {
+          "value": "{semantic.radii.button}",
+          "type": "dimension",
+          "description": "Secondary button border radius"
+        }
+      },
+      "ghost": {
+        "background": {
+          "value": "transparent",
+          "type": "color",
+          "description": "Ghost button background"
+        },
+        "backgroundHover": {
+          "value": "{semantic.colors.accent.primaryMuted}",
+          "type": "color",
+          "description": "Ghost button hover background"
+        },
+        "text": {
+          "value": "{semantic.colors.accent.primary}",
+          "type": "color",
+          "description": "Ghost button text color"
+        },
+        "padding": {
+          "x": {
+            "value": "{semantic.spacing.component.md}",
+            "type": "spacing",
+            "description": "Ghost button horizontal padding"
+          },
+          "y": {
+            "value": "{semantic.spacing.component.sm}",
+            "type": "spacing",
+            "description": "Ghost button vertical padding"
+          }
+        },
+        "radius": {
+          "value": "{semantic.radii.button}",
+          "type": "dimension",
+          "description": "Ghost button border radius"
+        }
+      }
+    },
+    "input": {
+      "background": {
+        "value": "{semantic.colors.background.canvas}",
+        "type": "color",
+        "description": "Input background color"
+      },
+      "backgroundFocus": {
+        "value": "{semantic.colors.background.canvas}",
+        "type": "color",
+        "description": "Input focus background color"
+      },
+      "text": {
+        "value": "{semantic.colors.text.primary}",
+        "type": "color",
+        "description": "Input text color"
+      },
+      "placeholder": {
+        "value": "{semantic.colors.text.muted}",
+        "type": "color",
+        "description": "Input placeholder color"
+      },
+      "border": {
+        "value": "{semantic.colors.border.default}",
+        "type": "color",
+        "description": "Input border color"
+      },
+      "borderFocus": {
+        "value": "{semantic.colors.accent.primary}",
+        "type": "color",
+        "description": "Input focus border color"
+      },
+      "borderError": {
+        "value": "{semantic.colors.states.error}",
+        "type": "color",
+        "description": "Input error border color"
+      },
+      "padding": {
+        "x": {
+          "value": "{semantic.spacing.component.sm}",
+          "type": "spacing",
+          "description": "Input horizontal padding"
+        },
+        "y": {
+          "value": "{semantic.spacing.component.sm}",
+          "type": "spacing",
+          "description": "Input vertical padding"
+        }
+      },
+      "radius": {
+        "value": "{semantic.radii.input}",
+        "type": "dimension",
+        "description": "Input border radius"
+      }
+    },
+    "card": {
+      "background": {
+        "value": "{semantic.colors.background.surface}",
+        "type": "color",
+        "description": "Card background color"
+      },
+      "border": {
+        "value": "{semantic.colors.border.muted}",
+        "type": "color",
+        "description": "Card border color"
+      },
+      "padding": {
+        "value": "{semantic.spacing.component.lg}",
+        "type": "spacing",
+        "description": "Card padding"
+      },
+      "radius": {
+        "value": "{semantic.radii.card}",
+        "type": "dimension",
+        "description": "Card border radius"
+      },
+      "shadow": {
+        "value": "{semantic.shadows.card}",
+        "type": "shadow",
+        "description": "Card shadow"
+      }
+    },
+    "modal": {
+      "background": {
+        "value": "{semantic.colors.background.canvas}",
+        "type": "color",
+        "description": "Modal background color"
+      },
+      "overlay": {
+        "value": "{semantic.colors.background.overlay}",
+        "type": "color",
+        "description": "Modal overlay background"
+      },
+      "padding": {
+        "value": "{semantic.spacing.layout.md}",
+        "type": "spacing",
+        "description": "Modal padding"
+      },
+      "radius": {
+        "value": "{semantic.radii.modal}",
+        "type": "dimension",
+        "description": "Modal border radius"
+      },
+      "shadow": {
+        "value": "{semantic.shadows.modal}",
+        "type": "shadow",
+        "description": "Modal shadow"
+      }
+    },
+    "navigation": {
+      "background": {
+        "value": "{semantic.colors.background.canvas}",
+        "type": "color",
+        "description": "Navigation background"
+      },
+      "border": {
+        "value": "{semantic.colors.border.muted}",
+        "type": "color",
+        "description": "Navigation border"
+      },
+      "link": {
+        "value": "{semantic.colors.text.secondary}",
+        "type": "color",
+        "description": "Navigation link color"
+      },
+      "linkHover": {
+        "value": "{semantic.colors.text.primary}",
+        "type": "color",
+        "description": "Navigation link hover color"
+      },
+      "linkActive": {
+        "value": "{semantic.colors.accent.primary}",
+        "type": "color",
+        "description": "Navigation active link color"
+      },
+      "padding": {
+        "x": {
+          "value": "{semantic.spacing.component.md}",
+          "type": "spacing",
+          "description": "Navigation horizontal padding"
+        },
+        "y": {
+          "value": "{semantic.spacing.component.sm}",
+          "type": "spacing",
+          "description": "Navigation vertical padding"
+        }
       }
     }
   },
@@ -1053,6 +1510,10 @@
     }
   },
   "$metadata": {
-    "tokenSetOrder": ["global", "semantic", "dark"]
+    "tokenSetOrder": [
+      "global",
+      "semantic",
+      "dark"
+    ]
   }
 }

@@ -47,15 +47,25 @@
         "test:production-blue-comprehensive": "vitest run tests/production/blue-validation.test.ts",
         "test:production-comprehensive": "vitest run tests/production/",
         "test:alerting-system": "vitest run tests/monitoring/alerting.test.ts",
-        "lint": "eslint src/ tests/ --ext .ts,.js",
+        "lint": "eslint src/ tests/ --ext .ts,.js --max-warnings 0",
         "lint:fix": "npm run lint -- --fix",
-        "type-check": "tsc --noEmit",
+        "lint:report": "npm run lint -- --format html --output-file reports/eslint-report.html",
+        "format": "prettier --write \"src/**/*.{ts,js,json}\" \"tests/**/*.{ts,js,json}\"",
+        "format:check": "prettier --check \"src/**/*.{ts,js,json}\" \"tests/**/*.{ts,js,json}\"",
+        "type-check": "tsc --noEmit --pretty",
+        "type-check:watch": "tsc --noEmit --watch",
+        "quality:check": "npm run format:check && npm run lint && npm run type-check",
+        "quality:fix": "npm run format && npm run lint:fix && npm run type-check",
+        "fix:typescript": "npx tsx scripts/fix-typescript-issues.ts",
+        "fix:imports": "npx tsx scripts/standardize-imports.ts",
+        "quality:audit": "npm run type-check 2>&1 | head -50",
         "security:scan": "npm audit && snyk test",
         "security:harden": "node scripts/security-hardening.js",
         "security:validate": "node scripts/security-validation.js",
         "optimize:staging": "node scripts/optimize-build.js staging",
         "optimize:production": "node scripts/optimize-build.js production",
-        "pre-deploy:checks": "npm run lint && npm run type-check && npm run security:validate",
+        "pre-deploy:checks": "npm run quality:check && npm run test && npm run security:validate",
+        "ci:validate": "npm run quality:check && npm run test:coverage && npm run security:scan",
         "database:backup": "node scripts/backup-database.js",
         "config:validate": "node scripts/validate-config.js",
         "monitoring:setup-staging": "node scripts/setup-monitoring.js staging",
@@ -71,7 +81,14 @@
         "benchmark:api": "node scripts/benchmark-api.js",
         "db:migrate": "node scripts/run-migrations.js",
         "db:migrate:test": "NODE_ENV=test npm run db:migrate",
-        "db:seed:test": "node scripts/seed-test-data.js"
+        "db:seed:test": "node scripts/seed-test-data.js",
+        "tokens:validate": "node scripts/validate-tokens.mjs",
+        "tokens:diff": "node scripts/diff-tokens.mjs",
+        "tokens:css": "node scripts/simple-css-gen.mjs",
+        "tokens:sync": "node scripts/tokens-sync.mjs && npm run tokens:css",
+        "test:tokens": "vitest run --config vitest.token.config.ts",
+        "prepare": "husky install",
+        "postinstall": "husky install"
     },
     "dependencies": {
         "@cloudflare/ai": "^1.2.2",
@@ -80,6 +97,7 @@
         "hono": "^4.6.2",
         "itty-router": "^5.0.17",
         "otplib": "^12.0.1",
+        "plaid": "^38.1.0",
         "stripe": "^16.12.0",
         "zod": "^3.23.8"
     },
@@ -89,21 +107,47 @@
         "@testing-library/react": "^16.3.0",
         "@testing-library/user-event": "^14.6.1",
         "@types/node": "^20.10.0",
-        "@typescript-eslint/eslint-plugin": "^6.14.0",
-        "@typescript-eslint/parser": "^6.14.0",
+        "@typescript-eslint/eslint-plugin": "^6.21.0",
+        "@typescript-eslint/parser": "^6.21.0",
         "@vitejs/plugin-react": "^5.0.3",
         "@vitest/coverage-v8": "^3.2.4",
         "artillery": "^2.0.0",
         "concurrently": "^9.2.1",
         "esbuild": "^0.25.10",
         "eslint": "^8.55.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-import": "^2.29.0",
         "eslint-plugin-security": "^1.7.1",
+        "husky": "^8.0.3",
         "jsdom": "^27.0.0",
         "lighthouse": "^12.8.2",
+        "lint-staged": "^15.2.0",
         "nodemon": "^3.1.10",
+        "prettier": "^3.1.0",
         "snyk": "^1.1268.0",
+        "tsx": "^4.6.0",
         "typescript": "^5.3.3",
         "vitest": "^3.2.4",
         "wrangler": "^4.39.0"
+    },
+    "lint-staged": {
+        "*.{ts,js}": [
+            "prettier --write",
+            "eslint --fix --max-warnings 0"
+        ],
+        "*.{json,md}": [
+            "prettier --write"
+        ],
+        "design-system/design-tokens.json": [
+            "npm run tokens:validate",
+            "npm run tokens:css",
+            "git add design-system/tokens.css"
+        ]
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged",
+            "pre-push": "npm run type-check"
+        }
     }
 }
