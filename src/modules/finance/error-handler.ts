@@ -224,9 +224,10 @@ export class ErrorHandler {
       const isTemporary = this.isTemporaryError(error);
       const isPermanent = this.isPermanentError(error);
 
-      // Default unknown errors to CRITICAL unless explicitly temporary
+      // For severity: unknown errors are CRITICAL, temporary are MEDIUM
+      // For retryability: unknown errors are retryable unless explicitly permanent
       const severity = isTemporary ? ErrorSeverity.MEDIUM : ErrorSeverity.CRITICAL;
-      const retryable = isTemporary && !isPermanent;
+      const retryable = !isPermanent; // Generic errors are retryable unless permanent
 
       errorDetails = {
         code: isTemporary ? 'TEMPORARY_ERROR' : 'SYSTEM_ERROR',
@@ -238,7 +239,7 @@ export class ErrorHandler {
         retryable,
         publicMessage: isTemporary
           ? 'A temporary error occurred. Please try again.'
-          : 'An unexpected error occurred. Please contact support.'
+          : 'An unexpected error occurred. Please try again.'
       };
     }
 

@@ -67,6 +67,12 @@ export class MockAgent implements IAgent {
   readonly supportedLanguages: string[] = ['en'];
   readonly supportedFormats: string[] = ['json', 'text'];
 
+  // Additional properties for AgentConfig compatibility
+  readonly enabled: boolean = true;
+  readonly owner: string = 'test-system';
+  readonly createdAt: number = Date.now();
+  readonly updatedAt: number = Date.now();
+
   private executionResults: Map<string, AgentResult> = new Map();
   private validationResults: Map<string, ValidationResult> = new Map();
   private healthStatus: HealthStatus = {
