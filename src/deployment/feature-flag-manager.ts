@@ -354,14 +354,15 @@ class FeatureFlagManager {
       return this.createEvaluation(flagKey, fallbackValue, 'FALLTHROUGH');
 
     } catch (error) {
-      this.logger.error('Flag evaluation error', error, {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Flag evaluation error', errorMessage, {
         correlationId,
         flagKey,
         userId: context.userId
       });
 
       return this.createEvaluation(flagKey, defaultValue, 'ERROR', {
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -558,11 +559,12 @@ class FeatureFlagManager {
         });
 
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         cleanupResults.push({
           flag: flag.key,
           action: 'archive_failed',
           success: false,
-          reason: error.message
+          reason: errorMessage
         });
       }
     }

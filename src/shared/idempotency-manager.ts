@@ -412,10 +412,10 @@ class IdempotencyManager {
         .run();
 
       this.logger.info('Cleaned up expired idempotency keys', {
-        deletedCount: result.changes || 0
+        deletedCount: (result as any).changes || 0
       });
 
-      return result.changes || 0;
+      return (result as any).changes || 0;
     } catch (error) {
       this.logger.error('Failed to cleanup expired idempotency keys', error);
       return 0;

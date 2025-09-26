@@ -151,7 +151,7 @@ export class MigrationExecutor {
     await this.state.storage.put('executor', this.executor);
 
     // Start migration process asynchronously
-    this.env.ctx.waitUntil(this.runMigration());
+    this.env.ctx?.waitUntil(this.runMigration());
 
     return { success: true, executionId };
   }
@@ -178,7 +178,7 @@ export class MigrationExecutor {
     await this.state.storage.put('executor', this.executor);
 
     // Resume migration process
-    this.env.ctx.waitUntil(this.runMigration());
+    this.env.ctx?.waitUntil(this.runMigration());
 
     return { success: true };
   }
@@ -331,9 +331,9 @@ export class MigrationExecutor {
     // This would implement actual data fetching from various source types
     switch (config.sourceConnection.type) {
       case 'DATABASE':
-        return this.fetchFromDatabase(config.sourceConnection, batchSize, offset);
+        return this.fetchFromDatabase(config.sourceConnection as any as DatabaseConnection, batchSize, offset);
       case 'FILE':
-        return this.fetchFromFile(config.sourceConnection, batchSize, offset);
+        return this.fetchFromFile(config.sourceConnection as any as FileConnection, batchSize, offset);
       case 'API':
         return this.fetchFromAPI(config.sourceConnection, batchSize, offset);
       default:
@@ -370,7 +370,7 @@ export class MigrationExecutor {
       }
 
       const data = await response.json();
-      return Array.isArray(data) ? data : data.results || data.items || [];
+      return Array.isArray(data) ? data : (data as any).results || (data as any).items || [];
     } catch (error) {
       return [];
     }
@@ -435,7 +435,7 @@ export class MigrationExecutor {
     // File writing implementation
     // Store in R2 for large files
     const content = JSON.stringify(data, null, 2);
-    await this.env.R2_BUCKET.put(`migration_output_${Date.now()}.json`, content);
+    await this.env.R2_DOCUMENTS.put(`migration_output_${Date.now()}.json`, content);
   }
 
   private async writeToAPI(connection: any, data: Record<string,
@@ -726,6 +726,6 @@ export class MigrationExecutor {
     this.executor.execution.status = 'RUNNING';
 
     // Continue migration
-    this.env.ctx.waitUntil(this.runMigration());
+    this.env.ctx?.waitUntil(this.runMigration());
   }
 }

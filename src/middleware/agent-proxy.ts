@@ -116,16 +116,16 @@ export class AgentProxy {
         const targetWs = new WebSocket(targetUrl);
 
         // Get the client WebSocket
-        const { response, socket: clientWs } = Deno.upgradeWebSocket(c.req.raw);
+        const { response, socket: clientWs } = (globalThis as any).Deno?.upgradeWebSocket?.(c.req.raw) || { response: new Response(), socket: null };
 
         // Bi-directional message forwarding
-        clientWs.onmessage = (event) => {
+        clientWs.onmessage = (event: any) => {
           if (targetWs.readyState === WebSocket.OPEN) {
             targetWs.send(event.data);
           }
         };
 
-        targetWs.onmessage = (event) => {
+        targetWs.onmessage = (event: any) => {
           if (clientWs.readyState === WebSocket.OPEN) {
             clientWs.send(event.data);
           }
@@ -139,11 +139,11 @@ export class AgentProxy {
         };
 
         // Handle errors and closing
-        clientWs.onerror = (error) => {
+        clientWs.onerror = (error: any) => {
           targetWs.close();
         };
 
-        targetWs.onerror = (error) => {
+        targetWs.onerror = (error: any) => {
           clientWs.close();
         };
 
@@ -194,7 +194,7 @@ export class AgentProxy {
             };
 
             // CRITICAL: Secure CORS headers with origin validation
-            const origin = c.req.header('Origin') || c.req.header('origin');
+            const origin = c.req.header('Origin') || c.req.header('origin') || null;
             CORSUtils.setCORSHeaders(headers, origin, { environment: c.env?.ENVIRONMENT });
 
             return headers;

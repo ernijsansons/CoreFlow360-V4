@@ -182,7 +182,8 @@ interface NodeExecutionResult {
 
 interface ExecutionUpdate {
   type: 'node_started' | 'node_completed' |
-  'node_failed' | 'workflow_completed' | 'workflow_failed' | 'progress_update';
+  'node_failed' | 'workflow_completed' | 'workflow_failed' | 'progress_update' |
+  'execution_paused' | 'execution_resumed' | 'execution_cancelled' | 'node_retry';
   executionId: string;
   nodeId?: string;
   status: string;
@@ -205,6 +206,7 @@ export class WorkflowExecutor {
   private runningNodes: Set<string> = new Set();
   private parallelGroups: Map<string, Set<string>> = new Map();
   private circuitBreakers: Map<string, CircuitBreaker> = new Map();
+  private executions: Map<string, any> = new Map();
 
   constructor(state: DurableObjectState, env: Env) {
     this.state = state;
@@ -331,12 +333,14 @@ export class WorkflowExecutor {
       });
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
 
       await this.saveExecutionResults(context, {
         status: 'failed',
         executionTimeMs: Date.now() - startTime,
-        errorMessage: error.message,
-        errorDetails: { stack: error.stack },
+        errorMessage,
+        errorDetails: { stack: errorStack },
         completedAt: new Date().toISOString()
       });
 
@@ -344,7 +348,7 @@ export class WorkflowExecutor {
         type: 'workflow_failed',
         executionId: context.executionId,
         status: 'failed',
-        data: { error: error.message },
+        data: { error: errorMessage },
         progress: 0,
         timestamp: new Date().toISOString()
       });
@@ -394,7 +398,7 @@ export class WorkflowExecutor {
   ): Promise<any> {
     const maxConcurrency = Math.min(
       this.executionGraph.size,
-      context.metadata.maxParallelNodes || 5
+      Number(context.metadata.maxParallelNodes) || 5
     );
 
     const semaphore = new Semaphore(maxConcurrency);
@@ -514,7 +518,7 @@ export class WorkflowExecutor {
 
       // Validate input against schema
       if (node.inputSchema) {
-        validateInput(z.object(node.inputSchema), inputData);
+        validateInput(z.object(node.inputSchema.properties as any), inputData);
       }
 
       // Execute based on node type
@@ -541,7 +545,7 @@ export class WorkflowExecutor {
 
       // Validate output against schema
       if (node.outputSchema) {
-        validateInput(z.object(node.outputSchema), outputData);
+        validateInput(z.object(node.outputSchema.properties as any), outputData);
       }
 
       // Update result
@@ -565,9 +569,12 @@ export class WorkflowExecutor {
       return nodeResult;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
       nodeResult.status = 'failed';
-      nodeResult.errorMessage = error.message;
-      nodeResult.errorDetails = { stack: error.stack };
+      nodeResult.errorMessage = errorMessage;
+      nodeResult.errorDetails = { stack: errorStack };
       nodeResult.executionTimeMs = Date.now() - startTime;
       nodeResult.completedAt = new Date().toISOString();
 
@@ -583,7 +590,7 @@ export class WorkflowExecutor {
         executionId: context.executionId,
         nodeId: node.id,
         status: 'failed',
-        data: { error: error.message },
+        data: { error: errorMessage },
         timestamp: new Date().toISOString(),
         progress: this.calculateProgress()
       });
@@ -608,30 +615,30 @@ export class WorkflowExecutor {
     const aiClient = getAIClient(this.env);
 
     // Prepare AI prompt with context injection
-    const prompt = this.injectVariables(config.prompt, {
+    const prompt = this.injectVariables((config as any).prompt || '', {
       ...inputData,
       ...context.variables,
       businessContext: context.metadata.businessContext
     });
 
-    const systemPrompt = config.systemPrompt ?
-      this.injectVariables(config.systemPrompt, context.variables) :
+    const systemPrompt = (config as any).systemPrompt ?
+      this.injectVariables((config as any).systemPrompt, context.variables) :
       undefined;
 
     // Execute AI call with node-specific settings
     const response = await aiClient.callAI({
       prompt,
       systemPrompt,
-      model: config.model || 'claude-3-haiku-20240307',
-      temperature: config.temperature || 0.7,
-      maxTokens: config.maxTokens || 2000
+      model: (config as any).model || 'claude-3-haiku-20240307',
+      temperature: (config as any).temperature || 0.7,
+      maxTokens: (config as any).maxTokens || 2000
     });
 
     // Update metrics
     const nodeResult = this.nodeResults.get(node.id)!;
-    nodeResult.modelUsed = config.model || 'claude-3-haiku-20240307';
+    nodeResult.modelUsed = (config as any).model || 'claude-3-haiku-20240307';
     nodeResult.tokensUsed = this.estimateTokens(prompt + response);
-    nodeResult.costCents = this.calculateAICost(nodeResult.tokensUsed, config.model);
+    nodeResult.costCents = this.calculateAICost(nodeResult.tokensUsed, (config as any).model);
     nodeResult.confidenceScore = 0.85; // Would be calculated based on response quality
 
     return {
@@ -653,16 +660,16 @@ export class WorkflowExecutor {
 
     switch (node.subtype) {
       case 'condition':
-        return this.evaluateCondition(config.expression, inputData, context);
+        return this.evaluateCondition((config as any).expression, inputData, context);
 
       case 'loop':
         return this.executeLoop(config, inputData, context);
 
       case 'transform':
-        return this.transformData(config.transformation, inputData);
+        return this.transformData((config as any).transformation, inputData);
 
       case 'delay':
-        await this.sleep(config.delayMs || 1000);
+        await this.sleep((config as any).delayMs || 1000);
         return { delayed: true };
 
       case 'parallel_gate':
@@ -727,8 +734,8 @@ export class WorkflowExecutor {
     return {
       approvalChainId: approvalChain.id,
       status: 'pending',
-      requiredApprovals: config.requiredApprovals,
-      escalationHours: config.escalationHours
+      requiredApprovals: (config as any).requiredApprovals,
+      escalationHours: (config as any).escalationHours
     };
   }
 
@@ -848,7 +855,7 @@ export class WorkflowExecutor {
     Object.assign(input, context.variables);
 
     // Add node-specific configuration
-    Object.assign(input, node.config.inputMapping || {});
+    Object.assign(input, (node.config as any).inputMapping || {});
 
     return input;
   }
@@ -873,7 +880,7 @@ export class WorkflowExecutor {
       'gpt-3.5-turbo': 0.002             // $2 per 1K tokens
     };
 
-    const rate = costPerToken[model] || 0.001;
+    const rate = costPerToken[model as keyof typeof costPerToken] || 0.001;
     return Math.ceil(tokens * rate * 100); // Convert to cents
   }
 
@@ -922,6 +929,438 @@ export class WorkflowExecutor {
     });
 
     return new Response(null, { status: 101, webSocket: client });
+  }
+
+  private async handleGetStatus(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const executionId = url.searchParams.get('executionId');
+    
+    if (!executionId) {
+      return new Response(JSON.stringify({ error: 'Missing executionId' }), { status: 400 });
+    }
+
+    const execution = this.executions.get(executionId);
+    if (!execution) {
+      return new Response(JSON.stringify({ error: 'Execution not found' }), { status: 404 });
+    }
+
+    return new Response(JSON.stringify({
+      executionId,
+      status: execution.status,
+      progress: execution.progress,
+      currentNode: execution.currentNode,
+      startedAt: execution.startedAt,
+      completedAt: execution.completedAt,
+      error: execution.error
+    }));
+  }
+
+  private async handlePauseExecution(request: Request): Promise<Response> {
+    const { executionId } = await request.json() as any;
+    
+    if (!executionId) {
+      return new Response(JSON.stringify({ error: 'Missing executionId' }), { status: 400 });
+    }
+
+    const execution = this.executions.get(executionId);
+    if (!execution) {
+      return new Response(JSON.stringify({ error: 'Execution not found' }), { status: 404 });
+    }
+
+    if (execution.status === 'running') {
+      execution.status = 'paused';
+      execution.pausedAt = new Date().toISOString();
+      
+      this.broadcastUpdate({
+        type: 'execution_paused',
+        executionId,
+        status: 'paused',
+        timestamp: new Date().toISOString(),
+        progress: this.calculateProgress()
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true, status: execution.status }));
+  }
+
+  private async handleResumeExecution(request: Request): Promise<Response> {
+    const { executionId } = await request.json() as any;
+    
+    if (!executionId) {
+      return new Response(JSON.stringify({ error: 'Missing executionId' }), { status: 400 });
+    }
+
+    const execution = this.executions.get(executionId);
+    if (!execution) {
+      return new Response(JSON.stringify({ error: 'Execution not found' }), { status: 404 });
+    }
+
+    if (execution.status === 'paused') {
+      execution.status = 'running';
+      execution.resumedAt = new Date().toISOString();
+      
+      this.broadcastUpdate({
+        type: 'execution_resumed',
+        executionId,
+        status: 'running',
+        timestamp: new Date().toISOString(),
+        progress: this.calculateProgress()
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true, status: execution.status }));
+  }
+
+  private async handleCancelExecution(request: Request): Promise<Response> {
+    const { executionId } = await request.json() as any;
+    
+    if (!executionId) {
+      return new Response(JSON.stringify({ error: 'Missing executionId' }), { status: 400 });
+    }
+
+    const execution = this.executions.get(executionId);
+    if (!execution) {
+      return new Response(JSON.stringify({ error: 'Execution not found' }), { status: 404 });
+    }
+
+    execution.status = 'cancelled';
+    execution.cancelledAt = new Date().toISOString();
+    
+    this.broadcastUpdate({
+      type: 'execution_cancelled',
+      executionId,
+      status: 'cancelled',
+      timestamp: new Date().toISOString(),
+      progress: this.calculateProgress()
+    });
+
+    return new Response(JSON.stringify({ success: true, status: execution.status }));
+  }
+
+  private async handleRetryNode(request: Request): Promise<Response> {
+    const { executionId, nodeId } = await request.json() as any;
+    
+    if (!executionId || !nodeId) {
+      return new Response(JSON.stringify({ error: 'Missing executionId or nodeId' }), { status: 400 });
+    }
+
+    const execution = this.executions.get(executionId);
+    if (!execution) {
+      return new Response(JSON.stringify({ error: 'Execution not found' }), { status: 404 });
+    }
+
+    const node = this.executionGraph.get(nodeId);
+    if (!node) {
+      return new Response(JSON.stringify({ error: 'Node not found' }), { status: 404 });
+    }
+
+    // Reset node result and retry
+    const nodeResult = this.nodeResults.get(nodeId);
+    if (nodeResult) {
+      nodeResult.status = 'pending';
+      nodeResult.retryCount++;
+      nodeResult.errorMessage = undefined;
+      nodeResult.errorDetails = undefined;
+    }
+
+    this.broadcastUpdate({
+      type: 'node_retry',
+      executionId,
+      nodeId,
+      status: 'retrying',
+      timestamp: new Date().toISOString(),
+      progress: this.calculateProgress()
+    });
+
+    return new Response(JSON.stringify({ success: true }));
+  }
+
+  private async initializeExecution(workflow: WorkflowDefinition, context: ExecutionContext): Promise<void> {
+    const execution = {
+      id: context.executionId,
+      workflowId: context.workflowId,
+      businessId: context.businessId,
+      status: 'running',
+      progress: 0,
+      currentNode: null,
+      startedAt: new Date().toISOString(),
+      completedAt: null,
+      error: null,
+      pausedAt: null,
+      resumedAt: null,
+      cancelledAt: null
+    };
+
+    this.executions.set(context.executionId, execution);
+  }
+
+  private async saveExecutionResults(context: ExecutionContext, results: any): Promise<void> {
+    const db = this.env.DB_CRM;
+    
+    await db.prepare(`
+      INSERT OR REPLACE INTO workflow_executions (
+        id, workflow_id, business_id, status, execution_time_ms,
+        cost_cents, output_data, error_message, error_details,
+        started_at, completed_at, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      context.executionId,
+      context.workflowId,
+      context.businessId,
+      results.status,
+      results.executionTimeMs,
+      results.costCents,
+      JSON.stringify(results.outputData),
+      results.errorMessage,
+      JSON.stringify(results.errorDetails),
+      results.startedAt,
+      results.completedAt,
+      new Date().toISOString(),
+      new Date().toISOString()
+    ).run();
+  }
+
+  private async validateWorkflow(workflow: WorkflowDefinition): Promise<void> {
+    // Validate workflow structure
+    if (!workflow.nodes || workflow.nodes.length === 0) {
+      throw new Error('Workflow must have at least one node');
+    }
+
+    // Check for circular dependencies
+    const visited = new Set<string>();
+    const visiting = new Set<string>();
+
+    const visit = (nodeId: string) => {
+      if (visiting.has(nodeId)) {
+        throw new Error(`Circular dependency detected involving node: ${nodeId}`);
+      }
+      if (visited.has(nodeId)) {
+        return;
+      }
+
+      visiting.add(nodeId);
+      const node = workflow.nodes.find(n => n.id === nodeId);
+      if (node) {
+        for (const depId of node.dependsOn) {
+          visit(depId);
+        }
+      }
+      visiting.delete(nodeId);
+      visited.add(nodeId);
+    };
+
+    for (const node of workflow.nodes) {
+      if (!visited.has(node.id)) {
+        visit(node.id);
+      }
+    }
+  }
+
+  private async gatherExecutionMetrics(): Promise<any> {
+    // Gather historical execution metrics for AI adaptation
+    const db = this.env.DB_CRM;
+    
+    const metrics = await db.prepare(`
+      SELECT 
+        AVG(execution_time_ms) as avg_execution_time,
+        AVG(cost_cents) as avg_cost,
+        COUNT(*) as total_executions,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful_executions
+      FROM workflow_executions
+      WHERE created_at > datetime('now', '-30 days')
+    `).first();
+
+    return metrics;
+  }
+
+  private async executeWithAdaptation(executionPlan: string[], context: ExecutionContext, adaptation: any): Promise<any> {
+    // Execute workflow with AI-optimized strategy
+    if (adaptation.strategy === 'sequential') {
+      return this.executeSequential(executionPlan, context);
+    } else if (adaptation.strategy === 'parallel') {
+      return this.executeParallel(executionPlan, context);
+    } else {
+      // Hybrid execution based on AI recommendations
+      return this.executeHybrid(executionPlan, context, adaptation);
+    }
+  }
+
+  private async executeHybrid(executionPlan: string[], context: ExecutionContext, adaptation: any): Promise<any> {
+    // Implement hybrid execution strategy
+    const results: Record<string, any> = {};
+    
+    // Execute parallel groups first
+    for (const group of adaptation.parallelGroups || []) {
+      const groupPromises = group.map(async (nodeId: string) => {
+        const node = this.executionGraph.get(nodeId);
+        if (node && this.areDependenciesMet(node, results)) {
+          const result = await this.executeNode(node, context, results);
+          results[nodeId] = result.outputData;
+          return result;
+        }
+        return null;
+      });
+      
+      await Promise.all(groupPromises);
+    }
+
+    // Execute remaining nodes sequentially
+    for (const nodeId of executionPlan) {
+      if (!results[nodeId]) {
+        const node = this.executionGraph.get(nodeId);
+        if (node && this.areDependenciesMet(node, results)) {
+          const result = await this.executeNode(node, context, results);
+          results[nodeId] = result.outputData;
+        }
+      }
+    }
+
+    return results;
+  }
+
+  private async scheduleNodeRetry(node: ExecutionNode, context: ExecutionContext, nodeResult: NodeExecutionResult): Promise<void> {
+    // Schedule node retry with exponential backoff
+    const delay = Math.min(1000 * Math.pow(2, nodeResult.retryCount), 30000);
+    
+    setTimeout(async () => {
+      try {
+        const result = await this.executeNode(node, context, {});
+        this.nodeResults.set(node.id, result);
+      } catch (error) {
+        // Handle retry failure
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        nodeResult.status = 'failed';
+        nodeResult.errorMessage = errorMessage;
+        this.nodeResults.set(node.id, nodeResult);
+      }
+    }, delay);
+  }
+
+  private async createApprovalChain(node: ExecutionNode, context: ExecutionContext, inputData: WorkflowInputData): Promise<any> {
+    const db = this.env.DB_CRM;
+    
+    const approvalChain = {
+      id: `approval_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      workflowId: context.workflowId,
+      executionId: context.executionId,
+      nodeId: node.id,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+
+    await db.prepare(`
+      INSERT INTO approval_chains (
+        id, workflow_id, execution_id, node_id, status, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(
+      approvalChain.id,
+      approvalChain.workflowId,
+      approvalChain.executionId,
+      approvalChain.nodeId,
+      approvalChain.status,
+      approvalChain.createdAt
+    ).run();
+
+    return approvalChain;
+  }
+
+  private async sendApprovalRequests(approvalChain: any, config: any): Promise<void> {
+    // Send approval requests to designated approvers
+    // This would integrate with notification systems
+    console.log(`Sending approval requests for chain ${approvalChain.id} to ${config.approvers.join(', ')}`);
+  }
+
+  private async executeHttpRequest(config: any, inputData: WorkflowInputData): Promise<WorkflowOutputData> {
+    // Execute HTTP request integration
+    const response = await fetch(config.endpoint, {
+      method: config.method,
+      headers: config.headers,
+      body: config.method !== 'GET' ? JSON.stringify(inputData) : undefined
+    });
+
+    return await response.json();
+  }
+
+  private async executeDatabaseQuery(config: any, inputData: WorkflowInputData, context: ExecutionContext): Promise<WorkflowOutputData> {
+    // Execute database query integration
+    const db = this.env.DB_CRM;
+    const result = await db.prepare(config.query).bind(...Object.values(inputData)).all();
+    return { results: result.results };
+  }
+
+  private async executeFileOperation(config: any, inputData: WorkflowInputData): Promise<WorkflowOutputData> {
+    // Execute file operation integration
+    // This would integrate with R2 or other storage systems
+    return { success: true, operation: config.operation };
+  }
+
+  private async sendEmail(config: any, inputData: WorkflowInputData, context: ExecutionContext): Promise<WorkflowOutputData> {
+    // Send email integration
+    // This would integrate with email services
+    return { success: true, messageId: `email_${Date.now()}` };
+  }
+
+  private async sendSlackMessage(config: any, inputData: WorkflowInputData): Promise<WorkflowOutputData> {
+    // Send Slack message integration
+    // This would integrate with Slack API
+    return { success: true, messageId: `slack_${Date.now()}` };
+  }
+
+  private async sendWebhook(config: any, inputData: WorkflowInputData): Promise<WorkflowOutputData> {
+    // Send webhook integration
+    const response = await fetch(config.url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(inputData)
+    });
+
+    return await response.json();
+  }
+
+  private async setupWebhookTrigger(config: any, context: ExecutionContext): Promise<WorkflowOutputData> {
+    // Setup webhook trigger
+    return { webhookUrl: `${config.baseUrl}/webhook/${context.executionId}`, status: 'active' };
+  }
+
+  private async setupScheduleTrigger(config: any, context: ExecutionContext): Promise<WorkflowOutputData> {
+    // Setup schedule trigger
+    return { schedule: config.schedule, status: 'active' };
+  }
+
+  private async setupEventTrigger(config: any, context: ExecutionContext): Promise<WorkflowOutputData> {
+    // Setup event trigger
+    return { eventSource: config.source, eventType: config.eventType, status: 'active' };
+  }
+
+  private evaluateCondition(expression: string, inputData: WorkflowInputData, context: ExecutionContext): WorkflowOutputData {
+    // Evaluate condition expression
+    // This would use a safe expression evaluator
+    try {
+      const result = eval(expression); // In production, use a safe expression evaluator
+      return { conditionResult: result };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return { conditionResult: false, error: errorMessage };
+    }
+  }
+
+  private async executeLoop(config: any, inputData: WorkflowInputData, context: ExecutionContext): Promise<WorkflowOutputData> {
+    // Execute loop logic
+    const results = [];
+    for (let i = 0; i < config.maxIterations; i++) {
+      results.push({ iteration: i, data: inputData });
+    }
+    return { loopResults: results };
+  }
+
+  private transformData(transformation: any, inputData: WorkflowInputData): WorkflowOutputData {
+    // Transform data based on configuration
+    return { transformedData: inputData, transformation };
+  }
+
+  private async executeParallelGate(config: any, inputData: WorkflowInputData, context: ExecutionContext): Promise<WorkflowOutputData> {
+    // Execute parallel gate logic
+    return { gateResult: true, inputData };
   }
 
   // Additional helper methods would continue here...

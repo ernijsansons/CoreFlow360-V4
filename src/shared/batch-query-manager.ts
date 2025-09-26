@@ -143,7 +143,7 @@ class BatchQueryManager {
         results.push({
           id: `batch_insert_${i}`,
           success: result.success,
-          rowsAffected: result.changes,
+          rowsAffected: (result as any).changes || 0,
           data: result.meta as T
         });
 
@@ -210,7 +210,7 @@ class BatchQueryManager {
           results.push({
             id: chunk[j].id,
             success: result.success,
-            rowsAffected: result.changes,
+            rowsAffected: (result as any).changes || 0,
             data: result.meta as T
           });
         }
@@ -327,7 +327,7 @@ class BatchQueryManager {
           results.push({
             id: op.id,
             success: result.success,
-            rowsAffected: result.changes,
+            rowsAffected: (result as any).changes || 0,
             data: result.meta as T
           });
         }

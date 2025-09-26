@@ -38,13 +38,22 @@ auth.post('/register', rateLimiters.register, asyncHandler(async (c) => {
     }, 400);
   }
 
+  // SECURITY FIX: Validate JWT_SECRET environment variable
+  if (!c.env.JWT_SECRET) {
+    return c.json({
+      success: false,
+      error: 'Server configuration error',
+      code: 'MISSING_JWT_SECRET'
+    }, 500);
+  }
+
   // Create auth service with system context (no tenant yet)
   const authService = createAuthService(
     c.env.DB,
     { businessId: 'system' }, // Will be overridden during registration
     c.req.raw,
     {
-      jwtSecret: c.env.JWT_SECRET || 'fallback-secret'
+      jwtSecret: c.env.JWT_SECRET
     }
   );
 
@@ -86,13 +95,22 @@ auth.post('/login', rateLimiters.login, asyncHandler(async (c) => {
     }, 401);
   }
 
+  // SECURITY FIX: Validate JWT_SECRET environment variable
+  if (!c.env.JWT_SECRET) {
+    return c.json({
+      success: false,
+      error: 'Server configuration error',
+      code: 'MISSING_JWT_SECRET'
+    }, 500);
+  }
+
   // Create auth service with user's business context
   const authService = createAuthService(
     c.env.DB,
     { businessId: userLookup.business_id },
     c.req.raw,
     {
-      jwtSecret: c.env.JWT_SECRET || 'fallback-secret'
+      jwtSecret: c.env.JWT_SECRET
     }
   );
 

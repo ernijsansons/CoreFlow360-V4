@@ -166,7 +166,7 @@ export async function traceIdMiddleware(c: Context<{ Bindings: Env }>, next: Nex
                    crypto.randomUUID();
 
   // Set trace ID in context
-  c.set('traceId', traceId);
+  (c as any).set('traceId', traceId);
   c.header('X-Trace-Id', traceId);
 
   // Log request
@@ -223,7 +223,7 @@ export async function businessContextMiddleware(c: Context<{ Bindings: Env }>, n
         { field: 'businessId', message: 'Must match pattern: biz_*' }
       ]);
     }
-    c.set('businessId', businessId);
+    (c as any).set('businessId', businessId);
   }
 
   if (userId) {
@@ -233,7 +233,7 @@ export async function businessContextMiddleware(c: Context<{ Bindings: Env }>, n
         { field: 'userId', message: 'Contains invalid characters' }
       ]);
     }
-    c.set('userId', userId);
+    (c as any).set('userId', userId);
   }
 
   await next();
@@ -243,15 +243,15 @@ export async function businessContextMiddleware(c: Context<{ Bindings: Env }>, n
 // ERROR HANDLER MIDDLEWARE
 // =====================================================
 
-export async function errorHandlerMiddleware(c: Context<{ Bindings: Env }>, next: Next) {
+export async function errorHandlerMiddleware(c: Context<{ Bindings: Env }>, next: Next): Promise<Response | void> {
   try {
     await next();
   } catch (error) {
-    const traceId = c.get('traceId') || 'unknown';
+    const traceId = (c as any).get('traceId') || 'unknown';
     const context: ErrorContext = {
       traceId,
-      businessId: c.get('businessId'),
-      userId: c.get('userId'),
+      businessId: (c as any).get('businessId'),
+      userId: (c as any).get('userId'),
       path: c.req.path,
       method: c.req.method,
       ip: c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For'),
@@ -300,7 +300,7 @@ async function handleAppError(
       message: error.message,
       traceId: context.traceId
     }
-  }, error.statusCode);
+  }, (error as any).statusCode || 500);
 }
 
 async function handleValidationError(
@@ -417,8 +417,8 @@ async function alertOncall(env: Env, error: Error | AppError, context: ErrorCont
     };
 
     // Store critical alerts
-    if (env.KV_ALERTS) {
-      await env.KV_ALERTS.put(
+    if ((env as any).KV_ALERTS) {
+      await (env as any).KV_ALERTS.put(
         `alert:${context.traceId}`,
         JSON.stringify(alert),
         { expirationTtl: 86400 } // 24 hours

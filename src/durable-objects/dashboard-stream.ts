@@ -538,8 +538,8 @@ export class DashboardStream {
     const firstHalf = values.slice(0, Math.floor(values.length / 2));
     const secondHalf = values.slice(Math.floor(values.length / 2));
 
-    const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-    const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+    const firstAvg = firstHalf.reduce((a: number, b: number) => a + b, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((a: number, b: number) => a + b, 0) / secondHalf.length;
 
     const change = (secondAvg - firstAvg) / firstAvg;
 

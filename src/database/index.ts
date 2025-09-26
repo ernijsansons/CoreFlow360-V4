@@ -147,7 +147,7 @@ class DatabaseService {
   async getUserByEmail(email: string): Promise<User | null> {
     const result = await this.db.prepare(`
       SELECT * FROM users WHERE email = ?
-    `).bind(email).first();
+    `).bind(email).first() as any;
 
     if (!result) return null;
 
@@ -165,7 +165,7 @@ class DatabaseService {
       LIMIT ? OFFSET ?
     `).bind(businessId, limit, offset).all();
 
-    return results.results.map(user => ({
+    return results.results.map((user: any) => ({
       ...user,
       settings: user.settings ? JSON.parse(user.settings as string) : {}
     })) as User[];
@@ -211,11 +211,11 @@ class DatabaseService {
     }
 
     query += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`;
-    params.push(limit, offset);
+    params.push(limit.toString(), offset.toString());
 
     const results = await this.db.prepare(query).bind(...params).all();
 
-    return results.results.map(entry => ({
+    return results.results.map((entry: any) => ({
       ...entry,
       metadata: entry.metadata ? JSON.parse(entry.metadata as string) : {}
     })) as LedgerEntry[];
@@ -228,7 +228,7 @@ class DatabaseService {
         SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as credits
       FROM ledger_entries
       WHERE business_id = ? AND account_id = ?
-    `).bind(businessId, accountId).first();
+    `).bind(businessId, accountId).first() as any;
 
     if (!result) return 0;
 
@@ -291,11 +291,11 @@ class DatabaseService {
     }
 
     query += ` ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
-    params.push(limit, offset);
+    params.push(limit.toString(), offset.toString());
 
     const results = await this.db.prepare(query).bind(...params).all();
 
-    return results.results.map(log => ({
+    return results.results.map((log: any) => ({
       ...log,
       metadata: log.metadata ? JSON.parse(log.metadata as string) : {}
     })) as AuditLog[];
@@ -312,7 +312,7 @@ class DatabaseService {
     const [userStats, ledgerStats, activityStats] = await Promise.all([
       this.db.prepare(`
         SELECT COUNT(*) as count FROM users WHERE business_id = ?
-      `).bind(businessId).first(),
+      `).bind(businessId).first() as any,
 
       this.db.prepare(`
         SELECT
@@ -320,11 +320,11 @@ class DatabaseService {
           SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as debits,
           SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as credits
         FROM ledger_entries WHERE business_id = ?
-      `).bind(businessId).first(),
+      `).bind(businessId).first() as any,
 
       this.db.prepare(`
         SELECT MAX(timestamp) as last_activity FROM audit_log WHERE business_id = ?
-      `).bind(businessId).first()
+      `).bind(businessId).first() as any
     ]);
 
     return {

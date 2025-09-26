@@ -295,7 +295,7 @@ export class CapabilityRegistry {
       description: 'Add inventory items',
       riskLevel: 'medium',
       defaultRoles: ['owner', 'director', 'manager', 'employee'],
-      departmentTypes: ['operations', 'warehouse'],
+      departmentTypes: ['operations', 'warehouse' as any],
     });
 
     this.register({
@@ -306,7 +306,7 @@ export class CapabilityRegistry {
       description: 'Update inventory levels',
       riskLevel: 'medium',
       defaultRoles: ['owner', 'director', 'manager'],
-      departmentTypes: ['operations', 'warehouse'],
+      departmentTypes: ['operations', 'warehouse' as any],
     });
 
     // Sales module

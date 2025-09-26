@@ -28,8 +28,8 @@ export class OnboardingAIAssistant {
       customerId,
       currentStep: onboardingFlow.currentStep.id,
       industry: onboardingFlow.industry,
-      experience: onboardingFlow.experience,
-      goals: onboardingFlow.goals,
+      experience: onboardingFlow.metadata.techExperience,
+      goals: onboardingFlow.metadata.businessGoals,
       blockers: []
     };
 
@@ -51,7 +51,7 @@ export class OnboardingAIAssistant {
     this.conversationHistory.push({
       timestamp: new Date(),
       type: 'ai_response',
-      content: guidance.response,
+      content: guidance.tips.join(', '),
       context: enrichedContext
     });
 
@@ -108,14 +108,12 @@ export class OnboardingAIAssistant {
   }
 
   private async generateGuidance(question: string, context: OnboardingContext): Promise<AIGuidance> {
-    const response = this.generateResponse(question, context);
-    
     return {
-      response,
-      suggestions: this.generateSuggestions(context),
-      nextSteps: this.generateNextSteps(context),
-      resources: this.generateResources(context),
-      confidence: Math.random() * 0.3 + 0.7
+      tips: await this.generateTips(context),
+      commonMistakes: await this.generateCommonMistakes(context),
+      bestPractices: await this.generateBestPractices(context),
+      troubleshooting: [],
+      contextualHelp: []
     };
   }
 
@@ -124,11 +122,9 @@ export class OnboardingAIAssistant {
     
     return {
       issue,
-      steps,
-      estimatedTime: steps.length * 5,
-      difficulty: this.assessDifficulty(issue),
-      prerequisites: this.getPrerequisites(issue),
-      resources: this.getTroubleshootingResources(issue)
+      symptoms: ['Unable to complete step', 'Error messages appearing'],
+      solutions: steps,
+      priority: 'MEDIUM'
     };
   }
 
@@ -136,14 +132,10 @@ export class OnboardingAIAssistant {
     const help = this.getStepHelp(stepId);
     
     return {
-      stepId,
-      title: help.title,
-      description: help.description,
-      instructions: help.instructions,
-      tips: help.tips,
-      commonIssues: help.commonIssues,
-      videoUrl: help.videoUrl,
-      documentationUrl: help.documentationUrl
+      trigger: stepId,
+      content: help.description || 'Help for this step',
+      type: 'INFO',
+      showCondition: 'always'
     };
   }
 
@@ -163,6 +155,11 @@ export class OnboardingAIAssistant {
         "Excellent question! Let's dive into the advanced features...",
         "You're ready for the more complex aspects. Here's what you need to know...",
         "This is a sophisticated topic. Let me explain the nuances..."
+      ],
+      'EXPERT': [
+        "As an expert, you'll appreciate the technical details...",
+        "You're clearly experienced. Here are the advanced techniques...",
+        "This is expert-level functionality. Let me show you the nuances..."
       ]
     };
 
@@ -248,7 +245,7 @@ export class OnboardingAIAssistant {
   }
 
   private getStepHelp(stepId: string): any {
-    const helpData = {
+    const helpData: Record<string, any> = {
       'profile-setup': {
         title: 'Profile Setup',
         description: 'Complete your profile to get started',
@@ -303,13 +300,53 @@ export class OnboardingAIAssistant {
       documentationUrl: ''
     };
   }
+
+  // =====================================================
+  // MISSING METHODS
+  // =====================================================
+
+  async generateTips(context: OnboardingContext): Promise<string[]> {
+    // TODO: Implement tip generation
+    return ['Take your time', 'Ask for help if needed'];
+  }
+
+  async generateCommonMistakes(context: OnboardingContext): Promise<string[]> {
+    // TODO: Implement common mistakes generation
+    return ['Skipping setup steps', 'Not reading instructions carefully'];
+  }
+
+  async generateBestPractices(context: OnboardingContext): Promise<string[]> {
+    // TODO: Implement best practices generation
+    return ['Follow the recommended workflow', 'Test each step before proceeding'];
+  }
+
+  async processUserMessage(message: string, context: OnboardingContext): Promise<AIGuidance> {
+    // TODO: Implement user message processing
+    return {
+      tips: ['Thank you for your message. I\'m here to help!'],
+      commonMistakes: [],
+      bestPractices: [],
+      troubleshooting: [],
+      contextualHelp: []
+    };
+  }
+
+  async getAssistantAnalytics(): Promise<any> {
+    // TODO: Implement analytics collection
+    return {
+      totalInteractions: this.conversationHistory.length,
+      commonQuestions: [],
+      userSatisfaction: 0,
+      responseTime: 0
+    };
+  }
 }
 
 interface OnboardingContext {
   customerId: string;
   currentStep: string;
   industry: string;
-  experience: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  experience: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
   goals: string[];
   blockers: string[];
 }

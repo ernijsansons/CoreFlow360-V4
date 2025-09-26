@@ -71,7 +71,7 @@ async function kvRateLimit(
   }
 
   const rateLimitKey = `ratelimit:${key}`;
-  const entry = await kv.get<RateLimitEntry>(rateLimitKey, 'json');
+  const entry = await kv.get(rateLimitKey, 'json') as RateLimitEntry | null;
 
   if (!entry || entry.resetAt < now) {
     // New window
@@ -149,7 +149,7 @@ export function createAdvancedRateLimiter(
   // Cache configuration to avoid repeated object creation
   const cachedConfigs = new Map<string, RateLimitConfig>();
   
-  return async (c: Context, next: Next) => {
+  return async (c: Context, next: Next): Promise<Response | void> => {
     const identifier = keyExtractor
       ? keyExtractor(c)
       : c.req.header('CF-Connecting-IP') || 'unknown';
@@ -167,12 +167,12 @@ export function createAdvancedRateLimiter(
       
       // Limit cache size
       if (cachedConfigs.size > 100) {
-        const oldestKey = cachedConfigs.keys().next().value;
+        const oldestKey = cachedConfigs.keys().next().value || '';
         cachedConfigs.delete(oldestKey);
       }
     }
 
-    const rateLimiter = getRateLimiter(c.env);
+    const rateLimiter = getRateLimiter(c.env as any);
     
     // Optimized context extraction
     const context = {
@@ -322,7 +322,7 @@ export function tierBasedRateLimiter() {
     const business = await c.env.DB_MAIN
       .prepare('SELECT subscription_tier FROM businesses WHERE id = ?')
       .bind(businessId)
-      .first<any>();
+      .first();
 
     const tier = business?.subscription_tier || 'trial';
 

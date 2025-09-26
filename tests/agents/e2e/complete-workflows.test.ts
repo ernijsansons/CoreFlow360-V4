@@ -1006,7 +1006,7 @@ describe('Complete Agent Workflows E2E', () => {
       const results: (AgentResult | Error)[] = [];
 
       for (const step of riskyWorkflow) {
-        testEnv.mockAgent.shouldFail = step.shouldFail;
+        testEnv.orchestrator.shouldFail = step.shouldFail;
 
         const task = SimpleTaskGenerator.generate({
           capability: 'workflow_step',
@@ -1027,7 +1027,7 @@ describe('Complete Agent Workflows E2E', () => {
       }
 
       // Reset mock agent
-      testEnv.mockAgent.shouldFail = false;
+      testEnv.orchestrator.shouldFail = false;
 
       // Verify failure handling
       expect(results).toHaveLength(4);

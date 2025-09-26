@@ -1,0 +1,54 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Check for large files
+echo "Checking for large files..."
+LARGE_FILES=$(find . -type f -size +5M ! -path "./.git/*" ! -path "./node_modules/*" 2>/dev/null)
+
+if [ ! -z "$LARGE_FILES" ]; then
+  echo "❌ Large files detected (>5MB):"
+  echo "$LARGE_FILES"
+  echo ""
+  echo "Consider:"
+  echo "  - Using Git LFS for large binary files"
+  echo "  - Moving assets to CDN/R2"
+  echo "  - Ensuring build outputs are gitignored"
+  echo ""
+  echo "To bypass (NOT RECOMMENDED): git commit --no-verify"
+  exit 1
+fi
+
+# Check for common mistakes
+echo "Checking for common issues..."
+
+# Check for .env files
+if git diff --cached --name-only | grep -E "\.env(\.|$)"; then
+  echo "❌ Attempting to commit .env file!"
+  exit 1
+fi
+
+# Check for node_modules
+if git diff --cached --name-only | grep "node_modules/"; then
+  echo "❌ Attempting to commit node_modules!"
+  exit 1
+fi
+
+# Check for Python virtual environments
+if git diff --cached --name-only | grep -E "(.venv|venv)/"; then
+  echo "❌ Attempting to commit Python virtual environment!"
+  exit 1
+fi
+
+# Check for build artifacts
+if git diff --cached --name-only | grep -E "(dist|build|coverage)/"; then
+  echo "❌ Attempting to commit build artifacts!"
+  echo "These should be in .gitignore"
+  exit 1
+fi
+
+# Run linting if lint-staged is available
+if command -v lint-staged >/dev/null 2>&1; then
+  lint-staged
+fi
+
+echo "✅ Pre-commit checks passed"

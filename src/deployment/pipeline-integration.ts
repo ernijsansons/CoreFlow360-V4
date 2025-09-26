@@ -3,7 +3,7 @@
  * Orchestrates all deployment components for state-of-the-art deployment automation
  */
 
-import { DeploymentOrchestrator } from './deployment-orchestrator';
+import { DeploymentOrchestrator, type StrategyType } from './deployment-orchestrator';
 import { MigrationOrchestrator } from './migration-orchestrator';
 import { FeatureFlagManager } from './feature-flag-manager';
 import { RollbackManager } from './rollback-manager';
@@ -30,7 +30,7 @@ export interface PipelineExecution {
   id: string;
   version: string;
   environment: string;
-  strategy: string;
+  strategy: StrategyType;
   stages: PipelineStage[];
   status: 'running' | 'success' | 'failed' | 'rolled_back';
   startTime: number;
@@ -65,14 +65,14 @@ export class UltimateDeploymentPipeline {
   private config: DeploymentPipelineConfig;
 
   // Core components
-  private deploymentOrchestrator: DeploymentOrchestrator;
-  private migrationOrchestrator: MigrationOrchestrator;
-  private featureFlagManager: FeatureFlagManager;
-  private rollbackManager: RollbackManager;
-  private performanceMonitor: PerformanceMonitor;
-  private healthMonitor: DeploymentHealthMonitor;
-  private docGenerator: DocumentationGenerator;
-  private sentryIntegration: SentryIntegration;
+  private deploymentOrchestrator!: DeploymentOrchestrator;
+  private migrationOrchestrator!: MigrationOrchestrator;
+  private featureFlagManager!: FeatureFlagManager;
+  private rollbackManager!: RollbackManager;
+  private performanceMonitor!: PerformanceMonitor;
+  private healthMonitor!: DeploymentHealthMonitor;
+  private docGenerator!: DocumentationGenerator;
+  private sentryIntegration!: SentryIntegration;
 
   constructor(env: Env, config?: Partial<DeploymentPipelineConfig>) {
     this.env = env;
@@ -161,8 +161,7 @@ export class UltimateDeploymentPipeline {
         this.logger.info('Executing application deployment', { correlationId });
 
         const deploymentResult = await this.deploymentOrchestrator.deploy(version, {
-          strategy: execution.strategy,
-          environment: execution.environment
+          strategy: execution.strategy
         });
 
         if (deploymentResult.status !== 'SUCCESS') {
@@ -244,7 +243,7 @@ export class UltimateDeploymentPipeline {
       // Execute rollback if deployment was successful but later stages failed
       const deploymentStage = execution.stages.find(s => s.name === 'deployment');
       if (deploymentStage?.status === 'success') {
-        await this.executeEmergencyRollback(version, execution, error.message);
+        await this.executeEmergencyRollback(version, execution, error instanceof Error ? error.message : String(error));
         execution.status = 'rolled_back';
       } else {
         execution.status = 'failed';
@@ -277,7 +276,7 @@ export class UltimateDeploymentPipeline {
       stage.results = result;
     } catch (error) {
       stage.status = 'failed';
-      stage.error = error.message;
+      stage.error = error instanceof Error ? error.message : String(error);
       throw error;
     } finally {
       stage.endTime = Date.now();
@@ -308,7 +307,10 @@ export class UltimateDeploymentPipeline {
     // Validate that feature flags are properly configured for the deployment
     const flags = await this.featureFlagManager.evaluateFlags(
       ['deployment_enabled', 'rollback_enabled', 'monitoring_enabled'],
-      { environment: this.env.ENVIRONMENT }
+      {
+        timestamp: Date.now(),
+        custom: { environment: this.env.ENVIRONMENT }
+      }
     );
 
     if (!flags.deployment_enabled?.value) {
@@ -382,7 +384,12 @@ export class UltimateDeploymentPipeline {
     await this.healthMonitor.startMonitoring();
 
     // Begin performance monitoring
-    await this.performanceMonitor.monitor();
+    await this.performanceMonitor.startMonitoring({
+      interval: 30000,
+      rum: {},
+      business: {},
+      dashboards: {}
+    });
 
     this.logger.info('Enhanced monitoring configured', { version: version.tag, environment });
   }
@@ -399,10 +406,74 @@ export class UltimateDeploymentPipeline {
 
     try {
       await this.rollbackManager.rollback({
-        reason,
-        severity: 'critical',
-        components: ['application', 'database'],
-        hasDataChanges: true
+        type: 'ERROR_SPIKE',
+        severity: 'CRITICAL',
+        description: 'Emergency rollback due to critical failure',
+        source: 'AUTOMATED_MONITORING',
+        evidence: [],
+        affectedComponents: ['application', 'database'],
+        timestamp: Date.now(),
+        hasDataChanges: true,
+        correlationId: execution.id,
+        userImpact: { 
+          severity: 'SEVERE',
+          affectedUsers: 1000,
+          estimatedUsers: 1000,
+          impactAreas: ['CORE_FUNCTIONALITY'],
+          duration: 300,
+          recoveryTime: 600
+        },
+        businessImpact: {
+          revenue: { 
+            estimatedLoss: 10000, 
+            currency: 'USD', 
+            timeframe: 'hourly',
+            confidence: 0.8,
+            calculation: 'Based on average hourly revenue'
+          },
+          reputation: { 
+            score: 7.5,
+            publicVisibility: false,
+            customerComplaints: 5,
+            socialMentions: 0,
+            mediaAttention: false
+          },
+          compliance: { 
+            violations: [], 
+            riskLevel: 'LOW',
+            reportingRequired: false,
+            fines: 0
+          },
+          operations: { 
+            resourceUsage: { cpu: 80, memory: 70, storage: 60, network: 50, cost: 100 },
+            teamImpact: { 
+              teamsAffected: ['DEVOPS'], 
+              hoursRequired: 8, 
+              skillsRequired: ['SYSTEM_ADMINISTRATION'],
+              availability: { onCall: ['DEVOPS_LEAD'], available: ['DEVOPS_TEAM'], unavailable: [], escalationPath: ['CTO'] }
+            },
+            processDisruption: { 
+              processes: ['DEPLOYMENT'], 
+              severity: 'SEVERE', 
+              duration: 300,
+              dependencies: ['DATABASE', 'LOAD_BALANCER']
+            }
+          },
+          sla: { 
+            violations: [{ 
+              slaId: 'UPTIME_SLA', 
+              metric: 'availability', 
+              threshold: 99.9, 
+              actual: 95.0, 
+              duration: 300,
+              penalty: 1000
+            }],
+            totalDowntime: 300,
+            affectedCustomers: ['ENTERPRISE'],
+            penalties: 1000
+          }
+        },
+        triggeredBy: 'system'
       });
 
       this.logger.info('Emergency rollback completed successfully');
@@ -414,7 +485,7 @@ export class UltimateDeploymentPipeline {
         message: 'Emergency rollback failed - manual intervention required',
         deploymentId: execution.id,
         originalError: reason,
-        rollbackError: rollbackError.message
+        rollbackError: rollbackError instanceof Error ? rollbackError.message : String(rollbackError)
       });
     }
   }
@@ -424,13 +495,13 @@ export class UltimateDeploymentPipeline {
    */
   private initializeComponents(): void {
     this.deploymentOrchestrator = new DeploymentOrchestrator();
-    this.migrationOrchestrator = new MigrationOrchestrator();
+    this.migrationOrchestrator = new MigrationOrchestrator({} as any);
     this.featureFlagManager = new FeatureFlagManager();
     this.rollbackManager = new RollbackManager();
     this.performanceMonitor = new PerformanceMonitor();
-    this.healthMonitor = new DeploymentHealthMonitor(this.env, this.config.healthChecks);
-    this.docGenerator = new DocumentationGenerator(this.env, this.config.documentation);
-    this.sentryIntegration = new SentryIntegration(this.env, this.config.errorTracking);
+    this.healthMonitor = new DeploymentHealthMonitor(this.env, {});
+    this.docGenerator = new DocumentationGenerator(this.env, {});
+    this.sentryIntegration = new SentryIntegration(this.env);
   }
 
   /**

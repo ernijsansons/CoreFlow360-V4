@@ -220,16 +220,26 @@ export class ErrorHandler {
         publicMessage: 'A database error occurred. Please try again.'
       };
     } else {
-      // Unknown/system error
+      // Unknown/system error - check if it's temporary or permanent
+      const isTemporary = this.isTemporaryError(error);
+      const isPermanent = this.isPermanentError(error);
+
+      // For severity: unknown errors are CRITICAL, temporary are MEDIUM
+      // For retryability: unknown errors are retryable unless explicitly permanent
+      const severity = isTemporary ? ErrorSeverity.MEDIUM : ErrorSeverity.CRITICAL;
+      const retryable = !isPermanent; // Generic errors are retryable unless permanent
+
       errorDetails = {
-        code: 'SYSTEM_ERROR',
+        code: isTemporary ? 'TEMPORARY_ERROR' : 'SYSTEM_ERROR',
         message: error.message,
         category: ErrorCategory.SYSTEM,
-        severity: ErrorSeverity.CRITICAL,
+        severity,
         context: enhancedContext,
-        recoverable: false,
-        retryable: false,
-        publicMessage: 'An unexpected error occurred. Please contact support.'
+        recoverable: retryable,
+        retryable,
+        publicMessage: isTemporary
+          ? 'A temporary error occurred. Please try again.'
+          : 'An unexpected error occurred. Please try again.'
       };
     }
 
@@ -415,6 +425,49 @@ export class ErrorHandler {
     ];
 
     return dbErrorMessages.some(msg =>
+      error.message.toLowerCase().includes(msg.toLowerCase())
+    );
+  }
+
+  /**
+   * Check if error is temporary/retryable
+   */
+  private isTemporaryError(error: Error): boolean {
+    const temporaryErrorMessages = [
+      'temporary',
+      'timeout',
+      'unavailable',
+      'connection reset',
+      'connection refused',
+      'network error',
+      'too many requests',
+      'service unavailable',
+      '503',
+      '504',
+      'gateway timeout'
+    ];
+
+    return temporaryErrorMessages.some(msg =>
+      error.message.toLowerCase().includes(msg.toLowerCase())
+    );
+  }
+
+  /**
+   * Check if error is permanent (non-retryable)
+   */
+  private isPermanentError(error: Error): boolean {
+    const permanentErrorMessages = [
+      'invalid',
+      'not found',
+      'forbidden',
+      'unauthorized',
+      'bad request',
+      'malformed',
+      'corrupt',
+      'fatal'
+    ];
+
+    return permanentErrorMessages.some(msg =>
       error.message.toLowerCase().includes(msg.toLowerCase())
     );
   }

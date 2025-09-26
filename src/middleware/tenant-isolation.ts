@@ -127,7 +127,7 @@ export class TenantIsolationMiddleware {
 
     } catch (error) {
       this.logger.error('Tenant isolation validation error', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         businessId: context.businessId,
         userId: context.userId
       });
@@ -137,7 +137,7 @@ export class TenantIsolationMiddleware {
         type: 'data_leakage',
         severity: 'high',
         table: 'unknown',
-        description: `Tenant isolation validation failed: ${error.message}`,
+        description: `Tenant isolation validation failed: ${error instanceof Error ? error.message : String(error)}`,
         businessId: context.businessId,
         userId: context.userId,
         timestamp: new Date(),
@@ -203,14 +203,14 @@ export class TenantIsolationMiddleware {
       return { valid: violations.length === 0, violations };
 
     } catch (error) {
-      this.logger.error('Query validation error', { error: error.message, query });
+      this.logger.error('Query validation error', { error: error instanceof Error ? error.message : String(error), query });
       
       violations.push({
         id: `query_validation_error_${Date.now()}`,
         type: 'data_leakage',
         severity: 'high',
         table: 'unknown',
-        description: `Query validation failed: ${error.message}`,
+        description: `Query validation failed: ${error instanceof Error ? error.message : String(error)}`,
         businessId: context.businessId,
         userId: context.userId,
         timestamp: new Date(),
@@ -262,14 +262,14 @@ export class TenantIsolationMiddleware {
       return { valid: violations.length === 0, violations };
 
     } catch (error) {
-      this.logger.error('Data validation error', { error: error.message, table });
+      this.logger.error('Data validation error', { error: error instanceof Error ? error.message : String(error), table });
       
       violations.push({
         id: `data_validation_error_${Date.now()}`,
         type: 'data_leakage',
         severity: 'high',
         table,
-        description: `Data validation failed: ${error.message}`,
+        description: `Data validation failed: ${error instanceof Error ? error.message : String(error)}`,
         businessId: context.businessId,
         userId: context.userId,
         timestamp: new Date(),
@@ -331,12 +331,12 @@ export class TenantIsolationMiddleware {
       `);
       
       const result = await stmt.bind(businessId).first();
-      const isValid = !!result && result.active_users > 0;
+      const isValid = !!result && (result as any).active_users > 0;
 
       // SECURITY: Enhanced validation checks
       if (result) {
         // Verify business has proper isolation settings
-        const isolationLevel = result.tenant_isolation_level as string;
+        const isolationLevel = (result as any).tenant_isolation_level as string;
         if (!isolationLevel || !['strict', 'standard'].includes(isolationLevel)) {
           this.logger.warn('Business has invalid isolation level', { 
             businessId, 
@@ -594,7 +594,7 @@ export class TenantIsolationMiddleware {
       return { violations };
 
     } catch (error) {
-      this.logger.error('Response leakage check error', { error: error.message });
+      this.logger.error('Response leakage check error', { error: error instanceof Error ? error.message : String(error) });
       return { violations: [] };
     }
   }

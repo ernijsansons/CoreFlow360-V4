@@ -1,280 +1,304 @@
 {
-  "totalFiles": 429,
-  "totalLines": 263637,
-  "tsFiles": 411,
+  "totalFiles": 440,
+  "totalLines": 257602,
+  "tsFiles": 421,
   "jsFiles": 0,
   "testFiles": 12,
   "configFiles": 5,
   "files": [
     {
       "path": "src\\ai\\ai-service.ts",
-      "lines": 430,
+      "lines": 438,
       "extension": ".ts",
-      "size": 12163
+      "size": 12634
     },
     {
       "path": "src\\ai-systems\\ai-bias-detector.ts",
-      "lines": 624,
+      "lines": 616,
       "extension": ".ts",
-      "size": 22358
+      "size": 22721
     },
     {
       "path": "src\\ai-systems\\ai-safety-validator.ts",
-      "lines": 505,
+      "lines": 498,
       "extension": ".ts",
-      "size": 18223
+      "size": 18288
     },
     {
       "path": "src\\ai-systems\\automated-ai-optimizer.ts",
-      "lines": 953,
+      "lines": 945,
       "extension": ".ts",
-      "size": 33454
+      "size": 33740
     },
     {
       "path": "src\\ai-systems\\hallucination-detector.ts",
-      "lines": 908,
+      "lines": 901,
       "extension": ".ts",
-      "size": 29460
+      "size": 29847
     },
     {
       "path": "src\\ai-systems\\model-performance-analyzer.ts",
-      "lines": 800,
+      "lines": 791,
       "extension": ".ts",
-      "size": 25817
+      "size": 26077
     },
     {
       "path": "src\\ai-systems\\quantum-ai-auditor.ts",
-      "lines": 1458,
+      "lines": 1453,
       "extension": ".ts",
-      "size": 41099
+      "size": 42153
     },
     {
       "path": "src\\ai-systems\\workflow-automation-auditor.ts",
-      "lines": 1279,
+      "lines": 1270,
       "extension": ".ts",
-      "size": 41634
+      "size": 42330
+    },
+    {
+      "path": "src\\analytics\\dashboard.ts",
+      "lines": 574,
+      "extension": ".ts",
+      "size": 18379
     },
     {
       "path": "src\\api\\gateway\\api-gateway.ts",
-      "lines": 1143,
+      "lines": 437,
       "extension": ".ts",
-      "size": 31774
+      "size": 12453
     },
     {
       "path": "src\\architecture\\supernova-architecture-improvements.ts",
-      "lines": 629,
+      "lines": 630,
       "extension": ".ts",
-      "size": 15855
+      "size": 15958
+    },
+    {
+      "path": "src\\cache\\cache-integration-example.ts",
+      "lines": 318,
+      "extension": ".ts",
+      "size": 9305
+    },
+    {
+      "path": "src\\cache\\cache-service.ts",
+      "lines": 344,
+      "extension": ".ts",
+      "size": 10116
+    },
+    {
+      "path": "src\\cache\\README.md",
+      "lines": 191,
+      "extension": ".md",
+      "size": 4801
     },
     {
       "path": "src\\cloudflare\\CloudflareIntegration.ts",
-      "lines": 692,
+      "lines": 679,
       "extension": ".ts",
-      "size": 17670
+      "size": 17681
     },
     {
       "path": "src\\cloudflare\\durable-objects\\RealtimeCoordinator.ts",
-      "lines": 549,
+      "lines": 560,
       "extension": ".ts",
-      "size": 15408
+      "size": 15818
     },
     {
       "path": "src\\cloudflare\\monitoring\\CloudflareObservability.ts",
-      "lines": 511,
+      "lines": 496,
       "extension": ".ts",
-      "size": 12166
+      "size": 11846
     },
     {
       "path": "src\\cloudflare\\performance\\SmartCaching.ts",
-      "lines": 560,
+      "lines": 626,
       "extension": ".ts",
-      "size": 14667
+      "size": 17687
     },
     {
       "path": "src\\cloudflare\\types\\cloudflare.d.ts",
       "lines": 256,
       "extension": ".ts",
-      "size": 6412
+      "size": 6667
     },
     {
       "path": "src\\cloudflare\\utils\\cors.ts",
       "lines": 210,
       "extension": ".ts",
-      "size": 5650
+      "size": 5859
     },
     {
       "path": "src\\cloudflare\\utils\\logger.ts",
-      "lines": 499,
+      "lines": 493,
       "extension": ".ts",
-      "size": 11198
+      "size": 11505
     },
     {
       "path": "src\\cloudflare\\utils\\security.ts",
       "lines": 494,
       "extension": ".ts",
-      "size": 11923
+      "size": 12416
     },
     {
       "path": "src\\cloudflare\\workers\\CloudflareEdgeHandler.ts",
-      "lines": 577,
+      "lines": 578,
       "extension": ".ts",
-      "size": 15125
+      "size": 15732
     },
     {
       "path": "src\\code-quality\\architecture-auditor.ts",
       "lines": 747,
       "extension": ".ts",
-      "size": 20825
+      "size": 21571
     },
     {
       "path": "src\\code-quality\\complexity-analyzer.ts",
       "lines": 552,
       "extension": ".ts",
-      "size": 16255
+      "size": 16806
     },
     {
       "path": "src\\code-quality\\error-handling-analyzer.ts",
       "lines": 615,
       "extension": ".ts",
-      "size": 17101
+      "size": 17715
     },
     {
       "path": "src\\code-quality\\quantum-code-auditor.ts",
-      "lines": 1332,
+      "lines": 1324,
       "extension": ".ts",
-      "size": 36058
+      "size": 36891
     },
     {
       "path": "src\\code-quality\\supernova-code-quality.ts",
-      "lines": 733,
+      "lines": 734,
       "extension": ".ts",
-      "size": 23597
+      "size": 23600
     },
     {
       "path": "src\\code-quality\\tech-debt-detector.ts",
       "lines": 690,
       "extension": ".ts",
-      "size": 19822
+      "size": 20511
     },
     {
       "path": "src\\code-quality\\type-safety-auditor.ts",
       "lines": 652,
       "extension": ".ts",
-      "size": 17299
+      "size": 17950
     },
     {
       "path": "src\\customer-onboarding\\ai-assistant\\OnboardingAIAssistant.ts",
-      "lines": 634,
+      "lines": 324,
       "extension": ".ts",
-      "size": 20937
+      "size": 10239
     },
     {
       "path": "src\\customer-onboarding\\analytics\\ProgressTracker.ts",
-      "lines": 81,
+      "lines": 78,
       "extension": ".ts",
-      "size": 2545
+      "size": 2372
     },
     {
       "path": "src\\customer-onboarding\\customer-onboarding.ts",
-      "lines": 350,
+      "lines": 228,
       "extension": ".ts",
-      "size": 12947
+      "size": 5945
     },
     {
       "path": "src\\customer-onboarding\\demo\\DemoEnvironmentManager.ts",
-      "lines": 506,
+      "lines": 494,
       "extension": ".ts",
-      "size": 16312
+      "size": 15911
     },
     {
       "path": "src\\customer-onboarding\\engine\\CustomerOnboardingEngine.ts",
-      "lines": 815,
+      "lines": 816,
       "extension": ".ts",
-      "size": 27684
+      "size": 27763
     },
     {
       "path": "src\\customer-onboarding\\index.ts",
       "lines": 8,
       "extension": ".ts",
-      "size": 481
+      "size": 467
     },
     {
       "path": "src\\customer-onboarding\\success\\CustomerSuccessManager.ts",
-      "lines": 139,
+      "lines": 138,
       "extension": ".ts",
-      "size": 4713
+      "size": 4654
     },
     {
       "path": "src\\customer-onboarding\\tsconfig.json",
       "lines": 30,
       "extension": ".json",
-      "size": 660
+      "size": 689
     },
     {
       "path": "src\\customer-onboarding\\types\\index.ts",
       "lines": 528,
       "extension": ".ts",
-      "size": 12469
+      "size": 12996
     },
     {
       "path": "src\\data-integrity\\automated-data-fixer.ts",
-      "lines": 1097,
+      "lines": 1103,
       "extension": ".ts",
-      "size": 35406
+      "size": 36520
     },
     {
       "path": "src\\data-integrity\\cache-consistency-validator.ts",
-      "lines": 1294,
+      "lines": 1297,
       "extension": ".ts",
-      "size": 41107
+      "size": 42409
     },
     {
       "path": "src\\data-integrity\\data-anomaly-detector.ts",
-      "lines": 1346,
+      "lines": 560,
       "extension": ".ts",
-      "size": 46210
+      "size": 19881
     },
     {
       "path": "src\\data-integrity\\database-integrity-checker.ts",
-      "lines": 1207,
+      "lines": 747,
       "extension": ".ts",
-      "size": 43939
+      "size": 25608
     },
     {
       "path": "src\\data-integrity\\quantum-data-auditor.ts",
-      "lines": 1311,
+      "lines": 1304,
       "extension": ".ts",
-      "size": 36830
+      "size": 37701
     },
     {
       "path": "src\\data-integrity\\replication-consistency-analyzer.ts",
-      "lines": 1094,
+      "lines": 1101,
       "extension": ".ts",
-      "size": 35870
+      "size": 36984
     },
     {
       "path": "src\\database\\crm-database.ts",
-      "lines": 780,
+      "lines": 786,
       "extension": ".ts",
-      "size": 26897
+      "size": 27694
     },
     {
       "path": "src\\database\\crm-migration-manager.ts",
-      "lines": 904,
+      "lines": 942,
       "extension": ".ts",
-      "size": 41053
+      "size": 42146
     },
     {
       "path": "src\\database\\db.ts",
       "lines": 349,
       "extension": ".ts",
-      "size": 9951
+      "size": 10299
     },
     {
       "path": "src\\database\\index.ts",
-      "lines": 424,
+      "lines": 422,
       "extension": ".ts",
-      "size": 11434
+      "size": 11769
     },
     {
       "path": "src\\database\\migrations\\001_create_crm_tables.sql",
@@ -334,325 +358,331 @@
       "path": "src\\database\\service.ts",
       "lines": 250,
       "extension": ".ts",
-      "size": 7370
+      "size": 7619
     },
     {
       "path": "src\\deployment\\d1-migration-manager.ts",
-      "lines": 841,
+      "lines": 825,
       "extension": ".ts",
-      "size": 24508
+      "size": 24363
     },
     {
       "path": "src\\deployment\\deployment-orchestrator.ts",
-      "lines": 1177,
+      "lines": 1184,
       "extension": ".ts",
-      "size": 32813
+      "size": 34081
     },
     {
       "path": "src\\deployment\\doc-generator.ts",
-      "lines": 1238,
+      "lines": 1240,
       "extension": ".ts",
-      "size": 32158
+      "size": 33542
     },
     {
       "path": "src\\deployment\\feature-flag-manager.ts",
-      "lines": 1143,
+      "lines": 1145,
       "extension": ".ts",
-      "size": 29572
+      "size": 30866
     },
     {
       "path": "src\\deployment\\health-monitor.ts",
       "lines": 936,
       "extension": ".ts",
-      "size": 25308
+      "size": 26243
     },
     {
       "path": "src\\deployment\\migration-orchestrator.ts",
-      "lines": 1289,
+      "lines": 1291,
       "extension": ".ts",
-      "size": 38846
+      "size": 40286
     },
     {
       "path": "src\\deployment\\performance-monitor.ts",
-      "lines": 1266,
+      "lines": 1268,
       "extension": ".ts",
-      "size": 31250
+      "size": 32663
     },
     {
       "path": "src\\deployment\\pipeline-integration.ts",
-      "lines": 642,
+      "lines": 615,
       "extension": ".ts",
-      "size": 21134
+      "size": 20115
     },
     {
       "path": "src\\deployment\\rollback-manager.ts",
-      "lines": 1380,
+      "lines": 1384,
       "extension": ".ts",
-      "size": 34183
+      "size": 35718
     },
     {
       "path": "src\\durable-objects\\dashboard-stream.ts",
       "lines": 727,
       "extension": ".ts",
-      "size": 22562
+      "size": 23288
     },
     {
       "path": "src\\durable-objects\\migration-executor.ts",
-      "lines": 727,
+      "lines": 731,
       "extension": ".ts",
-      "size": 22536
+      "size": 23174
     },
     {
       "path": "src\\durable-objects\\workflow-collaboration.ts",
-      "lines": 1013,
+      "lines": 1006,
       "extension": ".ts",
-      "size": 30030
+      "size": 30533
     },
     {
       "path": "src\\durable-objects\\workflow-executor.ts",
-      "lines": 1013,
+      "lines": 1009,
       "extension": ".ts",
-      "size": 28713
+      "size": 29413
+    },
+    {
+      "path": "src\\index.minimal.ts",
+      "lines": 158,
+      "extension": ".ts",
+      "size": 4238
     },
     {
       "path": "src\\index.ts",
-      "lines": 1298,
+      "lines": 501,
       "extension": ".ts",
-      "size": 38434
+      "size": 18129
     },
     {
       "path": "src\\jobs\\queue-handler.ts",
-      "lines": 738,
+      "lines": 731,
       "extension": ".ts",
-      "size": 22418
+      "size": 22735
     },
     {
       "path": "src\\middleware\\abac.ts",
-      "lines": 587,
+      "lines": 581,
       "extension": ".ts",
-      "size": 18213
+      "size": 16245
     },
     {
       "path": "src\\middleware\\agent-proxy.ts",
-      "lines": 234,
+      "lines": 226,
       "extension": ".ts",
-      "size": 6936
+      "size": 6687
     },
     {
       "path": "src\\middleware\\auth.ts",
-      "lines": 372,
+      "lines": 743,
       "extension": ".ts",
-      "size": 11233
+      "size": 21586
     },
     {
       "path": "src\\middleware\\error-handling.ts",
-      "lines": 600,
+      "lines": 597,
       "extension": ".ts",
-      "size": 15237
+      "size": 15674
     },
     {
       "path": "src\\middleware\\rate-limit.ts",
-      "lines": 396,
+      "lines": 431,
       "extension": ".ts",
-      "size": 11319
+      "size": 12989
     },
     {
       "path": "src\\middleware\\security-middleware.ts",
       "lines": 427,
       "extension": ".ts",
-      "size": 12058
+      "size": 12478
     },
     {
       "path": "src\\middleware\\security.ts",
-      "lines": 367,
+      "lines": 1673,
       "extension": ".ts",
-      "size": 9822
+      "size": 47139
     },
     {
       "path": "src\\middleware\\tenant-isolation.ts",
-      "lines": 408,
+      "lines": 832,
       "extension": ".ts",
-      "size": 12210
+      "size": 27082
     },
     {
       "path": "src\\middleware\\tracing.ts",
       "lines": 129,
       "extension": ".ts",
-      "size": 3726
+      "size": 3854
     },
     {
       "path": "src\\modules\\abac\\cache.ts",
-      "lines": 849,
+      "lines": 399,
       "extension": ".ts",
-      "size": 23788
+      "size": 9997
     },
     {
       "path": "src\\modules\\abac\\capability-registry.ts",
       "lines": 456,
       "extension": ".ts",
-      "size": 11924
+      "size": 12379
     },
     {
       "path": "src\\modules\\abac\\fast-path.ts",
       "lines": 319,
       "extension": ".ts",
-      "size": 8716
+      "size": 9034
     },
     {
       "path": "src\\modules\\abac\\index.ts",
-      "lines": 224,
+      "lines": 225,
       "extension": ".ts",
-      "size": 5884
+      "size": 6186
     },
     {
       "path": "src\\modules\\abac\\performance-monitor.ts",
-      "lines": 480,
+      "lines": 545,
       "extension": ".ts",
-      "size": 14503
+      "size": 16449
     },
     {
       "path": "src\\modules\\abac\\permission-resolver.ts",
-      "lines": 451,
+      "lines": 289,
       "extension": ".ts",
-      "size": 12412
+      "size": 7998
     },
     {
       "path": "src\\modules\\abac\\policy-evaluator.ts",
-      "lines": 595,
+      "lines": 594,
       "extension": ".ts",
-      "size": 17317
+      "size": 17855
     },
     {
       "path": "src\\modules\\abac\\service.ts",
-      "lines": 404,
+      "lines": 399,
       "extension": ".ts",
-      "size": 10975
+      "size": 11105
     },
     {
       "path": "src\\modules\\abac\\types.ts",
       "lines": 347,
       "extension": ".ts",
-      "size": 7182
+      "size": 7528
     },
     {
       "path": "src\\modules\\accounting\\journal-service.ts",
       "lines": 410,
       "extension": ".ts",
-      "size": 12605
+      "size": 13035
     },
     {
       "path": "src\\modules\\agent-system\\audit-logger.ts",
       "lines": 501,
       "extension": ".ts",
-      "size": 13933
+      "size": 14433
     },
     {
       "path": "src\\modules\\agent-system\\capability-registry.ts",
-      "lines": 703,
+      "lines": 704,
       "extension": ".ts",
-      "size": 21830
+      "size": 22535
     },
     {
       "path": "src\\modules\\agent-system\\claude-native-agent.ts",
-      "lines": 933,
+      "lines": 1099,
       "extension": ".ts",
-      "size": 30679
+      "size": 38740
     },
     {
       "path": "src\\modules\\agent-system\\config-service.ts",
-      "lines": 812,
+      "lines": 813,
       "extension": ".ts",
-      "size": 20994
+      "size": 21878
     },
     {
       "path": "src\\modules\\agent-system\\cost-reservation-manager.ts",
-      "lines": 618,
+      "lines": 619,
       "extension": ".ts",
-      "size": 17228
+      "size": 17927
     },
     {
       "path": "src\\modules\\agent-system\\cost-tracker.ts",
       "lines": 644,
       "extension": ".ts",
-      "size": 20078
+      "size": 20721
     },
     {
       "path": "src\\modules\\agent-system\\error-system.ts",
       "lines": 757,
       "extension": ".ts",
-      "size": 21152
+      "size": 21908
     },
     {
       "path": "src\\modules\\agent-system\\idempotency-manager.ts",
-      "lines": 416,
+      "lines": 417,
       "extension": ".ts",
-      "size": 11144
+      "size": 11637
     },
     {
       "path": "src\\modules\\agent-system\\index.ts",
       "lines": 685,
       "extension": ".ts",
-      "size": 19251
+      "size": 19935
     },
     {
       "path": "src\\modules\\agent-system\\integration-tests.ts",
-      "lines": 790,
+      "lines": 752,
       "extension": ".ts",
-      "size": 20837
+      "size": 19349
     },
     {
       "path": "src\\modules\\agent-system\\memory.ts",
-      "lines": 696,
+      "lines": 415,
       "extension": ".ts",
-      "size": 21599
+      "size": 14104
     },
     {
       "path": "src\\modules\\agent-system\\monitoring-service.ts",
-      "lines": 654,
+      "lines": 655,
       "extension": ".ts",
-      "size": 16480
+      "size": 17210
     },
     {
       "path": "src\\modules\\agent-system\\orchestrator.ts",
-      "lines": 750,
+      "lines": 751,
       "extension": ".ts",
-      "size": 22340
+      "size": 23092
     },
     {
       "path": "src\\modules\\agent-system\\performance-benchmarks.ts",
-      "lines": 1093,
+      "lines": 1052,
       "extension": ".ts",
-      "size": 35674
+      "size": 33920
     },
     {
       "path": "src\\modules\\agent-system\\registry.ts",
       "lines": 828,
       "extension": ".ts",
-      "size": 24267
+      "size": 25094
     },
     {
       "path": "src\\modules\\agent-system\\resource-cleanup-manager.ts",
-      "lines": 622,
+      "lines": 623,
       "extension": ".ts",
-      "size": 15820
+      "size": 16523
     },
     {
       "path": "src\\modules\\agent-system\\retention-manager.ts",
-      "lines": 815,
+      "lines": 817,
       "extension": ".ts",
-      "size": 22263
+      "size": 23156
     },
     {
       "path": "src\\modules\\agent-system\\retry-handler.ts",
       "lines": 569,
       "extension": ".ts",
-      "size": 15237
+      "size": 15805
     },
     {
       "path": "src\\modules\\agent-system\\safe-executor.ts",
       "lines": 546,
       "extension": ".ts",
-      "size": 13081
+      "size": 13626
     },
     {
       "path": "src\\modules\\agent-system\\schema-optimized.sql",
@@ -668,441 +698,441 @@
     },
     {
       "path": "src\\modules\\agent-system\\security-tests.ts",
-      "lines": 506,
+      "lines": 489,
       "extension": ".ts",
-      "size": 14236
+      "size": 13790
     },
     {
       "path": "src\\modules\\agent-system\\security-utils.ts",
-      "lines": 520,
+      "lines": 511,
       "extension": ".ts",
-      "size": 15413
+      "size": 14146
     },
     {
       "path": "src\\modules\\agent-system\\streaming-handler.ts",
       "lines": 457,
       "extension": ".ts",
-      "size": 12797
+      "size": 13205
     },
     {
       "path": "src\\modules\\agent-system\\task-queue-manager.ts",
-      "lines": 705,
+      "lines": 706,
       "extension": ".ts",
-      "size": 20450
+      "size": 21230
     },
     {
       "path": "src\\modules\\agent-system\\tracing-service.ts",
-      "lines": 584,
+      "lines": 585,
       "extension": ".ts",
-      "size": 14590
+      "size": 15247
     },
     {
       "path": "src\\modules\\agent-system\\transaction-manager.ts",
-      "lines": 714,
+      "lines": 715,
       "extension": ".ts",
-      "size": 20604
+      "size": 21395
     },
     {
       "path": "src\\modules\\agent-system\\types.ts",
       "lines": 775,
       "extension": ".ts",
-      "size": 17737
+      "size": 18513
     },
     {
       "path": "src\\modules\\agents\\claude-agent.ts",
-      "lines": 1267,
+      "lines": 1268,
       "extension": ".ts",
-      "size": 37289
+      "size": 38558
     },
     {
       "path": "src\\modules\\agents\\orchestrator.ts",
-      "lines": 1189,
+      "lines": 1190,
       "extension": ".ts",
-      "size": 37474
+      "size": 38665
     },
     {
       "path": "src\\modules\\agents\\qualification-agent.ts",
-      "lines": 651,
+      "lines": 653,
       "extension": ".ts",
-      "size": 21318
+      "size": 21974
     },
     {
       "path": "src\\modules\\agents\\registry.ts",
       "lines": 657,
       "extension": ".ts",
-      "size": 17343
+      "size": 17999
     },
     {
       "path": "src\\modules\\agents\\types.ts",
-      "lines": 807,
+      "lines": 810,
       "extension": ".ts",
-      "size": 18898
+      "size": 19713
     },
     {
       "path": "src\\modules\\audit\\audit-service.ts",
-      "lines": 785,
+      "lines": 786,
       "extension": ".ts",
-      "size": 21900
+      "size": 22756
     },
     {
       "path": "src\\modules\\auth\\crypto.ts",
-      "lines": 354,
+      "lines": 352,
       "extension": ".ts",
-      "size": 8291
+      "size": 8530
     },
     {
       "path": "src\\modules\\auth\\jwt.ts",
       "lines": 303,
       "extension": ".ts",
-      "size": 8054
+      "size": 8367
     },
     {
       "path": "src\\modules\\auth\\mfa-service.ts",
-      "lines": 482,
+      "lines": 483,
       "extension": ".ts",
-      "size": 12970
+      "size": 13521
     },
     {
       "path": "src\\modules\\auth\\service.ts",
-      "lines": 640,
+      "lines": 671,
       "extension": ".ts",
-      "size": 18125
+      "size": 20329
     },
     {
       "path": "src\\modules\\auth\\session.ts",
-      "lines": 364,
+      "lines": 363,
       "extension": ".ts",
-      "size": 9749
+      "size": 10073
     },
     {
       "path": "src\\modules\\auth\\types.ts",
-      "lines": 217,
+      "lines": 218,
       "extension": ".ts",
-      "size": 5636
+      "size": 5855
     },
     {
       "path": "src\\modules\\business-context\\cache.ts",
       "lines": 312,
       "extension": ".ts",
-      "size": 8831
+      "size": 9142
     },
     {
       "path": "src\\modules\\business-context\\company-analyzer.ts",
-      "lines": 643,
+      "lines": 644,
       "extension": ".ts",
-      "size": 19448
+      "size": 20093
     },
     {
       "path": "src\\modules\\business-context\\context-enricher.ts",
-      "lines": 464,
+      "lines": 647,
       "extension": ".ts",
-      "size": 20238
+      "size": 24130
     },
     {
       "path": "src\\modules\\business-context\\department-profiler.ts",
-      "lines": 714,
+      "lines": 568,
       "extension": ".ts",
-      "size": 26219
+      "size": 21539
     },
     {
       "path": "src\\modules\\business-context\\index.ts",
-      "lines": 340,
+      "lines": 341,
       "extension": ".ts",
-      "size": 9422
+      "size": 9843
     },
     {
       "path": "src\\modules\\business-context\\provider.ts",
       "lines": 564,
       "extension": ".ts",
-      "size": 17379
+      "size": 17942
     },
     {
       "path": "src\\modules\\business-context\\types.ts",
       "lines": 554,
       "extension": ".ts",
-      "size": 13159
+      "size": 13712
     },
     {
       "path": "src\\modules\\business-switch\\cache.ts",
-      "lines": 304,
+      "lines": 300,
       "extension": ".ts",
-      "size": 7901
+      "size": 7998
     },
     {
       "path": "src\\modules\\business-switch\\client.ts",
-      "lines": 337,
+      "lines": 428,
       "extension": ".ts",
-      "size": 8293
+      "size": 10530
     },
     {
       "path": "src\\modules\\business-switch\\performance.ts",
-      "lines": 302,
+      "lines": 354,
       "extension": ".ts",
-      "size": 6951
+      "size": 8340
     },
     {
       "path": "src\\modules\\business-switch\\prefetch.ts",
       "lines": 344,
       "extension": ".ts",
-      "size": 8426
+      "size": 8765
     },
     {
       "path": "src\\modules\\business-switch\\service.ts",
-      "lines": 418,
+      "lines": 419,
       "extension": ".ts",
-      "size": 12338
+      "size": 12765
     },
     {
       "path": "src\\modules\\business-switch\\types.ts",
       "lines": 115,
       "extension": ".ts",
-      "size": 2617
+      "size": 2731
     },
     {
       "path": "src\\modules\\capabilities\\examples.ts",
-      "lines": 1050,
+      "lines": 725,
       "extension": ".ts",
-      "size": 27548
+      "size": 18594
     },
     {
       "path": "src\\modules\\capabilities\\executor.ts",
       "lines": 760,
       "extension": ".ts",
-      "size": 24181
+      "size": 24940
     },
     {
       "path": "src\\modules\\capabilities\\index.ts",
-      "lines": 535,
+      "lines": 536,
       "extension": ".ts",
-      "size": 14787
+      "size": 15398
     },
     {
       "path": "src\\modules\\capabilities\\types.ts",
-      "lines": 546,
+      "lines": 548,
       "extension": ".ts",
-      "size": 14850
+      "size": 15401
     },
     {
       "path": "src\\modules\\capabilities\\validator.ts",
       "lines": 833,
       "extension": ".ts",
-      "size": 24865
+      "size": 25697
     },
     {
       "path": "src\\modules\\chat\\context-service.ts",
-      "lines": 436,
+      "lines": 434,
       "extension": ".ts",
-      "size": 11576
+      "size": 11906
     },
     {
       "path": "src\\modules\\chat\\conversation-service.ts",
-      "lines": 688,
+      "lines": 689,
       "extension": ".ts",
-      "size": 19037
+      "size": 19803
     },
     {
       "path": "src\\modules\\chat\\file-service.ts",
       "lines": 414,
       "extension": ".ts",
-      "size": 11646
+      "size": 12074
     },
     {
       "path": "src\\modules\\chat\\streaming-service.ts",
-      "lines": 459,
+      "lines": 462,
       "extension": ".ts",
-      "size": 13226
+      "size": 13695
     },
     {
       "path": "src\\modules\\chat\\suggestions-service.ts",
-      "lines": 559,
+      "lines": 561,
       "extension": ".ts",
-      "size": 18518
+      "size": 19092
     },
     {
       "path": "src\\modules\\chat\\transcription-service.ts",
-      "lines": 422,
+      "lines": 421,
       "extension": ".ts",
-      "size": 11960
+      "size": 12325
     },
     {
       "path": "src\\modules\\chat-widget\\chat-widget.ts",
-      "lines": 731,
+      "lines": 733,
       "extension": ".ts",
-      "size": 21628
+      "size": 22312
     },
     {
       "path": "src\\modules\\dashboard\\durable-object.ts",
-      "lines": 554,
+      "lines": 549,
       "extension": ".ts",
-      "size": 14988
+      "size": 15233
     },
     {
       "path": "src\\modules\\dashboard\\real-time-service.ts",
-      "lines": 738,
+      "lines": 729,
       "extension": ".ts",
-      "size": 20583
+      "size": 20770
     },
     {
       "path": "src\\modules\\dashboard\\role-configs.ts",
-      "lines": 769,
+      "lines": 771,
       "extension": ".ts",
-      "size": 20759
+      "size": 21615
     },
     {
       "path": "src\\modules\\database\\migration-runner.ts",
       "lines": 320,
       "extension": ".ts",
-      "size": 8186
+      "size": 8505
     },
     {
       "path": "src\\modules\\finance\\aging-reports-generator.ts",
-      "lines": 597,
+      "lines": 598,
       "extension": ".ts",
-      "size": 17334
+      "size": 17933
     },
     {
       "path": "src\\modules\\finance\\audit-logger.ts",
       "lines": 531,
       "extension": ".ts",
-      "size": 13634
+      "size": 14164
     },
     {
       "path": "src\\modules\\finance\\balance-sheet-generator.ts",
-      "lines": 551,
+      "lines": 555,
       "extension": ".ts",
-      "size": 18184
+      "size": 18746
     },
     {
       "path": "src\\modules\\finance\\cash-flow-generator.ts",
-      "lines": 604,
+      "lines": 605,
       "extension": ".ts",
-      "size": 18981
+      "size": 19587
     },
     {
       "path": "src\\modules\\finance\\chart-of-accounts.ts",
-      "lines": 592,
+      "lines": 639,
       "extension": ".ts",
-      "size": 21760
+      "size": 22571
     },
     {
       "path": "src\\modules\\finance\\currency-manager.ts",
-      "lines": 650,
+      "lines": 651,
       "extension": ".ts",
-      "size": 17957
+      "size": 18681
     },
     {
       "path": "src\\modules\\finance\\custom-report-builder.ts",
-      "lines": 751,
+      "lines": 760,
       "extension": ".ts",
-      "size": 21086
+      "size": 22047
     },
     {
       "path": "src\\modules\\finance\\error-handler.ts",
       "lines": 486,
       "extension": ".ts",
-      "size": 13703
+      "size": 14188
     },
     {
       "path": "src\\modules\\finance\\financial-reporting-engine.ts",
       "lines": 747,
       "extension": ".ts",
-      "size": 21442
+      "size": 22188
     },
     {
       "path": "src\\modules\\finance\\gdpr-data-export.ts",
-      "lines": 628,
+      "lines": 629,
       "extension": ".ts",
-      "size": 18593
+      "size": 19301
     },
     {
       "path": "src\\modules\\finance\\invoice\\approval-workflow.ts",
-      "lines": 774,
+      "lines": 775,
       "extension": ".ts",
-      "size": 22936
+      "size": 23792
     },
     {
       "path": "src\\modules\\finance\\invoice\\currency-service.ts",
-      "lines": 600,
+      "lines": 606,
       "extension": ".ts",
-      "size": 17938
+      "size": 18627
     },
     {
       "path": "src\\modules\\finance\\invoice\\pdf-generator.ts",
-      "lines": 600,
+      "lines": 604,
       "extension": ".ts",
-      "size": 17511
+      "size": 18198
     },
     {
       "path": "src\\modules\\finance\\invoice\\service.ts",
-      "lines": 724,
+      "lines": 727,
       "extension": ".ts",
-      "size": 21567
+      "size": 22370
     },
     {
       "path": "src\\modules\\finance\\invoice\\tax-engine.ts",
       "lines": 548,
       "extension": ".ts",
-      "size": 15767
+      "size": 16314
     },
     {
       "path": "src\\modules\\finance\\invoice\\types.ts",
       "lines": 267,
       "extension": ".ts",
-      "size": 8369
+      "size": 8635
     },
     {
       "path": "src\\modules\\finance\\invoice-approval-workflow.ts",
       "lines": 798,
       "extension": ".ts",
-      "size": 24076
+      "size": 24873
     },
     {
       "path": "src\\modules\\finance\\invoice-email-manager.ts",
-      "lines": 760,
+      "lines": 729,
       "extension": ".ts",
-      "size": 22457
+      "size": 21487
     },
     {
       "path": "src\\modules\\finance\\invoice-manager.ts",
-      "lines": 764,
+      "lines": 766,
       "extension": ".ts",
-      "size": 24445
+      "size": 25285
     },
     {
       "path": "src\\modules\\finance\\invoice-pdf-generator.ts",
-      "lines": 695,
+      "lines": 699,
       "extension": ".ts",
-      "size": 20649
+      "size": 21355
     },
     {
       "path": "src\\modules\\finance\\invoice-posting-manager.ts",
-      "lines": 944,
+      "lines": 945,
       "extension": ".ts",
-      "size": 28392
+      "size": 29416
     },
     {
       "path": "src\\modules\\finance\\journal-entry-manager.ts",
-      "lines": 822,
+      "lines": 499,
       "extension": ".ts",
-      "size": 25516
+      "size": 14696
     },
     {
       "path": "src\\modules\\finance\\payment\\paypal-gateway.ts",
       "lines": 718,
       "extension": ".ts",
-      "size": 19304
+      "size": 20021
     },
     {
       "path": "src\\modules\\finance\\payment\\stripe-gateway.ts",
-      "lines": 822,
+      "lines": 823,
       "extension": ".ts",
-      "size": 24050
+      "size": 24874
     },
     {
       "path": "src\\modules\\finance\\payment\\webhook-service.ts",
-      "lines": 813,
+      "lines": 814,
       "extension": ".ts",
-      "size": 24908
+      "size": 25794
     },
     {
       "path": "src\\modules\\finance\\payment-method-accounts-schema.sql",
@@ -1112,9 +1142,9 @@
     },
     {
       "path": "src\\modules\\finance\\payment-terms-manager.ts",
-      "lines": 602,
+      "lines": 603,
       "extension": ".ts",
-      "size": 17408
+      "size": 18088
     },
     {
       "path": "src\\modules\\finance\\performance-indexes.sql",
@@ -1124,15 +1154,15 @@
     },
     {
       "path": "src\\modules\\finance\\performance-monitor.ts",
-      "lines": 494,
+      "lines": 496,
       "extension": ".ts",
-      "size": 13151
+      "size": 13709
     },
     {
       "path": "src\\modules\\finance\\period-manager.ts",
-      "lines": 712,
+      "lines": 713,
       "extension": ".ts",
-      "size": 19929
+      "size": 20713
     },
     {
       "path": "src\\modules\\finance\\product-tax-schema.sql",
@@ -1144,25 +1174,25 @@
       "path": "src\\modules\\finance\\profit-loss-generator.ts",
       "lines": 623,
       "extension": ".ts",
-      "size": 19856
+      "size": 20478
     },
     {
       "path": "src\\modules\\finance\\rate-limiter.ts",
       "lines": 381,
       "extension": ".ts",
-      "size": 9107
+      "size": 9487
     },
     {
       "path": "src\\modules\\finance\\reconciliation\\bank-reconciliation.ts",
-      "lines": 979,
+      "lines": 981,
       "extension": ".ts",
-      "size": 28328
+      "size": 29394
     },
     {
       "path": "src\\modules\\finance\\report-export-manager.ts",
-      "lines": 640,
+      "lines": 642,
       "extension": ".ts",
-      "size": 20815
+      "size": 21536
     },
     {
       "path": "src\\modules\\finance\\schema.sql",
@@ -1172,297 +1202,297 @@
     },
     {
       "path": "src\\modules\\finance\\tax-calculation-engine.ts",
-      "lines": 680,
+      "lines": 681,
       "extension": ".ts",
-      "size": 18829
+      "size": 19511
     },
     {
       "path": "src\\modules\\finance\\tests\\business-isolation.test.ts",
       "lines": 571,
       "extension": ".ts",
-      "size": 19751
+      "size": 20314
     },
     {
       "path": "src\\modules\\finance\\tests\\error-handling.test.ts",
       "lines": 695,
       "extension": ".ts",
-      "size": 22626
+      "size": 23313
     },
     {
       "path": "src\\modules\\finance\\tests\\gdpr-export.test.ts",
       "lines": 1041,
       "extension": ".ts",
-      "size": 34801
+      "size": 35834
     },
     {
       "path": "src\\modules\\finance\\tests\\performance-monitoring.test.ts",
       "lines": 642,
       "extension": ".ts",
-      "size": 22592
+      "size": 23226
     },
     {
       "path": "src\\modules\\finance\\tests\\rate-limiting-performance.test.ts",
       "lines": 601,
       "extension": ".ts",
-      "size": 20447
+      "size": 21040
     },
     {
       "path": "src\\modules\\finance\\tests\\security-integration.test.ts",
-      "lines": 572,
+      "lines": 626,
       "extension": ".ts",
-      "size": 18341
+      "size": 21285
     },
     {
       "path": "src\\modules\\finance\\tests\\validation-security.test.ts",
       "lines": 952,
       "extension": ".ts",
-      "size": 27553
+      "size": 28501
     },
     {
       "path": "src\\modules\\finance\\trial-balance-generator.ts",
-      "lines": 559,
+      "lines": 560,
       "extension": ".ts",
-      "size": 17366
+      "size": 17927
     },
     {
       "path": "src\\modules\\finance\\types.ts",
-      "lines": 1136,
+      "lines": 1139,
       "extension": ".ts",
-      "size": 24328
+      "size": 25560
     },
     {
       "path": "src\\modules\\finance\\utils.ts",
-      "lines": 460,
+      "lines": 470,
       "extension": ".ts",
-      "size": 11116
+      "size": 11842
     },
     {
       "path": "src\\modules\\finance\\validation-engine.ts",
       "lines": 694,
       "extension": ".ts",
-      "size": 20517
+      "size": 21210
     },
     {
       "path": "src\\modules\\finance\\validation.ts",
-      "lines": 303,
+      "lines": 459,
       "extension": ".ts",
-      "size": 10708
+      "size": 18554
     },
     {
       "path": "src\\modules\\inventory\\product\\service.ts",
-      "lines": 817,
+      "lines": 819,
       "extension": ".ts",
-      "size": 23087
+      "size": 23980
     },
     {
       "path": "src\\modules\\inventory\\product\\types.ts",
       "lines": 531,
       "extension": ".ts",
-      "size": 15535
+      "size": 16065
     },
     {
       "path": "src\\modules\\inventory\\tracking\\stock-tracking.ts",
-      "lines": 1113,
+      "lines": 1116,
       "extension": ".ts",
-      "size": 30973
+      "size": 32171
     },
     {
       "path": "src\\modules\\sse\\ai-stream-adapter.ts",
       "lines": 472,
       "extension": ".ts",
-      "size": 14348
+      "size": 14819
     },
     {
       "path": "src\\modules\\sse\\index.ts",
       "lines": 196,
       "extension": ".ts",
-      "size": 4641
+      "size": 4836
     },
     {
       "path": "src\\modules\\sse\\stream-controller.ts",
-      "lines": 486,
+      "lines": 487,
       "extension": ".ts",
-      "size": 13098
+      "size": 13586
     },
     {
       "path": "src\\modules\\sse\\stream-manager.ts",
-      "lines": 593,
+      "lines": 594,
       "extension": ".ts",
-      "size": 18139
+      "size": 18807
     },
     {
       "path": "src\\modules\\sse\\stream-metrics.ts",
-      "lines": 455,
+      "lines": 456,
       "extension": ".ts",
-      "size": 14140
+      "size": 14597
     },
     {
       "path": "src\\modules\\sse\\types.ts",
       "lines": 458,
       "extension": ".ts",
-      "size": 10136
+      "size": 10593
     },
     {
       "path": "src\\modules\\workflow\\index.ts",
       "lines": 384,
       "extension": ".ts",
-      "size": 9519
+      "size": 9902
     },
     {
       "path": "src\\modules\\workflow\\orchestrator.ts",
-      "lines": 1181,
+      "lines": 1191,
       "extension": ".ts",
-      "size": 39528
+      "size": 40738
     },
     {
       "path": "src\\modules\\workflow\\step-handlers.ts",
-      "lines": 732,
+      "lines": 735,
       "extension": ".ts",
-      "size": 21445
+      "size": 22185
     },
     {
       "path": "src\\modules\\workflow\\types.ts",
-      "lines": 481,
+      "lines": 482,
       "extension": ".ts",
-      "size": 11735
+      "size": 12218
     },
     {
       "path": "src\\monitoring\\sentry-integration.ts",
       "lines": 730,
       "extension": ".ts",
-      "size": 19785
+      "size": 20534
     },
     {
       "path": "src\\multi-region\\quantum-cache-distribution.ts",
-      "lines": 898,
+      "lines": 877,
       "extension": ".ts",
-      "size": 25021
+      "size": 24408
     },
     {
       "path": "src\\multi-region\\quantum-compliance-engine.ts",
-      "lines": 1052,
+      "lines": 1043,
       "extension": ".ts",
-      "size": 30455
+      "size": 30782
     },
     {
       "path": "src\\multi-region\\quantum-failover-orchestrator.ts",
-      "lines": 1235,
+      "lines": 412,
       "extension": ".ts",
-      "size": 35836
+      "size": 10848
     },
     {
       "path": "src\\multi-region\\quantum-observatory.ts",
-      "lines": 1269,
+      "lines": 1284,
       "extension": ".ts",
-      "size": 36048
+      "size": 37020
     },
     {
       "path": "src\\multi-region\\quantum-performance-network.ts",
       "lines": 986,
       "extension": ".ts",
-      "size": 27919
+      "size": 28368
     },
     {
       "path": "src\\multi-region\\quantum-region-manager.ts",
-      "lines": 875,
+      "lines": 876,
       "extension": ".ts",
-      "size": 27791
+      "size": 28305
     },
     {
       "path": "src\\multi-region\\quantum-replication-engine.ts",
-      "lines": 906,
+      "lines": 558,
       "extension": ".ts",
-      "size": 26939
+      "size": 14379
     },
     {
       "path": "src\\performance\\api-latency-analyzer.ts",
       "lines": 1523,
       "extension": ".ts",
-      "size": 44741
+      "size": 46263
     },
     {
       "path": "src\\performance\\automated-performance-fixer.ts",
-      "lines": 802,
+      "lines": 790,
       "extension": ".ts",
-      "size": 25326
+      "size": 25184
     },
     {
       "path": "src\\performance\\bundle-optimization-analyzer.ts",
       "lines": 1099,
       "extension": ".ts",
-      "size": 32986
+      "size": 34084
     },
     {
       "path": "src\\performance\\cache-effectiveness-analyzer.ts",
-      "lines": 632,
+      "lines": 634,
       "extension": ".ts",
-      "size": 19658
+      "size": 20295
     },
     {
       "path": "src\\performance\\database-query-analyzer.ts",
-      "lines": 674,
+      "lines": 677,
       "extension": ".ts",
-      "size": 20258
+      "size": 20940
     },
     {
       "path": "src\\performance\\index.ts",
-      "lines": 324,
+      "lines": 314,
       "extension": ".ts",
-      "size": 9410
+      "size": 9026
     },
     {
       "path": "src\\performance\\quantum-bundle-optimizer.ts",
       "lines": 842,
       "extension": ".ts",
-      "size": 22896
+      "size": 23771
     },
     {
       "path": "src\\performance\\quantum-cache-system.ts",
-      "lines": 603,
+      "lines": 590,
       "extension": ".ts",
-      "size": 15558
+      "size": 15446
     },
     {
       "path": "src\\performance\\quantum-connection-manager.ts",
-      "lines": 728,
+      "lines": 724,
       "extension": ".ts",
-      "size": 20442
+      "size": 20917
     },
     {
       "path": "src\\performance\\quantum-image-optimizer.ts",
       "lines": 601,
       "extension": ".ts",
-      "size": 17226
+      "size": 17847
     },
     {
       "path": "src\\performance\\quantum-performance-auditor.ts",
-      "lines": 977,
+      "lines": 971,
       "extension": ".ts",
-      "size": 31128
+      "size": 31577
     },
     {
       "path": "src\\performance\\quantum-performance-monitor.ts",
-      "lines": 1006,
+      "lines": 1000,
       "extension": ".ts",
-      "size": 28566
+      "size": 28969
     },
     {
       "path": "src\\performance\\quantum-query-optimizer.ts",
-      "lines": 642,
+      "lines": 639,
       "extension": ".ts",
-      "size": 16796
+      "size": 17211
     },
     {
       "path": "src\\performance\\quantum-queue-processor.ts",
-      "lines": 984,
+      "lines": 974,
       "extension": ".ts",
-      "size": 28423
+      "size": 28534
     },
     {
       "path": "src\\performance\\resource-usage-auditor.ts",
       "lines": 2168,
       "extension": ".ts",
-      "size": 64115
+      "size": 66226
     },
     {
       "path": "src\\performance\\supernova-optimizations.ts",
@@ -1474,307 +1504,331 @@
       "path": "src\\production-launch\\index.ts",
       "lines": 8,
       "extension": ".ts",
-      "size": 485
+      "size": 471
     },
     {
       "path": "src\\production-launch\\monitoring\\MonitoringSystem.ts",
-      "lines": 191,
+      "lines": 182,
       "extension": ".ts",
-      "size": 6231
+      "size": 5829
     },
     {
       "path": "src\\production-launch\\orchestrator\\ProductionLaunchOrchestrator.ts",
-      "lines": 483,
+      "lines": 440,
       "extension": ".ts",
-      "size": 17002
+      "size": 14088
     },
     {
       "path": "src\\production-launch\\orchestrator\\ProgressiveRolloutEngine.ts",
-      "lines": 104,
+      "lines": 97,
       "extension": ".ts",
-      "size": 3285
+      "size": 2776
     },
     {
       "path": "src\\production-launch\\production-launch.ts",
-      "lines": 218,
+      "lines": 152,
       "extension": ".ts",
-      "size": 7049
+      "size": 3662
     },
     {
       "path": "src\\production-launch\\rollback\\RollbackManager.ts",
-      "lines": 311,
+      "lines": 282,
       "extension": ".ts",
-      "size": 10292
+      "size": 8701
     },
     {
       "path": "src\\production-launch\\tsconfig.json",
       "lines": 24,
       "extension": ".json",
-      "size": 499
+      "size": 522
     },
     {
       "path": "src\\production-launch\\types\\index.ts",
       "lines": 252,
       "extension": ".ts",
-      "size": 5821
+      "size": 6072
     },
     {
       "path": "src\\production-launch\\validators\\PreFlightValidator.ts",
-      "lines": 483,
+      "lines": 474,
       "extension": ".ts",
-      "size": 15301
+      "size": 15210
     },
     {
       "path": "src\\quantum-audit\\auditors\\QuantumAIAuditor.ts",
-      "lines": 414,
+      "lines": 412,
       "extension": ".ts",
-      "size": 14204
+      "size": 14485
     },
     {
       "path": "src\\quantum-audit\\auditors\\QuantumCodeAuditor.ts",
-      "lines": 346,
+      "lines": 344,
       "extension": ".ts",
-      "size": 10886
+      "size": 11095
     },
     {
       "path": "src\\quantum-audit\\auditors\\QuantumComplianceAuditor.ts",
-      "lines": 418,
+      "lines": 416,
       "extension": ".ts",
-      "size": 14886
+      "size": 15171
     },
     {
       "path": "src\\quantum-audit\\auditors\\QuantumDataAuditor.ts",
-      "lines": 432,
+      "lines": 430,
       "extension": ".ts",
-      "size": 14200
+      "size": 14485
     },
     {
       "path": "src\\quantum-audit\\auditors\\QuantumMasterAuditor.ts",
-      "lines": 389,
+      "lines": 373,
       "extension": ".ts",
-      "size": 12525
+      "size": 11896
     },
     {
       "path": "src\\quantum-audit\\auditors\\QuantumPerformanceAuditor.ts",
-      "lines": 435,
+      "lines": 433,
       "extension": ".ts",
-      "size": 14604
+      "size": 14906
     },
     {
       "path": "src\\quantum-audit\\auditors\\QuantumSecurityAuditor.ts",
-      "lines": 369,
+      "lines": 367,
       "extension": ".ts",
-      "size": 11067
+      "size": 11307
     },
     {
       "path": "src\\quantum-audit\\index.ts",
       "lines": 10,
       "extension": ".ts",
-      "size": 619
+      "size": 601
     },
     {
       "path": "src\\quantum-audit\\quantum-audit.ts",
-      "lines": 51,
+      "lines": 34,
       "extension": ".ts",
-      "size": 1826
+      "size": 729
     },
     {
       "path": "src\\quantum-audit\\tsconfig.json",
       "lines": 24,
       "extension": ".json",
-      "size": 495
+      "size": 518
     },
     {
       "path": "src\\quantum-audit\\types\\index.ts",
       "lines": 127,
       "extension": ".ts",
-      "size": 2727
+      "size": 2853
     },
     {
       "path": "src\\realtime\\client-example.ts",
-      "lines": 237,
+      "lines": 221,
       "extension": ".ts",
-      "size": 6424
+      "size": 5637
     },
     {
       "path": "src\\realtime\\coordinator.ts",
-      "lines": 439,
+      "lines": 431,
       "extension": ".ts",
-      "size": 12685
+      "size": 12639
     },
     {
       "path": "src\\realtime\\websocket-service.ts",
-      "lines": 169,
+      "lines": 170,
       "extension": ".ts",
-      "size": 4949
+      "size": 5193
     },
     {
       "path": "src\\routes\\abac.ts",
       "lines": 449,
       "extension": ".ts",
-      "size": 11699
+      "size": 12147
     },
     {
       "path": "src\\routes\\agents.ts",
-      "lines": 501,
+      "lines": 499,
       "extension": ".ts",
-      "size": 13197
+      "size": 13599
     },
     {
       "path": "src\\routes\\ai-audit.ts",
-      "lines": 745,
+      "lines": 737,
       "extension": ".ts",
-      "size": 24134
+      "size": 24333
     },
     {
       "path": "src\\routes\\ai-monitoring.ts",
-      "lines": 653,
+      "lines": 654,
       "extension": ".ts",
-      "size": 21083
+      "size": 21679
     },
     {
       "path": "src\\routes\\auth.ts",
-      "lines": 437,
+      "lines": 493,
       "extension": ".ts",
-      "size": 11411
+      "size": 13365
     },
     {
       "path": "src\\routes\\business.ts",
-      "lines": 405,
+      "lines": 412,
       "extension": ".ts",
-      "size": 10286
+      "size": 12063
     },
     {
       "path": "src\\routes\\chat.ts",
-      "lines": 483,
+      "lines": 472,
       "extension": ".ts",
-      "size": 11839
+      "size": 11737
     },
     {
       "path": "src\\routes\\crm.ts",
-      "lines": 853,
+      "lines": 423,
       "extension": ".ts",
-      "size": 27336
+      "size": 14949
     },
     {
       "path": "src\\routes\\data-integrity.ts",
       "lines": 839,
       "extension": ".ts",
-      "size": 22742
+      "size": 23580
     },
     {
       "path": "src\\routes\\enrichment.ts",
       "lines": 488,
       "extension": ".ts",
-      "size": 14640
+      "size": 14985
     },
     {
       "path": "src\\routes\\export.ts",
-      "lines": 446,
+      "lines": 438,
       "extension": ".ts",
-      "size": 12842
+      "size": 12857
+    },
+    {
+      "path": "src\\routes\\finance.ts",
+      "lines": 450,
+      "extension": ".ts",
+      "size": 14263
+    },
+    {
+      "path": "src\\routes\\index.ts",
+      "lines": 134,
+      "extension": ".ts",
+      "size": 4180
+    },
+    {
+      "path": "src\\routes\\invoices.ts",
+      "lines": 491,
+      "extension": ".ts",
+      "size": 15286
     },
     {
       "path": "src\\routes\\lead-ingestion.ts",
-      "lines": 542,
+      "lines": 532,
       "extension": ".ts",
-      "size": 15671
+      "size": 15547
     },
     {
       "path": "src\\routes\\learning-dashboard.ts",
-      "lines": 642,
+      "lines": 635,
       "extension": ".ts",
-      "size": 20115
+      "size": 20200
     },
     {
       "path": "src\\routes\\learning.ts",
-      "lines": 589,
+      "lines": 572,
       "extension": ".ts",
-      "size": 15843
+      "size": 15444
     },
     {
       "path": "src\\routes\\migration.ts",
       "lines": 478,
       "extension": ".ts",
-      "size": 13811
+      "size": 14288
     },
     {
       "path": "src\\routes\\observability.ts",
-      "lines": 488,
+      "lines": 443,
       "extension": ".ts",
-      "size": 14342
+      "size": 13928
+    },
+    {
+      "path": "src\\routes\\payments.ts",
+      "lines": 564,
+      "extension": ".ts",
+      "size": 16660
     },
     {
       "path": "src\\routes\\voice-agent.ts",
-      "lines": 668,
+      "lines": 650,
       "extension": ".ts",
-      "size": 18478
+      "size": 18072
     },
     {
       "path": "src\\routes\\webhooks.ts",
-      "lines": 305,
+      "lines": 304,
       "extension": ".ts",
-      "size": 7930
+      "size": 8178
     },
     {
       "path": "src\\security\\adaptive-rate-limiter.ts",
-      "lines": 751,
+      "lines": 761,
       "extension": ".ts",
-      "size": 20761
+      "size": 21874
     },
     {
       "path": "src\\security\\advanced-rate-limiter.ts",
       "lines": 547,
       "extension": ".ts",
-      "size": 14473
+      "size": 15019
     },
     {
       "path": "src\\security\\advanced-xss-protection.ts",
       "lines": 915,
       "extension": ".ts",
-      "size": 25927
+      "size": 26841
     },
     {
       "path": "src\\security\\ai-prompt-sanitizer.ts",
       "lines": 519,
       "extension": ".ts",
-      "size": 14823
+      "size": 15341
     },
     {
       "path": "src\\security\\csp-generator.ts",
       "lines": 461,
       "extension": ".ts",
-      "size": 11623
+      "size": 12083
     },
     {
       "path": "src\\security\\penetration-testing-automation.ts",
-      "lines": 1184,
+      "lines": 1188,
       "extension": ".ts",
-      "size": 35750
+      "size": 36945
     },
     {
       "path": "src\\security\\secure-query-builder.ts",
       "lines": 592,
       "extension": ".ts",
-      "size": 15182
+      "size": 15773
     },
     {
       "path": "src\\security\\security-headers.ts",
       "lines": 468,
       "extension": ".ts",
-      "size": 13358
+      "size": 13825
     },
     {
       "path": "src\\security\\security-monitor.ts",
-      "lines": 721,
+      "lines": 723,
       "extension": ".ts",
-      "size": 22138
+      "size": 22864
     },
     {
       "path": "src\\security\\sql-injection-guard.ts",
-      "lines": 668,
+      "lines": 671,
       "extension": ".ts",
-      "size": 17580
+      "size": 18495
     },
     {
       "path": "src\\security\\supernova-security-hardening.ts",
@@ -1784,651 +1838,657 @@
     },
     {
       "path": "src\\security\\threat-detection-engine.ts",
-      "lines": 1071,
+      "lines": 1139,
       "extension": ".ts",
-      "size": 30053
+      "size": 34253
     },
     {
       "path": "src\\security\\zero-trust-secrets.ts",
-      "lines": 786,
+      "lines": 796,
       "extension": ".ts",
-      "size": 22463
+      "size": 23358
     },
     {
       "path": "src\\services\\agent-service.ts",
-      "lines": 342,
+      "lines": 338,
       "extension": ".ts",
-      "size": 9557
+      "size": 9651
     },
     {
       "path": "src\\services\\ai-analytics-engine.ts",
-      "lines": 682,
+      "lines": 677,
       "extension": ".ts",
-      "size": 21181
+      "size": 21490
     },
     {
       "path": "src\\services\\ai-audit-scheduler.ts",
-      "lines": 821,
+      "lines": 823,
       "extension": ".ts",
-      "size": 26470
+      "size": 27296
     },
     {
       "path": "src\\services\\ai-client.ts",
-      "lines": 314,
+      "lines": 509,
       "extension": ".ts",
-      "size": 10095
+      "size": 14215
     },
     {
       "path": "src\\services\\ai-email-writer.ts",
-      "lines": 934,
+      "lines": 935,
       "extension": ".ts",
-      "size": 29584
+      "size": 30470
     },
     {
       "path": "src\\services\\ai-enrichment-engine.ts",
       "lines": 574,
       "extension": ".ts",
-      "size": 19699
+      "size": 20212
     },
     {
       "path": "src\\services\\ai-voice-agent.ts",
-      "lines": 429,
+      "lines": 413,
       "extension": ".ts",
-      "size": 15150
+      "size": 14409
     },
     {
       "path": "src\\services\\ai-workflow-generator.ts",
-      "lines": 1190,
+      "lines": 834,
       "extension": ".ts",
-      "size": 36939
+      "size": 24013
     },
     {
       "path": "src\\services\\alert-notification-system.ts",
-      "lines": 688,
+      "lines": 465,
       "extension": ".ts",
-      "size": 23680
+      "size": 16750
     },
     {
       "path": "src\\services\\cache-manager.ts",
-      "lines": 654,
+      "lines": 646,
       "extension": ".ts",
-      "size": 18980
+      "size": 19173
     },
     {
       "path": "src\\services\\calendar-service.ts",
-      "lines": 435,
+      "lines": 421,
       "extension": ".ts",
-      "size": 12701
+      "size": 12270
     },
     {
       "path": "src\\services\\call-analytics-service.ts",
-      "lines": 714,
+      "lines": 713,
       "extension": ".ts",
-      "size": 26171
+      "size": 26826
     },
     {
       "path": "src\\services\\call-orchestrator.ts",
-      "lines": 601,
+      "lines": 553,
       "extension": ".ts",
-      "size": 18574
+      "size": 15831
     },
     {
       "path": "src\\services\\call-summarizer.ts",
-      "lines": 746,
+      "lines": 492,
       "extension": ".ts",
-      "size": 22650
+      "size": 13972
     },
     {
       "path": "src\\services\\channels\\base-channel.ts",
-      "lines": 201,
+      "lines": 200,
       "extension": ".ts",
-      "size": 5895
+      "size": 6026
     },
     {
       "path": "src\\services\\channels\\email-channel.ts",
-      "lines": 333,
+      "lines": 335,
       "extension": ".ts",
-      "size": 10690
+      "size": 10981
     },
     {
       "path": "src\\services\\channels\\linkedin-channel.ts",
-      "lines": 284,
+      "lines": 283,
       "extension": ".ts",
-      "size": 9019
+      "size": 9227
     },
     {
       "path": "src\\services\\channels\\sms-channel.ts",
       "lines": 246,
       "extension": ".ts",
-      "size": 7476
+      "size": 7721
     },
     {
       "path": "src\\services\\channels\\voice-channel.ts",
       "lines": 98,
       "extension": ".ts",
-      "size": 3051
+      "size": 3148
     },
     {
       "path": "src\\services\\channels\\whatsapp-channel.ts",
       "lines": 284,
       "extension": ".ts",
-      "size": 8507
+      "size": 8790
     },
     {
       "path": "src\\services\\continuous-learning-engine.ts",
-      "lines": 941,
+      "lines": 287,
       "extension": ".ts",
-      "size": 30701
+      "size": 9276
     },
     {
       "path": "src\\services\\conversation-handler.ts",
-      "lines": 713,
+      "lines": 526,
       "extension": ".ts",
-      "size": 23932
+      "size": 18023
     },
     {
       "path": "src\\services\\conversation-intelligence.ts",
-      "lines": 1504,
+      "lines": 496,
       "extension": ".ts",
-      "size": 47785
+      "size": 14883
     },
     {
       "path": "src\\services\\conversational-messaging.ts",
-      "lines": 926,
+      "lines": 576,
       "extension": ".ts",
-      "size": 29849
+      "size": 17647
     },
     {
       "path": "src\\services\\crm-analytics.ts",
-      "lines": 1345,
+      "lines": 1349,
       "extension": ".ts",
-      "size": 40099
+      "size": 41368
     },
     {
       "path": "src\\services\\crm-service.ts",
-      "lines": 1354,
+      "lines": 710,
       "extension": ".ts",
-      "size": 39593
+      "size": 23925
     },
     {
       "path": "src\\services\\data-sources\\apollo-service.ts",
-      "lines": 621,
+      "lines": 622,
       "extension": ".ts",
-      "size": 17186
+      "size": 17879
     },
     {
       "path": "src\\services\\data-sources\\clearbit-service.ts",
-      "lines": 535,
+      "lines": 538,
       "extension": ".ts",
-      "size": 13817
+      "size": 14432
     },
     {
       "path": "src\\services\\data-sources\\news-service.ts",
-      "lines": 423,
+      "lines": 422,
       "extension": ".ts",
-      "size": 14376
+      "size": 14575
     },
     {
       "path": "src\\services\\deal-intelligence.ts",
-      "lines": 1456,
+      "lines": 1170,
       "extension": ".ts",
-      "size": 42975
+      "size": 35436
     },
     {
       "path": "src\\services\\distributed-tracing.ts",
-      "lines": 611,
+      "lines": 452,
       "extension": ".ts",
-      "size": 17910
+      "size": 13775
     },
     {
       "path": "src\\services\\email-template-engine.ts",
       "lines": 646,
       "extension": ".ts",
-      "size": 17849
+      "size": 18494
     },
     {
       "path": "src\\services\\enrichment-pipeline.ts",
-      "lines": 589,
+      "lines": 587,
       "extension": ".ts",
-      "size": 18121
+      "size": 18579
     },
     {
       "path": "src\\services\\export-engine.ts",
-      "lines": 648,
+      "lines": 650,
       "extension": ".ts",
-      "size": 19459
+      "size": 20112
     },
     {
       "path": "src\\services\\integration\\agent-bridge.ts",
-      "lines": 526,
+      "lines": 516,
       "extension": ".ts",
-      "size": 15240
+      "size": 15121
     },
     {
       "path": "src\\services\\integration\\agent-connector.ts",
-      "lines": 490,
+      "lines": 518,
       "extension": ".ts",
-      "size": 15014
+      "size": 17270
     },
     {
       "path": "src\\services\\integration\\data-sync.ts",
-      "lines": 583,
+      "lines": 574,
       "extension": ".ts",
-      "size": 18926
+      "size": 18989
     },
     {
       "path": "src\\services\\integration\\database-integration.ts",
-      "lines": 635,
+      "lines": 631,
       "extension": ".ts",
-      "size": 17635
+      "size": 18022
     },
     {
       "path": "src\\services\\integration\\enhanced-data-sync.ts",
-      "lines": 723,
+      "lines": 720,
       "extension": ".ts",
-      "size": 20609
+      "size": 21129
     },
     {
       "path": "src\\services\\integration\\webhook-integration.ts",
-      "lines": 712,
+      "lines": 421,
       "extension": ".ts",
-      "size": 21040
+      "size": 12451
     },
     {
       "path": "src\\services\\integration\\workflow-automation.ts",
-      "lines": 638,
+      "lines": 634,
       "extension": ".ts",
-      "size": 18325
+      "size": 18676
     },
     {
       "path": "src\\services\\integration-hub.ts",
-      "lines": 474,
+      "lines": 456,
       "extension": ".ts",
-      "size": 13937
+      "size": 13133
     },
     {
       "path": "src\\services\\integrations\\base-integration.ts",
-      "lines": 212,
+      "lines": 207,
       "extension": ".ts",
-      "size": 6030
+      "size": 5884
     },
     {
       "path": "src\\services\\integrations\\marketing-integrations.ts",
-      "lines": 806,
+      "lines": 803,
       "extension": ".ts",
-      "size": 22840
+      "size": 23467
     },
     {
       "path": "src\\services\\lead-ingestion-service.ts",
-      "lines": 837,
+      "lines": 463,
       "extension": ".ts",
-      "size": 29077
+      "size": 12186
     },
     {
       "path": "src\\services\\linkedin-automation.ts",
-      "lines": 845,
+      "lines": 587,
       "extension": ".ts",
-      "size": 24800
+      "size": 17509
     },
     {
       "path": "src\\services\\meeting-booker.ts",
-      "lines": 545,
+      "lines": 539,
       "extension": ".ts",
-      "size": 16328
+      "size": 16385
     },
     {
       "path": "src\\services\\migration\\ai-schema-mapper.ts",
-      "lines": 970,
+      "lines": 969,
       "extension": ".ts",
-      "size": 31194
+      "size": 31842
     },
     {
       "path": "src\\services\\migration\\connectors\\api-connector.ts",
-      "lines": 844,
+      "lines": 848,
       "extension": ".ts",
-      "size": 24617
+      "size": 25472
     },
     {
       "path": "src\\services\\migration\\connectors\\database-connector.ts",
-      "lines": 785,
+      "lines": 788,
       "extension": ".ts",
-      "size": 23226
+      "size": 24019
     },
     {
       "path": "src\\services\\migration\\connectors\\file-connector.ts",
       "lines": 746,
       "extension": ".ts",
-      "size": 22037
+      "size": 22782
     },
     {
       "path": "src\\services\\migration\\connectors\\index.ts",
-      "lines": 264,
+      "lines": 262,
       "extension": ".ts",
-      "size": 6886
+      "size": 7002
     },
     {
       "path": "src\\services\\migration\\migration-tester.ts",
-      "lines": 998,
+      "lines": 1005,
       "extension": ".ts",
-      "size": 33162
+      "size": 34180
     },
     {
       "path": "src\\services\\migration\\progress-tracker.ts",
-      "lines": 459,
+      "lines": 454,
       "extension": ".ts",
-      "size": 13663
+      "size": 13807
     },
     {
       "path": "src\\services\\migration\\rollback-manager.ts",
-      "lines": 885,
+      "lines": 884,
       "extension": ".ts",
-      "size": 26602
+      "size": 27438
     },
     {
       "path": "src\\services\\migration\\sync-engine.ts",
-      "lines": 824,
+      "lines": 814,
       "extension": ".ts",
-      "size": 25305
+      "size": 25203
     },
     {
       "path": "src\\services\\migration\\transformation-engine.ts",
-      "lines": 799,
+      "lines": 795,
       "extension": ".ts",
-      "size": 23905
+      "size": 24275
     },
     {
       "path": "src\\services\\observability-export-integration.ts",
-      "lines": 732,
+      "lines": 733,
       "extension": ".ts",
-      "size": 23489
+      "size": 24223
     },
     {
       "path": "src\\services\\omnichannel-orchestrator.ts",
-      "lines": 767,
+      "lines": 449,
       "extension": ".ts",
-      "size": 23710
+      "size": 15503
     },
     {
       "path": "src\\services\\pattern-recognition.ts",
-      "lines": 863,
+      "lines": 851,
       "extension": ".ts",
-      "size": 27166
+      "size": 27217
     },
     {
       "path": "src\\services\\performance-monitor.ts",
-      "lines": 639,
+      "lines": 642,
       "extension": ".ts",
-      "size": 21580
+      "size": 22025
     },
     {
       "path": "src\\services\\playbook-generator.ts",
-      "lines": 812,
+      "lines": 810,
       "extension": ".ts",
-      "size": 27661
+      "size": 27708
     },
     {
       "path": "src\\services\\predictive-scoring.ts",
-      "lines": 1038,
+      "lines": 1040,
       "extension": ".ts",
-      "size": 32843
+      "size": 33828
     },
     {
       "path": "src\\services\\real-time-sales-coach.ts",
-      "lines": 806,
+      "lines": 798,
       "extension": ".ts",
-      "size": 24998
+      "size": 25287
     },
     {
       "path": "src\\services\\revenue-forecast.ts",
       "lines": 1507,
       "extension": ".ts",
-      "size": 42267
+      "size": 43716
     },
     {
       "path": "src\\services\\schedule-negotiator.ts",
-      "lines": 442,
+      "lines": 449,
       "extension": ".ts",
-      "size": 15559
+      "size": 15889
     },
     {
       "path": "src\\services\\secure-ai-client.ts",
-      "lines": 340,
+      "lines": 337,
       "extension": ".ts",
-      "size": 8733
+      "size": 8883
     },
     {
       "path": "src\\services\\self-healing-engine.ts",
-      "lines": 630,
+      "lines": 632,
       "extension": ".ts",
-      "size": 21186
+      "size": 21474
     },
     {
       "path": "src\\services\\telemetry\\ai-analytics.ts",
       "lines": 571,
       "extension": ".ts",
-      "size": 18244
+      "size": 18700
     },
     {
       "path": "src\\services\\telemetry\\alert-system.ts",
-      "lines": 604,
+      "lines": 605,
       "extension": ".ts",
-      "size": 18941
+      "size": 19354
     },
     {
       "path": "src\\services\\telemetry\\collector.ts",
-      "lines": 340,
+      "lines": 337,
       "extension": ".ts",
-      "size": 10018
+      "size": 10168
     },
     {
       "path": "src\\services\\telemetry\\dashboard-stream.ts",
-      "lines": 653,
+      "lines": 652,
       "extension": ".ts",
-      "size": 20134
+      "size": 20720
     },
     {
       "path": "src\\services\\telemetry\\export-integration.ts",
-      "lines": 738,
+      "lines": 739,
       "extension": ".ts",
-      "size": 22081
+      "size": 22827
     },
     {
       "path": "src\\services\\telemetry\\metrics.ts",
-      "lines": 448,
+      "lines": 449,
       "extension": ".ts",
-      "size": 14257
+      "size": 14707
     },
     {
       "path": "src\\services\\telemetry\\middleware.ts",
       "lines": 582,
       "extension": ".ts",
-      "size": 16788
+      "size": 17369
     },
     {
       "path": "src\\services\\telemetry\\self-healing.ts",
-      "lines": 618,
+      "lines": 621,
       "extension": ".ts",
-      "size": 18575
+      "size": 19002
     },
     {
       "path": "src\\services\\telemetry\\tracing.ts",
       "lines": 492,
       "extension": ".ts",
-      "size": 13571
+      "size": 14062
     },
     {
       "path": "src\\services\\telemetry-collector.ts",
-      "lines": 614,
+      "lines": 610,
       "extension": ".ts",
-      "size": 18618
+      "size": 18903
     },
     {
       "path": "src\\services\\twilio-service.ts",
-      "lines": 505,
+      "lines": 498,
       "extension": ".ts",
-      "size": 14694
+      "size": 14638
     },
     {
       "path": "src\\services\\voice-script-generator.ts",
-      "lines": 799,
+      "lines": 806,
       "extension": ".ts",
-      "size": 31266
+      "size": 31970
     },
     {
       "path": "src\\services\\voice-synthesis-service.ts",
-      "lines": 550,
+      "lines": 488,
       "extension": ".ts",
-      "size": 15892
+      "size": 14955
     },
     {
       "path": "src\\services\\voicemail-handler.ts",
-      "lines": 724,
+      "lines": 716,
       "extension": ".ts",
-      "size": 22886
+      "size": 22847
     },
     {
       "path": "src\\services\\voicemail-templates.ts",
-      "lines": 471,
+      "lines": 490,
       "extension": ".ts",
-      "size": 18806
+      "size": 19414
     },
     {
       "path": "src\\services\\workflow-automation.ts",
-      "lines": 1192,
+      "lines": 533,
       "extension": ".ts",
-      "size": 35262
+      "size": 17455
     },
     {
       "path": "src\\services\\workflow-import-export.ts",
-      "lines": 1025,
+      "lines": 1020,
       "extension": ".ts",
-      "size": 30492
+      "size": 31167
     },
     {
       "path": "src\\services\\workflow-orchestration-engine.ts",
-      "lines": 929,
+      "lines": 922,
       "extension": ".ts",
-      "size": 27775
+      "size": 28217
     },
     {
       "path": "src\\shared\\batch-query-manager.ts",
-      "lines": 495,
+      "lines": 496,
       "extension": ".ts",
-      "size": 13143
+      "size": 13714
     },
     {
       "path": "src\\shared\\bounded-collections.ts",
       "lines": 565,
       "extension": ".ts",
-      "size": 12524
+      "size": 13088
     },
     {
       "path": "src\\shared\\circuit-breaker.ts",
       "lines": 432,
       "extension": ".ts",
-      "size": 11501
+      "size": 11932
     },
     {
       "path": "src\\shared\\constants.ts",
       "lines": 45,
       "extension": ".ts",
-      "size": 1017
+      "size": 1061
     },
     {
       "path": "src\\shared\\correlation-id.ts",
-      "lines": 474,
+      "lines": 485,
       "extension": ".ts",
-      "size": 11952
+      "size": 12735
     },
     {
       "path": "src\\shared\\environment-validator.ts",
-      "lines": 291,
+      "lines": 290,
       "extension": ".ts",
-      "size": 7959
+      "size": 8032
     },
     {
       "path": "src\\shared\\error-handler.ts",
-      "lines": 245,
+      "lines": 243,
       "extension": ".ts",
-      "size": 6364
+      "size": 6485
     },
     {
       "path": "src\\shared\\error-handling.ts",
       "lines": 503,
       "extension": ".ts",
-      "size": 14059
+      "size": 14561
     },
     {
       "path": "src\\shared\\idempotency-manager.ts",
-      "lines": 493,
+      "lines": 496,
       "extension": ".ts",
-      "size": 13799
+      "size": 14375
     },
     {
       "path": "src\\shared\\logger.ts",
-      "lines": 677,
+      "lines": 713,
       "extension": ".ts",
-      "size": 16582
+      "size": 20189
     },
     {
       "path": "src\\shared\\monitoring-service.ts",
-      "lines": 554,
+      "lines": 555,
       "extension": ".ts",
-      "size": 15605
+      "size": 16235
     },
     {
       "path": "src\\shared\\pii-sanitizer.ts",
-      "lines": 274,
+      "lines": 266,
       "extension": ".ts",
-      "size": 7045
+      "size": 6930
     },
     {
       "path": "src\\shared\\security-utils.ts",
       "lines": 702,
       "extension": ".ts",
-      "size": 20125
+      "size": 20826
     },
     {
       "path": "src\\shared\\startup-validator.ts",
-      "lines": 209,
+      "lines": 193,
       "extension": ".ts",
-      "size": 6752
+      "size": 5550
     },
     {
       "path": "src\\shared\\storage-monitor.ts",
       "lines": 491,
       "extension": ".ts",
-      "size": 14870
+      "size": 15360
     },
     {
       "path": "src\\shared\\transaction-manager.ts",
-      "lines": 501,
+      "lines": 504,
       "extension": ".ts",
-      "size": 14180
+      "size": 14840
     },
     {
       "path": "src\\shared\\types.ts",
       "lines": 47,
       "extension": ".ts",
-      "size": 1062
+      "size": 1108
     },
     {
       "path": "src\\shared\\utils.ts",
       "lines": 113,
       "extension": ".ts",
-      "size": 2694
+      "size": 2806
     },
     {
       "path": "src\\supernova\\supernova-audit-executor.ts",
-      "lines": 548,
+      "lines": 549,
       "extension": ".ts",
-      "size": 22588
+      "size": 22591
+    },
+    {
+      "path": "src\\supernova\\supernova-auto-fixer.ts",
+      "lines": 893,
+      "extension": ".ts",
+      "size": 28640
     },
     {
       "path": "src\\supernova\\supernova-deep-audit.ts",
-      "lines": 669,
+      "lines": 298,
       "extension": ".ts",
-      "size": 21960
+      "size": 8560
     },
     {
       "path": "src\\supernova\\supernova-implementation.ts",
@@ -2440,145 +2500,151 @@
       "path": "src\\supernova\\supernova-integration.ts",
       "lines": 360,
       "extension": ".ts",
-      "size": 11947
+      "size": 11944
     },
     {
-      "path": "src\\tests\\security-tests.ts",
-      "lines": 382,
+      "path": "src\\supernova\\supernova-zero-errors.ts",
+      "lines": 649,
       "extension": ".ts",
-      "size": 10932
+      "size": 31410
+    },
+    {
+      "path": "src\\tests\\security.test.ts",
+      "lines": 789,
+      "extension": ".ts",
+      "size": 26763
     },
     {
       "path": "src\\types\\analytics.ts",
-      "lines": 448,
+      "lines": 449,
       "extension": ".ts",
-      "size": 9233
+      "size": 9683
     },
     {
       "path": "src\\types\\common-interfaces.ts",
       "lines": 415,
       "extension": ".ts",
-      "size": 9726
+      "size": 10140
     },
     {
       "path": "src\\types\\crm.ts",
-      "lines": 2352,
+      "lines": 1314,
       "extension": ".ts",
-      "size": 53570
+      "size": 31632
     },
     {
       "path": "src\\types\\enrichment.ts",
-      "lines": 776,
+      "lines": 777,
       "extension": ".ts",
-      "size": 17585
+      "size": 18345
     },
     {
       "path": "src\\types\\env.ts",
-      "lines": 97,
+      "lines": 112,
       "extension": ".ts",
-      "size": 2180
+      "size": 2640
     },
     {
       "path": "src\\types\\integration.ts",
       "lines": 289,
       "extension": ".ts",
-      "size": 6091
+      "size": 6379
     },
     {
       "path": "src\\types\\lead-ingestion.ts",
       "lines": 342,
       "extension": ".ts",
-      "size": 7465
+      "size": 7806
     },
     {
       "path": "src\\types\\migration.ts",
       "lines": 558,
       "extension": ".ts",
-      "size": 12812
+      "size": 13369
     },
     {
       "path": "src\\types\\models.ts",
       "lines": 252,
       "extension": ".ts",
-      "size": 9432
+      "size": 9683
     },
     {
       "path": "src\\types\\observability.ts",
-      "lines": 418,
+      "lines": 419,
       "extension": ".ts",
-      "size": 8991
+      "size": 9411
     },
     {
       "path": "src\\types\\telemetry.ts",
       "lines": 282,
       "extension": ".ts",
-      "size": 5763
+      "size": 6044
     },
     {
       "path": "src\\types\\voice-agent.ts",
-      "lines": 507,
+      "lines": 509,
       "extension": ".ts",
-      "size": 12119
+      "size": 12629
     },
     {
       "path": "src\\utils\\cors-utils.ts",
-      "lines": 65,
+      "lines": 58,
       "extension": ".ts",
-      "size": 2187
+      "size": 1964
     },
     {
       "path": "src\\utils\\validation-schemas.ts",
-      "lines": 365,
+      "lines": 565,
       "extension": ".ts",
-      "size": 11796
+      "size": 19965
     },
     {
       "path": "src\\workers\\database-admin-fixed.ts",
-      "lines": 356,
+      "lines": 219,
       "extension": ".ts",
-      "size": 11340
+      "size": 7191
     },
     {
       "path": "src\\workers\\database-admin.ts",
-      "lines": 214,
+      "lines": 205,
       "extension": ".ts",
-      "size": 6217
+      "size": 6191
     },
     {
       "path": "src\\workers\\enrichment-worker.ts",
-      "lines": 598,
+      "lines": 587,
       "extension": ".ts",
-      "size": 19444
+      "size": 19146
     },
     {
       "path": "src\\workers\\learning-worker.ts",
-      "lines": 480,
+      "lines": 459,
       "extension": ".ts",
-      "size": 15509
+      "size": 14501
     },
     {
       "path": "src\\workers\\RealtimeSync-fixed.ts",
-      "lines": 237,
+      "lines": 233,
       "extension": ".ts",
-      "size": 7306
+      "size": 7264
     },
     {
       "path": "src\\workers\\RealtimeSync.ts",
-      "lines": 150,
+      "lines": 147,
       "extension": ".ts",
-      "size": 4301
+      "size": 4236
     },
     {
       "path": "src\\workers\\UserSession.ts",
       "lines": 48,
       "extension": ".ts",
-      "size": 1504
+      "size": 1551
     },
     {
       "path": "src\\workers\\WorkflowEngine.ts",
       "lines": 96,
       "extension": ".ts",
-      "size": 2812
+      "size": 2907
     }
   ]
 }

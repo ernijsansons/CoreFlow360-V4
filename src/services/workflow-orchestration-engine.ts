@@ -22,6 +22,34 @@ export interface WorkflowExecutionRequest {
   dryRun?: boolean;
 }
 
+export interface WorkflowNode {
+  id: string;
+  type: 'ai_agent' | 'logic' | 'integration' | 'approval' | 'trigger' | 'error_boundary';
+  label: string;
+  description?: string;
+  config?: any;
+  dependsOn?: string[];
+}
+
+export interface WorkflowEdge {
+  id: string;
+  from: string;
+  to: string;
+  conditionType?: 'always' | 'success' | 'failure' | 'conditional';
+  condition?: any;
+}
+
+export interface WorkflowDefinition {
+  id: string;
+  name: string;
+  description?: string;
+  nodes: WorkflowNode[];
+  edges: WorkflowEdge[];
+  version: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface WorkflowExecutionResult {
   executionId: string;
   status: 'running' | 'completed' | 'failed' | 'cancelled';
@@ -165,7 +193,7 @@ export class WorkflowOrchestrationEngine {
         nodeResults: {},
         errors: [{
           errorType: 'EXECUTION_FAILED',
-          message: error.message,
+          message: error instanceof Error ? error.message : String(error),
           timestamp: new Date().toISOString(),
           severity: 'critical'
         }]
@@ -227,9 +255,9 @@ export class WorkflowOrchestrationEngine {
       - Common failure points: ${JSON.stringify(historicalData.commonFailures)}
 
       Node Types:
-      - AI Agent nodes: ${workflow.nodes.filter(n => n.type === 'ai_agent').length}
-      - Integration nodes: ${workflow.nodes.filter(n => n.type === 'integration').length}
-      - Logic nodes: ${workflow.nodes.filter(n => n.type === 'logic').length}
+      - AI Agent nodes: ${workflow.nodes.filter((n: WorkflowNode) => n.type === 'ai_agent').length}
+      - Integration nodes: ${workflow.nodes.filter((n: WorkflowNode) => n.type === 'integration').length}
+      - Logic nodes: ${workflow.nodes.filter((n: WorkflowNode) => n.type === 'logic').length}
 
       Analyze for:
       1. **Performance Optimization**
@@ -443,7 +471,7 @@ export class WorkflowOrchestrationEngine {
   ): Promise<any[]> {
     const aiClient = getAIClient(this.env);
     const workflow = await this.loadWorkflowDefinition(workflowId);
-    const currentNode = workflow.nodes.find(n => n.id === currentNodeId);
+    const currentNode = workflow.nodes.find((n: WorkflowNode) => n.id === currentNodeId);
 
     const suggestionPrompt = `
       Based on this workflow context, suggest the next logical node(s):
@@ -503,7 +531,7 @@ export class WorkflowOrchestrationEngine {
     try {
       this.detectCircularDependencies(workflow);
     } catch (error) {
-      errors.push(`Circular dependency detected: ${error.message}`);
+      errors.push(`Circular dependency detected: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     // Check for unreachable nodes
@@ -514,7 +542,7 @@ export class WorkflowOrchestrationEngine {
 
     // Check for missing error handlers
     const nodesWithoutErrorHandling = workflow.nodes.filter(
-      n => n.type !== 'error_boundary' && !this.hasErrorHandler(workflow, n.id)
+      (n: WorkflowNode) => n.type !== 'error_boundary' && !this.hasErrorHandler(workflow, n.id)
     );
     if (nodesWithoutErrorHandling.length > 0) {
       suggestions.push('Consider adding error handling for critical nodes');
@@ -522,7 +550,7 @@ export class WorkflowOrchestrationEngine {
 
     // Check for cost optimization opportunities
     const expensiveNodes = workflow.nodes.filter(
-      n => n.type === 'ai_agent' && n.config?.model === 'gpt-4'
+      (n: WorkflowNode) => n.type === 'ai_agent' && n.config?.model === 'gpt-4'
     );
     if (expensiveNodes.length > 0) {
       suggestions.push('Consider using more cost-effective AI models for non-critical operations');
@@ -597,7 +625,7 @@ export class WorkflowOrchestrationEngine {
       visited.add(nodeId);
       recursionStack.add(nodeId);
 
-      const node = workflow.nodes.find(n => n.id === nodeId);
+      const node = workflow.nodes.find((n: WorkflowNode) => n.id === nodeId);
       if (node && node.dependsOn) {
         for (const depId of node.dependsOn) {
           if (hasCycle(depId)) {
@@ -638,13 +666,13 @@ export class WorkflowOrchestrationEngine {
     }
 
     return workflow.nodes
-      .filter(n => !reachable.has(n.id))
-      .map(n => n.id);
+      .filter((n: WorkflowNode) => !reachable.has(n.id))
+      .map((n: WorkflowNode) => n.id);
   }
 
   private hasErrorHandler(workflow: any, nodeId: string): boolean {
-    return workflow.edges.some(edge =>
-      edge.sourceNodeId === nodeId &&
+    return workflow.edges.some((edge: WorkflowEdge) =>
+      edge.from === nodeId &&
       edge.conditionType === 'failure'
     );
   }
@@ -652,8 +680,8 @@ export class WorkflowOrchestrationEngine {
   private calculateWorkflowComplexity(workflow: any): number {
     const nodeCount = workflow.nodes.length;
     const edgeCount = workflow.edges.length;
-    const branchingFactor = workflow.edges.filter(e => e.conditionType === 'conditional').length;
-    const aiNodes = workflow.nodes.filter(n => n.type === 'ai_agent').length;
+    const branchingFactor = workflow.edges.filter((e: WorkflowEdge) => e.conditionType === 'conditional').length;
+    const aiNodes = workflow.nodes.filter((n: WorkflowNode) => n.type === 'ai_agent').length;
 
     return (nodeCount * 1) + (edgeCount * 0.5) + (branchingFactor * 2) + (aiNodes * 1.5);
   }
@@ -847,7 +875,7 @@ class WorkflowExecution {
       result.metrics.totalDuration = Date.now() - startTime;
       result.errors = [{
         errorType: 'EXECUTION_ERROR',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString(),
         severity: 'critical'
       }];
@@ -869,6 +897,50 @@ class WorkflowExecution {
   async cancel(): Promise<void> {
     this.isCancelled = true;
     // Implementation would send cancel command to Durable Object
+  }
+
+  // =====================================================
+  // MISSING METHODS
+  // =====================================================
+
+  private async validateExecutionPermissions(request: WorkflowExecutionRequest): Promise<void> {
+    // TODO: Implement permission validation
+    return Promise.resolve();
+  }
+
+  private async learnFromExecution(result: WorkflowExecutionResult): Promise<void> {
+    // TODO: Implement learning from execution results
+    return Promise.resolve();
+  }
+
+  private async applyAIOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
+    // TODO: Implement AI optimization
+    return Promise.resolve();
+  }
+
+  private async applyParallelOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
+    // TODO: Implement parallel optimization
+    return Promise.resolve();
+  }
+
+  private async applyCachingOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
+    // TODO: Implement caching optimization
+    return Promise.resolve();
+  }
+
+  private async applyModelOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
+    // TODO: Implement model optimization
+    return Promise.resolve();
+  }
+
+  private async createOptimizedWorkflowVersion(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
+    // TODO: Implement optimized workflow version creation
+    return Promise.resolve();
+  }
+
+  private async validateGeneratedWorkflow(workflowDef: any): Promise<void> {
+    // TODO: Implement workflow validation
+    return Promise.resolve();
   }
 }
 

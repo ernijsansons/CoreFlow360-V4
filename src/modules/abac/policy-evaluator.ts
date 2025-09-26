@@ -260,7 +260,7 @@ export class PolicyEvaluator {
     // Check custom attributes
     if (condition.attributes) {
       for (const [key, value] of Object.entries(condition.attributes)) {
-        if (!this.attributeMatches(subject.attributes[key], value)) {
+        if (!this.attributeMatches((subject.attributes as any)[key], value)) {
           return { matches: false, reason: `Attribute ${key} does not match` };
         }
       }
