@@ -52,7 +52,11 @@
       "Bash(del \"test-application-startup.js\")",
       "Bash(git checkout:*)",
       "Bash(awk:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

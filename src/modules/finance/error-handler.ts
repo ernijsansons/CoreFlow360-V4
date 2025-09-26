@@ -220,16 +220,22 @@ export class ErrorHandler {
         publicMessage: 'A database error occurred. Please try again.'
       };
     } else {
-      // Unknown/system error - check if it's a temporary/retryable error
+      // Unknown/system error - check if it's temporary or permanent
       const isTemporary = this.isTemporaryError(error);
+      const isPermanent = this.isPermanentError(error);
+
+      // Default unknown errors to CRITICAL unless explicitly temporary
+      const severity = isTemporary ? ErrorSeverity.MEDIUM : ErrorSeverity.CRITICAL;
+      const retryable = isTemporary && !isPermanent;
+
       errorDetails = {
         code: isTemporary ? 'TEMPORARY_ERROR' : 'SYSTEM_ERROR',
         message: error.message,
         category: ErrorCategory.SYSTEM,
-        severity: isTemporary ? ErrorSeverity.MEDIUM : ErrorSeverity.CRITICAL,
+        severity,
         context: enhancedContext,
-        recoverable: isTemporary,
-        retryable: isTemporary,
+        recoverable: retryable,
+        retryable,
         publicMessage: isTemporary
           ? 'A temporary error occurred. Please try again.'
           : 'An unexpected error occurred. Please contact support.'
@@ -441,6 +447,26 @@ export class ErrorHandler {
     ];
 
     return temporaryErrorMessages.some(msg =>
+      error.message.toLowerCase().includes(msg.toLowerCase())
+    );
+  }
+
+  /**
+   * Check if error is permanent (non-retryable)
+   */
+  private isPermanentError(error: Error): boolean {
+    const permanentErrorMessages = [
+      'invalid',
+      'not found',
+      'forbidden',
+      'unauthorized',
+      'bad request',
+      'malformed',
+      'corrupt',
+      'fatal'
+    ];
+
+    return permanentErrorMessages.some(msg =>
       error.message.toLowerCase().includes(msg.toLowerCase())
     );
   }
