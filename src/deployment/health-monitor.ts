@@ -87,6 +87,7 @@ export interface HealthAlert {
   threshold: number;
   actual: number;
   action_required: boolean;
+  [key: string]: unknown;
 }
 
 export type AlertSeverity = 'info' | 'warning' | 'error' | 'critical';
@@ -311,7 +312,8 @@ export class DeploymentHealthMonitor {
         await this.processHealthResults(health);
         await this.sleep(this.config.interval);
       } catch (error) {
-        this.logger.error('Error in monitoring loop', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error('Error in monitoring loop', errorMessage);
         await this.sleep(this.config.interval);
       }
     }
@@ -396,9 +398,9 @@ export class DeploymentHealthMonitor {
         check: check.name,
         status: 'unhealthy',
         responseTime: Date.now() - startTime,
-        message: `Check failed: ${error.message}`,
+        message: `Check failed: ${error instanceof Error ? error.message : String(error)}`,
         timestamp: Date.now(),
-        metadata: { error: error.message },
+        metadata: { error: error instanceof Error ? error.message : String(error) },
         metrics: this.createDefaultMetrics()
       };
     }
@@ -430,7 +432,13 @@ export class DeploymentHealthMonitor {
       metadata: {
         status: response.status,
         statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
+        headers: response.headers ? (() => {
+          const headers: Record<string, string> = {};
+          response.headers.forEach((value, key) => {
+            headers[key] = value;
+          });
+          return headers;
+        })() : {}
       },
       metrics: {
         responseTime,
@@ -474,7 +482,8 @@ export class DeploymentHealthMonitor {
         }
       };
     } catch (error) {
-      throw new Error(`Database check failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Database check failed: ${errorMessage}`);
     }
   }
 
@@ -513,7 +522,8 @@ export class DeploymentHealthMonitor {
         }
       };
     } catch (error) {
-      throw new Error(`Cache check failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Cache check failed: ${errorMessage}`);
     }
   }
 
@@ -558,7 +568,8 @@ export class DeploymentHealthMonitor {
         }
       };
     } catch (error) {
-      throw new Error(`Business logic check failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Business logic check failed: ${errorMessage}`);
     }
   }
 
@@ -588,7 +599,7 @@ export class DeploymentHealthMonitor {
         metrics
       };
     } catch (error) {
-      throw new Error(`Performance check failed: ${error.message}`);
+      throw new Error(`Performance check failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -621,7 +632,7 @@ export class DeploymentHealthMonitor {
         }
       };
     } catch (error) {
-      throw new Error(`Security check failed: ${error.message}`);
+      throw new Error(`Security check failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -771,7 +782,7 @@ export class DeploymentHealthMonitor {
       }
     });
 
-    return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+    return Math.round(scores.reduce((sum: number, score: number) => sum + score, 0) / scores.length);
   }
 
   private generateRecommendations(results: HealthCheckResult[]): string[] {

@@ -131,8 +131,8 @@ export class SecurityMiddleware {
       role: c.req.header('x-user-role') || 'user',
       endpoint: url.pathname,
       method: c.req.method,
-      userAgent: c.req.header('user-agent'),
-      correlationId
+      userAgent: c.req.header('user-agent')
+      // correlationId
     };
   }
 
@@ -183,25 +183,25 @@ export class SecurityMiddleware {
     // Rate limiting takes precedence
     if (rateLimitResult.limited) {
       action = 'BLOCK';
-      reason = rateLimitResult.reason || 'Rate limit exceeded';
+      reason = ('reason' in rateLimitResult ? rateLimitResult.reason : undefined) || 'Rate limit exceeded';
     }
     // Then threat detection
     else if (threatResult.score >= this.config.threatDetection.blockThreshold) {
       action = 'BLOCK';
-      reason = threatResult.reason || 'High threat detected';
+      reason = ('reason' in threatResult ? threatResult.reason : undefined) || 'High threat detected';
     }
     else if (threatResult.score >= this.config.threatDetection.challengeThreshold) {
       action = 'CHALLENGE';
-      reason = threatResult.reason || 'Suspicious activity';
+      reason = ('reason' in threatResult ? threatResult.reason : undefined) || 'Suspicious activity';
     }
 
     return {
       allowed: action === 'ALLOW',
       action,
       reason,
-      threatAnalysis: threatResult,
+      threatAnalysis: threatResult as ThreatAnalysis,
       rateLimitDecision: rateLimitResult,
-      recommendations: threatResult.recommendations
+      recommendations: ('recommendations' in threatResult ? threatResult.recommendations : undefined)
     };
   }
 

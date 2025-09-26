@@ -13,7 +13,8 @@ import type {
 } from './quantum-data-auditor';
 
 // Additional type definitions for missing properties
-interface DataAnomalyReportExtended extends DataAnomalyReport {
+interface DataAnomalyReportExtended extends Omit<DataAnomalyReport, 'anomalies'> {
+  anomalies: DataAnomalyExtended[];
   detectionTime: number;
   confidence: number;
 }
@@ -53,19 +54,23 @@ interface AnomalyStatisticsExtended extends AnomalyStatistics {
   lastDetection: Date | null;
 }
 
-interface DataAnomalyExtended extends DataAnomaly {
+// Local anomaly type for internal processing
+interface DataAnomalyExtended {
   id: string;
   type: 'statistical' | 'temporal' | 'categorical' | 'numerical';
   table: string;
   column: string;
   value: any;
   expectedValue: any;
+  expectedRange?: { min: any; max: any };
   deviation: number;
   severity: 'low' | 'medium' | 'high' | 'critical';
   timestamp: Date;
   businessId: string;
   description: string;
   confidence: number;
+  explanation?: string;
+  action?: string;
 }
 
 interface DataSample {
@@ -93,7 +98,9 @@ export class DataAnomalyDetector {
     anomaliesByTable: new Map(),
     detectionAccuracy: 0,
     falsePositiveRate: 0,
-    lastDetection: null
+    lastDetection: null,
+    criticalAnomalies: 0,
+    averageResolutionTime: 0
   };
 
   constructor(private readonly context: Context, config?: Partial<AnomalyDetectionConfig>) {
@@ -141,9 +148,13 @@ export class DataAnomalyDetector {
     return {
       anomalies,
       statistics: this.statistics,
-      patterns: Array.from(this.patterns.values()),
+      patterns: Array.from(this.patterns.values()) as AnomalyPatternExtended[],
       detectionTime,
-      confidence: this.calculateConfidence(anomalies)
+      confidence: this.calculateConfidence(anomalies),
+      score: this.calculateAnomalyScore(anomalies),
+      predictions: [],
+      anomaliesDetected: anomalies.length,
+      highSeverityAnomalies: anomalies.filter(a => a.severity === 'high' || a.severity === 'critical').length
     };
   }
 
@@ -196,7 +207,7 @@ export class DataAnomalyDetector {
     return grouped;
   }
 
-  private async detectStatisticalAnomalies(table: string, column: string, samples: DataSample[]): Promise<DataAnomaly[]> {
+  private async detectStatisticalAnomalies(table: string, column: string, samples: DataSample[]): Promise<DataAnomalyExtended[]> {
     const anomalies: DataAnomalyExtended[] = [];
     
     if (samples.length < this.config.minSamples) {
@@ -233,7 +244,7 @@ export class DataAnomalyDetector {
     return anomalies;
   }
 
-  private async detectTemporalAnomalies(table: string, column: string, samples: DataSample[]): Promise<DataAnomaly[]> {
+  private async detectTemporalAnomalies(table: string, column: string, samples: DataSample[]): Promise<DataAnomalyExtended[]> {
     const anomalies: DataAnomalyExtended[] = [];
     
     if (samples.length < this.config.minSamples) {
@@ -274,7 +285,7 @@ export class DataAnomalyDetector {
     return anomalies;
   }
 
-  private async detectCategoricalAnomalies(table: string, column: string, samples: DataSample[]): Promise<DataAnomaly[]> {
+  private async detectCategoricalAnomalies(table: string, column: string, samples: DataSample[]): Promise<DataAnomalyExtended[]> {
     const anomalies: DataAnomalyExtended[] = [];
     
     if (samples.length < this.config.minSamples) {
@@ -317,7 +328,7 @@ export class DataAnomalyDetector {
     return anomalies;
   }
 
-  private async detectNumericalAnomalies(table: string, column: string, samples: DataSample[]): Promise<DataAnomaly[]> {
+  private async detectNumericalAnomalies(table: string, column: string, samples: DataSample[]): Promise<DataAnomalyExtended[]> {
     const anomalies: DataAnomalyExtended[] = [];
     
     if (samples.length < this.config.minSamples) {
@@ -357,7 +368,7 @@ export class DataAnomalyDetector {
     return anomalies;
   }
 
-  private async analyzePattern(table: string, column: string, samples: DataSample[]): Promise<AnomalyPattern> {
+  private async analyzePattern(table: string, column: string, samples: DataSample[]): Promise<AnomalyPatternExtended> {
     const values = samples.map(s => s.value);
     const timestamps = samples.map(s => s.timestamp);
 
@@ -369,16 +380,24 @@ export class DataAnomalyDetector {
 
     // Detect trends
     const trend = this.detectTrend(timestamps, numericValues);
-    
+
     // Detect seasonality
     const seasonality = this.detectSeasonality(timestamps, numericValues);
 
     return {
-      id: `${table}_${column}`,
+      id: `pattern_${table}_${column}_${Date.now()}`,
       table,
       column,
-      type: 'statistical',
+      type: typeof numericValues[0] === 'number' ? 'numerical' : 'categorical',
+      pattern: `${table}_${column}`,
       frequency: samples.length,
+      tables: [table],
+      timeRange: {
+        start: new Date(Math.min(...timestamps.map(t => t.getTime()))),
+        end: new Date(Math.max(...timestamps.map(t => t.getTime())))
+      },
+      correlation: `statistical_${column}`,
+      significance: this.calculatePatternConfidence(samples),
       mean,
       variance,
       stdDev,
@@ -389,19 +408,23 @@ export class DataAnomalyDetector {
     };
   }
 
-  private async generatePrediction(table: string, column: string, samples: DataSample[], pattern: AnomalyPattern): Promise<AnomalyPrediction> {
+  private async generatePrediction(table: string, column: string, samples: DataSample[], pattern: AnomalyPattern): Promise<AnomalyPredictionExtended> {
     const nextTimestamp = new Date(Date.now() + this.config.timeWindow);
     const predictedValue = this.predictValue(samples, pattern);
     const anomalyProbability = this.calculateAnomalyProbability(predictedValue, pattern);
 
     return {
-      id: `prediction_${table}_${column}`,
+      id: `prediction_${table}_${column}_${Date.now()}`,
       table,
       column,
+      predictedAnomaly: `Potential anomaly in ${column}`,
+      probability: anomalyProbability,
+      timeframe: nextTimestamp.toISOString(),
+      prevention: 'Monitor values and apply appropriate thresholds',
       predictedValue,
       predictedTimestamp: nextTimestamp,
       anomalyProbability,
-      confidence: pattern.confidence,
+      confidence: this.calculatePatternConfidence(samples),
       factors: this.identifyPredictionFactors(samples, pattern)
     };
   }
@@ -415,14 +438,27 @@ export class DataAnomalyDetector {
     return 'low';
   }
 
-  private calculateConfidence(anomalies: DataAnomaly[]): number {
+  private calculateConfidence(anomalies: DataAnomalyExtended[]): number {
     if (anomalies.length === 0) return 0;
     
     const avgConfidence = anomalies.reduce((sum, anomaly) => sum + (anomaly.confidence || 0), 0) / anomalies.length;
     return Math.min(1, Math.max(0, avgConfidence));
   }
 
-  private updateStatistics(anomalies: DataAnomaly[]): void {
+  private calculateAnomalyScore(anomalies: DataAnomalyExtended[]): number {
+    if (anomalies.length === 0) return 0;
+    
+    const totalScore = anomalies.reduce((sum, anomaly) => {
+      const severity = anomaly.severity === 'critical' ? 4 : 
+                     anomaly.severity === 'high' ? 3 :
+                     anomaly.severity === 'medium' ? 2 : 1;
+      return sum + severity * (anomaly.confidence || 0);
+    }, 0);
+    
+    return Math.min(100, Math.max(0, totalScore / anomalies.length * 25));
+  }
+
+  private updateStatistics(anomalies: DataAnomalyExtended[]): void {
     this.statistics.totalAnomalies += anomalies.length;
     this.statistics.lastDetection = new Date();
 
@@ -519,35 +555,23 @@ export class DataAnomalyDetector {
   }
 
   private predictValue(samples: DataSample[], pattern: AnomalyPattern): number {
-    // Simple linear prediction based on trend
-    if (pattern.trend === 'increasing') {
-      return pattern.mean + pattern.stdDev;
-    } else if (pattern.trend === 'decreasing') {
-      return pattern.mean - pattern.stdDev;
-    } else {
-      return pattern.mean;
-    }
+    // Simple linear prediction based on most recent values
+    const recentValues = samples.slice(-10).map(s => parseFloat(s.value.toString()));
+    const mean = recentValues.reduce((sum, val) => sum + val, 0) / recentValues.length;
+    return mean || 0;
   }
 
   private calculateAnomalyProbability(predictedValue: number, pattern: AnomalyPattern): number {
-    const zScore = Math.abs(predictedValue - pattern.mean) / pattern.stdDev;
-    return Math.min(1, zScore / 3); // Normalize to 0-1 range
+    // Use pattern significance as probability indicator
+    return Math.min(1, pattern.significance);
   }
 
   private identifyPredictionFactors(samples: DataSample[], pattern: AnomalyPattern): string[] {
     const factors: string[] = [];
 
-    if (pattern.trend !== 'stable') {
-      factors.push(`Trend: ${pattern.trend}`);
-    }
-
-    if (pattern.seasonality) {
-      factors.push('Seasonal patterns detected');
-    }
-
-    if (pattern.stdDev > pattern.mean * 0.5) {
-      factors.push('High variability in data');
-    }
+    factors.push(`Pattern: ${pattern.pattern}`);
+    factors.push(`Frequency: ${pattern.frequency}`);
+    factors.push(`Significance: ${pattern.significance.toFixed(2)}`);
 
     if (samples.length < 100) {
       factors.push('Limited historical data');

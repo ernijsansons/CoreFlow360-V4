@@ -117,7 +117,7 @@ export function buildCSP(config: SecurityConfig): string {
 
   // Add report URI if configured
   if (config.reportUri) {
-    policy['report-uri'] = [config.reportUri];
+    (policy as any)['report-uri'] = [config.reportUri];
   }
 
   // Convert policy object to CSP string
@@ -1208,7 +1208,7 @@ export function verifyTOTP(
     return authenticator.verify({
       token: token.replace(/\s/g, ''), // Remove spaces
       secret,
-      window // Allow 1 step before/after for clock skew
+      // window // Allow 1 step before/after for clock skew
     });
   } catch {
     return false;

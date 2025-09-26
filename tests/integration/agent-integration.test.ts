@@ -5,7 +5,7 @@
  * with the main CoreFlow360 application through multiple access patterns.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
 // Test configuration
 const COREFLOW_URL = process.env.COREFLOW_URL || 'http://localhost:8787';

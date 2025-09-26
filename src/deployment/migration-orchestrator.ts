@@ -397,7 +397,7 @@ export class MigrationOrchestrator {
           issues: [{
             type: 'DATA_INTEGRITY',
             severity: 'critical',
-            description: error.message,
+            description: error instanceof Error ? error.message : String(error),
             recommendation: 'Review migration script and retry',
             impact: 'Migration failed, no changes applied'
           }],
@@ -487,7 +487,7 @@ export class MigrationOrchestrator {
             issues: [{
               type: 'DATA_INTEGRITY',
               severity: 'critical',
-              description: error.message,
+              description: error instanceof Error ? error.message : String(error),
               recommendation: 'Fix migration script and retry',
               impact: 'Migration failed on green database'
             }],
@@ -589,7 +589,7 @@ export class MigrationOrchestrator {
           issues: [{
             type: 'DATA_INTEGRITY',
             severity: 'critical',
-            description: error.message,
+            description: error instanceof Error ? error.message : String(error),
             recommendation: 'Review shadow migration strategy',
             impact: 'Shadow migration failed'
           }],
@@ -714,7 +714,7 @@ export class MigrationOrchestrator {
           issues: [{
             type: 'DATA_INTEGRITY',
             severity: 'critical',
-            description: error.message,
+            description: error instanceof Error ? error.message : String(error),
             recommendation: 'Review migration script',
             impact: 'Immediate migration failed'
           }],
@@ -1027,7 +1027,7 @@ export class MigrationOrchestrator {
         issues: [{
           type: 'DATA_INTEGRITY',
           severity: 'critical',
-          description: error.message,
+          description: error instanceof Error ? error.message : String(error),
           recommendation: 'Review migration script',
           impact: 'Migration execution failed'
         }],

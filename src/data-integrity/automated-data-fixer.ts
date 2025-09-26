@@ -176,7 +176,8 @@ export class AutomatedDataFixer {
 
       return filteredStrategies;
     } catch (error) {
-      this.logger.error('Failed to analyze issue for fix strategies', error, { issueId: issue.id });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to analyze issue for fix strategies', errorMessage, { issueId: issue.id });
       throw error;
     }
   }
@@ -208,7 +209,8 @@ export class AutomatedDataFixer {
 
       return fixPreview;
     } catch (error) {
-      this.logger.error('Failed to generate fix preview', error, { issueId: issue.id, strategyId: strategy.id });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to generate fix preview', errorMessage, { issueId: issue.id, strategyId: strategy.id });
       throw error;
     }
   }
@@ -280,7 +282,8 @@ export class AutomatedDataFixer {
 
       return result;
     } catch (error) {
-      this.logger.error('Failed to validate fix strategy', error, { issueId: issue.id, strategyId: strategy.id });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to validate fix strategy', errorMessage, { issueId: issue.id, strategyId: strategy.id });
       throw error;
     }
   }
@@ -363,7 +366,8 @@ export class AutomatedDataFixer {
 
       return backup;
     } catch (error) {
-      this.logger.error('Failed to create data backup', error, { issueId: issue.id, strategyId: strategy.id });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to create data backup', errorMessage, { issueId: issue.id, strategyId: strategy.id });
       throw error;
     }
   }
@@ -445,14 +449,16 @@ export class AutomatedDataFixer {
         execution.results.errors.push(error instanceof Error ? error.message : 'Unknown error');
         execution.completedAt = new Date().toISOString();
 
-        this.logger.error('Data fix execution failed', error, { executionId, issueId: issue.id });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error('Data fix execution failed', errorMessage, { executionId, issueId: issue.id });
       }
 
       await this.saveExecutionState(execution);
       return execution;
 
     } catch (error) {
-      this.logger.error('Failed to execute data fix', error, { issueId: issue.id, strategyId: strategy.id });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to execute data fix', errorMessage, { issueId: issue.id, strategyId: strategy.id });
       throw error;
     }
   }
@@ -506,7 +512,8 @@ export class AutomatedDataFixer {
       return true;
 
     } catch (error) {
-      this.logger.error('Failed to rollback data fix', error, { executionId });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Failed to rollback data fix', errorMessage, { executionId });
       return false;
     }
   }
@@ -895,7 +902,7 @@ export class AutomatedDataFixer {
         WHERE name = ? AND business_id = ?
       `).bind(dependency, businessId).first();
 
-      return (result as any)?.count > 0;
+      return ((result as any)?.count || 0) > 0;
     } catch {
       return false;
     }
@@ -964,9 +971,10 @@ export class AutomatedDataFixer {
         AND id = ?
       `).bind(issue.businessId, issue.recordId).all();
 
-      return result.results || [];
+      return (result.results as any[]) || [];
     } catch (error) {
-      this.logger.warn('Failed to backup table data', { table, error });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.warn('Failed to backup table data', { table, error: errorMessage });
       return [];
     }
   }
@@ -991,15 +999,16 @@ export class AutomatedDataFixer {
       for (const sql of sqlStatements) {
         if (sql.trim() && !sql.startsWith('--')) {
           const result = await this.db.prepare(sql).run();
-          if (result.changes) {
-            recordsAffected += result.changes;
+          if (result.meta.changes) {
+            recordsAffected += result.meta.changes;
           }
         }
       }
 
       return { recordsAffected, warnings };
     } catch (error) {
-      this.logger.error('Transaction execution failed', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Transaction execution failed', errorMessage);
       throw error;
     }
   }
@@ -1019,7 +1028,7 @@ export class AutomatedDataFixer {
         .bind(issue.businessId, issue.recordId)
         .first();
 
-      const recordExists = (result as any)?.count > 0;
+      const recordExists = ((result as any)?.count || 0) > 0;
 
       // For delete operations, record should not exist
       if (strategy.id.includes('delete')) {
@@ -1030,7 +1039,8 @@ export class AutomatedDataFixer {
       return { passed: recordExists, warnings };
 
     } catch (error) {
-      warnings.push(`Verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      warnings.push(`Verification failed: ${errorMessage}`);
       return { passed: false, warnings };
     }
   }

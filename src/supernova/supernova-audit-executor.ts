@@ -545,4 +545,4 @@ export class SupernovaAuditExecutor {
 // SUPERNOVA AUDIT EXECUTOR EXPORT
 // ============================================================================
 
-export const SupernovaAuditExecutor = SupernovaAuditExecutor.getInstance();
+export const supernovaAuditExecutor = SupernovaAuditExecutor.getInstance();

@@ -316,7 +316,7 @@ export class CRMDatabase {
         .bind(...values, id, businessId)
         .run();
 
-      return { success: result.success, data: { updated: result.changes } };
+      return { success: result.success, data: { updated: result.meta.changes } };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -486,7 +486,7 @@ export class CRMDatabase {
       const countResult = await this.db
         .prepare(countQuery)
         .bind(...params)
-        .first();
+        .first() as any;
 
       return {
         success: true,
@@ -495,8 +495,8 @@ export class CRMDatabase {
           pagination: {
             page,
             limit,
-            total: countResult?.total || 0,
-            totalPages: Math.ceil((countResult?.total || 0) / limit)
+            total: Number(countResult?.total || 0),
+            totalPages: Math.ceil(Number(countResult?.total || 0) / limit)
           }
         }
       };
@@ -517,7 +517,7 @@ export class CRMDatabase {
         .bind(status, aiSummary, id)
         .run();
 
-      return { success: result.success, data: { updated: result.changes } };
+      return { success: result.success, data: { updated: result.meta.changes } };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -607,7 +607,7 @@ export class CRMDatabase {
         .bind(...params)
         .run();
 
-      return { success: result.success, data: { updated: result.changes } };
+      return { success: result.success, data: { updated: result.meta.changes } };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -671,7 +671,7 @@ export class CRMDatabase {
         .bind(...values, id)
         .run();
 
-      return { success: result.success, data: { updated: result.changes } };
+      return { success: result.success, data: { updated: result.meta.changes } };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }

@@ -1,0 +1,116 @@
+name: Repository Size Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches: [main, master, develop]
+
+jobs:
+  size-check:
+    name: Check File Sizes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for large files
+        run: |
+          # Set size limit (5MB)
+          SIZE_LIMIT=5242880
+
+          # Find files larger than limit
+          LARGE_FILES=$(find . -type f -size +5M ! -path "./.git/*" ! -path "./node_modules/*" 2>/dev/null)
+
+          if [ ! -z "$LARGE_FILES" ]; then
+            echo "❌ ERROR: Large files detected (>5MB):"
+            echo "$LARGE_FILES" | while read file; do
+              size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)
+              size_mb=$((size / 1048576))
+              echo "  - $file (${size_mb}MB)"
+            done
+            exit 1
+          fi
+
+          echo "✅ No large files detected"
+
+      - name: Check for prohibited file types
+        run: |
+          # Define prohibited patterns
+          PROHIBITED_PATTERNS="*.msi *.exe *.dll *.pdb *.pyc __pycache__ .venv venv .env.local"
+
+          FOUND_PROHIBITED=false
+          for pattern in $PROHIBITED_PATTERNS; do
+            FILES=$(find . -name "$pattern" ! -path "./.git/*" ! -path "./node_modules/*" 2>/dev/null)
+            if [ ! -z "$FILES" ]; then
+              echo "❌ Prohibited files found matching pattern: $pattern"
+              echo "$FILES"
+              FOUND_PROHIBITED=true
+            fi
+          done
+
+          if [ "$FOUND_PROHIBITED" = true ]; then
+            exit 1
+          fi
+
+          echo "✅ No prohibited file types found"
+
+      - name: Check for build artifacts
+        run: |
+          # Check for common build output directories
+          BUILD_DIRS="dist build .next .turbo coverage storybook-static .wrangler"
+
+          FOUND_BUILD=false
+          for dir in $BUILD_DIRS; do
+            if [ -d "$dir" ]; then
+              echo "❌ Build directory found: $dir"
+              echo "   This should be in .gitignore"
+              FOUND_BUILD=true
+            fi
+          done
+
+          # Check for dist/ directories anywhere
+          DIST_DIRS=$(find . -type d -name "dist" ! -path "./.git/*" ! -path "./node_modules/*" 2>/dev/null)
+          if [ ! -z "$DIST_DIRS" ]; then
+            echo "❌ Found dist directories:"
+            echo "$DIST_DIRS"
+            FOUND_BUILD=true
+          fi
+
+          if [ "$FOUND_BUILD" = true ]; then
+            exit 1
+          fi
+
+          echo "✅ No build artifacts detected"
+
+      - name: Calculate total size delta
+        if: github.event_name == 'pull_request'
+        run: |
+          # Get the size of new files in the PR
+          git diff --name-only --diff-filter=A origin/${{ github.base_ref }}..HEAD | while read file; do
+            if [ -f "$file" ]; then
+              size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)
+              echo "$file: $(($size / 1024))KB"
+            fi
+          done > new_files.txt
+
+          # Calculate total addition
+          TOTAL_KB=0
+          while IFS=: read file size; do
+            kb=$(echo $size | sed 's/KB//')
+            TOTAL_KB=$((TOTAL_KB + kb))
+          done < new_files.txt
+
+          echo "📊 Total size added: ${TOTAL_KB}KB"
+
+          # Warn if adding more than 10MB
+          if [ $TOTAL_KB -gt 10240 ]; then
+            echo "⚠️ WARNING: Adding more than 10MB of files"
+            echo "Please consider:"
+            echo "  - Moving large assets to CDN or R2"
+            echo "  - Using Git LFS for binary files"
+            echo "  - Ensuring build artifacts are gitignored"
+          fi

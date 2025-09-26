@@ -67,6 +67,12 @@ export class MockAgent implements IAgent {
   readonly supportedLanguages: string[] = ['en'];
   readonly supportedFormats: string[] = ['json', 'text'];
 
+  // Additional properties for AgentConfig compatibility
+  readonly enabled: boolean = true;
+  readonly owner: string = 'test-system';
+  readonly createdAt: number = Date.now();
+  readonly updatedAt: number = Date.now();
+
   private executionResults: Map<string, AgentResult> = new Map();
   private validationResults: Map<string, ValidationResult> = new Map();
   private healthStatus: HealthStatus = {
@@ -98,7 +104,14 @@ export class MockAgent implements IAgent {
       agentId: this.id,
       status: 'completed',
       result: {
-        data: this.customResponse || { message: 'Mock response', taskId: task.id },
+        data: this.customResponse || {
+          message: 'Mock response',
+          taskId: task.id,
+          businessData: {
+            businessId: context.businessId,
+            confidentialData: `Data for ${context.businessId}`
+          }
+        },
         confidence: 0.95,
         reasoning: 'Mock agent execution',
         sources: ['test-data']
@@ -110,6 +123,12 @@ export class MockAgent implements IAgent {
         modelUsed: 'mock-model',
         retryCount: 0,
         cacheHit: false
+      },
+      metadata: {
+        businessId: context.businessId,
+        userId: context.userId,
+        department: task.metadata?.department || context.user?.department,
+        ...task.metadata
       },
       startedAt: startTime,
       completedAt: Date.now()
@@ -237,8 +256,41 @@ export class BusinessContextGenerator {
   }
 
   static generateMultiTenant(businessIds: string[]): BusinessContext[] {
-    return businessIds.map(businessId =>
-      this.generate({ businessId, userId: `user-${businessId}` })
+    return businessIds.map((businessId, index) =>
+      this.generate({
+        businessId,
+        userId: `user-${businessId}`,
+        tenantId: `tenant-${businessId}`,
+        user: {
+          id: `user-${businessId}`,
+          name: `User ${index + 1}`,
+          email: `user${index + 1}@${businessId}.com`,
+          role: 'admin',
+          department: 'finance',
+          permissions: ['read', 'write'],
+          preferences: { theme: 'light', notifications: true }
+        },
+        businessState: {
+          currentFiscalPeriod: '2024-Q1',
+          activeProjects: [`${businessId}-project-1`, `${businessId}-project-2`],
+          recentTransactions: [
+            {
+              id: `${businessId}-txn-1`,
+              date: '2024-01-15',
+              amount: 1000 * (index + 1),
+              description: `${businessId} Transaction`,
+              type: 'credit'
+            }
+          ],
+          keyMetrics: {
+            revenue: 100000 * (index + 1),
+            expenses: 80000 * (index + 1),
+            profit: 20000 * (index + 1),
+            employees: 50 * (index + 1)
+          },
+          alerts: []
+        }
+      })
     );
   }
 }
@@ -441,8 +493,12 @@ export class TestEnvironmentFactory {
   }
 
   static async cleanup(env: TestEnvironment): Promise<void> {
-    await env.orchestrator.shutdown();
-    env.mockAgent.reset();
+    if (env?.orchestrator?.shutdown) {
+      await env.orchestrator.shutdown();
+    }
+    if (env?.mockAgent?.reset) {
+      env.mockAgent.reset();
+    }
   }
 }
 

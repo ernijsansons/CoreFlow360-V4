@@ -672,7 +672,7 @@ class RollbackManager {
       this.logger.error('Rollback failed', error, { correlationId });
 
       // Emergency procedures
-      await this.triggerEmergencyProcedures(reason, error, correlationId);
+      await this.triggerEmergencyProcedures(reason, error instanceof Error ? error : new Error(String(error)), correlationId);
 
       return {
         success: false,
@@ -683,7 +683,7 @@ class RollbackManager {
           type: 'INCOMPLETE_ROLLBACK',
           severity: 'CRITICAL',
           component: 'rollback-manager',
-          description: error.message,
+          description: error instanceof Error ? error.message : String(error),
           impact: 'Rollback process failed completely',
           resolution: 'Manual intervention required',
           status: 'OPEN'
@@ -697,7 +697,7 @@ class RollbackManager {
           performanceImprovement: 0,
           businessImpactReduction: 0
         },
-        analysis: await this.analyzer.analyzeFailure(error, reason)
+        analysis: await this.analyzer.analyzeFailure(error instanceof Error ? error : new Error(String(error)), reason)
       };
     }
   }
@@ -830,7 +830,7 @@ class RollbackManager {
             type: 'INCOMPLETE_ROLLBACK',
             severity: 'CRITICAL',
             component: phase.name,
-            description: error.message,
+            description: error instanceof Error ? error.message : String(error),
             impact: 'Phase execution failed',
             resolution: 'Investigate and retry',
             status: 'OPEN'
@@ -932,7 +932,7 @@ class RollbackManager {
         };
 
       } catch (error) {
-        lastError = error.message;
+        lastError = error instanceof Error ? error.message : String(error);
         retries++;
 
         if (retries <= action.retries) {
@@ -941,7 +941,7 @@ class RollbackManager {
             action: action.name,
             attempt: retries,
             maxRetries: action.retries,
-            error: error.message
+            error: error instanceof Error ? error.message : String(error)
           });
 
           // Exponential backoff
@@ -997,7 +997,7 @@ class RollbackManager {
           status: 'TIMEOUT',
           value: 0,
           threshold: 0,
-          message: error.message
+          message: error instanceof Error ? error.message : String(error)
         });
       }
     }

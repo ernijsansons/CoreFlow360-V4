@@ -69,61 +69,20 @@ interface ClaudeStreamChunk {
 }
 
 export class ClaudeAgent implements IAgent {
-  // Agent identity
-  readonly id = 'claude-3-5-sonnet';
-  readonly name = 'Claude 3.5 Sonnet';
+  // Agent identity (can be overridden by config)
+  readonly id: string;
+  readonly name: string;
   readonly type = 'external' as const;
   readonly version = '3.5.0';
 
-  // Agent capabilities
-  readonly capabilities = [
-    // Finance capabilities
-    'financial_analysis',
-    'budget_planning',
-    'invoice_processing',
-    'expense_analysis',
-    'cash_flow_analysis',
-    'compliance_reporting',
-    'financial_forecasting',
-    'audit_assistance',
-
-    // HR capabilities
-    'resume_analysis',
-    'employee_onboarding',
-    'performance_analysis',
-    'policy_generation',
-    'benefits_assistance',
-    'training_recommendations',
-    'interview_scheduling',
-    'compliance_checking',
-
-    // Sales capabilities
-    'lead_qualification',
-    'proposal_generation',
-    'market_analysis',
-    'customer_insights',
-    'pipeline_analysis',
-    'contract_review',
-    'pricing_optimization',
-    'competitive_analysis',
-
-    // General capabilities
-    'document_analysis',
-    'data_processing',
-    'report_generation',
-    'decision_support',
-    'process_optimization',
-    'risk_assessment',
-    'content_creation',
-    'translation',
-  ];
-
-  readonly departments = ['finance', 'hr', 'sales', 'marketing', 'operations'];
+  // Agent capabilities (configurable)
+  readonly capabilities: string[];
+  readonly departments: string[];
   readonly tags = ['llm', 'anthropic', 'production', 'multi-modal'];
 
-  // Agent characteristics
-  readonly costPerCall = 0.015; // $0.015 per 1K input tokens, $0.075 per 1K output tokens (average)
-  readonly maxConcurrency = 20;
+  // Agent characteristics (configurable)
+  readonly costPerCall: number;
+  readonly maxConcurrency: number;
   readonly averageLatency = 2500; // 2.5 seconds average
   readonly supportedLanguages = ['en', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'ko', 'zh'];
   readonly supportedFormats = ['text', 'json', 'markdown', 'csv', 'xml'];
@@ -222,12 +181,36 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
     lastCheck: Date.now(),
   };
 
-  constructor(apiKey: string, capabilityManager?: CapabilityManager) {
-    this.apiKey = apiKey;
+  constructor(config: { apiKey: string; [key: string]: any } | string, capabilityManager?: CapabilityManager) {
+    // Handle backward compatibility: if first param is string, it's the old apiKey-only constructor
+    if (typeof config === 'string') {
+      this.apiKey = config;
+      this.id = 'claude-3-5-sonnet';
+      this.name = 'Claude 3.5 Sonnet';
+      this.capabilities = ['analysis', 'generation', 'reasoning', 'planning'];
+      this.departments = ['finance', 'hr', 'sales', 'marketing', 'operations'];
+      this.costPerCall = 0.015;
+      this.maxConcurrency = 20;
+    } else {
+      // New AgentConfig-based constructor
+      this.apiKey = config.apiKey;
+      this.id = config.id || 'claude-3-5-sonnet';
+      this.name = config.name || 'Claude 3.5 Sonnet';
+      this.capabilities = config.capabilities || ['analysis', 'generation', 'reasoning', 'planning'];
+      this.departments = config.departments || ['all'];
+      this.costPerCall = config.costPerCall || 0.015;
+      this.maxConcurrency = config.maxConcurrency || 20;
+
+      // Override model settings if provided in config
+      if (config.model) this.model = config.model;
+      if (config.maxTokens) this.maxTokens = config.maxTokens;
+      if (config.temperature !== undefined) this.temperature = config.temperature;
+    }
+
     this.capabilityManager = capabilityManager;
     this.logger = new Logger();
 
-    if (!apiKey) {
+    if (!this.apiKey) {
       throw new AgentError(
         'Anthropic API key is required',
         'MISSING_API_KEY',

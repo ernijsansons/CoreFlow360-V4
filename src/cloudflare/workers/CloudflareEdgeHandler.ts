@@ -45,11 +45,12 @@ export default {
       return finalResponse;
 
     } catch (error) {
-      logger.error('Edge handler error:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Edge handler error:', error as Error);
 
       // Track error
       await cf.Analytics.track('edge_error', {
-        error: error.message,
+        error: errorMessage,
         url: request.url,
         method: request.method,
         duration: Date.now() - startTime
@@ -201,12 +202,13 @@ async function handleAPIRequest(
     return result;
 
   } catch (error) {
-    logger.error(`API error in ${module}/${action}:`, error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error(`API error in ${module}/${action}:`, error as Error);
 
     await cf.Analytics.track('api_error', {
       module,
       action,
-      error: error.message
+      error: errorMessage
     });
 
     return new Response('Internal Server Error', { status: 500 });
