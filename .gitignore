@@ -103,3 +103,60 @@ k8s/secrets/
 # CI/CD artifacts
 .github/workflows/secrets/
 .gitlab-ci-local/
+
+# Additional patterns for CoreFlow360
+*.bat
+*.ps1
+*.log
+*.txt
+*.md
+!README.md
+!docs/**/*.md
+!audit-results/**/*.md
+!audit-reports/**/*.md
+!fix-results/**/*.md
+!DEVOPS-IMPLEMENTATION-SUMMARY.md
+!FINAL_VALIDATION_REPORT.md
+!PAYMENT_SECURITY_VALIDATION_REPORT.md
+!PERFORMANCE_OPTIMIZATION_SUMMARY.md
+!PERFORMANCE_OPTIMIZATION_VALIDATION_REPORT.md
+!RATE_LIMITING_SECURITY.md
+!SECURITY_VALIDATION_REPORT.md
+!TESTING_VALIDATION_REPORT.md
+!VIBESDK-CLAUDE-SETUP.md
+!SUPERNOVA_*.md
+!PHASE6_FIXES_SUMMARY.md
+!PROJECT_REVIEW_REPORT.md
+!OPCODE_*.md
+!DOCKER_*.md
+!AUDIT_SUMMARY.md
+!typescript-audit-report.md
+
+# Test files
+test-*.js
+test-*.ts
+validate-*.js
+
+# Temporary files
+nul
+compilation_check.log
+tsc_errors.txt
+test-output.txt
+
+# Server files
+server-*.js
+
+# OpCode MCP files
+OpCode*.json
+opcode-*.bat
+Uninstall-*.ps1
+
+# MCP configuration
+mcp-*.json.txt
+figma-*.md
+
+# Database
+db.sqlite
+
+# Design system temp files
+design-system/design-tokens-temp.json
