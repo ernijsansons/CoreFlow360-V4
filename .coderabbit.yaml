@@ -1,0 +1,131 @@
+# CodeRabbit Configuration for CoreFlow360 v4
+# AI-powered code review for your HVAC CRM system
+
+# Review Settings
+reviews:
+  # Enable automatic reviews on all pull requests
+  auto_review:
+    enabled: true
+
+  # Automatically review new commits in open PRs
+  review_status: "auto"
+
+  # High-level review instructions specific to CoreFlow360
+  high_level_instructions: |
+    - Focus on React/TypeScript best practices and performance
+    - Check for proper error handling and validation
+    - Ensure database queries are optimized
+    - Verify security best practices (no exposed credentials, proper auth checks)
+    - Check for accessibility compliance
+    - Validate Docker configuration changes
+    - Ensure consistent code style with existing codebase
+    - Check for potential memory leaks in React components
+    - Verify proper use of React hooks
+    - Check API endpoint security and rate limiting
+    - Validate database migrations and schema changes
+
+  # Enable early access features
+  early_access: true
+
+# Language preference
+language: "en-US"
+
+# Path filters - Ignore generated/vendor files
+path_filters:
+  excluded:
+    - "**/node_modules/**"
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/*.min.js"
+    - "**/*.min.css"
+    - "**/package-lock.json"
+    - "**/yarn.lock"
+    - "**/.next/**"
+    - "**/coverage/**"
+    - "**/*.generated.*"
+    - "**/vendor/**"
+    - "**/.cache/**"
+    - "**/.turbo/**"
+
+# Tools configuration
+tools:
+  # JavaScript/TypeScript linting
+  eslint:
+    enabled: true
+
+  # TypeScript type checking
+  typescript:
+    enabled: true
+
+  # Security scanning
+  semgrep:
+    enabled: true
+
+  # Duplicate code detection
+  jscpd:
+    enabled: true
+    min_tokens: 50
+
+  # Dockerfile linting
+  hadolint:
+    enabled: true
+
+# Review comments settings
+comments:
+  # Collapse outdated comments
+  collapse_outdated: true
+
+  # Hide resolved comments
+  hide_resolved: true
+
+# Summary generation
+summary:
+  enabled: true
+  language: "en-US"
+
+# Knowledge base for CoreFlow360 specific patterns
+knowledge_base:
+  learnings:
+    - "Use Prisma for all database operations"
+    - "Follow the existing component structure in src/components"
+    - "All API routes should include proper authentication middleware"
+    - "Use React Query for data fetching"
+    - "Follow the established error handling pattern with custom error classes"
+    - "Ensure all forms use React Hook Form with Zod validation"
+    - "Database migrations must be reversible"
+    - "All environment variables must be documented in env.example"
+    - "Use the established design system tokens from tailwind.tokens.cjs"
+    - "Docker images should be optimized for size"
+    - "All new features must include unit tests"
+    - "API responses should follow the established JSON structure"
+
+# Chat commands for PR interactions
+chat_commands:
+  - name: "review"
+    description: "Request a detailed review of specific changes"
+
+  - name: "security"
+    description: "Focus review on security implications"
+
+  - name: "performance"
+    description: "Analyze performance impact of changes"
+
+  - name: "tests"
+    description: "Review test coverage and quality"
+
+  - name: "docker"
+    description: "Review Docker and deployment configurations"
+
+# Custom review rules for CoreFlow360
+custom_rules:
+  - pattern: "console.log"
+    message: "Remove console.log statements before merging"
+    severity: "warning"
+
+  - pattern: "TODO|FIXME|XXX"
+    message: "Address TODO comments or create tracking issues"
+    severity: "info"
+
+  - pattern: "api_key|secret|password|token"
+    message: "Ensure no sensitive data is hardcoded"
+    severity: "error"
