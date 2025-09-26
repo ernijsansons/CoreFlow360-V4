@@ -3,13 +3,13 @@ import { createDatabase, Database } from '../database/db';
 import { createAIService, AIService } from '../ai/ai-service';
 import { createWebSocketService } from '../realtime/websocket-service';
 import type {
-  Env,
   Message,
   D1Database,
   KVNamespace,
   R2Bucket,
   Queue
 } from '../cloudflare/types/cloudflare';
+import type { Env } from '../types/env';
 
 export interface JobPayload {
   type: string;
@@ -62,48 +62,48 @@ export class QueueHandler {
 
   async processJob(message: Message, env: Env): Promise<void> {
     const startTime = Date.now();
-    let job: JobPayload;
+    let job: JobPayload | undefined;
 
     try {
       job = JSON.parse(message.body as string);
 
       // Initialize services
-      this.db = createDatabase(env.DB, env.CACHE);
-      this.ai = createAIService(env.AI, env.ANTHROPIC_API_KEY, env.CACHE);
+      this.db = createDatabase(env.DB, (env as any).CACHE);
+      this.ai = createAIService(env.AI as any, env.ANTHROPIC_API_KEY || '', (env as any).CACHE);
 
       // Log job start
-      await this.logJobExecution(job, 'started', env);
+      await this.logJobExecution(job!, 'started', env);
 
       // Route to appropriate handler
-      switch (job.type) {
+      switch (job!.type) {
         case 'generate-report':
-          await this.generateReport(job as ReportJob, env);
+          await this.generateReport(job! as ReportJob, env);
           break;
         case 'send-email':
-          await this.sendEmail(job as EmailJob, env);
+          await this.sendEmail(job! as EmailJob, env);
           break;
         case 'process-import':
-          await this.processImport(job as ImportJob, env);
+          await this.processImport(job! as ImportJob, env);
           break;
         case 'calculate-analytics':
-          await this.calculateAnalytics(job as AnalyticsJob, env);
+          await this.calculateAnalytics(job! as AnalyticsJob, env);
           break;
         case 'ai-processing':
-          await this.processAI(job, env);
+          await this.processAI(job!, env);
           break;
         case 'data-cleanup':
-          await this.dataCleanup(job, env);
+          await this.dataCleanup(job!, env);
           break;
         case 'webhook-delivery':
-          await this.deliverWebhook(job, env);
+          await this.deliverWebhook(job!, env);
           break;
         default:
-          throw new Error(`Unknown job type: ${job.type}`);
+          throw new Error(`Unknown job type: ${job!.type}`);
       }
 
       // Log successful completion
       const duration = Date.now() - startTime;
-      await this.logJobExecution(job, 'completed', env, { duration });
+      await this.logJobExecution(job!, 'completed', env, { duration });
 
       // Acknowledge message
       message.ack();
@@ -111,8 +111,8 @@ export class QueueHandler {
     } catch (error) {
 
       // Handle retries
-      const retryCount = (job?.retryCount || 0) + 1;
-      const maxRetries = job?.maxRetries || 3;
+      const retryCount = ((job as any)?.retryCount || 0) + 1;
+      const maxRetries = (job as any)?.maxRetries || 3;
 
       if (retryCount <= maxRetries) {
         // Retry with exponential backoff
@@ -120,20 +120,20 @@ export class QueueHandler {
         setTimeout(() => message.retry(), delay);
 
         await this.logJobExecution(job!, 'retrying', env, {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           retryCount,
           nextRetry: Date.now() + delay
         });
       } else {
         // Max retries exceeded
         await this.logJobExecution(job!, 'failed', env, {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           retryCount,
           finalFailure: true
         });
 
         // Send to dead letter queue or error handling
-        await this.handleJobFailure(job!, error, env);
+        await this.handleJobFailure(job!, error instanceof Error ? error : new Error(String(error)), env);
         message.ack(); // Don't retry further
       }
     }
@@ -145,7 +145,7 @@ export class QueueHandler {
 
     try {
       // Notify start via WebSocket
-      const ws = createWebSocketService(env.REALTIME, businessId);
+      const ws = createWebSocketService((env as any).REALTIME, businessId);
       await ws.notifySystemEvent(businessId, 'report-generation-started', {
         reportId,
         reportType,
@@ -259,11 +259,11 @@ export class QueueHandler {
 
     } catch (error) {
       // Notify failure via WebSocket
-      const ws = createWebSocketService(env.REALTIME, businessId);
+      const ws = createWebSocketService((env as any).REALTIME, businessId);
       await ws.notifySystemEvent(businessId, 'report-generation-failed', {
         reportId,
         reportType,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         requestedBy
       });
       throw error;
@@ -355,7 +355,7 @@ export class QueueHandler {
         }
 
         // Notify via WebSocket
-        const ws = createWebSocketService(env.REALTIME, businessId);
+        const ws = createWebSocketService((env as any).REALTIME, businessId);
         await ws.notifyDataUpdate(businessId, mapping.table, 'import', {
           importId,
           recordsImported: processedData.length
@@ -399,19 +399,19 @@ export class QueueHandler {
 
       // Cache results
       const cacheKey = `analytics:${businessId}:${metricType}:${period}:${aggregation}`;
-      await env.CACHE.put(cacheKey, JSON.stringify(metrics), {
+      await (env as any).CACHE.put(cacheKey, JSON.stringify(metrics), {
         expirationTtl: this.getAnalyticsCacheTTL(aggregation)
       });
 
       // Store in analytics database
-      await env.ANALYTICS.writeDataPoint({
+      await (env as any).ANALYTICS.writeDataPoint({
         indexes: [businessId, metricType, aggregation],
         blobs: [period, JSON.stringify(metrics)],
         doubles: [Date.now(), metrics.total || 0]
       });
 
       // Notify via WebSocket
-      const ws = createWebSocketService(env.REALTIME, businessId);
+      const ws = createWebSocketService((env as any).REALTIME, businessId);
       await ws.notifyAnalyticsUpdate(businessId, {
         metricType,
         period,
@@ -438,13 +438,13 @@ export class QueueHandler {
 
       // Store result if needed
       if (data.storeResult) {
-        await env.CACHE.put(`ai-result:${job.requestId}`, JSON.stringify(result), {
+        await (env as any).CACHE.put(`ai-result:${job.requestId}`, JSON.stringify(result), {
           expirationTtl: 3600
         });
       }
 
       // Notify completion
-      const ws = createWebSocketService(env.REALTIME, businessId);
+      const ws = createWebSocketService((env as any).REALTIME, businessId);
       await ws.notifyAIResponse(businessId, data.userId, job.requestId!, result);
 
     } catch (error) {
@@ -715,7 +715,7 @@ export class QueueHandler {
 
     // Notify via WebSocket if applicable
     if (job.businessId) {
-      const ws = createWebSocketService(env.REALTIME, job.businessId);
+      const ws = createWebSocketService((env as any).REALTIME, job.businessId);
       await ws.notifySystemEvent(job.businessId, 'job-failed', {
         jobType: job.type,
         requestId: job.requestId,

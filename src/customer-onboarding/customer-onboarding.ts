@@ -178,17 +178,26 @@ async function chatWithAI(engine: CustomerOnboardingEngine, _customerId: string,
 
   const aiAssistant = engine.getAIAssistant();
 
+  // Create a basic context for the AI assistant
+  const context = {
+    customerId: _customerId,
+    currentStep: 'chat',
+    industry: 'general',
+    experience: 'BEGINNER' as const,
+    goals: [],
+    blockers: []
+  };
 
-  const response = await aiAssistant.processUserMessage(message);
+  const response = await aiAssistant.processUserMessage(message, context);
 
 
-  if (response.actions.length > 0) {
-    response.actions.forEach((action, index) => {
+  if (response.tips.length > 0) {
+    response.tips.forEach((tip: string, index: number) => {
     });
   }
 
-  if (response.suggestions.length > 0) {
-    response.suggestions.forEach((suggestion, index) => {
+  if (response.bestPractices.length > 0) {
+    response.bestPractices.forEach((practice: string, index: number) => {
     });
   }
 }
@@ -215,7 +224,7 @@ async function showAnalytics(engine: CustomerOnboardingEngine, customerId: strin
   const aiAnalytics = await aiAssistant.getAssistantAnalytics();
 
 
-  aiAnalytics.commonQueries.forEach((query, index) => {
+  aiAnalytics.commonQueries.forEach((query: string, index: number) => {
   });
 }
 

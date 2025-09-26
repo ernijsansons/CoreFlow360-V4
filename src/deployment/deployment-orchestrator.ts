@@ -162,6 +162,7 @@ export interface Stage {
   pauseOnFailure: boolean;
   rollbackOnFailure: boolean;
   customChecks?: string[];
+  optimizationReason?: string;
 }
 
 export interface RollbackTrigger {
@@ -196,6 +197,13 @@ export interface ValidationResult {
   value: number;
   threshold: number;
   message?: string;
+}
+
+export interface ValidationSummary {
+  passed: boolean;
+  results: ValidationResult[];
+  errors: string[];
+  warnings: string[];
 }
 
 export interface RollbackPlan {
@@ -330,14 +338,15 @@ export class DeploymentOrchestrator {
       }
 
     } catch (error) {
-      this.logger.error('Deployment failed', error, { correlationId });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Deployment failed', errorMessage, { correlationId });
 
       // Emergency rollback
       await this.emergencyRollback(correlationId);
 
       return {
         status: 'FAILED',
-        analysis: await this.generateFailureAnalysis(error),
+        analysis: await this.generateFailureAnalysis(errorMessage),
         duration: Date.now() - startTime,
         stages: []
       };
@@ -457,7 +466,7 @@ export class DeploymentOrchestrator {
             status: 'fail',
             value: 0,
             threshold: 1,
-            message: error.message
+            message: error instanceof Error ? error.message : String(error)
           }],
           startTime: stageStartTime,
           endTime: Date.now()
@@ -474,7 +483,7 @@ export class DeploymentOrchestrator {
   /**
    * Validate deployment prerequisites
    */
-  private async validateDeployment(version: Version, checks: ValidationChecks): Promise<ValidationResult> {
+  private async validateDeployment(version: Version, checks: ValidationChecks): Promise<ValidationSummary> {
     const results: ValidationResult[] = [];
 
     if (checks.schemaCompatibility) {
@@ -560,7 +569,8 @@ export class DeploymentOrchestrator {
 
     } catch (error) {
       this.greenEnvironment.status = 'failed';
-      this.logger.error('Standby deployment failed', error, { correlationId });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Standby deployment failed', errorMessage, { correlationId });
       throw error;
     }
   }
@@ -663,7 +673,8 @@ export class DeploymentOrchestrator {
       });
 
     } catch (error) {
-      this.logger.error('Emergency rollback failed', error, { correlationId });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Emergency rollback failed', errorMessage, { correlationId });
       // This is catastrophic - alert everything
       await this.triggerDisasterRecovery(correlationId);
     }

@@ -212,6 +212,9 @@ export interface CloudflareEnv {
   // AI
   AI: any;
 
+  // Queue
+  Queue: any;
+
   // Secrets and Variables
   AUTH_SECRET: string;
   ENCRYPTION_KEY: string;
@@ -219,6 +222,11 @@ export interface CloudflareEnv {
   API_KEY: string;
   CORS_ORIGINS?: string;
   CSP_POLICY?: string;
+}
+
+export interface Queue {
+  send(body: any, options?: { delaySeconds?: number }): Promise<void>;
+  sendBatch(messages: Array<{ body: any; delaySeconds?: number }>): Promise<void>;
 }
 
 export interface D1Database {

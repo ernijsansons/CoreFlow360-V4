@@ -889,4 +889,4 @@ export interface ComprehensiveFixReport {
 // SUPERNOVA AUTO-FIXER EXPORT
 // ============================================================================
 
-export const SupernovaAutoFixer = SupernovaAutoFixer.getInstance();
+export const supernovaAutoFixer = SupernovaAutoFixer.getInstance();

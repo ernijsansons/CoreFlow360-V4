@@ -3,7 +3,7 @@
  * Enterprise-grade API gateway with routing, versioning, rate limiting, and security
  */
 import { z } from 'zod';
-import { AppError } from '../../shared/errors/app-error';
+import { ApplicationError as AppError } from '../../shared/error-handling';
 // import { createAuditLogger } from '../../shared/logging/audit-logger';
 import { CORSUtils } from '../../utils/cors-utils';
 

@@ -42,6 +42,20 @@ id = "62253644abcf4ce78558fbd764b366fb"
 binding = "KV_SESSION"
 id = "bd87c1fb6fd34a21b47e6cdbdd5a20ae"
 
+[[kv_namespaces]]
+binding = "KV_RATE_LIMIT_METRICS"
+id = "rate-limit-metrics-namespace"
+
+# Rate Limiter binding for native Cloudflare protection
+[[rate_limiters]]
+binding = "RATE_LIMITER"
+namespace_id = "coreflow360_rate_limiter"
+
+# Durable Objects for distributed rate limiting
+[[durable_objects.bindings]]
+name = "RATE_LIMITER_DO"
+class_name = "AdvancedRateLimiterDO"
+
 # Queue bindings (Note: Requires paid Cloudflare plan)
 # [[queues.producers]]
 # binding = "TASK_QUEUE"

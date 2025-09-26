@@ -220,16 +220,19 @@ export class ErrorHandler {
         publicMessage: 'A database error occurred. Please try again.'
       };
     } else {
-      // Unknown/system error
+      // Unknown/system error - check if it's a temporary/retryable error
+      const isTemporary = this.isTemporaryError(error);
       errorDetails = {
-        code: 'SYSTEM_ERROR',
+        code: isTemporary ? 'TEMPORARY_ERROR' : 'SYSTEM_ERROR',
         message: error.message,
         category: ErrorCategory.SYSTEM,
-        severity: ErrorSeverity.CRITICAL,
+        severity: isTemporary ? ErrorSeverity.MEDIUM : ErrorSeverity.CRITICAL,
         context: enhancedContext,
-        recoverable: false,
-        retryable: false,
-        publicMessage: 'An unexpected error occurred. Please contact support.'
+        recoverable: isTemporary,
+        retryable: isTemporary,
+        publicMessage: isTemporary
+          ? 'A temporary error occurred. Please try again.'
+          : 'An unexpected error occurred. Please contact support.'
       };
     }
 
@@ -415,6 +418,29 @@ export class ErrorHandler {
     ];
 
     return dbErrorMessages.some(msg =>
+      error.message.toLowerCase().includes(msg.toLowerCase())
+    );
+  }
+
+  /**
+   * Check if error is temporary/retryable
+   */
+  private isTemporaryError(error: Error): boolean {
+    const temporaryErrorMessages = [
+      'temporary',
+      'timeout',
+      'unavailable',
+      'connection reset',
+      'connection refused',
+      'network error',
+      'too many requests',
+      'service unavailable',
+      '503',
+      '504',
+      'gateway timeout'
+    ];
+
+    return temporaryErrorMessages.some(msg =>
       error.message.toLowerCase().includes(msg.toLowerCase())
     );
   }

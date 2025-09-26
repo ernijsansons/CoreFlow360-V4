@@ -28,48 +28,51 @@ class MockTransactionDatabase {
   prepare(sql: string) {
     this.queries.push({ sql });
 
+    const runFunction = async () => {
+      if (sql.includes('BEGIN TRANSACTION')) {
+        if (this.transactionActive) {
+          throw new Error('Transaction already active');
+        }
+        this.transactionActive = true;
+        this.transactionLog.push('BEGIN');
+        return { success: true };
+      }
+
+      if (sql.includes('COMMIT')) {
+        if (!this.transactionActive) {
+          throw new Error('No active transaction to commit');
+        }
+        this.transactionActive = false;
+        this.transactionLog.push('COMMIT');
+        return { success: true };
+      }
+
+      if (sql.includes('ROLLBACK')) {
+        if (!this.transactionActive) {
+          throw new Error('No active transaction to rollback');
+        }
+        if (this.shouldFailRollback) {
+          throw new Error('Rollback failed');
+        }
+        this.transactionActive = false;
+        this.transactionLog.push('ROLLBACK');
+        return { success: true };
+      }
+
+      // Regular queries
+      if (this.shouldFailTransaction) {
+        throw new Error('Database operation failed');
+      }
+
+      return { success: true };
+    };
+
     return {
+      run: runFunction,
       bind: (...params: any[]) => {
         this.queries[this.queries.length - 1].params = params;
         return {
-          run: async () => {
-            if (sql.includes('BEGIN TRANSACTION')) {
-              if (this.transactionActive) {
-                throw new Error('Transaction already active');
-              }
-              this.transactionActive = true;
-              this.transactionLog.push('BEGIN');
-              return { success: true };
-            }
-
-            if (sql.includes('COMMIT')) {
-              if (!this.transactionActive) {
-                throw new Error('No active transaction to commit');
-              }
-              this.transactionActive = false;
-              this.transactionLog.push('COMMIT');
-              return { success: true };
-            }
-
-            if (sql.includes('ROLLBACK')) {
-              if (!this.transactionActive) {
-                throw new Error('No active transaction to rollback');
-              }
-              if (this.shouldFailRollback) {
-                throw new Error('Rollback failed');
-              }
-              this.transactionActive = false;
-              this.transactionLog.push('ROLLBACK');
-              return { success: true };
-            }
-
-            // Regular queries
-            if (this.shouldFailTransaction) {
-              throw new Error('Database operation failed');
-            }
-
-            return { success: true };
-          },
+          run: runFunction,
           all: async () => {
             if (this.shouldFailTransaction) {
               throw new Error('Database query failed');

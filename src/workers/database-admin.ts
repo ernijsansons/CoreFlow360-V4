@@ -18,7 +18,7 @@ app.use('*', async (c, next) => {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
-  await next();
+  return await next();
 });
 
 // Get migration status
@@ -45,38 +45,13 @@ app.get('/migrations/status', async (c) => {
 // Run migrations
 app.post('/migrations/run', async (c) => {
   try {
-    const migrations: MigrationFile[] = [
-      {
-        version: '001',
-        name: 'core_tenant_users',
-        sql: loadMigrations()['001'] || '-- Migration not found',
-        checksum: await MigrationRunner.calculateChecksum(loadMigrations()['001'] || '-- Migration not found'),
-      },
-      {
-        version: '002',
-        name: 'rbac_departments',
-        sql: loadMigrations()['002'] || '-- Migration not found',
-        checksum: await MigrationRunner.calculateChecksum(loadMigrations()['002'] || '-- Migration not found'),
-      },
-      {
-        version: '003',
-        name: 'double_entry_ledger',
-        sql: loadMigrations()['003'] || '-- Migration not found',
-        checksum: await MigrationRunner.calculateChecksum(loadMigrations()['003'] || '-- Migration not found'),
-      },
-      {
-        version: '004',
-        name: 'audit_workflows',
-        sql: loadMigrations()['004'] || '-- Migration not found',
-        checksum: await MigrationRunner.calculateChecksum(loadMigrations()['004'] || '-- Migration not found'),
-      },
-      {
-        version: '005',
-        name: 'additional_indexes',
-        sql: loadMigrations()['005'] || '-- Migration not found',
-        checksum: await MigrationRunner.calculateChecksum(loadMigrations()['005'] || '-- Migration not found'),
-      },
-    ];
+    const loadedMigrations = await loadMigrations();
+
+    // Add checksums to migrations
+    const migrations = await Promise.all(loadedMigrations.map(async (migration) => ({
+      ...migration,
+      checksum: await MigrationRunner.calculateChecksum(migration.sql)
+    })));
 
     const runner = new MigrationRunner(c.env.DB_MAIN, 'admin');
     const results = await runner.executeMigrations(migrations);
@@ -105,16 +80,11 @@ app.post('/migrations/run', async (c) => {
 app.post('/migrations/rollback/:version', async (c) => {
   try {
     const version = c.req.param('version');
+    const rollbackFiles = await loadRollbacks();
 
-    const rollbacks: Record<string, string> = {
-      '001': loadRollbacks()['001'] || '-- Rollback not found',
-      '002': loadRollbacks()['002'] || '-- Rollback not found',
-      '003': loadRollbacks()['003'] || '-- Rollback not found',
-      '004': loadRollbacks()['004'] || '-- Rollback not found',
-      '005': loadRollbacks()['005'] || '-- Rollback not found',
-    };
+    const rollback = rollbackFiles.find(r => r.version === version);
 
-    if (!rollbacks[version]) {
+    if (!rollback || !rollback.rollbackSql) {
       return c.json({
         success: false,
         error: `Rollback script not found for version ${version}`,
@@ -122,7 +92,7 @@ app.post('/migrations/rollback/:version', async (c) => {
     }
 
     const runner = new MigrationRunner(c.env.DB_MAIN, 'admin');
-    const result = await runner.rollbackMigration(version, rollbacks[version]);
+    const result = await runner.rollbackMigration(version, rollback.rollbackSql);
 
     return c.json({
       success: result.status === 'success',

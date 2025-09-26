@@ -13,10 +13,10 @@ export { ABACService } from './service';
 export { PermissionResolver } from './permission-resolver';
 export { FastPathEvaluator } from './fast-path';
 export { PolicyEvaluator } from './policy-evaluator';
-export { PermissionCache } from './cache';
-export { PerformanceMonitor } from './performance-monitor';
+export { ABACCache } from './cache';
+export { ABACPerformanceMonitor } from './performance-monitor';
 export { capabilityRegistry, CapabilityRegistry } from './capability-registry';
-export { ABACPermissionEngine, PermissionEngine } from './permission-engine';
+// export { ABACPermissionEngine, PermissionEngine } from './permission-engine';
 
 export type {
   Subject,
@@ -50,8 +50,8 @@ export {
 export function createABACService(
   kv: any, // KVNamespace from @cloudflare/workers-types
   policies: any[] = []
-): ABACService {
-  return new ABACService(kv, policies);
+): any {
+  return new (require('./service').ABACService)(kv, policies);
 }
 
 /**
@@ -68,11 +68,11 @@ export const ABACUtils = {
     deptRoles?: any[];
     attributes?: any;
     context?: any;
-  }): Subject {
+  }): any {
     return {
       userId: userData.userId,
       businessId: userData.businessId,
-      orgRole: userData.orgRole as OrgRole,
+      orgRole: userData.orgRole as any,
       deptRoles: userData.deptRoles || [],
       attributes: {
         email: '',
@@ -101,7 +101,7 @@ export const ABACUtils = {
     id?: string;
     businessId: string;
     attributes?: any;
-  }): Resource {
+  }): any {
     return {
       type: resourceData.type,
       id: resourceData.id,
@@ -114,20 +114,20 @@ export const ABACUtils = {
    * Validate capability format
    */
   isValidCapability(capability: string): boolean {
-    return CapabilityRegistry.isValidCapability(capability);
+    return (require('./capability-registry').CapabilityRegistry).isValidCapability(capability);
   },
 
   /**
    * Parse capability string
    */
   parseCapability(capability: string) {
-    return CapabilityRegistry.parseCapability(capability);
+    return (require('./capability-registry').CapabilityRegistry).parseCapability(capability);
   },
 
   /**
    * Generate default policies for a business
    */
-  generateDefaultPolicies(businessId: string): PolicyRule[] {
+  generateDefaultPolicies(businessId: string): any[] {
     return [
       {
         id: `${businessId}_owner_all`,
@@ -187,30 +187,30 @@ export const ABACUtils = {
    * Common capability patterns
    */
   CommonCapabilities: {
-    DASHBOARD_READ: 'dashboard.analytics.read' as Capability,
-    PROFILE_UPDATE: 'profile.settings.update' as Capability,
-    NOTIFICATIONS_READ: 'notifications.alerts.read' as Capability,
+    DASHBOARD_READ: 'dashboard.analytics.read' as any,
+    PROFILE_UPDATE: 'profile.settings.update' as any,
+    NOTIFICATIONS_READ: 'notifications.alerts.read' as any,
 
     // Finance
-    INVOICE_CREATE: 'finance.invoice.create' as Capability,
-    INVOICE_READ: 'finance.invoice.read' as Capability,
-    INVOICE_UPDATE: 'finance.invoice.update' as Capability,
-    INVOICE_DELETE: 'finance.invoice.delete' as Capability,
-    INVOICE_APPROVE: 'finance.invoice.approve' as Capability,
+    INVOICE_CREATE: 'finance.invoice.create' as any,
+    INVOICE_READ: 'finance.invoice.read' as any,
+    INVOICE_UPDATE: 'finance.invoice.update' as any,
+    INVOICE_DELETE: 'finance.invoice.delete' as any,
+    INVOICE_APPROVE: 'finance.invoice.approve' as any,
 
     // HR
-    EMPLOYEE_CREATE: 'hr.employee.create' as Capability,
-    EMPLOYEE_READ: 'hr.employee.read' as Capability,
-    EMPLOYEE_UPDATE: 'hr.employee.update' as Capability,
-    PAYROLL_APPROVE: 'hr.payroll.approve' as Capability,
+    EMPLOYEE_CREATE: 'hr.employee.create' as any,
+    EMPLOYEE_READ: 'hr.employee.read' as any,
+    EMPLOYEE_UPDATE: 'hr.employee.update' as any,
+    PAYROLL_APPROVE: 'hr.payroll.approve' as any,
 
     // System
-    SETTINGS_UPDATE: 'system.settings.update' as Capability,
-    USERS_DELETE: 'system.users.delete' as Capability,
+    SETTINGS_UPDATE: 'system.settings.update' as any,
+    USERS_DELETE: 'system.users.delete' as any,
 
     // Reports
-    FINANCIAL_EXPORT: 'reports.financial.export' as Capability,
-    ANALYTICS_READ: 'reports.analytics.read' as Capability,
+    FINANCIAL_EXPORT: 'reports.financial.export' as any,
+    ANALYTICS_READ: 'reports.analytics.read' as any,
   },
 
   /**

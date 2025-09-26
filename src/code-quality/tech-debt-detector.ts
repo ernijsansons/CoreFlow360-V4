@@ -625,7 +625,7 @@ export class TechDebtDetector {
     }
 
     return recommendations.sort((a, b) => {
-      const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+      const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
       return priorityOrder[a.priority] - priorityOrder[b.priority];
     });
   }
