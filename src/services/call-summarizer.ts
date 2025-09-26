@@ -1,14 +1,71 @@
 import type { Env } from '../types/env';
-import type {
-  Call,
-  CallSummary,
-  SummarySection,
-  Participant,
-  Lead,
-  ConversationAnalysis,
-  Transcript
-} from '../types/crm';
 import { sanitizeUserInput, createSecureAIPrompt } from '../security/ai-prompt-sanitizer';
+
+// Define interfaces locally as they are not exported from crm.ts
+interface Call {
+  id: string;
+  transcript: Transcript;
+  duration: number;
+  participants: Participant[];
+  date: string;
+}
+
+interface CallSummary {
+  id: string;
+  callId: string;
+  generatedAt: string;
+  sections: SummarySection[];
+  keyPoints: string[];
+  actionItems: any[];
+  sentiment: any;
+  participants: Participant[];
+  duration: number;
+  confidence: number;
+}
+
+interface SummarySection {
+  id: string;
+  title: string;
+  content: string;
+  order: number;
+}
+
+interface Participant {
+  name: string;
+  role: string;
+}
+
+interface ConversationAnalysis {
+  id: string;
+  transcript: Transcript;
+  participants: any[];
+  sentiment: any;
+  topics: any;
+  objections: any;
+  competitors: any;
+  nextSteps: any;
+  metrics: any;
+  insights: any;
+  coaching: any;
+  summary: string;
+  score: any;
+  timestamp: Date;
+  processingTimeMs: number;
+}
+
+interface Transcript {
+  id: string;
+  segments: any[];
+  duration: number;
+  language: string;
+  confidence: number;
+  timestamp: Date;
+}
+
+interface Lead {
+  company: string;
+  name: string;
+}
 
 export class CallSummarizer {
   private env: Env;
@@ -26,7 +83,7 @@ export class CallSummarizer {
 
     // Sanitize all user-provided content
     const sanitizedTranscript = call.transcript.segments
-      .map(s => {
+      .map((s: any) => {
         const speakerResult = sanitizeUserInput(s.speaker, { maxLength: 100 });
         const textResult = sanitizeUserInput(s.text, { maxLength: 5000 });
 
@@ -39,7 +96,7 @@ export class CallSummarizer {
       .join('\n');
 
     const sanitizedParticipants = call.participants
-      .map(p => {
+      .map((p: any) => {
         const nameResult = sanitizeUserInput(p.name, { maxLength: 100 });
         const roleResult = sanitizeUserInput(p.role, { maxLength: 50 });
         return `${nameResult.sanitized} (${roleResult.sanitized})`;
@@ -64,7 +121,7 @@ export class CallSummarizer {
       3. Action items
       4. Next steps
       5. Overall sentiment
-    `);
+    `, );
 
     try {
       // Mock AI analysis - would use real AI in production
@@ -89,7 +146,8 @@ export class CallSummarizer {
       return summary;
 
     } catch (error) {
-      console.error('Failed to generate call summary:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Failed to generate call summary:', errorMessage);
       throw new Error('Call summary generation failed');
     }
   }
@@ -252,7 +310,7 @@ export class CallSummarizer {
     dueDate: string;
     priority: 'low' | 'medium' | 'high';
   }> {
-    return analysis.nextSteps.identified.map((step, index) => ({
+    return analysis.nextSteps.identified.map((step: any, index: any) => ({
       id: `action_${index}`,
       description: step,
       assignee: 'TBD',
@@ -273,7 +331,7 @@ export class CallSummarizer {
     return {
       overall: analysis.sentiment.overall.primary as 'positive' | 'neutral' | 'negative',
       confidence: analysis.sentiment.overall.confidence,
-      keyMoments: analysis.sentiment.keyMoments.map(moment => ({
+      keyMoments: analysis.sentiment.keyMoments.map((moment: any) => ({
         timestamp: moment.timestamp,
         sentiment: moment.sentiment || 'neutral',
         description: moment.description || 'Key moment'
@@ -284,7 +342,7 @@ export class CallSummarizer {
   async generateQuickSummary(call: Call): Promise<string> {
     try {
       const sanitizedTranscript = call.transcript.segments
-        .map(s => `${s.speaker}: ${s.text}`)
+        .map((s: any) => `${s.speaker}: ${s.text}`)
         .join('\n')
         .substring(0, 1000); // Limit for quick summary
 
@@ -292,13 +350,14 @@ export class CallSummarizer {
         Provide a brief 2-3 sentence summary of this call:
         
         ${sanitizedTranscript}
-      `);
+      `, );
 
       // Mock quick summary - would use real AI in production
       return `Call with ${call.participants.length} participants discussing ${call.duration} minutes. Key topics included pricing and features. Next steps: schedule demo.`;
       
     } catch (error) {
-      console.error('Failed to generate quick summary:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Failed to generate quick summary:', errorMessage);
       return 'Summary generation failed';
     }
   }
@@ -313,12 +372,13 @@ export class CallSummarizer {
   }>> {
     try {
       const summary = await this.generateSummary(call);
-      return summary.actionItems.map(item => ({
+      return summary.actionItems.map((item: any) => ({
         ...item,
         status: 'pending' as const
       }));
     } catch (error) {
-      console.error('Failed to generate action items:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Failed to generate action items:', errorMessage);
       return [];
     }
   }
@@ -335,10 +395,10 @@ Hi ${lead.name},
 Thank you for taking the time to speak with me today about ${lead.company}'s needs.
 
 Key points from our discussion:
-${summary.keyPoints.map(point => `• ${point}`).join('\n')}
+${summary.keyPoints.map((point: any) => `• ${point}`).join('\n')}
 
 Next steps:
-${summary.actionItems.map(item => `• ${item.description}`).join('\n')}
+${summary.actionItems.map((item: any) => `• ${item.description}`).join('\n')}
 
 I'll follow up with you ${summary.actionItems[0]?.dueDate ? `by ${new Date(summary.actionItems[0].dueDate).toLocaleDateString()}` : 'soon'}.
 
@@ -348,7 +408,8 @@ Best regards,
 
       return email.trim();
     } catch (error) {
-      console.error('Failed to generate follow-up email:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Failed to generate follow-up email:', errorMessage);
       return 'Follow-up email generation failed';
     }
   }

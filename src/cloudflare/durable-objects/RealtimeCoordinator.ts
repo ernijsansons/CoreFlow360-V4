@@ -6,6 +6,12 @@
 
 import type { DurableObject, DurableObjectState, AnalyticsEngineDataset } from '../types/cloudflare';
 
+interface BroadcastRequest {
+  roomId: string;
+  message: any;
+  excludeUserId?: string;
+}
+
 export class RealtimeCoordinator implements DurableObject {
   private state: DurableObjectState;
   private env: Env;
@@ -317,7 +323,7 @@ export class RealtimeCoordinator implements DurableObject {
       return new Response('Method Not Allowed', { status: 405 });
     }
 
-    const data = await request.json();
+    const data = await request.json<BroadcastRequest>();
     const { roomId, message, excludeUserId } = data;
 
     if (!roomId || !message) {
@@ -525,6 +531,19 @@ export class RealtimeCoordinator implements DurableObject {
     // Schedule next cleanup
     await this.state.setAlarm(Date.now() + 60 * 60 * 1000); // 1 hour
   }
+}
+
+// Type definitions
+interface UserSession {
+  userId: string;
+  roomId: string;
+  connectedAt: Date;
+  lastActivity: Date;
+}
+
+interface Env {
+  ENVIRONMENT?: string;
+  ANALYTICS?: AnalyticsEngineDataset;
 }
 
 // Type definitions

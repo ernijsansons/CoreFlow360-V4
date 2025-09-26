@@ -51,6 +51,13 @@ export class NotFoundError extends AppError {
   }
 }
 
+export class SecurityError extends AppError {
+  constructor(message: string = 'Security violation detected') {
+    super(ERROR_CODES.SECURITY_VIOLATION, message, HTTP_STATUS.FORBIDDEN);
+    this.name = 'SecurityError';
+  }
+}
+
 export class ConflictError extends AppError {
   constructor(message: string, details?: any) {
     super(ERROR_CODES.RESOURCE_EXISTS, message, HTTP_STATUS.CONFLICT, details);

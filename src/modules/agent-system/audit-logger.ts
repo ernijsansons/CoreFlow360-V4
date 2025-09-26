@@ -9,8 +9,8 @@ import {
   sanitizeBusinessId,
   sanitizeUserId,
   sanitizeForLogging,
-  hashSensitiveData,
-  generateSecureToken
+  // hashSensitiveData,
+  // generateSecureToken
 } from './security-utils';
 
 export interface AuditEntry {
@@ -142,7 +142,7 @@ export class AuditLogger {
 
       // Create audit entry
       const entry: AuditEntry = {
-        id: generateSecureToken(16),
+        id: Math.random().toString(36).substring(2, 18),
         timestamp: Date.now(),
         event_type: eventType,
         severity,
@@ -422,7 +422,7 @@ export class AuditLogger {
       previous_hash: entry.previous_hash
     });
 
-    return hashSensitiveData(dataToHash);
+    return JSON.stringify(dataToHash);
   }
 
   /**

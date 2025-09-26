@@ -242,6 +242,11 @@ export interface APISchema {
   enum?: any[];
   example?: any;
   description?: string;
+  minLength?: number;
+  maxLength?: number;
+  minimum?: number;
+  maximum?: number;
+  $ref?: string;
 }
 
 export interface APIComponents {
@@ -772,8 +777,7 @@ ${spec.servers.map(server => `- **${server.description}**: ${server.url}`).join(
 
 ${Object.entries(spec.paths).map(([path, methods]) => {
   return `### ${path}\n\n${Object.entries(methods).map(([method, operation]) => {
-    return
-  `#### ${method.toUpperCase()}\n\n${operation.description}\n\n**Operation ID:** ${operation.operationId}\n\n**Tags:** ${operation.tags.join(', ')}\n`;
+    return `#### ${method.toUpperCase()}\n\n${operation.description}\n\n**Operation ID:** ${operation.operationId}\n\n**Tags:** ${operation.tags.join(', ')}\n`;
   }).join('\n')}`;
 }).join('\n\n')}
 
@@ -826,7 +830,7 @@ For API support, contact:
   }
 
   private generateSDKDocumentation(spec: APISpecification, language: string): string {
-    const examples = {
+    const examples: Record<string, string> = {
       typescript: `
 # TypeScript SDK
 

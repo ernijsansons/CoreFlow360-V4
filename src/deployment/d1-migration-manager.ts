@@ -103,7 +103,8 @@ class D1MigrationManager {
         const migration = await this.parseMigrationFile(file);
         migrations.push(migration);
       } catch (error) {
-        this.logger.error('Failed to parse migration file', error, { file });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error('Failed to parse migration file', errorMessage, { file });
       }
     }
 
@@ -235,7 +236,8 @@ class D1MigrationManager {
       };
 
     } catch (error) {
-      this.logger.error('Migration execution failed', error, { correlationId });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error('Migration execution failed', errorMessage, { correlationId });
 
       return {
         success: false,
@@ -243,7 +245,7 @@ class D1MigrationManager {
         results,
         appliedMigrations: [],
         failedMigrations: plan.migrationsToApply,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       };
     }
   }
@@ -598,7 +600,7 @@ COMMIT;
         status: 'failed',
         duration,
         operation,
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       };
     }
   }
@@ -638,7 +640,8 @@ COMMIT;
         await this.executeSql(result.migration.downSql);
         await this.recordMigrationRolledBack(result.migration);
       } catch (error) {
-        this.logger.error('Rollback failed', error, {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error('Rollback failed', errorMessage, {
           migration: result.migration.name
         });
       }

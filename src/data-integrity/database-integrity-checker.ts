@@ -84,7 +84,8 @@ export class DatabaseIntegrityChecker {
         });
 
       } catch (error) {
-        this.logger.error(`Check failed: ${check.name}`, { error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Check failed: ${check.name}`, { error: errorMessage });
         check.status = 'failed';
         check.completedAt = new Date();
         check.duration = check.completedAt.getTime() - (check.startedAt?.getTime() || 0);
@@ -96,7 +97,7 @@ export class DatabaseIntegrityChecker {
             type: 'data',
             severity: 'critical',
             table: 'unknown',
-            description: `Check execution failed: ${error.message}`,
+            description: `Check execution failed: ${errorMessage}`,
             fix: 'Review check implementation and database connection'
           }],
           recommendations: ['Fix the underlying issue and re-run the check'],

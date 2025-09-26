@@ -1,27 +1,62 @@
+# =====================================
+# PROPOSED .gitignore - ENHANCED VERSION
+# =====================================
+# This file prevents unnecessary files from being committed
+# Reduces repository bloat and improves clone performance
+
 # Dependencies
 node_modules/
 .pnp
 .pnp.js
+.yarn/
+
+# Python Virtual Environments
+.venv/
+venv/
+env/
+.env/
+*.pyc
+__pycache__/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
 
 # Build outputs
 dist/
 build/
+out/
+*.min.js
+*.min.css
+*.map
+*.tsbuildinfo
+
+# Cloudflare
 .wrangler/
 .miniflare/
-
-# Environment files
-.env
-.env.local
-.env.*.local
+.mf/
+wrangler-local.toml
 .dev.vars
 
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# Framework build directories
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+.vercel/
+.vite/
+.parcel-cache/
+.cache/
+storybook-static/
 
-# IDE
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+playwright-report/
+test-output/
+
+# IDE and Editors
 .vscode/
 .idea/
 *.swp
@@ -29,46 +64,90 @@ pnpm-debug.log*
 *~
 .DS_Store
 Thumbs.db
+desktop.ini
+.history/
+.ionide/
 
-# Testing
-coverage/
-.nyc_output/
-
-# Cloudflare
-wrangler-local.toml
-.mf/
-
-# TypeScript
-*.tsbuildinfo
-
-# Cache
-.cache/
-.parcel-cache/
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.template
+.dev.vars
+*.local
 
 # Logs
 logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+compilation_check.log
+tsc_errors.txt
 
 # OS files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 desktop.ini
 
 # Temporary files
 tmp/
 temp/
 *.tmp
+*.temp
+*.bak
+*.backup
+*.backup-*
+*.sync-backup-*
+*.old
+*.orig
+*~
+.tmp/
 
-# Package manager locks (keep only one)
-# Uncomment the one you don't use
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+# Archives and binaries
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.dmg
+*.iso
+*.msi
+*.exe
+*.dll
+*.so
+*.dylib
+*.pdb
 
-# Docker
-.dockerignore
-docker-compose.override.yml
-docker-compose.local.yml
-.docker/
+# Large files that should use LFS or external storage
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+*.mp3
+*.wav
+*.flac
+*.psd
+*.ai
+*.sketch
+*.fig
+
+# Database files (except schema)
+*.sqlite
+*.sqlite3
+*.db
+db.sqlite
+!*/schema.sql
+!*/migrations/*.sql
 
 # Docker volumes and data
 postgres_data/
@@ -77,86 +156,138 @@ prometheus_data/
 grafana_data/
 postgres_dev_data/
 redis_dev_data/
+mysql_data/
+mongodb_data/
 
-# Docker build cache
+# Docker files
 .docker-cache/
-
-# Environment files for Docker
+.docker/
+docker-compose.override.yml
+docker-compose.local.yml
 .env.docker
-.env.docker.local
-.env.docker.*.local
-
-# Docker secrets
+.env.docker.*
 docker-secrets/
 secrets/
 
 # Kubernetes
 k8s/secrets/
 *.kubeconfig
+helm-charts/*/charts/
+helm-charts/*/values-local.yaml
 
 # Terraform
 *.tfstate
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
+terraform.tfvars
+*.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
 # CI/CD artifacts
 .github/workflows/secrets/
 .gitlab-ci-local/
+.circleci/local/
 
-# Additional patterns for CoreFlow360
-*.bat
-*.ps1
-*.log
-*.txt
-*.md
-!README.md
-!docs/**/*.md
-!audit-results/**/*.md
-!audit-reports/**/*.md
-!fix-results/**/*.md
-!DEVOPS-IMPLEMENTATION-SUMMARY.md
-!FINAL_VALIDATION_REPORT.md
-!PAYMENT_SECURITY_VALIDATION_REPORT.md
-!PERFORMANCE_OPTIMIZATION_SUMMARY.md
-!PERFORMANCE_OPTIMIZATION_VALIDATION_REPORT.md
-!RATE_LIMITING_SECURITY.md
-!SECURITY_VALIDATION_REPORT.md
-!TESTING_VALIDATION_REPORT.md
-!VIBESDK-CLAUDE-SETUP.md
-!SUPERNOVA_*.md
-!PHASE6_FIXES_SUMMARY.md
-!PROJECT_REVIEW_REPORT.md
-!OPCODE_*.md
-!DOCKER_*.md
-!AUDIT_SUMMARY.md
-!typescript-audit-report.md
+# Package manager locks (keep only one)
+# If using npm, keep package-lock.json
+# If using yarn, uncomment next line and comment package-lock
+# yarn.lock
+# If using pnpm, uncomment next line and comment package-lock
+# pnpm-lock.yaml
 
-# Test files
-test-*.js
-test-*.ts
-validate-*.js
+# Audit and report outputs
+audit-reports/*.json
+audit-results/*.json
+*.audit.json
+repo_size_audit_results.json
+fix-results/
 
-# Temporary files
+# Test files in root (should be in tests/)
+/test-*.js
+/test-*.ts
+/validate-*.js
+/server-*.js
+
+# Misc temporary files
 nul
-compilation_check.log
-tsc_errors.txt
+file_list.txt
 test-output.txt
+*.txt
+!requirements.txt
+!README.txt
 
-# Server files
-server-*.js
+# Graveyard directory (for cleanup)
+__graveyard__/
 
-# OpCode MCP files
-OpCode*.json
-opcode-*.bat
-Uninstall-*.ps1
-
-# MCP configuration
-mcp-*.json.txt
-figma-*.md
-
-# Database
-db.sqlite
-
-# Design system temp files
+# Design system generated files
+design-system/dist/
+design-system/build/
+design-system/*.backup-*
+design-system/*.sync-backup-*
 design-system/design-tokens-temp.json
+
+# Frontend build artifacts
+frontend/dist/
+frontend/build/
+frontend/.next/
+frontend/out/
+
+# Documentation build outputs
+docs/_build/
+docs/.vuepress/dist/
+docs/.docusaurus/
+
+# Performance and profiling
+*.heapsnapshot
+*.heapprofile
+*.cpuprofile
+.clinic/
+
+# Security - Never commit secrets!
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+private/
+.secrets/
+credentials/
+!test-certs/
+
+# Local configuration overrides
+*.local.json
+*.local.yaml
+*.local.yml
+!.claude/settings.local.json
+
+# Cloudflare specific - additional patterns
+.cloudflare/
+__templates/
+.wrangler-tmp/
+
+# Generated types
+src/types/generated/
+src/**/*.generated.ts
+src/**/*.gen.ts
+
+# Storybook
+storybook-static/
+.storybook/build/
+
+# Analytics and monitoring
+.lighthouse/
+.metrics/
+performance-reports/
+
+# Keep important markdown files
+!README.md
+!CHANGELOG.md
+!CONTRIBUTING.md
+!LICENSE.md
+!docs/**/*.md
+!.github/**/*.md

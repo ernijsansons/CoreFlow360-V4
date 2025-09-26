@@ -59,7 +59,7 @@ const adminAuthMiddleware = async (c: any, next: any) => {
     }
 
     await logAudit(c, 'admin_auth_success', 'info', {});
-    await next();
+    return await next();
   } catch (error) {
     await logAudit(c, 'admin_auth_error', 'error', { error: String(error) });
     return createErrorResponse('INTERNAL_ERROR', 'Authentication failed', 500);
@@ -144,8 +144,15 @@ app.post('/migrations/run', async (c) => {
   const startTime = Date.now();
   try {
     const runner = new MigrationRunner(c.env.DB_MAIN);
-    const migrations = await loadMigrations();
-    const results = await runner.runMigrations(migrations);
+    const loadedMigrations = await loadMigrations();
+
+    // Add checksums to migrations
+    const migrations = await Promise.all(loadedMigrations.map(async (migration) => ({
+      ...migration,
+      checksum: await MigrationRunner.calculateChecksum(migration.sql)
+    })));
+
+    const results = await runner.executeMigrations(migrations);
 
     await logAudit(c, 'migrations_executed', 'action', {
       migrations_count: migrations.length,
@@ -155,8 +162,8 @@ app.post('/migrations/run', async (c) => {
     return c.json({
       success: true,
       results,
-      executed: results.filter(r => r.status === 'completed').length,
-      failed: results.filter(r => r.status === 'failed').length,
+      executed: results.filter((r: any) => r.status === 'completed').length,
+      failed: results.filter((r: any) => r.status === 'failed').length,
     });
   } catch (error) {
     await logAudit(c, 'migrations_execution_error', 'error', { 
@@ -176,7 +183,14 @@ app.post('/migrations/rollback', async (c) => {
 
     const runner = new MigrationRunner(c.env.DB_MAIN);
     const rollbacks = await loadRollbacks();
-    const results = await runner.rollbackMigrations(rollbacks, steps);
+    const results = [];
+
+    // Execute rollbacks one by one for the specified steps
+    for (let i = 0; i < Math.min(steps, rollbacks.length); i++) {
+      const rollback = rollbacks[i];
+      const result = await runner.rollbackMigration(rollback.version, rollback.sql);
+      results.push(result);
+    }
 
     await logAudit(c, 'migrations_rollback', 'action', {
       rollback_steps: steps,
@@ -186,8 +200,8 @@ app.post('/migrations/rollback', async (c) => {
     return c.json({
       success: true,
       results,
-      rolledBack: results.filter(r => r.status === 'completed').length,
-      failed: results.filter(r => r.status === 'failed').length,
+      rolledBack: results.filter((r: any) => r.status === 'completed').length,
+      failed: results.filter((r: any) => r.status === 'failed').length,
     });
   } catch (error) {
     await logAudit(c, 'migrations_rollback_error', 'error', { 

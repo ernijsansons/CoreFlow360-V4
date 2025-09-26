@@ -1,16 +1,39 @@
 /**
- * Payment Processing API Routes
- * Enterprise payment gateway integration with Stripe, PayPal, and bank transfers
+ * Enhanced Payment Processing API Routes
+ * Enterprise payment gateway integration with comprehensive security validation
+ * Addresses CVSS 8.1 payment input validation vulnerability
  */
 
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
+import { createMiddleware } from 'hono/factory';
 import { StripePaymentGateway } from '../modules/finance/payment/stripe-gateway';
 import { PayPalGateway } from '../modules/finance/payment/paypal-gateway';
 import { WebhookService } from '../modules/finance/payment/webhook-service';
 import { AuditLogger } from '../modules/audit/audit-service';
+import {
+  createPaymentIntentSchema,
+  refundPaymentSchema,
+  subscriptionPaymentSchema,
+  bulkPaymentSchema,
+  validatePaymentAmount,
+  validateBusinessHours,
+  calculateRiskScore,
+  PaymentValidationError,
+  BusinessRuleViolationError,
+  RiskThresholdExceededError
+} from '../modules/finance/payment/validation';
+import { FraudDetector, type TransactionProfile } from '../modules/finance/payment/fraud-detector';
+import { OwnershipValidator, type OwnershipVerificationResult } from '../modules/finance/payment/ownership-validator';
 import type { Env } from '../types/env';
+
+// Security rate limiting
+const RATE_LIMITS = {
+  paymentIntent: { requests: 100, window: 60000 }, // 100 requests per minute
+  refund: { requests: 20, window: 60000 }, // 20 refunds per minute
+  webhook: { requests: 1000, window: 60000 }, // 1000 webhooks per minute
+} as const;
 
 const app = new Hono<{ Bindings: Env }>();
 

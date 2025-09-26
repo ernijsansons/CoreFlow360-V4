@@ -89,7 +89,7 @@ export class WorkflowCollaboration {
   private pendingChanges = new Map<string, WorkflowChange>();
   private comments = new Map<string, Comment>();
   private changeHistory: WorkflowChange[] = [];
-  private workflowId: string;
+  private workflowId: string = '';
   private lastSnapshot?: any;
   private conflictResolver: ConflictResolver;
 
@@ -511,7 +511,7 @@ export class WorkflowCollaboration {
   }
 
   private async handleComment(request: Request): Promise<Response> {
-    const { action, commentId, data } = await request.json();
+    const { action, commentId, data } = await request.json() as any;
 
     switch (action) {
       case 'react':
@@ -526,6 +526,43 @@ export class WorkflowCollaboration {
     }
 
     return new Response(JSON.stringify({ success: true }));
+  }
+
+  private async handleCommentEdit(userId: string, commentId: string, content: string): Promise<void> {
+    const comment = this.comments.get(commentId);
+    if (comment && comment.userId === userId) {
+      comment.content = content;
+      comment.updatedAt = new Date().toISOString();
+
+      this.broadcastToAll({
+        type: 'comment_edited',
+        data: {
+          commentId,
+          content,
+          userId
+        }
+      });
+
+      await this.updateCommentInDatabase(comment);
+    }
+  }
+
+  private async handleCommentDelete(userId: string, commentId: string): Promise<void> {
+    const comment = this.comments.get(commentId);
+    if (comment && comment.userId === userId) {
+      this.comments.delete(commentId);
+
+      this.broadcastToAll({
+        type: 'comment_deleted',
+        data: {
+          commentId,
+          userId
+        }
+      });
+
+      const db = this.env.DB_CRM;
+      await db.prepare('DELETE FROM workflow_comments WHERE id = ?').bind(commentId).run();
+    }
   }
 
   private async handleCommentReaction(userId: string, commentId: string, emoji: string): Promise<void> {
@@ -562,7 +599,7 @@ export class WorkflowCollaboration {
   }
 
   private async handleResolveComment(request: Request): Promise<Response> {
-    const { commentId, userId, resolved } = await request.json();
+    const { commentId, userId, resolved } = await request.json() as any;
 
     const comment = this.comments.get(commentId);
     if (comment) {
@@ -591,7 +628,7 @@ export class WorkflowCollaboration {
   // =====================================================
 
   private async handleAcquireLock(request: Request): Promise<Response> {
-    const { userId, lockType = 'editing', duration = 300000 } = await request.json(); // 5 min default
+    const { userId, lockType = 'editing', duration = 300000 } = await request.json() as any; // 5 min default
 
     const participant = this.participants.get(userId);
     if (!participant || !this.canEdit(participant.role)) {
@@ -601,7 +638,7 @@ export class WorkflowCollaboration {
     }
 
     // Check if workflow is already locked
-    const existingLock = await this.state.storage.get('workflowLock');
+    const existingLock = await this.state.storage.get('workflowLock') as any;
     if (existingLock && new Date(existingLock.expiresAt) > new Date()) {
       return new Response(JSON.stringify({
         success: false,
@@ -632,9 +669,9 @@ export class WorkflowCollaboration {
   }
 
   private async handleReleaseLock(request: Request): Promise<Response> {
-    const { userId } = await request.json();
+    const { userId } = await request.json() as any;
 
-    const lock = await this.state.storage.get('workflowLock');
+    const lock = await this.state.storage.get('workflowLock') as any;
     if (!lock || lock.userId !== userId) {
       return new Response(JSON.stringify({ success: false, error: 'No lock held by user' }), {
         status: 400
@@ -653,7 +690,7 @@ export class WorkflowCollaboration {
   }
 
   private async releaseLocksByUser(userId: string): Promise<void> {
-    const lock = await this.state.storage.get('workflowLock');
+    const lock = await this.state.storage.get('workflowLock') as any;
     if (lock && lock.userId === userId) {
       await this.state.storage.delete('workflowLock');
       await this.state.storage.deleteAlarm();
@@ -775,7 +812,7 @@ export class WorkflowCollaboration {
       WHERE workflow_id = ? AND user_id = ?
         AND business_id = (SELECT business_id FROM workflow_designs WHERE id = ?)
       LIMIT 1
-    `).bind(this.workflowId, userId, this.workflowId).first();
+    `).bind(this.workflowId, userId, this.workflowId).first() as any;
 
     if (participant) {
       // Load existing participant data
@@ -892,7 +929,7 @@ export class WorkflowCollaboration {
     const now = new Date();
 
     // Check for expired lock
-    const lock = await this.state.storage.get('workflowLock');
+    const lock = await this.state.storage.get('workflowLock') as any;
     if (lock && new Date(lock.expiresAt) <= now) {
       await this.state.storage.delete('workflowLock');
       this.broadcastToAll({
@@ -930,7 +967,7 @@ export class WorkflowCollaboration {
 
   // Session management endpoints
   private async handleJoinSession(request: Request): Promise<Response> {
-    const { userId, userName, role } = await request.json();
+    const { userId, userName, role } = await request.json() as any;
 
     await this.handleParticipantJoin(userId, { userName, role });
 
@@ -942,7 +979,7 @@ export class WorkflowCollaboration {
   }
 
   private async handleLeaveSession(request: Request): Promise<Response> {
-    const { userId } = await request.json();
+    const { userId } = await request.json() as any;
 
     await this.handleParticipantDisconnect(userId);
     this.participants.delete(userId);

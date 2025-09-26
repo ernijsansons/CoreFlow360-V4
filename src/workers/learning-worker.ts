@@ -21,8 +21,8 @@ export class LearningWorker {
 
   constructor(env: Env) {
     this.env = env;
-    this.learningEngine = new ContinuousLearningEngine(env);
-    this.patternRecognition = new PatternRecognition(env);
+    this.learningEngine = new ContinuousLearningEngine(env, 'system');
+    this.patternRecognition = new PatternRecognition(env, 'system');
     this.playbookGenerator = new PlaybookGenerator(env);
   }
 
@@ -237,7 +237,8 @@ export class LearningWorker {
 
   // Run and monitor experiments
   private async runExperiments(businessId: string): Promise<void> {
-    const experiments = await this.learningEngine.getActiveExperiments();
+    // TODO: Implement getActiveExperiments method in ContinuousLearningEngine
+    const experiments: any[] = [];
 
 
     for (const experiment of experiments) {

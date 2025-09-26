@@ -569,10 +569,11 @@ export class CacheConsistencyValidator {
   private async checkCompleteness(): Promise<CompletenessCheck> {
     const missingEntries: string[] = [];
     const extraEntries: string[] = [];
+    let criticalBusinesses: any = { results: [] };
 
     try {
       // Check if critical entities have corresponding cache entries
-      const criticalBusinesses = await this.context.env.DB.prepare(`
+      criticalBusinesses = await this.context.env.DB.prepare(`
         SELECT id FROM businesses WHERE active = 1 LIMIT 20
       `).all();
 

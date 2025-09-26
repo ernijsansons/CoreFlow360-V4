@@ -33,6 +33,7 @@ export interface ErrorContext {
   correlationId?: string;
   operation?: string;
   resource?: string;
+  service?: string;
   metadata?: Record<string, any>;
 }
 

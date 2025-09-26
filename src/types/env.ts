@@ -6,6 +6,7 @@ export interface Env {
   DB: D1Database;
   DB_MAIN: D1Database;
   DB_ANALYTICS: D1Database;
+  DB_CRM: D1Database;
 
   // KV Namespaces
   KV_CACHE: KVNamespace;
@@ -45,6 +46,9 @@ export interface Env {
   // Rate limiting
   RATE_LIMITER?: any;
 
+  // Execution context
+  ctx?: ExecutionContext;
+
   // Core Application Variables
   APP_NAME: string;
   API_VERSION: string;
@@ -56,6 +60,7 @@ export interface Env {
   EMAIL_API_ENDPOINT?: string;
   ORCHESTRATOR_API?: string;
   GATEWAY_API?: string;
+  MIGRATION_WEBHOOK?: string;
   CACHE_API?: string;
   BIGQUERY_PROJECT_ID?: string;
   BIGQUERY_DATASET_ID?: string;
@@ -90,6 +95,16 @@ export interface Env {
   // AI Service Keys
   ANTHROPIC_API_KEY?: string;
   OPENAI_API_KEY?: string;
+
+  // Data Enrichment API Keys
+  CLEARBIT_API_KEY?: string;
+  APOLLO_API_KEY?: string;
+  LINKEDIN_USERNAME?: string;
+  LINKEDIN_PASSWORD?: string;
+  HUNTER_API_KEY?: string;
+  GOOGLE_NEWS_API_KEY?: string;
+  NEWSAPI_KEY?: string;
+  SERPAPI_KEY?: string;
 
   // Other Configuration
   API_BASE_URL?: string;

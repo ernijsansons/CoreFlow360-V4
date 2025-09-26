@@ -31,6 +31,7 @@ import abacRoutes from './abac';
 import aiAuditRoutes from './ai-audit';
 import aiMonitoringRoutes from './ai-monitoring';
 import observabilityRoutes from './observability';
+import rateLimitingRoutes from './rate-limiting';
 
 import type { Env } from '../types/env';
 
@@ -97,6 +98,7 @@ v1.route('/abac', abacRoutes);
 v1.route('/ai-audit', aiAuditRoutes);
 v1.route('/ai-monitoring', aiMonitoringRoutes);
 v1.route('/observability', observabilityRoutes);
+v1.route('/rate-limiting', rateLimitingRoutes);
 
 // Mount v1 under /api/v1
 api.route('/v1', v1);

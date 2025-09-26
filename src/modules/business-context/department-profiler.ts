@@ -14,7 +14,7 @@ export class DepartmentProfiler {
   private db: D1Database;
 
   // Department-specific capability mappings
-  private departmentCapabilities = {
+  private departmentCapabilities: Record<string, DepartmentCapabilities> = {
     finance: {
       allowedOperations: [
         'financial_analysis', 'budget_planning', 'cost_analysis', 'revenue_analysis',
@@ -35,7 +35,8 @@ export class DepartmentProfiler {
         daily: 1000,
         monthly: 25000,
         quarterly: 75000
-      }
+      },
+      escalationRules: []
     },
 
     hr: {
@@ -58,7 +59,8 @@ export class DepartmentProfiler {
         daily: 500,
         monthly: 15000,
         quarterly: 45000
-      }
+      },
+      escalationRules: []
     },
 
     sales: {
@@ -81,7 +83,8 @@ export class DepartmentProfiler {
         daily: 2000,
         monthly: 50000,
         quarterly: 150000
-      }
+      },
+      escalationRules: []
     },
 
     marketing: {
@@ -104,7 +107,8 @@ export class DepartmentProfiler {
         daily: 1000,
         monthly: 30000,
         quarterly: 90000
-      }
+      },
+      escalationRules: []
     },
 
     operations: {
@@ -127,7 +131,8 @@ export class DepartmentProfiler {
         daily: 1500,
         monthly: 40000,
         quarterly: 120000
-      }
+      },
+      escalationRules: []
     },
 
     it: {
@@ -150,7 +155,8 @@ export class DepartmentProfiler {
         daily: 2000,
         monthly: 60000,
         quarterly: 180000
-      }
+      },
+      escalationRules: []
     }
   };
 
@@ -180,30 +186,51 @@ export class DepartmentProfiler {
       
       // Generate department profile
       const profile: DepartmentProfile = {
-        name: departmentName,
-        responsibilities: await this.identifyResponsibilities(departmentName, departmentData),
-        goals: await this.identifyGoals(departmentName, departmentData),
-        challenges: await this.identifyChallenges(departmentName, departmentData),
-        metrics: await this.identifyMetrics(departmentName, departmentData),
-        capabilities,
-        teamSize: departmentData.teamSize || 0,
-        budget: departmentData.budget || 0,
-        performanceScore: await this.calculatePerformanceScore(departmentName, departmentData),
-        efficiencyRating: await this.calculateEfficiencyRating(departmentName, departmentData),
-        collaborationLevel: await this.assessCollaborationLevel(departmentName, departmentData),
-        innovationIndex: await this.calculateInnovationIndex(departmentName, departmentData),
-        riskLevel: await this.assessRiskLevel(departmentName, departmentData),
-        complianceStatus: await this.assessComplianceStatus(departmentName, departmentData),
-        technologyAdoption: await this.assessTechnologyAdoption(departmentName, departmentData),
-        trainingNeeds: await this.identifyTrainingNeeds(departmentName, departmentData),
-        improvementOpportunities: await this.identifyImprovementOpportunities(departmentName, departmentData)
+        basic: {
+          name: departmentName,
+          code: departmentData.code || '',
+          description: departmentData.description || '',
+          type: departmentData.type || 'support',
+        },
+        team: {
+          size: departmentData.teamSize || 0,
+          roles: [],
+          skills: [],
+          averageExperience: 0,
+        },
+        operations: {
+          primaryFunctions: await this.identifyResponsibilities(departmentName, departmentData),
+          keyProcesses: [],
+          tools: [],
+          kpis: [],
+          budget: {
+            currency: 'USD',
+            allocation: {},
+          },
+        },
+        workflows: {
+          approvalLevels: 0,
+          automationLevel: 'low',
+          commonTasks: [],
+          painPoints: [],
+          efficiency: {
+            score: 0,
+            bottlenecks: [],
+            improvements: [],
+          },
+        },
+        relationships: {
+          upstreamDepartments: [],
+          downstreamDepartments: [],
+          externalPartners: [],
+          collaborationStrength: {},
+        },
       };
 
       this.logger.info('Department analysis completed', {
         businessId,
         departmentName,
-        teamSize: profile.teamSize,
-        performanceScore: profile.performanceScore
+        teamSize: profile.team.size,
       });
 
       return profile;
@@ -240,7 +267,8 @@ export class DepartmentProfiler {
           daily: 500,
           monthly: 15000,
           quarterly: 45000
-        }
+        },
+        escalationRules: []
       };
     }
 
@@ -319,15 +347,26 @@ export class DepartmentProfiler {
         departmentName,
         period,
         this.getPeriodStartDate(period)
-      ).first();
+      ).first() as { total_operations: number; avg_completion_time: number; total_successes: number; total_errors: number; avg_efficiency: number; } | null;
+
+      if (!metrics) {
+        return {
+          totalOperations: 0,
+          avgCompletionTime: 0,
+          totalSuccesses: 0,
+          totalErrors: 0,
+          avgEfficiency: 0,
+          successRate: 0
+        };
+      }
 
       return {
-        totalOperations: metrics?.total_operations || 0,
-        avgCompletionTime: metrics?.avg_completion_time || 0,
-        totalSuccesses: metrics?.total_successes || 0,
-        totalErrors: metrics?.total_errors || 0,
-        avgEfficiency: metrics?.avg_efficiency || 0,
-        successRate: metrics?.total_operations ? 
+        totalOperations: metrics.total_operations || 0,
+        avgCompletionTime: metrics.avg_completion_time || 0,
+        totalSuccesses: metrics.total_successes || 0,
+        totalErrors: metrics.total_errors || 0,
+        avgEfficiency: metrics.avg_efficiency || 0,
+        successRate: metrics.total_operations ? 
           (metrics.total_successes / metrics.total_operations) * 100 : 0
       };
 
@@ -413,7 +452,7 @@ export class DepartmentProfiler {
 
   private async identifyGoals(departmentName: string, departmentData: any): Promise<string[]> {
     // Mock implementation - in real scenario, this would analyze department data
-    const goals = {
+    const goals: Record<string, string[]> = {
       finance: ['Improve financial accuracy', 'Reduce processing time', 'Enhance compliance'],
       hr: ['Improve employee satisfaction', 'Reduce turnover', 'Enhance training programs'],
       sales: ['Increase revenue', 'Improve customer satisfaction', 'Expand market reach'],
@@ -427,7 +466,7 @@ export class DepartmentProfiler {
 
   private async identifyChallenges(departmentName: string, departmentData: any): Promise<string[]> {
     // Mock implementation - in real scenario, this would analyze department data
-    const challenges = {
+    const challenges: Record<string, string[]> = {
       finance: ['Regulatory compliance', 'Data accuracy', 'Process automation'],
       hr: ['Talent retention', 'Skill gaps', 'Policy compliance'],
       sales: ['Market competition', 'Lead quality', 'Customer retention'],
@@ -441,7 +480,7 @@ export class DepartmentProfiler {
 
   private async identifyMetrics(departmentName: string, departmentData: any): Promise<string[]> {
     // Mock implementation - in real scenario, this would analyze department data
-    const metrics = {
+    const metrics: Record<string, string[]> = {
       finance: ['Revenue growth', 'Cost reduction', 'Compliance rate'],
       hr: ['Employee satisfaction', 'Turnover rate', 'Training completion'],
       sales: ['Sales growth', 'Customer acquisition', 'Conversion rate'],

@@ -117,7 +117,7 @@ export class AuthMiddleware {
       };
 
     } catch (error) {
-      this.logger.error('Authentication error', { error: error.message });
+      this.logger.error('Authentication error', { error: error instanceof Error ? error.message : String(error) });
       return {
         success: false,
         error: 'Authentication failed',
@@ -158,7 +158,7 @@ export class AuthMiddleware {
       return true;
 
     } catch (error) {
-      this.logger.error('Authorization error', { error: error.message });
+      this.logger.error('Authorization error', { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -183,7 +183,7 @@ export class AuthMiddleware {
       return { token: newToken, expiresAt };
 
     } catch (error) {
-      this.logger.error('Token refresh error', { error: error.message });
+      this.logger.error('Token refresh error', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -196,7 +196,7 @@ export class AuthMiddleware {
       return true;
 
     } catch (error) {
-      this.logger.error('Token revocation error', { error: error.message });
+      this.logger.error('Token revocation error', { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -282,8 +282,8 @@ export class AuthMiddleware {
 
         // Check for token revocation (if KV is available)
         const jti = payload.jti as string;
-        if (jti && env.KV) {
-          const blacklisted = await env.KV.get(`jwt_blacklist:${jti}`);
+        if (jti && (env as any).KV) {
+          const blacklisted = await (env as any).KV.get(`jwt_blacklist:${jti}`);
           if (blacklisted) {
             this.logger.warn('Revoked token attempted', { jti });
             return {
@@ -569,7 +569,7 @@ export class AuthMiddleware {
       return user;
 
     } catch (error) {
-      this.logger.error('Error fetching user', { userId, error: error.message });
+      this.logger.error('Error fetching user', { userId, error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }
@@ -594,7 +594,7 @@ export class AuthMiddleware {
       return `${header}.${payload}.${signature}`;
 
     } catch (error) {
-      this.logger.error('Token generation error', { error: error.message });
+      this.logger.error('Token generation error', { error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }
@@ -605,7 +605,7 @@ export class AuthMiddleware {
       this.logger.info('Last login updated', { userId });
 
     } catch (error) {
-      this.logger.error('Error updating last login', { userId, error: error.message });
+      this.logger.error('Error updating last login', { userId, error: error instanceof Error ? error.message : String(error) });
     }
   }
 
@@ -738,5 +738,38 @@ export class AuthMiddleware {
       await next();
     };
   }
+}
+
+// Export convenience functions for backward compatibility
+export function authenticate(options?: { requireMFA?: boolean }) {
+  return async (c: Context, next: () => Promise<void>) => {
+    const authMiddleware = new AuthMiddleware(c);
+    return authMiddleware.authMiddleware(c, next);
+  };
+}
+
+export function requireMFA() {
+  return async (c: Context, next: () => Promise<void>) => {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ error: 'Authentication required' }, 401);
+    }
+
+    // Check if MFA is required for this user
+    // This would typically check user settings or business rules
+    const mfaRequired = user.two_factor_enabled || false;
+
+    if (mfaRequired) {
+      const sessionMFAVerified = c.get('mfaVerified') || false;
+      if (!sessionMFAVerified) {
+        return c.json({
+          error: 'MFA verification required',
+          code: 'MFA_REQUIRED'
+        }, 403);
+      }
+    }
+
+    await next();
+  };
 }
 

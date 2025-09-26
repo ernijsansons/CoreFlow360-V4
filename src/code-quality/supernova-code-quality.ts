@@ -157,7 +157,7 @@ export class SupernovaDeadCodeDetector {
     // Check for variable usage
     const variablePattern = new RegExp(`\\b${variableName}\\b`, 'g');
     const matches = content.match(variablePattern);
-    return matches && matches.length > 1; // More than just the declaration
+    return (matches && matches.length > 1) || false; // More than just the declaration
   }
 
   private static removeItem(content: string, item: DeadCodeItem): string {
@@ -398,7 +398,8 @@ export class SupernovaComplexityAnalyzer {
       cognitiveComplexity,
       nestingDepth,
       functionLength,
-      parameterCount
+      parameterCount,
+      maintainabilityIndex: 0 // Will be calculated
     });
 
     return {
