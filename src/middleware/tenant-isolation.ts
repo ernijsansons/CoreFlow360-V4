@@ -347,7 +347,7 @@ export class TenantIsolationMiddleware {
         }
 
         // Additional security checks
-        const createdAt = new Date(result.created_at as string);
+        const createdAt = new Date((result as any).created_at as string);
         const daysSinceCreation = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
         
         // Flag suspicious new businesses (less than 1 day old)
@@ -370,8 +370,8 @@ export class TenantIsolationMiddleware {
       if (isValid) {
         this.logger.debug('Business ID validated successfully', { 
           businessId,
-          activeUsers: result?.active_users,
-          isolationLevel: result?.tenant_isolation_level
+          activeUsers: (result as any)?.active_users,
+          isolationLevel: (result as any)?.tenant_isolation_level
         });
       } else {
         this.logger.warn('Business ID validation failed', { 
@@ -483,7 +483,7 @@ export class TenantIsolationMiddleware {
       }
 
       // SECURITY: Additional validation checks
-      const membershipAge = new Date().getTime() - new Date(result.created_at as string).getTime();
+      const membershipAge = new Date().getTime() - new Date((result as any).created_at as string).getTime();
       const daysSinceJoined = membershipAge / (1000 * 60 * 60 * 24);
       
       // Check for suspicious new memberships
@@ -496,26 +496,26 @@ export class TenantIsolationMiddleware {
       }
 
       // SECURITY: Validate user verification status for sensitive operations
-      if (!result.email_verified) {
+      if (!(result as any).email_verified) {
         this.logger.warn('Unverified user attempting business access', {
           userId,
           businessId,
-          emailVerified: result.email_verified
+          emailVerified: (result as any).email_verified
         });
         // Still allow access but log for monitoring
       }
 
       // SECURITY: Check tenant isolation level requirements
-      const isolationLevel = result.tenant_isolation_level as string;
+      const isolationLevel = (result as any).tenant_isolation_level as string;
       if (isolationLevel === 'strict') {
         // For strict isolation, require MFA for admin roles
-        const role = result.role as string;
-        if (['admin', 'owner'].includes(role) && !result.mfa_enabled) {
+        const role = (result as any).role as string;
+        if (['admin', 'owner'].includes(role) && !(result as any).mfa_enabled) {
           this.logger.warn('Admin user without MFA accessing strict isolation business', {
             userId,
             businessId,
             role,
-            mfaEnabled: result.mfa_enabled
+            mfaEnabled: (result as any).mfa_enabled
           });
           // Log but don't block - this should be enforced at auth level
         }
@@ -529,7 +529,7 @@ export class TenantIsolationMiddleware {
       this.logger.debug('User business access validated successfully', {
         userId,
         businessId,
-        role: result.role,
+        role: (result as any).role,
         isolationLevel: isolationLevel,
         membershipAge: Math.round(daysSinceJoined * 100) / 100
       });

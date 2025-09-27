@@ -277,11 +277,11 @@ class JournalService {
         crypto.randomUUID(),
         this.businessId,
         reversalId,
-        line.line_number,
-        line.account_id,
-        line.credit_amount, // Swap
-        line.debit_amount,  // Swap
-        `Reversal: ${line.description}`
+        (line as any).line_number,
+        (line as any).account_id,
+        (line as any).credit_amount, // Swap
+        (line as any).debit_amount,  // Swap
+        `Reversal: ${(line as any).description}`
       ).run();
     }
 
@@ -374,11 +374,11 @@ class JournalService {
       `).bind(
         crypto.randomUUID(),
         this.businessId,
-        line.account_id,
+        (line as any).account_id,
         entry.period,
         entry.fiscal_year,
-        line.debit,
-        line.credit
+        (line as any).debit,
+        (line as any).credit
       ).run();
     }
   }

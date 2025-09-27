@@ -1,0 +1,140 @@
+name = "coreflow360-v4-production"
+main = "src/index.production.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Production D1 Database bindings
+[[d1_databases]]
+binding = "DB"
+database_name = "coreflow360-prod"
+database_id = "prod-database-id-here"
+migrations_dir = "database/migrations"
+
+[[d1_databases]]
+binding = "DB_MAIN"
+database_name = "coreflow360-prod"
+database_id = "prod-database-id-here"
+migrations_dir = "database/migrations"
+
+[[d1_databases]]
+binding = "DB_ANALYTICS"
+database_name = "coreflow360-analytics-prod"
+database_id = "prod-analytics-db-id-here"
+
+# Production KV Namespace bindings
+[[kv_namespaces]]
+binding = "KV_CACHE"
+id = "prod-cache-namespace-id"
+
+[[kv_namespaces]]
+binding = "KV_SESSION"
+id = "prod-session-namespace-id"
+
+[[kv_namespaces]]
+binding = "KV_RATE_LIMIT_METRICS"
+id = "prod-rate-limit-namespace-id"
+
+[[kv_namespaces]]
+binding = "KV_AUTH"
+id = "prod-auth-namespace-id"
+
+# Production R2 Bucket bindings
+[[r2_buckets]]
+binding = "R2_DOCUMENTS"
+bucket_name = "coreflow360-prod-documents"
+
+[[r2_buckets]]
+binding = "R2_BACKUPS"
+bucket_name = "coreflow360-prod-backups"
+
+# Production Durable Objects
+[[durable_objects.bindings]]
+name = "RATE_LIMITER_DO"
+class_name = "AdvancedRateLimiterDO"
+
+[[durable_objects.bindings]]
+name = "SESSION_MANAGER_DO"
+class_name = "SessionManagerDO"
+
+[[durable_objects.bindings]]
+name = "ANALYTICS_AGGREGATOR_DO"
+class_name = "AnalyticsAggregatorDO"
+
+# Durable Object migrations
+[[migrations]]
+tag = "v1"
+new_classes = ["AdvancedRateLimiterDO", "SessionManagerDO", "AnalyticsAggregatorDO"]
+
+# AI binding
+[ai]
+binding = "AI"
+remote = true
+
+# Production environment variables
+[vars]
+APP_NAME = "CoreFlow360 V4"
+API_VERSION = "v4.1.0"
+LOG_LEVEL = "info"
+ENVIRONMENT = "production"
+API_BASE_URL = "https://api.coreflow360.com"
+ALLOWED_ORIGINS = "https://app.coreflow360.com,https://www.coreflow360.com"
+
+# Production route configuration
+[[routes]]
+pattern = "api.coreflow360.com/*"
+zone_name = "coreflow360.com"
+
+# Custom domains
+[[routes]]
+pattern = "coreflow360.com/api/*"
+zone_name = "coreflow360.com"
+
+# Performance and observability
+[observability]
+enabled = true
+head_sampling_rate = 0.01
+
+[placement]
+mode = "smart"
+
+# Production limits and quotas
+[limits]
+cpu_ms = 50
+min_instances = 2
+max_instances = 100
+
+# Production build settings
+[build]
+command = "npm run build:production"
+watch_paths = ["src/**/*.ts", "src/**/*.js"]
+
+# Production deployment settings
+[deploy]
+routes = ["api.coreflow360.com/*", "coreflow360.com/api/*"]
+preview_enabled = false
+test_before_deploy = true
+
+# Security headers
+[site]
+headers = [
+  "X-Content-Type-Options: nosniff",
+  "X-Frame-Options: DENY",
+  "X-XSS-Protection: 1; mode=block",
+  "Referrer-Policy: strict-origin-when-cross-origin",
+  "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
+  "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload"
+]
+
+# Production secrets (set via: wrangler secret put SECRET_NAME --env production)
+# JWT_SECRET
+# ANTHROPIC_API_KEY
+# OPENAI_API_KEY
+# EMAIL_API_KEY
+# STRIPE_SECRET_KEY
+# STRIPE_WEBHOOK_SECRET
+# SENTRY_DSN
+# CLOUDFLARE_API_TOKEN
+# CLOUDFLARE_ACCOUNT_ID
+# CLOUDFLARE_ZONE_ID
+# ENCRYPTION_KEY
+# AUTH_SECRET

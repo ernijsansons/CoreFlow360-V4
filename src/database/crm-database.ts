@@ -264,7 +264,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.meta.success) {
+      if (!Boolean(result.meta.success)) {
         return { success: false, error: 'Failed to create company' };
       }
 
@@ -316,7 +316,7 @@ export class CRMDatabase {
         .bind(...values, id, businessId)
         .run();
 
-      return { success: result.meta.success, data: { updated: result.meta.changes } };
+      return { success: Boolean(result.meta.success), data: { updated: result.meta.changes } };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -340,7 +340,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.meta.success) {
+      if (!Boolean(result.meta.success)) {
         return { success: false, error: 'Failed to create contact' };
       }
 
@@ -403,7 +403,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.meta.success) {
+      if (!Boolean(result.meta.success)) {
         return { success: false, error: 'Failed to create lead' };
       }
 
@@ -517,7 +517,7 @@ export class CRMDatabase {
         .bind(status, aiSummary, id)
         .run();
 
-      return { success: result.meta.success, data: { updated: result.meta.changes } };
+      return { success: Boolean(result.meta.success), data: { updated: result.meta.changes } };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -541,7 +541,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.meta.success) {
+      if (!Boolean(result.meta.success)) {
         return { success: false, error: 'Failed to create AI task' };
       }
 
@@ -607,7 +607,7 @@ export class CRMDatabase {
         .bind(...params)
         .run();
 
-      return { success: result.meta.success, data: { updated: result.meta.changes } };
+      return { success: Boolean(result.meta.success), data: { updated: result.meta.changes } };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -637,7 +637,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(data))
         .run();
 
-      if (!result.meta.success) {
+      if (!Boolean(result.meta.success)) {
         return { success: false, error: 'Failed to create conversation' };
       }
 
@@ -671,7 +671,7 @@ export class CRMDatabase {
         .bind(...values, id)
         .run();
 
-      return { success: result.meta.success, data: { updated: result.meta.changes } };
+      return { success: Boolean(result.meta.success), data: { updated: result.meta.changes } };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
