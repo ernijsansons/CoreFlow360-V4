@@ -12,10 +12,7 @@ declare global {
     run(): Promise<D1Result>;
     all<T = unknown>(): Promise<D1Result<T>>;
   }
-  interface D1Result<T = unknown> {
-    results?: T[];
-    meta: any;
-  }
+  // D1Result interface is already defined in @cloudflare/workers-types
   interface KVNamespace {
     get(key: string): Promise<string | null>;
     put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
@@ -27,13 +24,7 @@ declare global {
   interface R2Object {
     body: ReadableStream;
   }
-  interface DurableObjectState {
-    storage: {
-      get<T>(key: string): Promise<T | undefined>;
-      put<T>(key: string, value: T): Promise<void>;
-      delete(key: string): Promise<void>;
-    };
-  }
+  // DurableObjectState interface is already defined in @cloudflare/workers-types
   interface DurableObjectNamespace {
     idFromName(name: string): DurableObjectId;
     get(id: DurableObjectId): DurableObject;
@@ -372,7 +363,7 @@ const createRouteHandlers = (env: Env, dbManager: DatabaseManager, aiService: AI
 
     try {
       const body = await request.json();
-      const result = await authSystem.register(body);
+      const result = await authSystem.register(body as any);
 
       return new Response(JSON.stringify(result), {
         status: result.success ? 201 : 400,
@@ -403,7 +394,7 @@ const createRouteHandlers = (env: Env, dbManager: DatabaseManager, aiService: AI
       const ipAddress = request.headers.get('CF-Connecting-IP') || undefined;
       const userAgent = request.headers.get('User-Agent') || undefined;
 
-      const result = await authSystem.login(body, ipAddress, userAgent);
+      const result = await authSystem.login(body as any, ipAddress, userAgent);
 
       return new Response(JSON.stringify(result), {
         status: result.success ? 200 : 401,

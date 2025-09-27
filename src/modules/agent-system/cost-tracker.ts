@@ -97,7 +97,7 @@ export class CostTracker {
         trackingId,
         businessId: metrics.businessId,
         taskId: metrics.taskId,
-      }));
+      }) as Record<string, unknown>);
     }
   }
 
@@ -502,7 +502,7 @@ export class CostTracker {
       `).bind(cutoffTime).run();
 
       this.logger.info('Cost records cleanup completed', {
-        deletedRecords: result.changes || 0,
+        deletedRecords: result.meta.changes || 0,
         retentionDays,
       });
 
@@ -543,7 +543,7 @@ export class CostTracker {
       });
 
     } catch (error: any) {
-      this.logger.warn('Failed to update cost counter', error, { key });
+      this.logger.warn('Failed to update cost counter', error, { costKey: key });
     }
   }
 

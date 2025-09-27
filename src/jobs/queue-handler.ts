@@ -661,7 +661,7 @@ export class QueueHandler {
     const response = await env.R2_ASSETS.get(`email-templates/${template}.json`);
 
     if (response) {
-      return await response.json();
+      return await new Response(response.body).json();
     }
 
     // Fallback templates

@@ -1285,7 +1285,7 @@ export class WorkflowExecutor {
     // Execute database query integration
     const db = this.env.DB_CRM;
     const result = await db.prepare(config.query).bind(...Object.values(inputData)).all();
-    return { results: result.results };
+    return { results: result.results || [] };
   }
 
   private async executeFileOperation(config: any, inputData: WorkflowInputData): Promise<WorkflowOutputData> {
