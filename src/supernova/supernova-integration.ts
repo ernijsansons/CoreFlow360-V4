@@ -115,7 +115,7 @@ export class SupernovaIntegration {
       
       return integrationResult;
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ SUPERNOVA integration failed:', error);
       
       return {
@@ -194,7 +194,7 @@ export class SupernovaIntegration {
         improvementsApplied: this.countImprovements(results)
       };
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Specific improvements failed:', error);
       return {
         success: false,
@@ -237,7 +237,7 @@ export class SupernovaIntegration {
 
   private countImprovements(results: IntegrationStep[]): number {
     return results
-      .filter(step => step.status === 'success')
+      .filter((step: any) => step.status === 'success')
       .reduce((count, step) => {
         // Extract number from message if possible
         const match = step.message.match(/(\d+)/);
@@ -270,7 +270,7 @@ export class SupernovaIntegrationUtils {
       for (const module of requiredModules) {
         try {
           await import(module);
-        } catch (error) {
+        } catch (error: any) {
           issues.push(`Missing required module: ${module}`);
         }
       }
@@ -285,7 +285,7 @@ export class SupernovaIntegrationUtils {
         warnings
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         valid: false,
         issues: [`Prerequisites validation failed: ${error}`],
@@ -298,7 +298,7 @@ export class SupernovaIntegrationUtils {
    * SUPERNOVA Enhanced: Generate integration summary
    */
   static generateSummary(result: IntegrationResult): string {
-    const successRate = result.steps.filter(step => step.status === 'success').length / result.steps.length * 100;
+    const successRate = result.steps.filter((step: any) => step.status === 'success').length / result.steps.length * 100;
     
     return `
 🚀 SUPERNOVA Integration Summary
@@ -310,12 +310,12 @@ export class SupernovaIntegrationUtils {
 📈 Success Rate: ${successRate.toFixed(1)}%
 
 Steps Completed:
-${result.steps.map(step => 
+${result.steps.map((step: any) => 
   `  ${step.status === 'success' ? '✅' : '❌'} ${step.step}: ${step.message} (${step.duration}ms)`
 ).join('\n')}
 
 Recommendations:
-${result.recommendations.map(rec => `  • ${rec}`).join('\n')}
+${result.recommendations.map((rec: any) => `  • ${rec}`).join('\n')}
     `.trim();
   }
 }

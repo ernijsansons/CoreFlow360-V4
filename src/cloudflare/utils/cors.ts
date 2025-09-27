@@ -156,11 +156,11 @@ export class CorsHandler {
   private filterRequestedHeaders(requestedHeaders: string): string[] {
     const requested = requestedHeaders
       .split(',')
-      .map(header => header.trim().toLowerCase());
+      .map((header: any) => header.trim().toLowerCase());
 
-    const allowed = this.options.allowedHeaders.map(header => header.toLowerCase());
+    const allowed = this.options.allowedHeaders.map((header: any) => header.toLowerCase());
 
-    return requested.filter(header => allowed.includes(header));
+    return requested.filter((header: any) => allowed.includes(header));
   }
 }
 

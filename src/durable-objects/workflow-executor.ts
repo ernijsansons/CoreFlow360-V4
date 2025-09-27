@@ -236,7 +236,7 @@ export class WorkflowExecutor {
         default:
           return new Response('Not found', { status: 404 });
       }
-    } catch (error) {
+    } catch (error: any) {
       return new Response('Internal error', { status: 500 });
     }
   }
@@ -256,7 +256,7 @@ export class WorkflowExecutor {
     await this.initializeExecution(workflowDefinition, context);
 
     // Start execution asynchronously
-    this.executeWorkflowAsync(workflowDefinition, context).catch(error => {
+    this.executeWorkflowAsync(workflowDefinition, context).catch((error: any) => {
       this.broadcastUpdate({
         type: 'workflow_failed',
         executionId: context.executionId,
@@ -332,7 +332,7 @@ export class WorkflowExecutor {
         timestamp: new Date().toISOString()
       });
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : undefined;
 
@@ -409,7 +409,7 @@ export class WorkflowExecutor {
       const node = this.executionGraph.get(nodeId);
       if (!node) continue;
 
-      const promise = semaphore.acquire().then(async (release) => {
+      const promise = semaphore.acquire().then(async (release: any) => {
         try {
           // Wait for dependencies
           await this.waitForDependencies(node, results);
@@ -568,7 +568,7 @@ export class WorkflowExecutor {
 
       return nodeResult;
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : undefined;
       
@@ -887,7 +887,7 @@ export class WorkflowExecutor {
   private calculateProgress(): number {
     const totalNodes = this.executionGraph.size;
     const completedNodes = Array.from(this.nodeResults.values())
-      .filter(result => result.status === 'completed').length;
+      .filter((result: any) => result.status === 'completed').length;
 
     return totalNodes > 0 ? (completedNodes / totalNodes) * 100 : 0;
   }
@@ -909,10 +909,10 @@ export class WorkflowExecutor {
 
   private broadcastUpdate(update: ExecutionUpdate): void {
     const message = JSON.stringify(update);
-    this.websockets.forEach(ws => {
+    this.websockets.forEach((ws: any) => {
       try {
         ws.send(message);
-      } catch (error) {
+      } catch (error: any) {
       }
     });
   }
@@ -1226,7 +1226,7 @@ export class WorkflowExecutor {
       try {
         const result = await this.executeNode(node, context, {});
         this.nodeResults.set(node.id, result);
-      } catch (error) {
+      } catch (error: any) {
         // Handle retry failure
         const errorMessage = error instanceof Error ? error.message : String(error);
         nodeResult.status = 'failed';
@@ -1338,7 +1338,7 @@ export class WorkflowExecutor {
     try {
       const result = eval(expression); // In production, use a safe expression evaluator
       return { conditionResult: result };
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       return { conditionResult: false, error: errorMessage };
     }
@@ -1395,7 +1395,7 @@ class CircuitBreaker {
       const result = await fn();
       this.onSuccess();
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this.onFailure();
       throw error;
     }

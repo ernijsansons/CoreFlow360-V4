@@ -93,7 +93,7 @@ export class WebhookIntegration extends EventEmitter {
 
       try {
         await this.deliverEvent(event);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to deliver webhook event:', error);
         this.handleDeliveryFailure(event, error);
       }
@@ -104,7 +104,7 @@ export class WebhookIntegration extends EventEmitter {
 
   private async deliverEvent(event: WebhookEvent): Promise<void> {
     const subscriptions = this.subscriptions.get(event.event) || [];
-    const activeSubscriptions = subscriptions.filter(sub => sub.active);
+    const activeSubscriptions = subscriptions.filter((sub: any) => sub.active);
 
     if (activeSubscriptions.length === 0) {
       console.log(`No active subscriptions for event: ${event.event}`);
@@ -112,7 +112,7 @@ export class WebhookIntegration extends EventEmitter {
     }
 
     // Deliver to all active subscriptions
-    const deliveryPromises = activeSubscriptions.map(subscription => 
+    const deliveryPromises = activeSubscriptions.map((subscription: any) => 
       this.deliverToSubscription(event, subscription)
     );
 
@@ -153,7 +153,7 @@ export class WebhookIntegration extends EventEmitter {
 
       console.log(`Webhook delivered successfully to ${subscription.url}`);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to deliver webhook to ${subscription.url}:`, error);
       throw error;
     }
@@ -292,7 +292,7 @@ export class WebhookIntegration extends EventEmitter {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to handle incoming webhook:', error);
       return false;
     }
@@ -412,7 +412,7 @@ export class WebhookIntegration extends EventEmitter {
       this.eventQueue = [];
 
       console.log('Webhook integration cleanup completed');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Webhook integration cleanup failed:', error);
     }
   }

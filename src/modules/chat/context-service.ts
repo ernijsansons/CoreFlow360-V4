@@ -115,7 +115,7 @@ class ChatContextService {
         relevantData
       }
 
-    } catch (error) {
+    } catch (error: any) {
       await this.auditLogger.log({
         action: 'chat_context_failed',
         userId,
@@ -191,7 +191,7 @@ class ChatContextService {
       LIMIT 10
     `).bind(userId, businessId).all()
 
-    return activities.results.map(activity => ({
+    return activities.results.map((activity: any) => ({
       action: activity.action as string,
       entity: activity.entity as string,
       timestamp: activity.timestamp as string
@@ -256,7 +256,7 @@ class ChatContextService {
           break
       }
 
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return relevantData
@@ -411,7 +411,7 @@ class ChatContextService {
         }
       })
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -425,7 +425,7 @@ class ChatContextService {
 
       return cached ? JSON.parse(cached) : null
 
-    } catch (error) {
+    } catch (error: any) {
       return null
     }
   }

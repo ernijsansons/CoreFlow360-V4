@@ -44,7 +44,7 @@ class BusinessCacheManager {
             readTimeMs: performance.now() - startTime,
           };
         }
-      } catch (error) {
+      } catch (error: any) {
       }
     }
 
@@ -96,7 +96,7 @@ class BusinessCacheManager {
       }
 
       return performance.now() - startTime;
-    } catch (error) {
+    } catch (error: any) {
       return performance.now() - startTime;
     }
   }
@@ -120,7 +120,7 @@ class BusinessCacheManager {
           readTimeMs: performance.now() - startTime,
         };
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return {
@@ -152,7 +152,7 @@ class BusinessCacheManager {
       });
 
       return performance.now() - startTime;
-    } catch (error) {
+    } catch (error: any) {
       return performance.now() - startTime;
     }
   }
@@ -239,13 +239,13 @@ class BusinessCacheManager {
     const results = new Map<string, any>();
 
     // KV doesn't support batch reads natively, so we use Promise.all
-    const promises = keys.map(async (key) => {
+    const promises = keys.map(async (key: any) => {
       try {
         const value = await this.kv.get(key, 'json');
         if (value) {
           results.set(key, value);
         }
-      } catch (error) {
+      } catch (error: any) {
       }
     });
 
@@ -276,7 +276,7 @@ class BusinessCacheManager {
     }
 
     // Load data with stampede protection
-    const loadPromise = loader().then(async (data) => {
+    const loadPromise = loader().then(async (data: any) => {
       // Cache the result
       await this.kv.put(key, JSON.stringify(data), {
         expirationTtl: ttl,
@@ -286,7 +286,7 @@ class BusinessCacheManager {
       this.inFlightRequests.delete(key);
 
       return data;
-    }).catch((error) => {
+    }).catch((error: any) => {
       // Clear from in-flight on error
       this.inFlightRequests.delete(key);
       throw error;

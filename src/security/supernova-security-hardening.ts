@@ -175,7 +175,7 @@ export class SupernovaSQLProtection {
     }
 
     // Validate parameters
-    const safeParams = params.map(param => this.sanitizeParameter(param));
+    const safeParams = params.map((param: any) => this.sanitizeParameter(param));
     
     return {
       query: this.cleanQuery(query),
@@ -541,14 +541,14 @@ export class SupernovaSecurityUtils {
 
         // Check for secret leaks
         const secrets = SupernovaSecretDetection.detectSecrets(content);
-        results.secretLeaks.push(...secrets.map(secret => ({
+        results.secretLeaks.push(...secrets.map((secret: any) => ({
           file: filePath,
           line: 0,
           issue: `Potential secret leak: ${secret.type}`,
           severity: secret.severity
         })));
 
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Error scanning file ${filePath}:`, error);
       }
     }

@@ -154,7 +154,7 @@ export class InputValidator {
   static validateResourceId(resourceId: unknown): string {
     try {
       return this.RESOURCE_ID_SCHEMA.parse(resourceId);
-    } catch (error) {
+    } catch (error: any) {
       throw new SecurityError('Invalid resource ID format', {
         resourceId: typeof resourceId === 'string' ? resourceId.slice(0, 10) + '...' : typeof resourceId,
         code: 'INVALID_RESOURCE_ID',
@@ -169,7 +169,7 @@ export class InputValidator {
   static validateBusinessId(businessId: unknown): string {
     try {
       return this.BUSINESS_ID_SCHEMA.parse(businessId);
-    } catch (error) {
+    } catch (error: any) {
       throw new SecurityError('Invalid business ID format', {
         businessId: typeof businessId === 'string' ? businessId.slice(0, 10) + '...' : typeof businessId,
         code: 'INVALID_BUSINESS_ID',
@@ -184,7 +184,7 @@ export class InputValidator {
   static validateUserId(userId: unknown): string {
     try {
       return this.USER_ID_SCHEMA.parse(userId);
-    } catch (error) {
+    } catch (error: any) {
       throw new SecurityError('Invalid user ID format', {
         userId: typeof userId === 'string' ? userId.slice(0, 10) + '...' : typeof userId,
         code: 'INVALID_USER_ID',
@@ -199,7 +199,7 @@ export class InputValidator {
   static validateCapability(capability: unknown): string {
     try {
       return this.CAPABILITY_SCHEMA.parse(capability);
-    } catch (error) {
+    } catch (error: any) {
       throw new SecurityError('Invalid capability format', {
         capability: typeof capability === 'string' ? capability : typeof capability,
         code: 'INVALID_CAPABILITY',
@@ -214,7 +214,7 @@ export class InputValidator {
   static validateCorrelationId(correlationId: unknown): string {
     try {
       return this.CORRELATION_ID_SCHEMA.parse(correlationId);
-    } catch (error) {
+    } catch (error: any) {
       throw new SecurityError('Invalid correlation ID format', {
         correlationId: typeof correlationId === 'string' ? correlationId.slice(0, 10) + '...' : typeof correlationId,
         code: 'INVALID_CORRELATION_ID',
@@ -412,7 +412,7 @@ export class PIIRedactor {
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         redacted[key] = this.redactSensitiveData(value as Record<string, unknown>);
       } else if (Array.isArray(value)) {
-        redacted[key] = value.map(item =>
+        redacted[key] = value.map((item: any) =>
           typeof item === 'object' && item !== null
             ? this.redactSensitiveData(item as Record<string, unknown>)
             : item

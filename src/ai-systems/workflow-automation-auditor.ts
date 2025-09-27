@@ -412,13 +412,13 @@ export class WorkflowAutomationAuditor {
     }
 
     // Check for bottlenecks
-    const slowSteps = workflow.steps.filter(step => step.timeout > 30000);
+    const slowSteps = workflow.steps.filter((step: any) => step.timeout > 30000);
     if (slowSteps.length > 0) {
       issues.push({
         type: 'bottleneck',
         severity: 'medium',
-        location: slowSteps.map(s => s.name).join(', '),
-        description: `Slow execution steps detected (>${Math.max(...slowSteps.map(s => s.timeout))/1000}s)`,
+        location: slowSteps.map((s: any) => s.name).join(', '),
+        description: `Slow execution steps detected (>${Math.max(...slowSteps.map((s: any) => s.timeout))/1000}s)`,
         impact: 'Reduced workflow throughput',
         fix: 'Optimize slow steps or implement parallel execution'
       });
@@ -438,12 +438,12 @@ export class WorkflowAutomationAuditor {
     }
 
     // Check for error handling gaps
-    const stepsWithoutFallback = workflow.steps.filter(step => !step.fallbackStep && step.type === 'ai_model');
+    const stepsWithoutFallback = workflow.steps.filter((step: any) => !step.fallbackStep && step.type === 'ai_model');
     if (stepsWithoutFallback.length > 0) {
       issues.push({
         type: 'error',
         severity: 'medium',
-        location: stepsWithoutFallback.map(s => s.name).join(', '),
+        location: stepsWithoutFallback.map((s: any) => s.name).join(', '),
         description: 'AI model steps without fallback mechanisms',
         impact: 'Workflow failure on model errors',
         fix: 'Implement fallback steps for critical AI operations'
@@ -468,7 +468,7 @@ export class WorkflowAutomationAuditor {
     }
 
     // Caching opportunities
-    const repeatableSteps = workflow.steps.filter(step => step.type === 'ai_model');
+    const repeatableSteps = workflow.steps.filter((step: any) => step.type === 'ai_model');
     if (repeatableSteps.length > 0) {
       optimizations.push({
         type: 'caching',
@@ -532,14 +532,14 @@ export class WorkflowAutomationAuditor {
       let isValid = true;
 
       // Check for orphaned steps
-      const orphanedSteps = workflow.steps.filter(step =>
+      const orphanedSteps = workflow.steps.filter((step: any) =>
         step.dependencies.length === 0 && !this.isStartStep(step, workflow)
       );
 
       if (orphanedSteps.length > 0) {
         logicErrors.push({
           workflow: workflow.name,
-          step: orphanedSteps.map(s => s.name).join(', '),
+          step: orphanedSteps.map((s: any) => s.name).join(', '),
           error: 'Orphaned steps without dependencies or triggers',
           impact: 'Steps may never execute',
           fix: 'Add appropriate dependencies or triggers'
@@ -638,7 +638,7 @@ export class WorkflowAutomationAuditor {
       }
 
       // Check for missing monitoring
-      const monitoringSteps = workflow.steps.filter(step => step.name.includes('monitor'));
+      const monitoringSteps = workflow.steps.filter((step: any) => step.name.includes('monitor'));
       if (monitoringSteps.length === 0) {
         missingSteps.push({
           workflow: workflow.name,
@@ -651,7 +651,7 @@ export class WorkflowAutomationAuditor {
       }
 
       // Check for missing validation
-      const validationSteps = workflow.steps.filter(step => step.name.includes('validat'));
+      const validationSteps = workflow.steps.filter((step: any) => step.name.includes('validat'));
       if (validationSteps.length === 0) {
         missingSteps.push({
           workflow: workflow.name,
@@ -684,7 +684,7 @@ export class WorkflowAutomationAuditor {
       let isConsistent = true;
 
       // Check timeout consistency
-      const timeouts = workflow.steps.map(s => s.timeout);
+      const timeouts = workflow.steps.map((s: any) => s.timeout);
       const maxStepTimeout = Math.max(...timeouts);
       if (workflow.errorHandling.globalTimeout < maxStepTimeout) {
         inconsistencies.push({
@@ -697,7 +697,7 @@ export class WorkflowAutomationAuditor {
       }
 
       // Check retry policy consistency
-      const inconsistentRetries = workflow.steps.filter(step =>
+      const inconsistentRetries = workflow.steps.filter((step: any) =>
         step.retryPolicy.maxAttempts > workflow.errorHandling.maxRetries
       );
       if (inconsistentRetries.length > 0) {
@@ -762,17 +762,17 @@ export class WorkflowAutomationAuditor {
 
     // Find redundant steps within workflows
     for (const workflow of workflows) {
-      const stepTypes = workflow.steps.map(s => s.type);
+      const stepTypes = workflow.steps.map((s: any) => s.type);
       const duplicateTypes = stepTypes.filter((type, index) =>
         stepTypes.indexOf(type) !== index && type === 'ai_model'
       );
 
       for (const duplicateType of duplicateTypes) {
-        const duplicateSteps = workflow.steps.filter(s => s.type === duplicateType);
+        const duplicateSteps = workflow.steps.filter((s: any) => s.type === duplicateType);
         if (duplicateSteps.length > 1) {
           redundantSteps.push({
             workflow: workflow.name,
-            step: duplicateSteps.map(s => s.name).join(', '),
+            step: duplicateSteps.map((s: any) => s.name).join(', '),
             redundancyType: 'Similar functionality',
             impact: 15,
             removal: 'Consolidate similar AI model steps into a single optimized step'
@@ -823,7 +823,7 @@ export class WorkflowAutomationAuditor {
           return sum + (step?.timeout || 0);
         }, 0);
 
-        const parallelTime = Math.max(...independentSteps.map(stepId => {
+        const parallelTime = Math.max(...independentSteps.map((stepId: any) => {
           const step = workflow.steps.find(s => s.id === stepId);
           return step?.timeout || 0;
         }));
@@ -855,7 +855,7 @@ export class WorkflowAutomationAuditor {
   }
 
   private async analyzeOptimization(analyses: WorkflowAnalysis[]): Promise<OptimizationAnalysis> {
-    const optimizedWorkflows = analyses.filter(w => w.optimizations.length > 0).length;
+    const optimizedWorkflows = analyses.filter((w: any) => w.optimizations.length > 0).length;
     const unoptimizedWorkflows = analyses.length - optimizedWorkflows;
 
     const optimizationOpportunities: OptimizationOpportunity[] = [];
@@ -1000,7 +1000,7 @@ export class WorkflowAutomationAuditor {
     let totalCriticalSteps = 0;
 
     for (const workflow of workflows) {
-      const criticalSteps = workflow.steps.filter(s => s.type === 'ai_model');
+      const criticalSteps = workflow.steps.filter((s: any) => s.type === 'ai_model');
       totalCriticalSteps += criticalSteps.length;
 
       for (const step of criticalSteps) {
@@ -1040,7 +1040,7 @@ export class WorkflowAutomationAuditor {
     if (efficiency.parallelismAnalysis.parallelizableSteps.length > 0) {
       optimizations.push({
         type: 'Parallelization',
-        workflows: efficiency.parallelismAnalysis.parallelizableSteps.map(p => p.workflow),
+        workflows: efficiency.parallelismAnalysis.parallelizableSteps.map((p: any) => p.workflow),
         description: 'Execute independent workflow steps in parallel',
         expectedImprovement: 35,
         implementation: 'Restructure workflows to enable parallel execution of independent steps',
@@ -1052,7 +1052,7 @@ export class WorkflowAutomationAuditor {
     if (efficiency.redundancyCheck.redundantSteps.length > 0) {
       optimizations.push({
         type: 'Redundancy Elimination',
-        workflows: efficiency.redundancyCheck.redundantSteps.map(r => r.workflow),
+        workflows: efficiency.redundancyCheck.redundantSteps.map((r: any) => r.workflow),
         description: 'Remove or consolidate redundant workflow steps',
         expectedImprovement: 20,
         implementation: 'Analyze and merge similar functionality across workflow steps',
@@ -1061,13 +1061,13 @@ export class WorkflowAutomationAuditor {
     }
 
     // Caching implementation
-    const aiWorkflows = analyses.filter(a =>
+    const aiWorkflows = analyses.filter((a: any) =>
       a.type === 'ai_processing' || a.name.toLowerCase().includes('ai')
     );
     if (aiWorkflows.length > 0) {
       optimizations.push({
         type: 'Caching',
-        workflows: aiWorkflows.map(w => w.name),
+        workflows: aiWorkflows.map((w: any) => w.name),
         description: 'Implement intelligent caching for AI model results',
         expectedImprovement: 30,
         implementation: 'Deploy semantic caching layer for AI responses',
@@ -1145,8 +1145,8 @@ export class WorkflowAutomationAuditor {
       recursionStack.add(stepId);
 
       const dependencies = workflow.dependencies
-        .filter(dep => dep.sourceStep === stepId)
-        .map(dep => dep.targetStep);
+        .filter((dep: any) => dep.sourceStep === stepId)
+        .map((dep: any) => dep.targetStep);
 
       for (const dep of dependencies) {
         if (hasCycle(dep)) return true;
@@ -1171,14 +1171,14 @@ export class WorkflowAutomationAuditor {
   }
 
   private findDuplicateStepTypes(workflow: WorkflowDefinition): string[] {
-    const stepTypes = workflow.steps.map(s => s.type);
+    const stepTypes = workflow.steps.map((s: any) => s.type);
     return Array.from(new Set(stepTypes.filter((type, index) => stepTypes.indexOf(type) !== index)));
   }
 
   private findParallelizableSteps(workflow: WorkflowDefinition): string[] {
     return workflow.steps
-      .filter(step => step.dependencies.length === 0)
-      .map(step => step.name);
+      .filter((step: any) => step.dependencies.length === 0)
+      .map((step: any) => step.name);
   }
 
   private isStartStep(step: any, workflow: WorkflowDefinition): boolean {
@@ -1197,10 +1197,10 @@ export class WorkflowAutomationAuditor {
 
   private calculateWorkflowSimilarity(workflow1: WorkflowDefinition, workflow2: WorkflowDefinition): number {
     // Simplified similarity calculation based on step types
-    const types1 = workflow1.steps.map(s => s.type).sort();
-    const types2 = workflow2.steps.map(s => s.type).sort();
+    const types1 = workflow1.steps.map((s: any) => s.type).sort();
+    const types2 = workflow2.steps.map((s: any) => s.type).sort();
 
-    const intersection = types1.filter(t => types2.includes(t)).length;
+    const intersection = types1.filter((t: any) => types2.includes(t)).length;
     const union = new Set([...types1, ...types2]).size;
 
     return intersection / union;
@@ -1208,11 +1208,11 @@ export class WorkflowAutomationAuditor {
 
   private findIndependentSteps(workflow: WorkflowDefinition): string[] {
     return workflow.steps
-      .filter(step => {
-        const dependents = workflow.dependencies.filter(dep => dep.targetStep === step.id);
+      .filter((step: any) => {
+        const dependents = workflow.dependencies.filter((dep: any) => dep.targetStep === step.id);
         return dependents.length === 0;
       })
-      .map(step => step.id);
+      .map((step: any) => step.id);
   }
 
   private calculateCorrectnessScore(

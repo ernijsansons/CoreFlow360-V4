@@ -171,7 +171,7 @@ export class EnhancedDataSynchronization extends DataSynchronizationService {
       });
 
       this.emit('coreFlowDataSynced', validatedData);
-    } catch (error) {
+    } catch (error: any) {
       this.emit('syncError', { direction: 'coreflow_to_agents', error });
       throw error;
     }
@@ -199,7 +199,7 @@ export class EnhancedDataSynchronization extends DataSynchronizationService {
       });
 
       this.emit('agentDataSynced', validatedData);
-    } catch (error) {
+    } catch (error: any) {
       this.emit('syncError', { direction: 'agents_to_coreflow', error });
       throw error;
     }
@@ -565,7 +565,7 @@ abstract class DataTransformer {
 class CustomerTransformer extends DataTransformer {
   async transform(data: CustomerData[], target: string): Promise<any> {
     if (target === 'agents') {
-      return data.map(customer => ({
+      return data.map((customer: any) => ({
         id: customer.id,
         profile: {
           name: customer.name,
@@ -584,7 +584,7 @@ class CustomerTransformer extends DataTransformer {
 class TransactionTransformer extends DataTransformer {
   async transform(data: TransactionData[], target: string): Promise<any> {
     if (target === 'agents') {
-      return data.map(transaction => ({
+      return data.map((transaction: any) => ({
         id: transaction.id,
         customer: transaction.customerId,
         type: transaction.type,
@@ -601,7 +601,7 @@ class TransactionTransformer extends DataTransformer {
 class DecisionTransformer extends DataTransformer {
   async transform(data: Decision[], target: string): Promise<any> {
     if (target === 'coreflow') {
-      return data.map(decision => ({
+      return data.map((decision: any) => ({
         id: decision.id,
         source: `agent:${decision.agentId}`,
         workflowId: decision.workflowId,
@@ -621,7 +621,7 @@ class DecisionTransformer extends DataTransformer {
 class WorkflowTransformer extends DataTransformer {
   async transform(data: WorkflowState[], target: string): Promise<any> {
     if (target === 'agents') {
-      return data.map(workflow => ({
+      return data.map((workflow: any) => ({
         id: workflow.id,
         type: workflow.type,
         status: workflow.status,

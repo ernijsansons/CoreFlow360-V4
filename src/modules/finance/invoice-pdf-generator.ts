@@ -99,7 +99,7 @@ export class InvoicePDFGenerator {
         pdfBuffer
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate invoice PDF', error, {
         invoiceId: invoice.id,
         invoiceNumber: invoice.invoiceNumber,
@@ -212,7 +212,7 @@ export class InvoicePDFGenerator {
                     </tr>
                 </thead>
                 <tbody>
-                    ${invoice.lines.map(line => `
+                    ${invoice.lines.map((line: any) => `
                     <tr>
                         <td class="description-cell">
                             <div class="line-description">${line.description}</div>
@@ -554,7 +554,7 @@ export class InvoicePDFGenerator {
       address.country
     ].filter(Boolean);
 
-    return parts.map(part => `<div>${part}</div>`).join('');
+    return parts.map((part: any) => `<div>${part}</div>`).join('');
   }
 
   /**
@@ -620,7 +620,7 @@ export class InvoicePDFGenerator {
 
       return await response.arrayBuffer();
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to convert HTML to PDF', error);
 
       // Fallback: Return a simple text-based "PDF" (for demonstration)
@@ -653,7 +653,7 @@ export class InvoicePDFGenerator {
         businessId: validBusinessId
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to delete PDF from R2', error, {
         invoiceNumber,
         businessId: validBusinessId
@@ -688,7 +688,7 @@ export class InvoicePDFGenerator {
         metadata: object.customMetadata || {}
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get PDF from R2', error, {
         invoiceNumber,
         businessId: validBusinessId

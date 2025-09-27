@@ -106,10 +106,10 @@ export class ProgressTracker {
 
     // Notify subscribers
     const callbacks = this.progressCallbacks.get(migrationId) || [];
-    callbacks.forEach(callback => {
+    callbacks.forEach((callback: any) => {
       try {
         callback(event);
-      } catch (error) {
+      } catch (error: any) {
       }
     });
 
@@ -169,7 +169,7 @@ export class ProgressTracker {
 
   async getAuditLog(migrationId: string, limit?: number): Promise<AuditEntry[]> {
     const entries = this.auditLog
-      .filter(entry => entry.migrationId === migrationId)
+      .filter((entry: any) => entry.migrationId === migrationId)
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
     if (limit) {
@@ -187,7 +187,7 @@ export class ProgressTracker {
 
     // Merge and deduplicate
     const stateMap = new Map<string, MigrationState>();
-    [...states, ...persistedStates].forEach(state => {
+    [...states, ...persistedStates].forEach((state: any) => {
       stateMap.set(state.id, state);
     });
 
@@ -307,7 +307,7 @@ export class ProgressTracker {
       if (this.env.MIGRATION_KV) {
         await this.env.MIGRATION_KV.put(key, value);
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -322,7 +322,7 @@ export class ProgressTracker {
       if (this.env.MIGRATION_KV) {
         await this.env.MIGRATION_KV.put(key, value);
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -342,7 +342,7 @@ export class ProgressTracker {
           };
         }
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return null;
@@ -369,7 +369,7 @@ export class ProgressTracker {
 
         return states;
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return [];

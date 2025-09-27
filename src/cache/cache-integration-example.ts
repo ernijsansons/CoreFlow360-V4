@@ -185,7 +185,7 @@ export class HybridCacheManager {
         smart: smartHealthy,
         overall: simpleHealthy && smartHealthy
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Cache health check failed:', error);
       return {
         simple: false,

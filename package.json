@@ -132,6 +132,7 @@
         "help": "echo 'Available server commands:' && echo '  npm start          - Start simple production server' && echo '  npm run start:enhanced - Start enhanced production server with clustering' && echo '  npm run dev        - Start development server with hot reload' && echo '  npm run server:health - Check server health' && echo '  npm run server:dev-dashboard - Open development dashboard' && echo '  npm run server:production-ready - Validate production readiness'"
     },
     "dependencies": {
+        "@anthropic-ai/sdk": "^0.64.0",
         "@cloudflare/ai": "^1.2.2",
         "@hono/zod-validator": "^0.2.2",
         "express": "^4.18.2",
@@ -159,6 +160,7 @@
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-import": "^2.29.0",
         "eslint-plugin-security": "^1.7.1",
+        "glob": "^11.0.3",
         "husky": "^8.0.3",
         "jsdom": "^27.0.0",
         "lighthouse": "^12.8.2",

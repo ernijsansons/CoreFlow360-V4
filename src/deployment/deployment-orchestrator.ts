@@ -337,7 +337,7 @@ export class DeploymentOrchestrator {
         };
       }
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Deployment failed', errorMessage, { correlationId });
 
@@ -455,7 +455,7 @@ export class DeploymentOrchestrator {
           }
         }
 
-      } catch (error) {
+      } catch (error: any) {
         const stageResult: StageResult = {
           stage: stage.name,
           status: 'failed',
@@ -517,13 +517,13 @@ export class DeploymentOrchestrator {
     }
 
     const passed = results.every(r => r.status === 'pass');
-    const errors = results.filter(r => r.status === 'fail').map(r => r.message || 'Validation failed');
+    const errors = results.filter((r: any) => r.status === 'fail').map((r: any) => r.message || 'Validation failed');
 
     return {
       passed,
       results,
       errors,
-      warnings: results.filter(r => r.status === 'warn').map(r => r.message || 'Warning')
+      warnings: results.filter((r: any) => r.status === 'warn').map((r: any) => r.message || 'Warning')
     };
   }
 
@@ -567,7 +567,7 @@ export class DeploymentOrchestrator {
         environment: this.greenEnvironment.name
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.greenEnvironment.status = 'failed';
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Standby deployment failed', errorMessage, { correlationId });
@@ -672,7 +672,7 @@ export class DeploymentOrchestrator {
         correlationId
       });
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Emergency rollback failed', errorMessage, { correlationId });
       // This is catastrophic - alert everything

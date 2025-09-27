@@ -199,7 +199,7 @@ export class TechDebtDetector {
       // Simulate debt detection
       const debtInfo = this.simulateDebtInfo(filePath);
       this.debtData.set(filePath, debtInfo);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error analyzing file for tech debt', { filePath, error });
     }
   }
@@ -532,7 +532,7 @@ export class TechDebtDetector {
     const recommendations: TechDebtRecommendation[] = [];
 
     // Critical issues first
-    const criticalTodos = debt.todos.filter(t => t.priority === 'critical');
+    const criticalTodos = debt.todos.filter((t: any) => t.priority === 'critical');
     if (criticalTodos.length > 0) {
       recommendations.push({
         area: 'Critical TODOs',
@@ -545,7 +545,7 @@ export class TechDebtDetector {
     }
 
     // Deprecated code with deadlines
-    const overdueDeprecated = debt.deprecated.filter(d =>
+    const overdueDeprecated = debt.deprecated.filter((d: any) =>
       d.deadline && d.deadline < new Date()
     );
     if (overdueDeprecated.length > 0) {
@@ -572,7 +572,7 @@ export class TechDebtDetector {
     }
 
     // Code smells
-    const godClasses = debt.codeSmells.filter(s => s.type === 'God Class');
+    const godClasses = debt.codeSmells.filter((s: any) => s.type === 'God Class');
     if (godClasses.length > 0) {
       recommendations.push({
         area: 'Architecture',
@@ -597,9 +597,9 @@ export class TechDebtDetector {
     }
 
     // Quick wins
-    const safeToRemove = deadCode.unusedFunctions.filter(f => f.safeToRemove).length +
-                        deadCode.unusedVariables.filter(v => v.safeToRemove).length +
-                        deadCode.unusedImports.filter(i => i.safeToRemove).length;
+    const safeToRemove = deadCode.unusedFunctions.filter((f: any) => f.safeToRemove).length +
+                        deadCode.unusedVariables.filter((v: any) => v.safeToRemove).length +
+                        deadCode.unusedImports.filter((i: any) => i.safeToRemove).length;
 
     if (safeToRemove > 10) {
       recommendations.push({
@@ -645,14 +645,14 @@ export class TechDebtDetector {
     score -= Math.min(20, analysis.deadCode.totalDeadLines / 50); // Max 20 point deduction
 
     // Deduct for TODOs
-    const oldTodos = analysis.debt.todos.filter(t => t.age > 90).length;
-    const criticalTodos = analysis.debt.todos.filter(t => t.priority === 'critical').length;
+    const oldTodos = analysis.debt.todos.filter((t: any) => t.age > 90).length;
+    const criticalTodos = analysis.debt.todos.filter((t: any) => t.priority === 'critical').length;
     score -= oldTodos * 2;
     score -= criticalTodos * 3;
 
     // Deduct for deprecated code
     score -= analysis.debt.deprecated.length * 3;
-    const overdueDeprecated = analysis.debt.deprecated.filter(d =>
+    const overdueDeprecated = analysis.debt.deprecated.filter((d: any) =>
       d.deadline && d.deadline < new Date()
     ).length;
     score -= overdueDeprecated * 5;

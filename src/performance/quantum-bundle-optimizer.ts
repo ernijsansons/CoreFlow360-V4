@@ -236,7 +236,7 @@ export class ModuleAnalyzer {
 
       features.push({
         name: this.generateFeatureName(route),
-        modules: modules.map(m => m.module),
+        modules: modules.map((m: any) => m.module),
         routes: [route],
         priority,
         loadStrategy: this.determineLoadStrategy(priority),
@@ -317,8 +317,8 @@ export class ModuleAnalyzer {
 
   private async findCriticalPath(nodes: ModuleNode[], edges: DependencyEdge[]): Promise<string[]> {
     return nodes
-      .filter(n => n.importance > 8)
-      .map(n => n.id);
+      .filter((n: any) => n.importance > 8)
+      .map((n: any) => n.id);
   }
 
   private async calculatePriority(module: string, data: any): Promise<number> {
@@ -361,7 +361,7 @@ export class ModuleAnalyzer {
     for (const module of modules) {
       const node = graph.nodes.find(n => n.id === module.module);
       if (node) {
-        node.imports.forEach(imp => deps.add(imp));
+        node.imports.forEach((imp: any) => deps.add(imp));
       }
     }
 
@@ -396,7 +396,7 @@ export class NavigationPredictor {
 
   private emit(event: string, data: any): void {
     const callbacks = this.eventListeners.get(event) || [];
-    callbacks.forEach(callback => callback(data));
+    callbacks.forEach((callback: any) => callback(data));
   }
 
   private initializeModel(modelType: string): void {
@@ -554,7 +554,7 @@ export class QuantumBundleOptimizer {
         maxSize: 50000
       },
 
-      features: analysis.features.map(feature => ({
+      features: analysis.features.map((feature: any) => ({
         ...feature,
         loadStrategy: this.optimizeLoadStrategy(feature)
       })),
@@ -682,7 +682,7 @@ export class QuantumBundleOptimizer {
         }
         document.head.appendChild(resourceLink);
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 }
@@ -700,7 +700,7 @@ class ServiceWorkerOptimizer {
 
       const strategies = ${JSON.stringify(strategies, null, 2)};
 
-      self.addEventListener('install', async (event) => {
+      self.addEventListener('install', async (event: any) => {
         event.waitUntil(
           Promise.all([
             caches.open(STATIC_CACHE).then(cache => {
@@ -721,7 +721,7 @@ class ServiceWorkerOptimizer {
           Promise.all([
             caches.keys().then(cacheNames => {
               return Promise.all(
-                cacheNames.map(cacheName => {
+                cacheNames.map((cacheName: any) => {
                   if (!['${STATIC_CACHE}', '${DYNAMIC_CACHE}', '${API_CACHE}'].includes(cacheName)) {
                     return caches.delete(cacheName);
                   }
@@ -780,7 +780,7 @@ class ServiceWorkerOptimizer {
             cache.put(request, response.clone());
           }
           return response;
-        } catch (error) {
+        } catch (error: any) {
           return new Response('Offline', { status: 503 });
         }
       }
@@ -793,7 +793,7 @@ class ServiceWorkerOptimizer {
             cache.put(request, response.clone());
           }
           return response;
-        } catch (error) {
+        } catch (error: any) {
           const cached = await caches.match(request);
           return cached || new Response('Offline', { status: 503 });
         }

@@ -69,7 +69,7 @@ export class VoicemailHandler {
 
       return voicemail;
 
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -237,7 +237,7 @@ export class VoicemailHandler {
       // Simulate voicemail delivery
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -279,7 +279,7 @@ export class VoicemailHandler {
         method: followUpMethod
       });
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -546,7 +546,7 @@ export class VoicemailHandler {
 
       await this.saveVoicemail(voicemail);
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -644,7 +644,7 @@ export class VoicemailHandler {
             failed++;
           }
 
-        } catch (error) {
+        } catch (error: any) {
           failed++;
           processed++;
         }
@@ -655,7 +655,7 @@ export class VoicemailHandler {
 
       return { processed, successful, failed };
 
-    } catch (error) {
+    } catch (error: any) {
       return { processed: 0, successful: 0, failed: 0 };
     }
   }
@@ -701,7 +701,7 @@ class VoiceSynthesizer {
         bitRate: 128
       };
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }

@@ -232,7 +232,7 @@ export class AIPromptSanitizer {
         sanitized = normalized;
         modified = true;
       }
-    } catch (error) {
+    } catch (error: any) {
       violations.push('Unicode normalization failed');
       riskScore += 0.1;
     }
@@ -467,7 +467,7 @@ export class AIPromptSanitizer {
       // Clean old requests
       if (requests.has(clientId)) {
         const clientRequests = requests.get(clientId)!;
-        const recentRequests = clientRequests.filter(time => time > windowStart);
+        const recentRequests = clientRequests.filter((time: any) => time > windowStart);
         requests.set(clientId, recentRequests);
 
         if (recentRequests.length >= maxRequestsPerMinute) {

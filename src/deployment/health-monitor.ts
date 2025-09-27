@@ -299,7 +299,7 @@ export class DeploymentHealthMonitor {
     if (!duration) return results;
 
     const cutoff = Date.now() - duration;
-    return results.filter(result => result.timestamp >= cutoff);
+    return results.filter((result: any) => result.timestamp >= cutoff);
   }
 
   /**
@@ -311,7 +311,7 @@ export class DeploymentHealthMonitor {
         const health = await this.getDeploymentHealth();
         await this.processHealthResults(health);
         await this.sleep(this.config.interval);
-      } catch (error) {
+      } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         this.logger.error('Error in monitoring loop', errorMessage);
         await this.sleep(this.config.interval);
@@ -323,11 +323,11 @@ export class DeploymentHealthMonitor {
    * Run all enabled health checks
    */
   private async runAllHealthChecks(): Promise<HealthCheckResult[]> {
-    const enabledChecks = Array.from(this.healthChecks.values()).filter(check => check.enabled);
+    const enabledChecks = Array.from(this.healthChecks.values()).filter((check: any) => check.enabled);
     const results: HealthCheckResult[] = [];
 
     // Run checks in parallel for performance
-    const promises = enabledChecks.map(check => this.executeHealthCheck(check));
+    const promises = enabledChecks.map((check: any) => this.executeHealthCheck(check));
     const checkResults = await Promise.allSettled(promises);
 
     for (let i = 0; i < checkResults.length; i++) {
@@ -393,7 +393,7 @@ export class DeploymentHealthMonitor {
       result.responseTime = Date.now() - startTime;
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         check: check.name,
         status: 'unhealthy',
@@ -481,7 +481,7 @@ export class DeploymentHealthMonitor {
           cpuUsage: 0
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Database check failed: ${errorMessage}`);
     }
@@ -521,7 +521,7 @@ export class DeploymentHealthMonitor {
           cpuUsage: 0
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Cache check failed: ${errorMessage}`);
     }
@@ -567,7 +567,7 @@ export class DeploymentHealthMonitor {
           cpuUsage: 0
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Business logic check failed: ${errorMessage}`);
     }
@@ -598,7 +598,7 @@ export class DeploymentHealthMonitor {
         metadata: { performanceMetrics: metrics },
         metrics
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Performance check failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -631,7 +631,7 @@ export class DeploymentHealthMonitor {
           cpuUsage: 0
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Security check failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -708,7 +708,7 @@ export class DeploymentHealthMonitor {
       }
     ];
 
-    defaultChecks.forEach(check => {
+    defaultChecks.forEach((check: any) => {
       this.healthChecks.set(check.name, check);
     });
   }
@@ -725,7 +725,7 @@ export class DeploymentHealthMonitor {
       critical_failures: 0
     };
 
-    results.forEach(result => {
+    results.forEach((result: any) => {
       switch (result.status) {
         case 'healthy':
           summary.healthy++;
@@ -747,7 +747,7 @@ export class DeploymentHealthMonitor {
   }
 
   private determineOverallHealth(results: HealthCheckResult[]): HealthStatus {
-    const criticalFailures = results.filter(result => {
+    const criticalFailures = results.filter((result: any) => {
       const check = this.healthChecks.get(result.check);
       return check?.critical && result.status === 'unhealthy';
     });
@@ -756,8 +756,8 @@ export class DeploymentHealthMonitor {
       return 'unhealthy';
     }
 
-    const unhealthyCount = results.filter(r => r.status === 'unhealthy').length;
-    const degradedCount = results.filter(r => r.status === 'degraded').length;
+    const unhealthyCount = results.filter((r: any) => r.status === 'unhealthy').length;
+    const degradedCount = results.filter((r: any) => r.status === 'degraded').length;
 
     if (unhealthyCount > 0) {
       return 'degraded';
@@ -773,7 +773,7 @@ export class DeploymentHealthMonitor {
   private calculateHealthScore(results: HealthCheckResult[]): number {
     if (results.length === 0) return 0;
 
-    const scores = results.map(result => {
+    const scores = results.map((result: any) => {
       switch (result.status) {
         case 'healthy': return 100;
         case 'degraded': return 60;
@@ -788,7 +788,7 @@ export class DeploymentHealthMonitor {
   private generateRecommendations(results: HealthCheckResult[]): string[] {
     const recommendations: string[] = [];
 
-    results.forEach(result => {
+    results.forEach((result: any) => {
       if (result.status === 'unhealthy') {
         recommendations.push(`Fix critical issue in ${result.check}: ${result.message}`);
       } else if (result.status === 'degraded') {
@@ -806,7 +806,7 @@ export class DeploymentHealthMonitor {
   private generateAlerts(results: HealthCheckResult[]): HealthAlert[] {
     const alerts: HealthAlert[] = [];
 
-    results.forEach(result => {
+    results.forEach((result: any) => {
       const check = this.healthChecks.get(result.check);
       if (!check) return;
 
@@ -846,7 +846,7 @@ export class DeploymentHealthMonitor {
 
     // Keep only recent results based on retention policy
     const cutoff = Date.now() - this.config.metrics.retention;
-    const filteredResults = results.filter(r => r.timestamp >= cutoff);
+    const filteredResults = results.filter((r: any) => r.timestamp >= cutoff);
     this.results.set(checkName, filteredResults);
   }
 

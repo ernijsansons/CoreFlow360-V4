@@ -89,7 +89,7 @@ export class CustomerOnboardingEngine {
     // Setup customer success tracking
     await this.setupCustomerSuccess({
       customerId,
-      onboardingSteps: steps.map(s => s.name),
+      onboardingSteps: steps.map((s: any) => s.name),
       aiCoaching: true,
       progressTracking: true,
       certificationProgram: customerData.customerType === 'ENTERPRISE'
@@ -666,7 +666,7 @@ export class CustomerOnboardingEngine {
       : step.estimatedTime;
 
     // Update progress
-    const completedSteps = flow.steps.filter(s => s.status === 'COMPLETED').length;
+    const completedSteps = flow.steps.filter((s: any) => s.status === 'COMPLETED').length;
     flow.progress = Math.round((completedSteps / flow.steps.length) * 100);
 
     // Move to next step
@@ -782,9 +782,9 @@ export class CustomerOnboardingEngine {
       };
     }
 
-    const completedSteps = flow.steps.filter(s => s.status === 'COMPLETED');
+    const completedSteps = flow.steps.filter((s: any) => s.status === 'COMPLETED');
     const totalTimeSpent = completedSteps.reduce((sum, step) => sum + (step.actualTime || 0), 0);
-    const remainingSteps = flow.steps.filter(s => s.status === 'PENDING');
+    const remainingSteps = flow.steps.filter((s: any) => s.status === 'PENDING');
     const estimatedTimeRemaining = remainingSteps.reduce((sum, step) => sum + step.estimatedTime, 0);
 
     return {

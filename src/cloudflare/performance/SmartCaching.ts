@@ -53,7 +53,7 @@ export class SmartCaching {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       await this.trackCacheMetrics('get_error', key, strategy.type, false, Date.now() - startTime);
       throw error;
     }
@@ -92,7 +92,7 @@ export class SmartCaching {
       // Track cache performance
       await this.trackCacheMetrics('set', key, strategy.type, true, Date.now() - startTime);
 
-    } catch (error) {
+    } catch (error: any) {
       await this.trackCacheMetrics('set_error', key, strategy.type, false, Date.now() - startTime);
       throw error;
     }
@@ -115,7 +115,7 @@ export class SmartCaching {
       ]);
 
       invalidatedCount = results
-        .filter(result => result.status === 'fulfilled')
+        .filter((result: any) => result.status === 'fulfilled')
         .reduce((count, result) => count + (result as PromiseFulfilledResult<number>).value, 0);
 
       // Track invalidation
@@ -123,7 +123,7 @@ export class SmartCaching {
 
       return invalidatedCount;
 
-    } catch (error) {
+    } catch (error: any) {
       await this.trackCacheMetrics('invalidate_error', pattern, 'multi_tier', false, Date.now() - startTime);
       throw error;
     }
@@ -232,7 +232,7 @@ export class SmartCaching {
 
       return { hit: false, data: null, source: 'kv' };
 
-    } catch (error) {
+    } catch (error: any) {
       return { hit: false, data: null, source: 'kv', error: error instanceof Error ? error.message : String(error) };
     }
   }
@@ -258,7 +258,7 @@ export class SmartCaching {
 
       return { hit: false, data: null, source: 'cache_api' };
 
-    } catch (error) {
+    } catch (error: any) {
       return { hit: false, data: null, source: 'cache_api', error: error instanceof Error ? error.message : String(error) };
     }
   }
@@ -282,7 +282,7 @@ export class SmartCaching {
 
       return { hit: false, data: null, source: 'r2' };
 
-    } catch (error) {
+    } catch (error: any) {
       return { hit: false, data: null, source: 'r2', error: error instanceof Error ? error.message : String(error) };
     }
   }
@@ -542,7 +542,7 @@ export class SmartCaching {
         ],
         indexes: [operation, strategy]
       });
-    } catch (error) {
+    } catch (error: any) {
       // Don't let analytics failures break caching
     }
   }

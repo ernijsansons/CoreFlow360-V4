@@ -68,7 +68,7 @@ export class ScheduleNegotiator {
 
       return agreedSlot;
 
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -163,13 +163,13 @@ export class ScheduleNegotiator {
     }
 
     // Sort by preference match score
-    const scoredSlots = filteredSlots.map(slot => ({
+    const scoredSlots = filteredSlots.map((slot: any) => ({
       slot,
       score: this.calculateSlotScore(slot, preferences)
     })).sort((a, b) => b.score - a.score);
 
     // Select top 3 slots to propose
-    const topSlots = scoredSlots.slice(0, 3).map(item => item.slot);
+    const topSlots = scoredSlots.slice(0, 3).map((item: any) => item.slot);
 
     // Generate reasoning and persuasion strategy based on round number
     const reasoning = this.generateReasoning(topSlots, preferences, roundNumber);
@@ -183,7 +183,7 @@ export class ScheduleNegotiator {
   }
 
   private filterSlotsByTimeOfDay(slots: CalendarSlot[], preferredTimes: string[]): CalendarSlot[] {
-    return slots.filter(slot => {
+    return slots.filter((slot: any) => {
       const hour = new Date(slot.start).getHours();
 
       for (const timePreference of preferredTimes) {
@@ -209,7 +209,7 @@ export class ScheduleNegotiator {
       'thursday': 4, 'friday': 5, 'saturday': 6
     };
 
-    return slots.filter(slot => {
+    return slots.filter((slot: any) => {
       const dayOfWeek = new Date(slot.start).getDay();
       return preferredDays.some(day => dayMap[day.toLowerCase() as keyof typeof dayMap] === dayOfWeek);
     });

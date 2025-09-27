@@ -37,7 +37,7 @@ export class WorkflowEngine extends DurableObject {
       const workflow: WorkflowState = {
         id: body.id,
         status: 'pending',
-        steps: body.steps.map(step => ({
+        steps: body.steps.map((step: any) => ({
           name: step.name,
           status: 'pending',
         })),

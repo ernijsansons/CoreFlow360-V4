@@ -41,7 +41,7 @@ const recordOutcomeSchema = z.object({
   })
 });
 
-learningRoutes.post('/outcomes', async (c) => {
+learningRoutes.post('/outcomes', async (c: any) => {
   try {
     const body = await c.req.json();
     const data = recordOutcomeSchema.parse(body);
@@ -78,7 +78,7 @@ learningRoutes.post('/outcomes', async (c) => {
       message: 'Outcome recorded and learning initiated',
       interactionId: data.interactionId
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to record outcome'
@@ -87,7 +87,7 @@ learningRoutes.post('/outcomes', async (c) => {
 });
 
 // Get learning metrics
-learningRoutes.get('/metrics', async (c) => {
+learningRoutes.get('/metrics', async (c: any) => {
   try {
     const timeframe = c.req.query('timeframe') || '30d';
     const learningEngine = new ContinuousLearningEngine(c.env);
@@ -99,7 +99,7 @@ learningRoutes.get('/metrics', async (c) => {
       metrics,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve metrics'
@@ -112,7 +112,7 @@ learningRoutes.get('/metrics', async (c) => {
 // =====================================================
 
 // Analyze patterns
-learningRoutes.post('/patterns/analyze', async (c) => {
+learningRoutes.post('/patterns/analyze', async (c: any) => {
   try {
     const body = await c.req.json();
     const type = body.type || 'all';
@@ -164,7 +164,7 @@ learningRoutes.post('/patterns/analyze', async (c) => {
       count: patterns.length,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to analyze patterns'
@@ -173,7 +173,7 @@ learningRoutes.post('/patterns/analyze', async (c) => {
 });
 
 // Get patterns by type
-learningRoutes.get('/patterns/:type', async (c) => {
+learningRoutes.get('/patterns/:type', async (c: any) => {
   try {
     const type = c.req.param('type');
     const patternRecognition = new PatternRecognition(c.env);
@@ -185,7 +185,7 @@ learningRoutes.get('/patterns/:type', async (c) => {
       patterns,
       count: patterns.length
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve patterns'
@@ -194,7 +194,7 @@ learningRoutes.get('/patterns/:type', async (c) => {
 });
 
 // Get top performing patterns
-learningRoutes.get('/patterns/top/:limit?', async (c) => {
+learningRoutes.get('/patterns/top/:limit?', async (c: any) => {
   try {
     const limit = parseInt(c.req.param('limit') || '10');
     const patternRecognition = new PatternRecognition(c.env);
@@ -206,7 +206,7 @@ learningRoutes.get('/patterns/top/:limit?', async (c) => {
       patterns,
       count: patterns.length
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve top patterns'
@@ -215,7 +215,7 @@ learningRoutes.get('/patterns/top/:limit?', async (c) => {
 });
 
 // Validate pattern
-learningRoutes.post('/patterns/:id/validate', async (c) => {
+learningRoutes.post('/patterns/:id/validate', async (c: any) => {
   try {
     const patternId = c.req.param('id');
     const patternRecognition = new PatternRecognition(c.env);
@@ -228,7 +228,7 @@ learningRoutes.post('/patterns/:id/validate', async (c) => {
       isValid,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to validate pattern'
@@ -237,7 +237,7 @@ learningRoutes.post('/patterns/:id/validate', async (c) => {
 });
 
 // Get pattern insights
-learningRoutes.get('/patterns/insights', async (c) => {
+learningRoutes.get('/patterns/insights', async (c: any) => {
   try {
     const patternRecognition = new PatternRecognition(c.env);
     const insights = await patternRecognition.getPatternInsights();
@@ -247,7 +247,7 @@ learningRoutes.get('/patterns/insights', async (c) => {
       insights,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve pattern insights'
@@ -282,7 +282,7 @@ const generatePlaybookSchema = z.object({
   })
 });
 
-learningRoutes.post('/playbooks/generate', async (c) => {
+learningRoutes.post('/playbooks/generate', async (c: any) => {
   try {
     const body = await c.req.json();
     const data = generatePlaybookSchema.parse(body);
@@ -314,7 +314,7 @@ learningRoutes.post('/playbooks/generate', async (c) => {
       message: `Playbook generated for ${segment.name}`,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to generate playbook'
@@ -333,7 +333,7 @@ const updatePlaybookSchema = z.object({
   }))
 });
 
-learningRoutes.put('/playbooks/:id', async (c) => {
+learningRoutes.put('/playbooks/:id', async (c: any) => {
   try {
     const playbookId = c.req.param('id');
     const body = await c.req.json();
@@ -349,7 +349,7 @@ learningRoutes.put('/playbooks/:id', async (c) => {
       }, 404);
     }
 
-    const feedback: Feedback[] = data.feedback.map(f => ({
+    const feedback: Feedback[] = data.feedback.map((f: any) => ({
       id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       playbookId,
       type: f.type,
@@ -367,7 +367,7 @@ learningRoutes.put('/playbooks/:id', async (c) => {
       playbook: updatedPlaybook,
       message: 'Playbook updated successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update playbook'
@@ -376,7 +376,7 @@ learningRoutes.put('/playbooks/:id', async (c) => {
 });
 
 // Get playbook
-learningRoutes.get('/playbooks/:id', async (c) => {
+learningRoutes.get('/playbooks/:id', async (c: any) => {
   try {
     const playbookId = c.req.param('id');
     const playbookGenerator = new PlaybookGenerator(c.env);
@@ -394,7 +394,7 @@ learningRoutes.get('/playbooks/:id', async (c) => {
       success: true,
       playbook
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve playbook'
@@ -403,7 +403,7 @@ learningRoutes.get('/playbooks/:id', async (c) => {
 });
 
 // Get active playbooks
-learningRoutes.get('/playbooks/active', async (c) => {
+learningRoutes.get('/playbooks/active', async (c: any) => {
   try {
     const playbookGenerator = new PlaybookGenerator(c.env);
     const playbooks = await playbookGenerator.getActivePlaybooks();
@@ -413,7 +413,7 @@ learningRoutes.get('/playbooks/active', async (c) => {
       playbooks,
       count: playbooks.length
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve active playbooks'
@@ -422,7 +422,7 @@ learningRoutes.get('/playbooks/active', async (c) => {
 });
 
 // Get playbook performance metrics
-learningRoutes.get('/playbooks/performance', async (c) => {
+learningRoutes.get('/playbooks/performance', async (c: any) => {
   try {
     const playbookGenerator = new PlaybookGenerator(c.env);
     const performance = await playbookGenerator.getPlaybookPerformance();
@@ -432,7 +432,7 @@ learningRoutes.get('/playbooks/performance', async (c) => {
       performance,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve playbook performance'
@@ -441,7 +441,7 @@ learningRoutes.get('/playbooks/performance', async (c) => {
 });
 
 // Record playbook usage
-learningRoutes.post('/playbooks/:id/usage', async (c) => {
+learningRoutes.post('/playbooks/:id/usage', async (c: any) => {
   try {
     const playbookId = c.req.param('id');
     const body = await c.req.json();
@@ -458,7 +458,7 @@ learningRoutes.post('/playbooks/:id/usage', async (c) => {
       success: true,
       message: 'Usage recorded successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to record usage'
@@ -467,7 +467,7 @@ learningRoutes.post('/playbooks/:id/usage', async (c) => {
 });
 
 // Record playbook feedback
-learningRoutes.post('/playbooks/:id/feedback', async (c) => {
+learningRoutes.post('/playbooks/:id/feedback', async (c: any) => {
   try {
     const playbookId = c.req.param('id');
     const body = await c.req.json();
@@ -485,7 +485,7 @@ learningRoutes.post('/playbooks/:id/feedback', async (c) => {
       success: true,
       message: 'Feedback recorded successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to record feedback'
@@ -498,7 +498,7 @@ learningRoutes.post('/playbooks/:id/feedback', async (c) => {
 // =====================================================
 
 // Get active experiments
-learningRoutes.get('/experiments/active', async (c) => {
+learningRoutes.get('/experiments/active', async (c: any) => {
   try {
     const learningEngine = new ContinuousLearningEngine(c.env);
     const experiments = await learningEngine.getActiveExperiments();
@@ -509,7 +509,7 @@ learningRoutes.get('/experiments/active', async (c) => {
       count: experiments.length,
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve active experiments'
@@ -522,7 +522,7 @@ learningRoutes.get('/experiments/active', async (c) => {
 // =====================================================
 
 // Get strategy by ID
-learningRoutes.get('/strategies/:id', async (c) => {
+learningRoutes.get('/strategies/:id', async (c: any) => {
   try {
     const strategyId = c.req.param('id');
     const learningEngine = new ContinuousLearningEngine(c.env);
@@ -540,7 +540,7 @@ learningRoutes.get('/strategies/:id', async (c) => {
       success: true,
       strategy
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve strategy'
@@ -549,7 +549,7 @@ learningRoutes.get('/strategies/:id', async (c) => {
 });
 
 // Get active variants for strategy
-learningRoutes.get('/strategies/:id/variants', async (c) => {
+learningRoutes.get('/strategies/:id/variants', async (c: any) => {
   try {
     const strategyId = c.req.param('id');
     const learningEngine = new ContinuousLearningEngine(c.env);
@@ -561,7 +561,7 @@ learningRoutes.get('/strategies/:id/variants', async (c) => {
       variants,
       count: variants.length
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve variants'

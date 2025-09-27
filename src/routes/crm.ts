@@ -100,27 +100,27 @@ const PaginationSchema = z.object({
 });
 
 // Companies endpoints
-app.post('/companies', zValidator('json', CreateCompanySchema), async (c) => {
+app.post('/companies', zValidator('json', CreateCompanySchema), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const company = await crmService.createCompany(c.get('validatedData'));
     return c.json({ success: true, data: company });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
-app.get('/companies', async (c) => {
+app.get('/companies', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const companies = await crmService.getCompanies();
     return c.json({ success: true, data: companies });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.get('/companies/:id', async (c) => {
+app.get('/companies/:id', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const company = await crmService.getCompany(c.req.param('id'));
@@ -128,12 +128,12 @@ app.get('/companies/:id', async (c) => {
       return c.json({ success: false, error: 'Company not found' }, 404);
     }
     return c.json({ success: true, data: company });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.put('/companies/:id', zValidator('json', CreateCompanySchema.partial()), async (c) => {
+app.put('/companies/:id', zValidator('json', CreateCompanySchema.partial()), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const company = await crmService.updateCompany(c.req.param('id'), c.get('validatedData'));
@@ -141,12 +141,12 @@ app.put('/companies/:id', zValidator('json', CreateCompanySchema.partial()), asy
       return c.json({ success: false, error: 'Company not found' }, 404);
     }
     return c.json({ success: true, data: company });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
-app.delete('/companies/:id', async (c) => {
+app.delete('/companies/:id', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const success = await crmService.deleteCompany(c.req.param('id'));
@@ -154,35 +154,35 @@ app.delete('/companies/:id', async (c) => {
       return c.json({ success: false, error: 'Company not found' }, 404);
     }
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
 // Contacts endpoints
-app.post('/contacts', zValidator('json', CreateContactSchema), async (c) => {
+app.post('/contacts', zValidator('json', CreateContactSchema), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const contact = await crmService.createContact(c.get('validatedData'));
     return c.json({ success: true, data: contact });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
-app.get('/contacts', zValidator('query', ContactFiltersSchema.merge(PaginationSchema)), async (c) => {
+app.get('/contacts', zValidator('query', ContactFiltersSchema.merge(PaginationSchema)), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
     const pagination: PaginationOptions = { page, limit, sort_by, sort_order };
     const contacts = await crmService.getContacts(filters, pagination);
     return c.json({ success: true, data: contacts });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.get('/contacts/:id', async (c) => {
+app.get('/contacts/:id', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const contact = await crmService.getContact(c.req.param('id'));
@@ -190,12 +190,12 @@ app.get('/contacts/:id', async (c) => {
       return c.json({ success: false, error: 'Contact not found' }, 404);
     }
     return c.json({ success: true, data: contact });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.put('/contacts/:id', zValidator('json', CreateContactSchema.partial()), async (c) => {
+app.put('/contacts/:id', zValidator('json', CreateContactSchema.partial()), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const contact = await crmService.updateContact(c.req.param('id'), c.get('validatedData'));
@@ -203,12 +203,12 @@ app.put('/contacts/:id', zValidator('json', CreateContactSchema.partial()), asyn
       return c.json({ success: false, error: 'Contact not found' }, 404);
     }
     return c.json({ success: true, data: contact });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
-app.delete('/contacts/:id', async (c) => {
+app.delete('/contacts/:id', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const success = await crmService.deleteContact(c.req.param('id'));
@@ -216,35 +216,35 @@ app.delete('/contacts/:id', async (c) => {
       return c.json({ success: false, error: 'Contact not found' }, 404);
     }
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
 // Leads endpoints
-app.post('/leads', zValidator('json', CreateLeadSchema), async (c) => {
+app.post('/leads', zValidator('json', CreateLeadSchema), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const lead = await crmService.createLead(c.get('validatedData'));
     return c.json({ success: true, data: lead });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
-app.get('/leads', zValidator('query', LeadFiltersSchema.merge(PaginationSchema)), async (c) => {
+app.get('/leads', zValidator('query', LeadFiltersSchema.merge(PaginationSchema)), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
     const pagination: PaginationOptions = { page, limit, sort_by, sort_order };
     const leads = await crmService.getLeads(filters, pagination);
     return c.json({ success: true, data: leads });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.get('/leads/:id', async (c) => {
+app.get('/leads/:id', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const lead = await crmService.getLead(c.req.param('id'));
@@ -252,12 +252,12 @@ app.get('/leads/:id', async (c) => {
       return c.json({ success: false, error: 'Lead not found' }, 404);
     }
     return c.json({ success: true, data: lead });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.put('/leads/:id', zValidator('json', CreateLeadSchema.partial()), async (c) => {
+app.put('/leads/:id', zValidator('json', CreateLeadSchema.partial()), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const lead = await crmService.updateLead(c.req.param('id'), c.get('validatedData'));
@@ -265,12 +265,12 @@ app.put('/leads/:id', zValidator('json', CreateLeadSchema.partial()), async (c) 
       return c.json({ success: false, error: 'Lead not found' }, 404);
     }
     return c.json({ success: true, data: lead });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
-app.delete('/leads/:id', async (c) => {
+app.delete('/leads/:id', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const success = await crmService.deleteLead(c.req.param('id'));
@@ -278,35 +278,35 @@ app.delete('/leads/:id', async (c) => {
       return c.json({ success: false, error: 'Lead not found' }, 404);
     }
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
 // Conversations endpoints
-app.post('/conversations', zValidator('json', CreateConversationSchema), async (c) => {
+app.post('/conversations', zValidator('json', CreateConversationSchema), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const conversation = await crmService.createConversation(c.get('validatedData'));
     return c.json({ success: true, data: conversation });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
-app.get('/conversations', zValidator('query', ConversationFiltersSchema.merge(PaginationSchema)), async (c) => {
+app.get('/conversations', zValidator('query', ConversationFiltersSchema.merge(PaginationSchema)), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
     const pagination: PaginationOptions = { page, limit, sort_by, sort_order };
     const conversations = await crmService.getConversations(filters, pagination);
     return c.json({ success: true, data: conversations });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.get('/conversations/:id', async (c) => {
+app.get('/conversations/:id', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const conversation = await crmService.getConversation(c.req.param('id'));
@@ -314,33 +314,33 @@ app.get('/conversations/:id', async (c) => {
       return c.json({ success: false, error: 'Conversation not found' }, 404);
     }
     return c.json({ success: true, data: conversation });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
 // AI Tasks endpoints
-app.post('/ai-tasks', zValidator('json', CreateAITaskSchema), async (c) => {
+app.post('/ai-tasks', zValidator('json', CreateAITaskSchema), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const task = await crmService.createAITask(c.get('validatedData'));
     return c.json({ success: true, data: task });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
-app.get('/ai-tasks', async (c) => {
+app.get('/ai-tasks', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const tasks = await crmService.getAITasks();
     return c.json({ success: true, data: tasks });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.get('/ai-tasks/:id', async (c) => {
+app.get('/ai-tasks/:id', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const task = await crmService.getAITask(c.req.param('id'));
@@ -348,12 +348,12 @@ app.get('/ai-tasks/:id', async (c) => {
       return c.json({ success: false, error: 'AI Task not found' }, 404);
     }
     return c.json({ success: true, data: task });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.put('/ai-tasks/:id', zValidator('json', CreateAITaskSchema.partial()), async (c) => {
+app.put('/ai-tasks/:id', zValidator('json', CreateAITaskSchema.partial()), async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const task = await crmService.updateAITask(c.req.param('id'), c.get('validatedData'));
@@ -361,59 +361,59 @@ app.put('/ai-tasks/:id', zValidator('json', CreateAITaskSchema.partial()), async
       return c.json({ success: false, error: 'AI Task not found' }, 404);
     }
     return c.json({ success: true, data: task });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
 // Metrics endpoints
-app.get('/metrics/leads', async (c) => {
+app.get('/metrics/leads', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const metrics = await crmService.getLeadMetrics();
     return c.json({ success: true, data: metrics });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.get('/metrics/contacts', async (c) => {
+app.get('/metrics/contacts', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const metrics = await crmService.getContactMetrics();
     return c.json({ success: true, data: metrics });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.get('/metrics/ai-tasks', async (c) => {
+app.get('/metrics/ai-tasks', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
     const metrics = await crmService.getAITaskMetrics();
     return c.json({ success: true, data: metrics });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
 // Migration endpoints
-app.post('/migrate', async (c) => {
+app.post('/migrate', async (c: any) => {
   try {
     const migrationManager = new CRMMigrationManager(c.env);
     const result = await migrationManager.runMigrations();
     return c.json({ success: true, data: result });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });
 
-app.get('/migrate/status', async (c) => {
+app.get('/migrate/status', async (c: any) => {
   try {
     const migrationManager = new CRMMigrationManager(c.env);
     const status = await migrationManager.getMigrationStatus();
     return c.json({ success: true, data: status });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
 });

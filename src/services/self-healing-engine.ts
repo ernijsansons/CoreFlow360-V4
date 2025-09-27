@@ -41,7 +41,7 @@ export class SelfHealingEngine {
         await this.scheduleEffectMonitoring(alert.id, action);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       await this.logHealingAttempt(alert.id, null, 'error', error instanceof Error ? error.message : 'Unknown error');
     }
   }
@@ -166,7 +166,7 @@ export class SelfHealingEngine {
 
       return null;
 
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -271,7 +271,7 @@ export class SelfHealingEngine {
           return { success: false, message: `Unsupported action type: ${action.type}` };
       }
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Unknown error'
@@ -503,7 +503,7 @@ export class SelfHealingEngine {
       // Learn from the result
       await this.updateHealingPatterns(task, isEffective);
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 

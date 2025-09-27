@@ -39,7 +39,7 @@ export function rateLimiter(options: RateLimitOptions) {
         if (!success) {
           throw new RateLimitError(options.window);
         }
-      } catch (error) {
+      } catch (error: any) {
         if (error instanceof RateLimitError) {
           throw error;
         }
@@ -192,7 +192,7 @@ export function createAdvancedRateLimiter(
     let result;
     try {
       result = await Promise.race([checkPromise, timeoutPromise]);
-    } catch (error) {
+    } catch (error: any) {
       // Fail open on timeout to maintain availability
       console.warn('Rate limit check timed out, allowing request:', error);
       await next();
@@ -417,7 +417,7 @@ export class AdvancedRateLimiterDO {
         },
       });
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Durable Object rate limiter error', error);
       return new Response(JSON.stringify({
         error: 'Internal rate limiter error',

@@ -94,7 +94,7 @@ async function initializeManagers(env: Env) {
 // CHART OF ACCOUNTS ENDPOINTS
 // ============================================================================
 
-app.get('/accounts', async (c) => {
+app.get('/accounts', async (c: any) => {
   try {
     const { chartManager } = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -106,7 +106,7 @@ app.get('/accounts', async (c) => {
       data: accounts,
       count: accounts.length
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch accounts'
@@ -114,7 +114,7 @@ app.get('/accounts', async (c) => {
   }
 });
 
-app.post('/accounts', zValidator('json', CreateAccountSchema), async (c) => {
+app.post('/accounts', zValidator('json', CreateAccountSchema), async (c: any) => {
   try {
     const { chartManager, auditLogger } = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -140,7 +140,7 @@ app.post('/accounts', zValidator('json', CreateAccountSchema), async (c) => {
       success: true,
       data: account
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create account'
@@ -148,7 +148,7 @@ app.post('/accounts', zValidator('json', CreateAccountSchema), async (c) => {
   }
 });
 
-app.get('/accounts/:id', async (c) => {
+app.get('/accounts/:id', async (c: any) => {
   try {
     const { chartManager } = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -167,7 +167,7 @@ app.get('/accounts/:id', async (c) => {
       success: true,
       data: account
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch account'
@@ -179,7 +179,7 @@ app.get('/accounts/:id', async (c) => {
 // JOURNAL ENTRY ENDPOINTS
 // ============================================================================
 
-app.post('/journal-entries', zValidator('json', CreateJournalEntrySchema), async (c) => {
+app.post('/journal-entries', zValidator('json', CreateJournalEntrySchema), async (c: any) => {
   try {
     const { journalManager, auditLogger } = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -217,7 +217,7 @@ app.post('/journal-entries', zValidator('json', CreateJournalEntrySchema), async
       success: true,
       data: entry
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create journal entry'
@@ -225,7 +225,7 @@ app.post('/journal-entries', zValidator('json', CreateJournalEntrySchema), async
   }
 });
 
-app.get('/journal-entries', zValidator('query', PaginationSchema), async (c) => {
+app.get('/journal-entries', zValidator('query', PaginationSchema), async (c: any) => {
   try {
     const { journalManager } = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -243,7 +243,7 @@ app.get('/journal-entries', zValidator('query', PaginationSchema), async (c) => 
       data: entries.data,
       pagination: entries.pagination
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch journal entries'
@@ -251,7 +251,7 @@ app.get('/journal-entries', zValidator('query', PaginationSchema), async (c) => 
   }
 });
 
-app.post('/journal-entries/:id/post', async (c) => {
+app.post('/journal-entries/:id/post', async (c: any) => {
   try {
     const { journalManager, auditLogger } = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -277,7 +277,7 @@ app.post('/journal-entries/:id/post', async (c) => {
       success: true,
       data: entry
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to post journal entry'
@@ -289,7 +289,7 @@ app.post('/journal-entries/:id/post', async (c) => {
 // FINANCIAL REPORTS ENDPOINTS
 // ============================================================================
 
-app.get('/reports/trial-balance', zValidator('query', ReportParametersSchema), async (c) => {
+app.get('/reports/trial-balance', zValidator('query', ReportParametersSchema), async (c: any) => {
   try {
     const managers = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -302,7 +302,7 @@ app.get('/reports/trial-balance', zValidator('query', ReportParametersSchema), a
       success: true,
       data: report
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to generate trial balance'
@@ -310,7 +310,7 @@ app.get('/reports/trial-balance', zValidator('query', ReportParametersSchema), a
   }
 });
 
-app.get('/reports/profit-loss', zValidator('query', ReportParametersSchema), async (c) => {
+app.get('/reports/profit-loss', zValidator('query', ReportParametersSchema), async (c: any) => {
   try {
     const managers = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -324,7 +324,7 @@ app.get('/reports/profit-loss', zValidator('query', ReportParametersSchema), asy
       success: true,
       data: report
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to generate profit & loss'
@@ -332,7 +332,7 @@ app.get('/reports/profit-loss', zValidator('query', ReportParametersSchema), asy
   }
 });
 
-app.get('/reports/balance-sheet', zValidator('query', ReportParametersSchema), async (c) => {
+app.get('/reports/balance-sheet', zValidator('query', ReportParametersSchema), async (c: any) => {
   try {
     const managers = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -350,7 +350,7 @@ app.get('/reports/balance-sheet', zValidator('query', ReportParametersSchema), a
         period: params
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to generate balance sheet'
@@ -358,7 +358,7 @@ app.get('/reports/balance-sheet', zValidator('query', ReportParametersSchema), a
   }
 });
 
-app.get('/reports/cash-flow', zValidator('query', ReportParametersSchema), async (c) => {
+app.get('/reports/cash-flow', zValidator('query', ReportParametersSchema), async (c: any) => {
   try {
     const managers = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -372,7 +372,7 @@ app.get('/reports/cash-flow', zValidator('query', ReportParametersSchema), async
       success: true,
       data: report
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to generate cash flow'
@@ -384,7 +384,7 @@ app.get('/reports/cash-flow', zValidator('query', ReportParametersSchema), async
 // PERIOD MANAGEMENT ENDPOINTS
 // ============================================================================
 
-app.get('/periods', async (c) => {
+app.get('/periods', async (c: any) => {
   try {
     const { periodManager } = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -395,7 +395,7 @@ app.get('/periods', async (c) => {
       success: true,
       data: periods
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch periods'
@@ -403,7 +403,7 @@ app.get('/periods', async (c) => {
   }
 });
 
-app.post('/periods/:id/close', async (c) => {
+app.post('/periods/:id/close', async (c: any) => {
   try {
     const { periodManager, auditLogger } = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -426,7 +426,7 @@ app.post('/periods/:id/close', async (c) => {
       success: true,
       message: 'Period closed successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to close period'
@@ -438,7 +438,7 @@ app.post('/periods/:id/close', async (c) => {
 // HEALTH CHECK
 // ============================================================================
 
-app.get('/health', async (c) => {
+app.get('/health', async (c: any) => {
   return c.json({
     success: true,
     service: 'finance',

@@ -911,7 +911,7 @@ describe('Input Validation Security Tests', () => {
         // Should either be rejected or safely handled
         try {
           validateBusinessIdInput(payload);
-        } catch (error) {
+        } catch (error: any) {
           expect(error instanceof Error).toBe(true);
         }
       }
@@ -936,7 +936,7 @@ describe('Input Validation Security Tests', () => {
               businessId: `business_${i}`
             });
             resolve('success');
-          } catch (error) {
+          } catch (error: any) {
             resolve('error');
           }
         });

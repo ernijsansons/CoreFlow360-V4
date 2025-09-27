@@ -148,7 +148,7 @@ export async function validateCSP(
           userAgent: request.headers.get('User-Agent')
         })
       });
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 }
@@ -308,7 +308,7 @@ export async function advancedRateLimit(
       resetTime: (Math.floor(now / window) + 1) * window,
       totalHits: currentCount + 1
     };
-  } catch (error) {
+  } catch (error: any) {
     // SECURITY FIX: Fail closed - deny request if rate limiting fails (fixes fail-open vulnerability)
     console.error('Rate limiting error - failing closed:', error);
     return {
@@ -441,7 +441,7 @@ export async function validateJWT(
       valid: true,
       payload
     };
-  } catch (error) {
+  } catch (error: any) {
     // Handle specific JWT errors
     if (error instanceof Error) {
       if (error.message.includes('signature')) {
@@ -891,7 +891,7 @@ export async function logSecurityEvent(
       ],
       doubles: [Date.now(), 1]
     });
-  } catch (error) {
+  } catch (error: any) {
     // Silent fail for analytics
   }
 }
@@ -942,7 +942,7 @@ export async function logAuditEvent(
         ]
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     // Critical: Audit logging should never fail silently in production
     console.error('Audit logging failed:', error);
   }
@@ -1119,12 +1119,12 @@ export async function generateComplianceReport(
   }, 10000);
 
   const totalEvents = logs.length;
-  const securityIncidents = logs.filter(log =>
+  const securityIncidents = logs.filter((log: any) =>
     log.severity === AuditSeverity.HIGH || log.severity === AuditSeverity.CRITICAL
   ).length;
-  const failedLogins = logs.filter(log => log.eventType === AuditEventType.LOGIN_FAILED).length;
-  const adminActions = logs.filter(log => log.eventType === AuditEventType.ADMIN_ACTION).length;
-  const dataAccess = logs.filter(log => log.eventType === AuditEventType.DATA_ACCESS).length;
+  const failedLogins = logs.filter((log: any) => log.eventType === AuditEventType.LOGIN_FAILED).length;
+  const adminActions = logs.filter((log: any) => log.eventType === AuditEventType.ADMIN_ACTION).length;
+  const dataAccess = logs.filter((log: any) => log.eventType === AuditEventType.DATA_ACCESS).length;
 
   const averageRiskScore = logs.reduce((acc, log) => acc + (log.riskScore || 0), 0) / totalEvents;
 
@@ -1398,7 +1398,7 @@ export async function generateAPIKey(): Promise<{ key: string; hash: string }> {
   const data = encoder.encode(key);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const hash = hashArray.map((b: any) => b.toString(16).padStart(2, '0')).join('');
 
   return { key, hash };
 }
@@ -1414,7 +1414,7 @@ export async function validateAPIKey(
     const data = encoder.encode(apiKey);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const hash = hashArray.map((b: any) => b.toString(16).padStart(2, '0')).join('');
 
     // Look up key data
     const keyData = await kv.get(`api_key:${hash}`);

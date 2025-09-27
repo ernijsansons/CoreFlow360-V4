@@ -212,7 +212,7 @@ export class CacheConsistencyValidator {
         maxStaleness = Math.max(maxStaleness, entry.staleness);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error checking cache staleness', error);
     }
 
@@ -259,7 +259,7 @@ export class CacheConsistencyValidator {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error checking staleness for pattern ${keyPattern.pattern}`, error);
     }
 
@@ -314,7 +314,7 @@ export class CacheConsistencyValidator {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error generating sample keys', error);
     }
 
@@ -333,7 +333,7 @@ export class CacheConsistencyValidator {
       const estimatedAge = Math.random() * keyPattern.expectedTTL * 2; // 0 to 2x expected TTL
       return estimatedAge;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error calculating staleness for key ${key}`, error);
       return 0;
     }
@@ -368,7 +368,7 @@ export class CacheConsistencyValidator {
           return null;
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error getting actual value for key ${key}`, error);
       return null;
     }
@@ -423,13 +423,13 @@ export class CacheConsistencyValidator {
               });
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           // Key doesn't exist or error accessing it
           continue;
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error checking general staleness', error);
     }
 
@@ -442,7 +442,7 @@ export class CacheConsistencyValidator {
 
     try {
       // Validate accuracy of critical business data
-      for (const keyPattern of this.criticalKeys.filter(k => k.criticalLevel === 'critical')) {
+      for (const keyPattern of this.criticalKeys.filter((k: any) => k.criticalLevel === 'critical')) {
         const sampleKeys = await this.generateSampleKeys(keyPattern.pattern);
 
         for (const key of sampleKeys.slice(0, 5)) { // Check up to 5 keys per pattern
@@ -473,7 +473,7 @@ export class CacheConsistencyValidator {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error validating cache accuracy', error);
     }
 
@@ -482,7 +482,7 @@ export class CacheConsistencyValidator {
       50
     );
     const accuracyRate = ((totalValidated - inaccurateEntries.length) / totalValidated) * 100;
-    const criticalInaccuracies = inaccurateEntries.filter(e => e.severity === 'critical').length;
+    const criticalInaccuracies = inaccurateEntries.filter((e: any) => e.severity === 'critical').length;
 
     return {
       inaccurateEntries,
@@ -541,7 +541,7 @@ export class CacheConsistencyValidator {
 
       return null;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error finding discrepancy', error);
       return {
         type: 'comparison_error',
@@ -607,14 +607,14 @@ export class CacheConsistencyValidator {
             if (!exists) {
               extraEntries.push(key);
             }
-          } catch (error) {
+          } catch (error: any) {
             // Assume it's extra if we can't verify
             extraEntries.push(key);
           }
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error checking cache completeness', error);
     }
 
@@ -654,7 +654,7 @@ export class CacheConsistencyValidator {
 
       return result !== null;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error checking entity existence', error);
       return false;
     }
@@ -736,7 +736,7 @@ export class CacheConsistencyValidator {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error finding failed invalidations', error);
     }
 
@@ -807,7 +807,7 @@ export class CacheConsistencyValidator {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error finding cascade issues', error);
     }
 
@@ -837,7 +837,7 @@ export class CacheConsistencyValidator {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error analyzing TTL', error);
     }
 
@@ -889,7 +889,7 @@ export class CacheConsistencyValidator {
 
       return Math.round(optimalTTL);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error calculating optimal TTL', error);
       return keyPattern.expectedTTL;
     }
@@ -942,7 +942,7 @@ export class CacheConsistencyValidator {
 
       return (invalidations / operations) * 100; // Percentage
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error calculating invalidation rate', error);
       return 5; // 5% default rate
     }
@@ -981,7 +981,7 @@ export class CacheConsistencyValidator {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error analyzing multi-layer consistency', error);
     }
 
@@ -1004,7 +1004,7 @@ export class CacheConsistencyValidator {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error finding inconsistencies for layer ${layer.name}`, error);
     }
 
@@ -1059,11 +1059,11 @@ export class CacheConsistencyValidator {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error analyzing distributed coherence', error);
     }
 
-    const partitionTolerance = nodes.filter(n => n.status !== 'isolated').length / nodes.length * 100;
+    const partitionTolerance = nodes.filter((n: any) => n.status !== 'isolated').length / nodes.length * 100;
 
     return {
       nodes,
@@ -1092,7 +1092,7 @@ export class CacheConsistencyValidator {
         efficiency: Math.max(0, efficiency)
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error analyzing cache performance', error);
       return {
         hitRate: 85,
@@ -1113,7 +1113,7 @@ export class CacheConsistencyValidator {
     const issues: CacheIssue[] = [];
 
     // Staleness issues
-    validation.stalenessCheck.staleEntries.forEach(entry => {
+    validation.stalenessCheck.staleEntries.forEach((entry: any) => {
       if (entry.staleness > 3600) { // Over 1 hour
         issues.push({
           type: 'staleness',
@@ -1127,7 +1127,7 @@ export class CacheConsistencyValidator {
     });
 
     // Accuracy issues
-    validation.accuracyValidation.inaccurateEntries.forEach(entry => {
+    validation.accuracyValidation.inaccurateEntries.forEach((entry: any) => {
       issues.push({
         type: 'inconsistency',
         severity: entry.severity,
@@ -1139,7 +1139,7 @@ export class CacheConsistencyValidator {
     });
 
     // Invalidation issues
-    invalidation.failedInvalidations.forEach(failure => {
+    invalidation.failedInvalidations.forEach((failure: any) => {
       issues.push({
         type: 'invalidation',
         severity: failure.retryCount > 2 ? 'high' : 'medium',
@@ -1214,7 +1214,7 @@ export class CacheConsistencyValidator {
     }
 
     // Coherence recommendations
-    const poorCoherenceNodes = coherence.distributedCoherence.nodes.filter(n => n.coherenceScore < 90);
+    const poorCoherenceNodes = coherence.distributedCoherence.nodes.filter((n: any) => n.coherenceScore < 90);
     if (poorCoherenceNodes.length > 0) {
       recommendations.push({
         area: 'Distributed Coherence',

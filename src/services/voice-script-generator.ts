@@ -110,7 +110,7 @@ export class VoiceScriptGenerator {
         key_talking_points: this.extractKeyTalkingPoints(finalScript, personalizationData),
         likely_objections: objectionPredictions
       };
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -126,8 +126,8 @@ export class VoiceScriptGenerator {
       recent_news: enrichmentData?.news?.recent_news?.[0]?.title,
       pain_points: enrichmentData?.ai_insights?.pain_points || this.getDefaultPainPoints(enrichmentData?.company?.industry),
       value_propositions: enrichmentData?.ai_insights?.value_propositions || this.getDefaultValueProps(),
-      competitive_alternatives: enrichmentData?.ai_insights?.current_solutions?.map(s => s.vendor) || [],
-      meeting_best_times: enrichmentData?.ai_insights?.meeting_best_times?.map(t => t.time_range) || []
+      competitive_alternatives: enrichmentData?.ai_insights?.current_solutions?.map((s: any) => s.vendor) || [],
+      meeting_best_times: enrichmentData?.ai_insights?.meeting_best_times?.map((t: any) => t.time_range) || []
     };
   }
 
@@ -240,7 +240,7 @@ Make it sound natural and conversational, not scripted.
           "Would a different time work better for a quick conversation?"
         ]
       };
-    } catch (error) {
+    } catch (error: any) {
       return baseOpening;
     }
   }
@@ -251,7 +251,7 @@ Make it sound natural and conversational, not scripted.
     industry: string
   ): Promise<ScriptSection> {
     const industryQuestions = this.getIndustrySpecificQuestions(industry);
-    const painPointQuestions = personalizationData.pain_points.map(pain =>
+    const painPointQuestions = personalizationData.pain_points.map((pain: any) =>
       `How are you currently handling ${pain.toLowerCase()}?`
     );
 

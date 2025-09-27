@@ -147,7 +147,7 @@ class ProductService {
 
       return product
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'product_creation_failed',
         userId,
@@ -255,7 +255,7 @@ class ProductService {
 
       return updatedProduct
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'product_update_failed',
         productId,
@@ -278,7 +278,7 @@ class ProductService {
       // For now, return mock data
       return null
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve product',
         'PRODUCT_RETRIEVAL_ERROR',
@@ -330,7 +330,7 @@ class ProductService {
 
       return response
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'product_search_failed',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -425,7 +425,7 @@ class ProductService {
 
       return product
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stock_adjustment_failed',
         productId: adjustment.productId,
@@ -486,7 +486,7 @@ class ProductService {
         userId
       })
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stock_reservation_failed',
         productId,
@@ -536,7 +536,7 @@ class ProductService {
         userId
       })
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Stock release failed',
         'STOCK_RELEASE_ERROR',
@@ -572,7 +572,7 @@ class ProductService {
 
       return barcodeInfo
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Barcode generation failed',
         'BARCODE_GENERATION_ERROR',
@@ -598,7 +598,7 @@ class ProductService {
 
       return analytics
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve product analytics',
         'ANALYTICS_ERROR',
@@ -621,7 +621,7 @@ class ProductService {
       // Database query implementation
       return []
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve inventory movements',
         'MOVEMENT_RETRIEVAL_ERROR',
@@ -637,7 +637,7 @@ class ProductService {
       // Database implementation would go here
       return []
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve low stock products',
         'LOW_STOCK_QUERY_ERROR',
@@ -679,7 +679,7 @@ class ProductService {
         userId
       })
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'bulk_price_update_failed',
         error: error instanceof Error ? error.message : 'Unknown error',

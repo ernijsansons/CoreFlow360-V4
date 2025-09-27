@@ -178,7 +178,7 @@ export class StripePaymentGateway {
         paymentMethodId: paymentIntent.payment_method as string,
         clientSecret: paymentIntent.client_secret || undefined,
         nextAction: paymentIntent.next_action,
-        charges: paymentIntent.charges?.data.map(charge => ({
+        charges: paymentIntent.charges?.data.map((charge: any) => ({
           id: charge.id,
           amount: charge.amount / 100,
           status: charge.status,
@@ -203,7 +203,7 @@ export class StripePaymentGateway {
 
       return result
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stripe_payment_intent_creation_failed',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -259,7 +259,7 @@ export class StripePaymentGateway {
 
       return result
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stripe_payment_intent_confirmation_failed',
         paymentIntentId,
@@ -292,7 +292,7 @@ export class StripePaymentGateway {
 
       return result
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stripe_payment_intent_capture_failed',
         paymentIntentId,
@@ -324,7 +324,7 @@ export class StripePaymentGateway {
 
       return result
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stripe_payment_intent_cancellation_failed',
         paymentIntentId,
@@ -377,7 +377,7 @@ export class StripePaymentGateway {
 
       return result
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stripe_refund_creation_failed',
         paymentIntentId,
@@ -412,7 +412,7 @@ export class StripePaymentGateway {
 
       return customer
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stripe_customer_creation_failed',
         email: request.email,
@@ -451,7 +451,7 @@ export class StripePaymentGateway {
 
       return subscription
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stripe_subscription_creation_failed',
         customerId: request.customerId,
@@ -526,7 +526,7 @@ export class StripePaymentGateway {
 
       return stripeInvoice
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stripe_invoice_creation_failed',
         invoiceId: invoice.id,
@@ -564,7 +564,7 @@ export class StripePaymentGateway {
         request: event.request
       }
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stripe_webhook_processing_failed',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -713,7 +713,7 @@ export class StripePaymentGateway {
       paymentMethodId: paymentIntent.payment_method as string,
       clientSecret: paymentIntent.client_secret || undefined,
       nextAction: paymentIntent.next_action,
-      charges: paymentIntent.charges?.data.map(charge => ({
+      charges: paymentIntent.charges?.data.map((charge: any) => ({
         id: charge.id,
         amount: charge.amount / 100,
         status: charge.status,
@@ -800,7 +800,7 @@ export class StripePaymentGateway {
     try {
       const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId)
       return await this.mapPaymentIntentToResult(paymentIntent)
-    } catch (error) {
+    } catch (error: any) {
       throw this.handleStripeError(error, 'Failed to retrieve payment intent')
     }
   }
@@ -812,7 +812,7 @@ export class StripePaymentGateway {
         type: type as any || 'card'
       })
       return paymentMethods.data
-    } catch (error) {
+    } catch (error: any) {
       throw this.handleStripeError(error, 'Failed to list payment methods')
     }
   }

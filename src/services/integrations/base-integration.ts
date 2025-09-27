@@ -155,7 +155,7 @@ export abstract class BaseIntegration {
           try {
             const fn = new Function('value', transform);
             return fn(value);
-          } catch (error) {
+          } catch (error: any) {
             return value;
           }
         }
@@ -184,7 +184,7 @@ export abstract class BaseIntegration {
       }
 
       return await response.json();
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }

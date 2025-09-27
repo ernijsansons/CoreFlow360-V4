@@ -138,7 +138,7 @@ class IdempotencyManager {
           completedAt
         };
 
-      } catch (error) {
+      } catch (error: any) {
         // Mark as failed
         await this.markFailed(idempotencyKey, error);
 
@@ -154,7 +154,7 @@ class IdempotencyManager {
         await this.releaseLock(lockKey);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       // If it's not an idempotency-related error, wrap it
       if (!(error instanceof SecurityError) || !error.code.startsWith('IDEMPOTENCY_')) {
         throw new SecurityError('Idempotent operation failed', {
@@ -217,7 +217,7 @@ class IdempotencyManager {
       }
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get existing idempotency result', error, {
         idempotencyKey
       });
@@ -356,7 +356,7 @@ class IdempotencyManager {
       // Verify we got the lock (race condition check)
       const verification = await this.env.KV_CACHE.get(lockKey);
       return verification === lockValue;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to acquire lock', error, { lockKey });
       return false;
     }
@@ -369,7 +369,7 @@ class IdempotencyManager {
     if (this.env.KV_CACHE) {
       try {
         await this.env.KV_CACHE.delete(lockKey);
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to release lock', error, { lockKey });
       }
     }
@@ -416,7 +416,7 @@ class IdempotencyManager {
       });
 
       return (result as any).changes || 0;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to cleanup expired idempotency keys', error);
       return 0;
     }
@@ -431,7 +431,7 @@ export function withIdempotency(options: Omit<IdempotencyOptions, 'operation'>) 
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const idempotencyManager = new IdempotencyManager(this.env || args[0]?.env);
+      const idempotencyManager = new IdempotencyManager((this as any).env || args[0]?.env);
 
       const result = await idempotencyManager.withIdempotency(
         () => originalMethod.apply(this, args),

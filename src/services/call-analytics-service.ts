@@ -80,7 +80,7 @@ class CallAnalyticsService {
       await this.updateWeeklyTrends(weekKey, callResult);
 
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -106,15 +106,15 @@ class CallAnalyticsService {
     const filteredCalls = this.filterCallResults(query);
 
     const totalCalls = filteredCalls.length;
-    const successfulCalls = filteredCalls.filter(call =>
+    const successfulCalls = filteredCalls.filter((call: any) =>
       call.answered && call.status === 'completed'
     ).length;
 
-    const qualifiedCalls = filteredCalls.filter(call =>
+    const qualifiedCalls = filteredCalls.filter((call: any) =>
       call.conversation_summary?.qualification_status.qualified
     ).length;
 
-    const meetingsBooked = filteredCalls.filter(call =>
+    const meetingsBooked = filteredCalls.filter((call: any) =>
       call.conversation_summary?.outcome === 'meeting_scheduled'
     ).length;
 
@@ -122,8 +122,8 @@ class CallAnalyticsService {
     const totalCost = filteredCalls.reduce((sum, call) => sum + call.cost, 0);
 
     const qualificationScores = filteredCalls
-      .filter(call => call.conversation_summary?.qualification_status.overall_score)
-      .map(call => call.conversation_summary!.qualification_status.overall_score);
+      .filter((call: any) => call.conversation_summary?.qualification_status.overall_score)
+      .map((call: any) => call.conversation_summary!.qualification_status.overall_score);
 
     const objectionStats = this.calculateObjectionStats(filteredCalls);
     const conversionFunnel = this.calculateConversionFunnel(filteredCalls);
@@ -169,10 +169,10 @@ class CallAnalyticsService {
     const filteredCalls = this.filterCallResults(query);
 
     const totalCost = filteredCalls.reduce((sum, call) => sum + call.cost, 0);
-    const qualifiedLeads = filteredCalls.filter(call =>
+    const qualifiedLeads = filteredCalls.filter((call: any) =>
       call.conversation_summary?.qualification_status.qualified
     ).length;
-    const meetingsBooked = filteredCalls.filter(call =>
+    const meetingsBooked = filteredCalls.filter((call: any) =>
       call.conversation_summary?.outcome === 'meeting_scheduled'
     ).length;
 
@@ -220,7 +220,7 @@ class CallAnalyticsService {
     };
 
     const allCalls = Array.from(this.callResults.values());
-    const recentCalls = allCalls.filter(call => {
+    const recentCalls = allCalls.filter((call: any) => {
       const callDate = new Date(call.created_at);
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       return callDate >= thirtyDaysAgo;
@@ -300,18 +300,18 @@ class CallAnalyticsService {
 
     // Calculate talk time ratios
     const aiTalkTime = transcript?.turns
-      .filter(turn => turn.speaker === 'ai')
+      .filter((turn: any) => turn.speaker === 'ai')
       .reduce((sum, turn) => sum + turn.duration_ms, 0) || 0;
 
     const humanTalkTime = transcript?.turns
-      .filter(turn => turn.speaker === 'human')
+      .filter((turn: any) => turn.speaker === 'human')
       .reduce((sum, turn) => sum + turn.duration_ms, 0) || 0;
 
     const totalTalkTime = aiTalkTime + humanTalkTime;
 
     // Calculate interruptions and silence
     const interruptions = transcript?.turns
-      .filter(turn => turn.text.includes('[interrupted]')).length || 0;
+      .filter((turn: any) => turn.text.includes('[interrupted]')).length || 0;
 
     // Calculate response times
     const responseTimes: number[] = [];
@@ -350,7 +350,7 @@ class CallAnalyticsService {
       qualification_score: summary?.qualification_status.overall_score || 0,
       interest_score: this.mapInterestLevelToScore(summary?.interest_level || 'low'),
       objection_count: summary?.objections_raised.length || 0,
-      objections_resolved: summary?.objections_raised.filter(obj => obj.resolved).length || 0,
+      objections_resolved: summary?.objections_raised.filter((obj: any) => obj.resolved).length || 0,
       call_cost: callResult.cost,
       conversion_value: this.estimateConversionValue(summary?.outcome),
       roi_estimate: this.calculateCallROI(callResult)
@@ -418,7 +418,7 @@ class CallAnalyticsService {
   }
 
   private filterCallResults(query: AnalyticsQuery): CallResult[] {
-    return Array.from(this.callResults.values()).filter(call => {
+    return Array.from(this.callResults.values()).filter((call: any) => {
       const callDate = new Date(call.created_at);
       const startDate = new Date(query.start_date);
       const endDate = new Date(query.end_date);
@@ -455,8 +455,8 @@ class CallAnalyticsService {
       responseTimes: number[];
     }>();
 
-    calls.forEach(call => {
-      call.conversation_summary?.objections_raised.forEach(objection => {
+    calls.forEach((call: any) => {
+      call.conversation_summary?.objections_raised.forEach((objection: any) => {
         const existing = objectionMap.get(objection.type) || {
           count: 0,
           resolved: 0,
@@ -485,14 +485,14 @@ class CallAnalyticsService {
 
   private calculateConversionFunnel(calls: CallResult[]): ConversionFunnelStats {
     const callsInitiated = calls.length;
-    const callsAnswered = calls.filter(call => call.answered).length;
-    const conversationsCompleted = calls.filter(call =>
+    const callsAnswered = calls.filter((call: any) => call.answered).length;
+    const conversationsCompleted = calls.filter((call: any) =>
       call.status === 'completed' && call.duration_seconds > 30
     ).length;
-    const qualifiedLeads = calls.filter(call =>
+    const qualifiedLeads = calls.filter((call: any) =>
       call.conversation_summary?.qualification_status.qualified
     ).length;
-    const meetingsScheduled = calls.filter(call =>
+    const meetingsScheduled = calls.filter((call: any) =>
       call.conversation_summary?.outcome === 'meeting_scheduled'
     ).length;
 
@@ -525,18 +525,18 @@ class CallAnalyticsService {
 
     // Recalculate averages
     const daysCalls = Array.from(this.callResults.values())
-      .filter(call => call.created_at.startsWith(dateKey));
+      .filter((call: any) => call.created_at.startsWith(dateKey));
 
     existing.average_duration = daysCalls.length > 0
       ? daysCalls.reduce((sum, call) => sum + call.duration_seconds, 0) / daysCalls.length
       : 0;
 
-    const qualifiedCount = daysCalls.filter(call =>
+    const qualifiedCount = daysCalls.filter((call: any) =>
       call.conversation_summary?.qualification_status.qualified
     ).length;
     existing.qualification_rate = daysCalls.length > 0 ? (qualifiedCount / daysCalls.length) * 100 : 0;
 
-    const meetingCount = daysCalls.filter(call =>
+    const meetingCount = daysCalls.filter((call: any) =>
       call.conversation_summary?.outcome === 'meeting_scheduled'
     ).length;
     existing.meeting_booking_rate = daysCalls.length > 0 ? (meetingCount / daysCalls.length) * 100 : 0;
@@ -572,7 +572,7 @@ class CallAnalyticsService {
       sum + (call.conversation_summary?.objections_raised.length || 0), 0);
 
     const resolvedObjections = calls.reduce((sum, call) =>
-      sum + (call.conversation_summary?.objections_raised.filter(obj => obj.resolved).length || 0), 0);
+      sum + (call.conversation_summary?.objections_raised.filter((obj: any) => obj.resolved).length || 0), 0);
 
     return totalObjections > 0 ? (resolvedObjections / totalObjections) * 100 : 100;
   }
@@ -614,7 +614,7 @@ class CallAnalyticsService {
     // Calculate based on conversation length, interaction quality, questions asked
     const durationScore = Math.min((callResult.duration_seconds / 300) * 100, 100); // Max at 5 minutes
     const questionCount = callResult.transcript?.turns
-      .filter(turn => turn.speaker === 'human' && turn.text.includes('?')).length || 0;
+      .filter((turn: any) => turn.speaker === 'human' && turn.text.includes('?')).length || 0;
     const questionScore = Math.min(questionCount * 20, 100);
 
     return (durationScore + questionScore) / 2;
@@ -624,7 +624,7 @@ class CallAnalyticsService {
     const objections = callResult.conversation_summary?.objections_raised || [];
     if (objections.length === 0) return 100;
 
-    const resolved = objections.filter(obj => obj.resolved).length;
+    const resolved = objections.filter((obj: any) => obj.resolved).length;
     return (resolved / objections.length) * 100;
   }
 
@@ -685,16 +685,16 @@ class CallAnalyticsService {
     return {
       date: dateKey,
       calls_initiated: calls.length,
-      calls_answered: calls.filter(call => call.answered).length,
-      calls_completed: calls.filter(call => call.status === 'completed').length,
+      calls_answered: calls.filter((call: any) => call.answered).length,
+      calls_completed: calls.filter((call: any) => call.status === 'completed').length,
       average_duration: calls.length > 0
         ? calls.reduce((sum, call) => sum + call.duration_seconds, 0) / calls.length
         : 0,
       qualification_rate: calls.length > 0
-        ? (calls.filter(call => call.conversation_summary?.qualification_status.qualified).length / calls.length) * 100
+        ? (calls.filter((call: any) => call.conversation_summary?.qualification_status.qualified).length / calls.length) * 100
         : 0,
       meeting_booking_rate: calls.length > 0
-        ? (calls.filter(call => call.conversation_summary?.outcome === 'meeting_scheduled').length / calls.length) * 100
+        ? (calls.filter((call: any) => call.conversation_summary?.outcome === 'meeting_scheduled').length / calls.length) * 100
         : 0,
       total_cost: calls.reduce((sum, call) => sum + call.cost, 0)
     };

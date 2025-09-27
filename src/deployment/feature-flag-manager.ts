@@ -353,7 +353,7 @@ class FeatureFlagManager {
       await this.trackExposure(flag, context, fallbackValue, 'FALLTHROUGH');
       return this.createEvaluation(flagKey, fallbackValue, 'FALLTHROUGH');
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Flag evaluation error', errorMessage, {
         correlationId,
@@ -378,7 +378,7 @@ class FeatureFlagManager {
     const evaluations: Record<string, FlagEvaluation> = {};
 
     // Evaluate flags in parallel for performance
-    const promises = flagKeys.map(async (key) => {
+    const promises = flagKeys.map(async (key: any) => {
       const evaluation = await this.evaluateFlag(key, context, defaults?.[key]);
       return { key, evaluation };
     });
@@ -496,7 +496,7 @@ class FeatureFlagManager {
     }
 
     // Check for dependencies
-    const dependentFlags = Array.from(this.flags.values()).filter(f =>
+    const dependentFlags = Array.from(this.flags.values()).filter((f: any) =>
       f.metadata.dependencies.includes(key)
     );
 
@@ -558,7 +558,7 @@ class FeatureFlagManager {
           reason: result.reason
         });
 
-      } catch (error) {
+      } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         cleanupResults.push({
           flag: flag.key,
@@ -571,8 +571,8 @@ class FeatureFlagManager {
 
     this.logger.info('Flag cleanup completed', {
       totalProcessed: staleFlags.length,
-      successful: cleanupResults.filter(r => r.success).length,
-      failed: cleanupResults.filter(r => !r.success).length
+      successful: cleanupResults.filter((r: any) => r.success).length,
+      failed: cleanupResults.filter((r: any) => !r.success).length
     });
 
     return {

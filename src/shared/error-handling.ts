@@ -199,7 +199,7 @@ export class ErrorHandler {
     for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
       try {
         return await operation();
-      } catch (error) {
+      } catch (error: any) {
         lastError = error as Error;
 
         // Check if we should retry
@@ -240,7 +240,7 @@ export class ErrorHandler {
   ): Promise<T> {
     try {
       return await operation();
-    } catch (error) {
+    } catch (error: any) {
       const wrappedError = this.wrapError(error, context);
 
       this.logger.error('Operation failed in error boundary', wrappedError.toJSON());

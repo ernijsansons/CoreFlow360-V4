@@ -137,7 +137,7 @@ export class CSPGenerator {
 
       case 'finance':
         // Stricter requirements for financial module
-        requirements.scripts = requirements.scripts.filter(s =>
+        requirements.scripts = requirements.scripts.filter((s: any) =>
           s.includes('cloudflare.com')
         );
         requirements.apis.push(
@@ -291,11 +291,11 @@ export class CSPGenerator {
     // Extra restrictions for sensitive modules
     if (context.module === 'finance' || context.module === 'admin') {
       // Remove unsafe-inline even in dev
-      csp['script-src'] = csp['script-src'].filter(s => s !== "'unsafe-inline'");
-      csp['style-src'] = csp['style-src'].filter(s => s !== "'unsafe-inline'");
+      csp['script-src'] = csp['script-src'].filter((s: any) => s !== "'unsafe-inline'");
+      csp['style-src'] = csp['style-src'].filter((s: any) => s !== "'unsafe-inline'");
 
       // Restrict to HTTPS only
-      csp['connect-src'] = csp['connect-src'].map(s =>
+      csp['connect-src'] = csp['connect-src'].map((s: any) =>
         s.startsWith('ws://') ? s.replace('ws://', 'wss://') : s
       );
     }
@@ -331,7 +331,7 @@ export class CSPGenerator {
    * Validate CSP string
    */
   validateCSP(csp: string): boolean {
-    const directives = csp.split(';').map(d => d.trim());
+    const directives = csp.split(';').map((d: any) => d.trim());
     const validDirectives = new Set([
       'default-src', 'script-src', 'style-src', 'img-src',
       'connect-src', 'font-src', 'object-src', 'media-src',

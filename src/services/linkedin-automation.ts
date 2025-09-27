@@ -139,7 +139,7 @@ export class LinkedInAutomationService {
       };
 
       return profile;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get LinkedIn profile:', error);
       return null;
     }
@@ -172,7 +172,7 @@ export class LinkedInAutomationService {
       }
 
       return profiles;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to search LinkedIn profiles:', error);
       return [];
     }
@@ -202,7 +202,7 @@ export class LinkedInAutomationService {
       }
 
       return posts;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get LinkedIn posts:', error);
       return [];
     }
@@ -232,7 +232,7 @@ export class LinkedInAutomationService {
       };
 
       return post;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create LinkedIn post:', error);
       return null;
     }
@@ -244,7 +244,7 @@ export class LinkedInAutomationService {
       // Mock post like - would use LinkedIn API in production
       console.log(`Liking post ${postId}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to like LinkedIn post:', error);
       return false;
     }
@@ -255,7 +255,7 @@ export class LinkedInAutomationService {
       // Mock post comment - would use LinkedIn API in production
       console.log(`Commenting on post ${postId}: ${comment}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to comment on LinkedIn post:', error);
       return false;
     }
@@ -266,7 +266,7 @@ export class LinkedInAutomationService {
       // Mock post share - would use LinkedIn API in production
       console.log(`Sharing post ${postId} with message: ${message || 'No message'}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to share LinkedIn post:', error);
       return false;
     }
@@ -278,7 +278,7 @@ export class LinkedInAutomationService {
       // Mock connection request - would use LinkedIn API in production
       console.log(`Sending connection request to ${profileUrl} with message: ${message || 'No message'}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send LinkedIn connection request:', error);
       return false;
     }
@@ -289,7 +289,7 @@ export class LinkedInAutomationService {
       // Mock connection acceptance - would use LinkedIn API in production
       console.log(`Accepting connection request ${requestId}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to accept LinkedIn connection request:', error);
       return false;
     }
@@ -315,7 +315,7 @@ export class LinkedInAutomationService {
           timestamp: new Date().toISOString()
         }
       ];
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get LinkedIn connection requests:', error);
       return [];
     }
@@ -327,7 +327,7 @@ export class LinkedInAutomationService {
       // Mock message sending - would use LinkedIn API in production
       console.log(`Sending message to ${profileUrl}: ${message}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send LinkedIn message:', error);
       return false;
     }
@@ -351,7 +351,7 @@ export class LinkedInAutomationService {
           isFromMe: false
         }
       ];
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get LinkedIn messages:', error);
       return [];
     }
@@ -435,7 +435,7 @@ export class LinkedInAutomationService {
         strategy.status = 'completed';
       }
 
-    } catch (error) {
+    } catch (error: any) {
       currentStep.status = 'failed';
       currentStep.result = error instanceof Error ? error.message : 'Unknown error';
       strategy.status = 'failed';
@@ -502,7 +502,7 @@ export class LinkedInAutomationService {
     for (const leadId of campaign.leads) {
       try {
         await this.executeStrategy(leadId);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Failed to execute strategy for lead ${leadId}:`, error);
       }
     }
@@ -566,7 +566,7 @@ export class LinkedInAutomationService {
         status: 'healthy',
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'unhealthy',
         timestamp: new Date().toISOString()
@@ -578,7 +578,7 @@ export class LinkedInAutomationService {
     try {
       // Mock cleanup - would close connections and clean up resources in production
       console.log('LinkedIn Automation Service cleanup completed');
-    } catch (error) {
+    } catch (error: any) {
       console.error('LinkedIn Automation Service cleanup failed:', error);
     }
   }

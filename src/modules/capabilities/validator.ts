@@ -44,7 +44,7 @@ export class CapabilityValidator {
         category: spec.category,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Capability specification validation failed', error, {
         capabilityId: spec.id,
       });
@@ -109,7 +109,7 @@ export class CapabilityValidator {
 
       return validatedParameters;
 
-    } catch (error) {
+    } catch (error: any) {
       const duration = Date.now() - startTime;
       this.logger.error('Parameter validation failed', error, {
         capabilityId: spec.id,
@@ -150,7 +150,7 @@ export class CapabilityValidator {
 
       return redactedResult;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Result validation failed', error, {
         capabilityId: spec.id,
         correlationId: context.correlationId,

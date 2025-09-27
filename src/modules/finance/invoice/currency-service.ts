@@ -137,7 +137,7 @@ class CurrencyService {
 
       return result
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'currency_conversion_failed',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -238,7 +238,7 @@ class CurrencyService {
 
       return exchangeRate
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         `Failed to fetch exchange rate from ${this.rateProvider}`,
         'RATE_FETCH_ERROR',
@@ -302,7 +302,7 @@ class CurrencyService {
 
       return exchangeRate
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         `Failed to fetch historical exchange rate`,
         'HISTORICAL_RATE_FETCH_ERROR',
@@ -537,7 +537,7 @@ class CurrencyService {
 
   // Public methods for currency management
   async getSupportedCurrencies(): Promise<Currency[]> {
-    return Array.from(this.currencies.values()).filter(c => c.isActive)
+    return Array.from(this.currencies.values()).filter((c: any) => c.isActive)
   }
 
   async addCurrency(currency: Omit<Currency, 'isActive'>): Promise<Currency> {

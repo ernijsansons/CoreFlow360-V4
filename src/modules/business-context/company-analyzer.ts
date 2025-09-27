@@ -49,7 +49,7 @@ export class CompanyAnalyzer {
         culturalProfile
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to analyze company', error, { businessId });
       return this.getDefaultAnalysis();
     }
@@ -79,7 +79,7 @@ export class CompanyAnalyzer {
         strategic
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get business intelligence', error, { businessId });
       return this.getDefaultBusinessIntelligence();
     }
@@ -131,7 +131,7 @@ export class CompanyAnalyzer {
         marketPosition: this.determineMarketPosition(businessId, revenueAnalysis, customerAnalysis),
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to analyze business model', error, { businessId });
       return this.getDefaultBusinessModel();
     }
@@ -151,12 +151,12 @@ export class CompanyAnalyzer {
 
       return {
         employeeCount,
-        departments: departments.map(d => d.name),
+        departments: departments.map((d: any) => d.name),
         locations,
         hierarchy: this.determineHierarchyType(employeeCount, departments.length),
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to analyze organizational structure', error, { businessId });
       return {
         employeeCount: 0,
@@ -181,7 +181,7 @@ export class CompanyAnalyzer {
         digitalTransformation: 'in-progress',
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to analyze technology profile', error, { businessId });
       return {
         primarySystems: [],
@@ -213,7 +213,7 @@ export class CompanyAnalyzer {
         communicationStyle: culture.communicationStyle || 'mixed',
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to analyze cultural profile', error, { businessId });
       return {
         values: [],
@@ -250,7 +250,7 @@ export class CompanyAnalyzer {
         constraints,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to analyze financial intelligence', error, { businessId });
       return {
         performance: {
@@ -289,7 +289,7 @@ export class CompanyAnalyzer {
         trends: this.inferIndustryTrends(industry),
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to analyze market intelligence', error, { businessId });
       return {
         position: 'stable',
@@ -321,7 +321,7 @@ export class CompanyAnalyzer {
         priorities: this.inferOperationalPriorities(efficiency, scalability, riskLevel),
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to analyze operational intelligence', error, { businessId });
       return {
         efficiency: 70,
@@ -359,7 +359,7 @@ export class CompanyAnalyzer {
         riskTolerance,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to analyze strategic intelligence', error, { businessId });
       return {
         phase: 'growth',

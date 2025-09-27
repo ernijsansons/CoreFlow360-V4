@@ -290,7 +290,7 @@ describe('Error Handling and Transaction Tests', () => {
 
         // Should not reach here
         expect(false).toBe(true);
-      } catch (error) {
+      } catch (error: any) {
         // Verify transaction was rolled back
         const transactionLog = mockDb.getTransactionLog();
         expect(transactionLog).toEqual(['BEGIN', 'ROLLBACK']);
@@ -316,7 +316,7 @@ describe('Error Handling and Transaction Tests', () => {
         );
 
         expect(false).toBe(true);
-      } catch (error) {
+      } catch (error: any) {
         // Should still throw the original error, not the rollback error
         expect(error instanceof Error).toBe(true);
 
@@ -389,7 +389,7 @@ describe('Error Handling and Transaction Tests', () => {
         );
 
         expect(false).toBe(true);
-      } catch (error) {
+      } catch (error: any) {
         expect(error instanceof ValidationError).toBe(true);
         expect(attemptCount).toBe(1); // Should not retry
       }
@@ -412,7 +412,7 @@ describe('Error Handling and Transaction Tests', () => {
         );
 
         expect(false).toBe(true);
-      } catch (error) {
+      } catch (error: any) {
         expect(error instanceof Error).toBe(true);
         expect(attemptCount).toBe(3); // Should try exactly 3 times
       }
@@ -433,7 +433,7 @@ describe('Error Handling and Transaction Tests', () => {
           3,
           100 // 100ms base delay
         );
-      } catch (error) {
+      } catch (error: any) {
         // Verify exponential backoff timing
         expect(timestamps.length).toBe(3);
 
@@ -533,7 +533,7 @@ describe('Error Handling and Transaction Tests', () => {
       try {
         await wrappedFunction('fail', 456);
         expect(false).toBe(true);
-      } catch (error) {
+      } catch (error: any) {
         expect(error instanceof Error).toBe(true);
         expect(executionCount).toBe(2);
       }
@@ -618,7 +618,7 @@ describe('Error Handling and Transaction Tests', () => {
           operation,
           { operation: `concurrent_op_${index}`, businessId: `business_${index}` },
           mockDb as any
-        ).catch(error => ({ error: error.message, index }))
+        ).catch((error: any) => ({ error: error.message, index }))
       );
 
       const results = await Promise.all(promises);
@@ -652,7 +652,7 @@ describe('Error Handling and Transaction Tests', () => {
           operation,
           { operation: 'cleanup_test', businessId: 'test_business' }
         );
-      } catch (error) {
+      } catch (error: any) {
         // Expected to throw
       }
 
@@ -683,7 +683,7 @@ describe('Error Handling and Transaction Tests', () => {
           3,
           10
         );
-      } catch (error) {
+      } catch (error: any) {
         // Expected to fail
       }
 

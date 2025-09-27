@@ -291,7 +291,7 @@ export class Logger {
         this.flush();
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.stats.errorsEncountered++;
 
       // Fallback console logging if logger fails
@@ -365,7 +365,7 @@ export class Logger {
         } else {
           sanitized[key] = value;
         }
-      } catch (error) {
+      } catch (error: any) {
         sanitized[key] = '[UNSERIALIZABLE]';
       }
     }
@@ -436,14 +436,14 @@ export class Logger {
     try {
       // In a real implementation, you might send to external logging service
       if (this.config.enableConsole && this.config.environment !== 'development') {
-        this.buffer.forEach(entry => this.outputToConsole(entry));
+        this.buffer.forEach((entry: any) => this.outputToConsole(entry));
       }
 
       // Clear buffer
       this.buffer = [];
       this.stats.lastFlush = Date.now();
 
-    } catch (error) {
+    } catch (error: any) {
       this.stats.errorsEncountered++;
     }
   }
@@ -506,7 +506,7 @@ export class LoggerFactory {
     this.globalConfig = { ...this.globalConfig, ...config };
 
     // Update existing loggers
-    this.loggers.forEach(logger => {
+    this.loggers.forEach((logger: any) => {
       logger.updateConfig(config);
     });
   }
@@ -539,7 +539,7 @@ export class LoggerFactory {
    * Destroy all loggers
    */
   static destroyAll(): void {
-    this.loggers.forEach(logger => logger.destroy());
+    this.loggers.forEach((logger: any) => logger.destroy());
     this.loggers.clear();
   }
 
@@ -647,7 +647,7 @@ export class PerformanceTimer {
 
   constructor(
     operation: string,
-    logger: Logger = performanceLogger,
+    logger: any = performanceLogger,
     context?: Record<string, unknown>,
     securityContext?: SecurityContext
   ) {
@@ -697,12 +697,11 @@ export function logPerformance(operation?: string) {
         const result = await originalMethod.apply(this, args);
         timer.end();
         return result;
-      } catch (error) {
+      } catch (error: any) {
         const duration = timer.getDuration();
         performanceLogger.error(
           `Performance: ${operationName} failed`,
-          error,
-          { duration }
+          { error, duration }
         );
         throw error;
       }

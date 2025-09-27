@@ -109,7 +109,7 @@ export class TaxCalculationEngine {
         lineTaxes
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to calculate invoice taxes', error, {
         lineCount: lines.length,
         businessId: validBusinessId
@@ -175,7 +175,7 @@ export class TaxCalculationEngine {
         taxRates: taxRateResults
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to calculate line tax', error, {
         lineId: line.id,
         businessId: validBusinessId
@@ -248,7 +248,7 @@ export class TaxCalculationEngine {
 
       // Filter by effective dates
       const now = Date.now();
-      taxRates = taxRates.filter(rate =>
+      taxRates = taxRates.filter((rate: any) =>
         rate.isActive &&
         rate.effectiveDate <= now &&
         (!rate.expiryDate || rate.expiryDate > now)
@@ -256,7 +256,7 @@ export class TaxCalculationEngine {
 
       return taxRates;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to determine applicable tax rates', error, {
         businessId: validBusinessId,
         address
@@ -297,7 +297,7 @@ export class TaxCalculationEngine {
 
       return this.mapToTaxJurisdiction(result);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to determine jurisdiction', error, {
         address,
         businessId: validBusinessId
@@ -322,9 +322,9 @@ export class TaxCalculationEngine {
         ORDER BY rate DESC
       `).bind(validBusinessId, jurisdictionId).all();
 
-      return (result.results || []).map(row => this.mapToTaxRate(row));
+      return (result.results || []).map((row: any) => this.mapToTaxRate(row));
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get tax rates for jurisdiction', error, {
         jurisdictionId,
         businessId: validBusinessId
@@ -381,7 +381,7 @@ export class TaxCalculationEngine {
       ).all();
 
       const exemptTaxRateIds = new Set(
-        (exemptionsResult.results || []).map(row => row.tax_rate_id as string)
+        (exemptionsResult.results || []).map((row: any) => row.tax_rate_id as string)
       );
 
       // Get specific tax rate mappings for this product
@@ -406,7 +406,7 @@ export class TaxCalculationEngine {
       }
 
       // Filter tax rates based on product-specific rules
-      const filteredRates = taxRates.filter(rate => {
+      const filteredRates = taxRates.filter((rate: any) => {
         // Check if this tax rate is specifically exempted
         if (exemptTaxRateIds.has(rate.id)) {
           return false;
@@ -450,7 +450,7 @@ export class TaxCalculationEngine {
 
       return filteredRates;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to filter tax rates by product', error, {
         productId,
         businessId: validBusinessId
@@ -490,7 +490,7 @@ export class TaxCalculationEngine {
 
       return taxRate;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get tax rate', error, {
         taxRateId,
         businessId: validBusinessId
@@ -549,7 +549,7 @@ export class TaxCalculationEngine {
 
       return newTaxRate;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create tax rate', error, {
         name: taxRate.name,
         businessId: validBusinessId
@@ -605,7 +605,7 @@ export class TaxCalculationEngine {
 
       return updatedTaxRate;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to update tax rate', error, {
         taxRateId,
         businessId: validBusinessId

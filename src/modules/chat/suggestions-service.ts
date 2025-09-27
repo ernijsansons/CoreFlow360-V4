@@ -103,13 +103,13 @@ class SuggestionsService {
         details: {
           businessId: context.businessId,
           suggestionsCount: rankedSuggestions.length,
-          types: rankedSuggestions.map(s => s.type)
+          types: rankedSuggestions.map((s: any) => s.type)
         }
       })
 
       return rankedSuggestions
 
-    } catch (error) {
+    } catch (error: any) {
       await this.auditLogger.log({
         action: 'suggestions_generation_failed',
         userId: context.userId,
@@ -500,7 +500,7 @@ class SuggestionsService {
     context: SuggestionContext
   ): SmartSuggestion[] {
     return suggestions
-      .filter(s => {
+      .filter((s: any) => {
         // Filter out expired suggestions
         if (s.expiresAt && new Date(s.expiresAt) < new Date()) {
           return false
@@ -553,7 +553,7 @@ class SuggestionsService {
         }
       })
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 }

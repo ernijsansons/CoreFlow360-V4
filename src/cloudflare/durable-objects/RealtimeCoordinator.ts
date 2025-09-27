@@ -44,7 +44,7 @@ export class RealtimeCoordinator implements DurableObject {
         default:
           return new Response('Not Found', { status: 404 });
       }
-    } catch (error) {
+    } catch (error: any) {
       return new Response('Internal Server Error', { status: 500 });
     }
   }
@@ -180,7 +180,7 @@ export class RealtimeCoordinator implements DurableObject {
         roomId: session.roomId
       });
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -357,9 +357,9 @@ export class RealtimeCoordinator implements DurableObject {
       // Get specific room info
       const room = this.rooms.get(roomId);
       const users = room ? Array.from(room)
-        .map(connectionId => this.userSessions.get(connectionId))
-        .filter(session => session)
-        .map(session => ({
+        .map((connectionId: any) => this.userSessions.get(connectionId))
+        .filter((session: any) => session)
+        .map((session: any) => ({
           userId: session!.userId,
           connectedAt: session!.connectedAt,
           lastActivity: session!.lastActivity
@@ -378,8 +378,8 @@ export class RealtimeCoordinator implements DurableObject {
         roomId,
         userCount: connections.size,
         users: Array.from(connections)
-          .map(connectionId => this.userSessions.get(connectionId)?.userId)
-          .filter(userId => userId)
+          .map((connectionId: any) => this.userSessions.get(connectionId)?.userId)
+          .filter((userId: any) => userId)
       }));
 
       return new Response(JSON.stringify({
@@ -437,7 +437,7 @@ export class RealtimeCoordinator implements DurableObject {
           return acc;
         }, {} as Record<string, any>);
 
-      const usersArray = Object.values(users).map(user => ({
+      const usersArray = Object.values(users).map((user: any) => ({
         ...user,
         rooms: Array.from(user.rooms)
       }));
@@ -484,7 +484,7 @@ export class RealtimeCoordinator implements DurableObject {
     try {
       connection.send(JSON.stringify(message));
       return true;
-    } catch (error) {
+    } catch (error: any) {
       // Clean up dead connection
       this.handleDisconnection(connectionId);
       return false;
@@ -501,7 +501,7 @@ export class RealtimeCoordinator implements DurableObject {
         doubles: [Date.now(), data.duration || 0],
         indexes: [event]
       });
-    } catch (error) {
+    } catch (error: any) {
       // Don't let analytics failures break functionality
     }
   }

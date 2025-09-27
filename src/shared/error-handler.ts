@@ -128,7 +128,7 @@ export async function errorHandler(err: Error, c: Context): Promise<Response> {
         timestamp: new Date().toISOString(),
         duration: Date.now() - startTime,
       },
-    }, err.statusCode);
+    }, err.statusCode || 500);
   }
 
   // Handle unexpected errors
@@ -158,7 +158,7 @@ export function asyncHandler<T = any>(
   return async (c: Context) => {
     try {
       return await fn(c);
-    } catch (error) {
+    } catch (error: any) {
       throw error; // Will be caught by global error handler
     }
   };
@@ -222,7 +222,7 @@ export async function withRetry<T>(
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
-    } catch (error) {
+    } catch (error: any) {
       lastError = error as Error;
 
       if (attempt < maxAttempts) {

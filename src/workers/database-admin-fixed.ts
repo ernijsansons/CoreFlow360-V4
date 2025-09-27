@@ -60,7 +60,7 @@ const adminAuthMiddleware = async (c: any, next: any) => {
 
     await logAudit(c, 'admin_auth_success', 'info', {});
     return await next();
-  } catch (error) {
+  } catch (error: any) {
     await logAudit(c, 'admin_auth_error', 'error', { error: String(error) });
     return createErrorResponse('INTERNAL_ERROR', 'Authentication failed', 500);
   }
@@ -107,13 +107,13 @@ async function logAudit(c: any, eventName: string, eventType: string, data: any)
       data.status || 'success',
       data.compute_time_ms || 0
     ).run();
-  } catch (error) {
+  } catch (error: any) {
     // Silently ignore audit failures to not break main functionality
   }
 }
 
 // Get migration status
-app.get('/migrations/status', async (c) => {
+app.get('/migrations/status', async (c: any) => {
   const startTime = Date.now();
   try {
     const runner = new MigrationRunner(c.env.DB_MAIN);
@@ -130,7 +130,7 @@ app.get('/migrations/status', async (c) => {
       completed: status.filter((m: any) => m.status === 'completed').length,
       failed: status.filter((m: any) => m.status === 'failed').length,
     });
-  } catch (error) {
+  } catch (error: any) {
     await logAudit(c, 'migration_status_error', 'error', { 
       error: String(error),
       compute_time_ms: Date.now() - startTime
@@ -140,14 +140,14 @@ app.get('/migrations/status', async (c) => {
 });
 
 // Run migrations
-app.post('/migrations/run', async (c) => {
+app.post('/migrations/run', async (c: any) => {
   const startTime = Date.now();
   try {
     const runner = new MigrationRunner(c.env.DB_MAIN);
     const loadedMigrations = await loadMigrations();
 
     // Add checksums to migrations
-    const migrations = await Promise.all(loadedMigrations.map(async (migration) => ({
+    const migrations = await Promise.all(loadedMigrations.map(async (migration: any) => ({
       ...migration,
       checksum: await MigrationRunner.calculateChecksum(migration.sql)
     })));
@@ -165,7 +165,7 @@ app.post('/migrations/run', async (c) => {
       executed: results.filter((r: any) => r.status === 'completed').length,
       failed: results.filter((r: any) => r.status === 'failed').length,
     });
-  } catch (error) {
+  } catch (error: any) {
     await logAudit(c, 'migrations_execution_error', 'error', { 
       error: String(error),
       compute_time_ms: Date.now() - startTime
@@ -175,7 +175,7 @@ app.post('/migrations/run', async (c) => {
 });
 
 // Rollback migrations
-app.post('/migrations/rollback', async (c) => {
+app.post('/migrations/rollback', async (c: any) => {
   const startTime = Date.now();
   try {
     const body = await c.req.json();
@@ -203,7 +203,7 @@ app.post('/migrations/rollback', async (c) => {
       rolledBack: results.filter((r: any) => r.status === 'completed').length,
       failed: results.filter((r: any) => r.status === 'failed').length,
     });
-  } catch (error) {
+  } catch (error: any) {
     await logAudit(c, 'migrations_rollback_error', 'error', { 
       error: String(error),
       compute_time_ms: Date.now() - startTime
@@ -213,7 +213,7 @@ app.post('/migrations/rollback', async (c) => {
 });
 
 // Health check
-app.get('/health', async (c) => {
+app.get('/health', async (c: any) => {
   try {
     // Test database connection
     await c.env.DB_MAIN.prepare('SELECT 1').first();
@@ -224,7 +224,7 @@ app.get('/health', async (c) => {
       timestamp: new Date().toISOString(),
       environment: c.env.ENVIRONMENT || 'development'
     });
-  } catch (error) {
+  } catch (error: any) {
     return createErrorResponse('HEALTH_CHECK_FAILED', 'Database connection failed', 503);
   }
 });

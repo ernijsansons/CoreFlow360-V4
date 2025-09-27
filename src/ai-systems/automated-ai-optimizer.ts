@@ -217,7 +217,7 @@ export class AutomatedAIOptimizer {
       this.optimizationHistory.push(result);
 
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Optimization execution failed', error);
       result.issues.push(`Execution error: ${error instanceof Error ? error.message : 'Unknown error'}`);
       await this.rollbackOptimization(strategy);
@@ -775,7 +775,7 @@ export class AutomatedAIOptimizer {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -821,7 +821,7 @@ export class AutomatedAIOptimizer {
       for (const rollbackStep of strategy.rollback.steps) {
         try {
           await this.executeRollbackStep(rollbackStep);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error('Rollback step failed', error, { step: rollbackStep });
         }
       }

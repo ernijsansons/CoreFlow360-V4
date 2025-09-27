@@ -126,14 +126,14 @@ class GDPRDataExportService {
       });
 
       // Start export process asynchronously
-      this.processExportRequest(exportId, request).catch(error => {
+      this.processExportRequest(exportId, request).catch((error: any) => {
         this.logger.error('GDPR export failed', error, { exportId });
         this.updateExportStatus(exportId, 'failed', error.message);
       });
 
       return exportId;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create GDPR export request', error, {
         businessId: validBusinessId,
         requestedBy: request.requestedBy
@@ -160,7 +160,7 @@ class GDPRDataExportService {
 
       return this.mapToExportResult(result);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get export status', error, {
         exportId,
         businessId: validBusinessId
@@ -187,9 +187,9 @@ class GDPRDataExportService {
         LIMIT ? OFFSET ?
       `).bind(validBusinessId, limit, offset).all();
 
-      return (result.results || []).map(row => this.mapToExportResult(row));
+      return (result.results || []).map((row: any) => this.mapToExportResult(row));
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to list export requests', error, {
         businessId: validBusinessId
       });
@@ -213,7 +213,7 @@ class GDPRDataExportService {
           try {
             const fileName = this.extractFileNameFromUrl(exportRow.download_url);
             await this.r2Bucket.delete(fileName);
-          } catch (error) {
+          } catch (error: any) {
             this.logger.warn('Failed to delete expired export file', error, {
               exportId: exportRow.id
             });
@@ -232,7 +232,7 @@ class GDPRDataExportService {
         count: expiredExports.results?.length || 0
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to cleanup expired exports', error);
     }
   }
@@ -319,7 +319,7 @@ class GDPRDataExportService {
         fileSize: exportContent.length
       });
 
-    } catch (error) {
+    } catch (error: any) {
       await this.updateExportStatus(exportId, 'failed', error instanceof Error ? error.message : 'Unknown error');
       throw error;
     }

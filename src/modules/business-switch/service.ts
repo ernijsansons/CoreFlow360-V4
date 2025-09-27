@@ -218,7 +218,7 @@ class BusinessSwitchService {
         cacheHit,
         metrics,
       };
-    } catch (error) {
+    } catch (error: any) {
       tracker.complete();
       throw error;
     }

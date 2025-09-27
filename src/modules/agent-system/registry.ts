@@ -97,7 +97,7 @@ export class AgentRegistry {
         healthy: health.healthy,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to register agent', error, {
         agentId: agent.id,
         name: agent.name,
@@ -155,7 +155,7 @@ export class AgentRegistry {
 
       return bestAgent;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to select agent', error, {
         taskId: task.id,
         capability: task.capability,
@@ -170,11 +170,11 @@ export class AgentRegistry {
   getAgentsForCapability(capability: string): IAgent[] {
     const agentIds = this.capabilityIndex.get(capability) || [];
     return agentIds
-      .map(id => this.agents.get(id))
+      .map((id: any) => this.agents.get(id))
       .filter((entry): entry is AgentRegistryEntry =>
         entry !== undefined && entry.status === 'active'
       )
-      .map(entry => entry.agent);
+      .map((entry: any) => entry.agent);
   }
 
   /**
@@ -183,11 +183,11 @@ export class AgentRegistry {
   getAgentsForDepartment(department: string): IAgent[] {
     const agentIds = this.departmentIndex.get(department) || [];
     return agentIds
-      .map(id => this.agents.get(id))
+      .map((id: any) => this.agents.get(id))
       .filter((entry): entry is AgentRegistryEntry =>
         entry !== undefined && entry.status === 'active'
       )
-      .map(entry => entry.agent);
+      .map((entry: any) => entry.agent);
   }
 
   /**
@@ -222,7 +222,7 @@ export class AgentRegistry {
 
       return health;
 
-    } catch (error) {
+    } catch (error: any) {
       const errorHealth: HealthStatus = {
         healthy: false,
         status: 'offline',
@@ -382,7 +382,7 @@ export class AgentRegistry {
     const agents = Array.from(this.agents.values());
     return includeInactive
       ? agents
-      : agents.filter(entry => entry.status === 'active');
+      : agents.filter((entry: any) => entry.status === 'active');
   }
 
   /**
@@ -414,7 +414,7 @@ export class AgentRegistry {
     totalCost: number;
   } {
     const entries = Array.from(this.agents.values());
-    const activeEntries = entries.filter(e => e.status === 'active');
+    const activeEntries = entries.filter((e: any) => e.status === 'active');
 
     const totalTasks = entries.reduce((sum, e) => sum + e.metrics.totalTasks, 0);
     const totalSuccessful = entries.reduce((sum, e) => sum + e.metrics.successfulTasks, 0);
@@ -458,12 +458,12 @@ export class AgentRegistry {
               });
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error('Failed to load agent config', error, { key: key.name });
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to load agents from storage', error);
     }
   }
@@ -562,7 +562,7 @@ export class AgentRegistry {
         lastCheck: Date.now(),
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         healthy: false,
         status: 'offline',
@@ -663,12 +663,12 @@ export class AgentRegistry {
     // Filter by department if specified
     if (department && candidateIds.length > 0) {
       const departmentAgentIds = this.departmentIndex.get(department) || [];
-      candidateIds = candidateIds.filter(id => departmentAgentIds.includes(id));
+      candidateIds = candidateIds.filter((id: any) => departmentAgentIds.includes(id));
     }
 
     // Get registry entries for active agents
     return candidateIds
-      .map(id => this.agents.get(id))
+      .map((id: any) => this.agents.get(id))
       .filter((entry): entry is AgentRegistryEntry =>
         entry !== undefined &&
         entry.status === 'active' &&
@@ -682,7 +682,7 @@ export class AgentRegistry {
   ): AgentRegistryEntry[] {
     if (!constraints) return candidates;
 
-    return candidates.filter(entry => {
+    return candidates.filter((entry: any) => {
       // Check cost constraint
       if (constraints.maxCost !== undefined && entry.agent.costPerCall > constraints.maxCost) {
         return false;
@@ -704,7 +704,7 @@ export class AgentRegistry {
 
   private scoreAndSelectAgent(candidates: AgentRegistryEntry[], task: AgentTask): IAgent {
     // Score each candidate
-    const scoredCandidates = candidates.map(entry => ({
+    const scoredCandidates = candidates.map((entry: any) => ({
       entry,
       score: this.calculateAgentScore(entry, task),
     }));
@@ -766,7 +766,7 @@ export class AgentRegistry {
         JSON.stringify(config),
         { metadata: { version: config.version, updatedAt: config.updatedAt } }
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to save agent config', error, { agentId: config.id });
     }
   }
@@ -774,7 +774,7 @@ export class AgentRegistry {
   private startPeriodicTasks(): void {
     // Health check every 30 seconds
     this.healthCheckInterval = setInterval(() => {
-      this.performPeriodicHealthChecks().catch(error => {
+      this.performPeriodicHealthChecks().catch((error: any) => {
         this.logger.error('Periodic health check failed', error);
       });
     }, AGENT_CONSTANTS.HEALTH_CHECK_INTERVAL) as any;
@@ -796,7 +796,7 @@ export class AgentRegistry {
       const healthCheckPromises = batch.map(async entry => {
         try {
           await this.updateAgentHealth(entry.agent.id);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error('Health check failed for agent', error, {
             agentId: entry.agent.id,
           });

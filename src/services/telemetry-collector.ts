@@ -42,7 +42,7 @@ export class TelemetryCollector {
         await this.trackCost(entry);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       // Don't throw - telemetry failures shouldn't break the main flow
     }
   }
@@ -164,7 +164,7 @@ export class TelemetryCollector {
       // Update aggregations
       await this.updateMetricAggregations(metric);
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -264,7 +264,7 @@ export class TelemetryCollector {
   }
 
   private hashLabels(labels: Record<string, string>): string {
-    const sorted = Object.keys(labels).sort().map(key => `${key}=${labels[key]}`).join(',');
+    const sorted = Object.keys(labels).sort().map((key: any) => `${key}=${labels[key]}`).join(',');
     return btoa(sorted).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
   }
 
@@ -290,7 +290,7 @@ export class TelemetryCollector {
 
       await this.collect(logEntry);
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -417,7 +417,7 @@ export class TelemetryCollector {
         await this.createAlert(rule, entry);
       }
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -509,17 +509,17 @@ export class TelemetryCollector {
         AND timestamp BETWEEN ? AND ?
     `).bind(businessId, serviceName, oneMinuteAgo, now).first();
 
-    if (metrics && metrics.request_count > 0) {
+    if (metrics && (metrics as any).request_count > 0) {
       const perf: Partial<ServicePerformance> = {
         timestamp: new Date(),
         businessId,
         serviceName,
-        requestCount: metrics.request_count,
-        errorCount: metrics.error_count,
-        avgLatencyMs: metrics.avg_latency_ms,
-        avgCpuPercent: metrics.avg_cpu_ms ? metrics.avg_cpu_ms / 10 : undefined, // Convert to percentage
-        avgMemoryMB: metrics.avg_memory_mb,
-        maxMemoryMB: metrics.max_memory_mb,
+        requestCount: (metrics as any).request_count,
+        errorCount: (metrics as any).error_count,
+        avgLatencyMs: (metrics as any).avg_latency_ms,
+        avgCpuPercent: (metrics as any).avg_cpu_ms ? (metrics as any).avg_cpu_ms / 10 : undefined, // Convert to percentage
+        avgMemoryMB: (metrics as any).avg_memory_mb,
+        maxMemoryMB: (metrics as any).max_memory_mb,
         windowStart: new Date(oneMinuteAgo),
         windowEnd: new Date(now)
       };
@@ -598,13 +598,13 @@ export class TelemetryCollector {
 
   private formatCSV(metrics: any[]): string {
     const headers = ['metric_name', 'value', 'labels', 'timestamp'];
-    const rows = metrics.map(m => [
+    const rows = metrics.map((m: any) => [
       m.metric_name,
       m.value,
       m.labels,
       m.timestamp
     ]);
 
-    return [headers, ...rows].map(row => row.join(',')).join('\n');
+    return [headers, ...rows].map((row: any) => row.join(',')).join('\n');
   }
 }

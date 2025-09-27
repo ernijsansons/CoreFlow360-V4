@@ -52,15 +52,15 @@ describe('Business ID Isolation Tests', () => {
         // Generate reports for different businesses
         await reportingEngine.generateReport(reportRequest, 'user_a', BUSINESS_A);
         await reportingEngine.generateReport(reportRequest, 'user_b', BUSINESS_B);
-      } catch (error) {
+      } catch (error: any) {
         // Errors are acceptable for testing
       }
 
       const queries = mockDb.getQueries();
 
       // Verify business isolation in all queries
-      const businessAQueries = queries.filter(q => q.params.includes(BUSINESS_A));
-      const businessBQueries = queries.filter(q => q.params.includes(BUSINESS_B));
+      const businessAQueries = queries.filter((q: any) => q.params.includes(BUSINESS_A));
+      const businessBQueries = queries.filter((q: any) => q.params.includes(BUSINESS_B));
 
       expect(businessAQueries.length).toBeGreaterThan(0);
       expect(businessBQueries.length).toBeGreaterThan(0);
@@ -110,10 +110,10 @@ describe('Business ID Isolation Tests', () => {
       const queries = mockDb.getQueries();
 
       // Each list operation should only query its own business
-      const businessAListQueries = queries.filter(q =>
+      const businessAListQueries = queries.filter((q: any) =>
         q.params.includes(BUSINESS_A) && q.sql.toLowerCase().includes('select')
       );
-      const businessBListQueries = queries.filter(q =>
+      const businessBListQueries = queries.filter((q: any) =>
         q.params.includes(BUSINESS_B) && q.sql.toLowerCase().includes('select')
       );
 
@@ -143,14 +143,14 @@ describe('Business ID Isolation Tests', () => {
       try {
         await agingGenerator.generateARAgingReport(reportParams, BUSINESS_A, 'Business A');
         await agingGenerator.generateARAgingReport(reportParams, BUSINESS_B, 'Business B');
-      } catch (error) {
+      } catch (error: any) {
         // Errors acceptable for testing
       }
 
       const queries = mockDb.getQueries();
 
       // Find invoice queries (main data source for AR aging)
-      const invoiceQueries = queries.filter(q =>
+      const invoiceQueries = queries.filter((q: any) =>
         q.sql.toLowerCase().includes('invoices') && q.sql.toLowerCase().includes('where')
       );
 
@@ -162,7 +162,7 @@ describe('Business ID Isolation Tests', () => {
 
         // Should contain exactly one business ID
         const businessIds = [BUSINESS_A, BUSINESS_B, BUSINESS_C];
-        const foundBusinessIds = businessIds.filter(id => query.params.includes(id));
+        const foundBusinessIds = businessIds.filter((id: any) => query.params.includes(id));
         expect(foundBusinessIds.length).toBe(1);
       }
     });
@@ -181,14 +181,14 @@ describe('Business ID Isolation Tests', () => {
           BUSINESS_B, // But using Business B context
           'Business B'
         );
-      } catch (error) {
+      } catch (error: any) {
         // Expected to fail or return empty results
       }
 
       const queries = mockDb.getQueries();
 
       // All queries should enforce Business B isolation
-      const dataQueries = queries.filter(q =>
+      const dataQueries = queries.filter((q: any) =>
         q.sql.toLowerCase().includes('where') && q.sql.toLowerCase().includes('business_id')
       );
 
@@ -228,15 +228,15 @@ describe('Business ID Isolation Tests', () => {
           BUSINESS_B,
           'user_b'
         );
-      } catch (error) {
+      } catch (error: any) {
         // Acceptable for testing
       }
 
       const queries = mockDb.getQueries();
 
       // Verify business isolation in all generated queries
-      const businessAQueries = queries.filter(q => q.params.includes(BUSINESS_A));
-      const businessBQueries = queries.filter(q => q.params.includes(BUSINESS_B));
+      const businessAQueries = queries.filter((q: any) => q.params.includes(BUSINESS_A));
+      const businessBQueries = queries.filter((q: any) => q.params.includes(BUSINESS_B));
 
       expect(businessAQueries.length).toBeGreaterThan(0);
       expect(businessBQueries.length).toBeGreaterThan(0);
@@ -281,7 +281,7 @@ describe('Business ID Isolation Tests', () => {
 
       const queries = mockDb.getQueries();
 
-      const listQueries = queries.filter(q =>
+      const listQueries = queries.filter((q: any) =>
         q.sql.toLowerCase().includes('custom_report_definitions') &&
         q.sql.toLowerCase().includes('where')
       );
@@ -289,8 +289,8 @@ describe('Business ID Isolation Tests', () => {
       expect(listQueries.length).toBeGreaterThan(0);
 
       // Each query should be isolated to its business
-      const businessAListQueries = listQueries.filter(q => q.params.includes(BUSINESS_A));
-      const businessBListQueries = listQueries.filter(q => q.params.includes(BUSINESS_B));
+      const businessAListQueries = listQueries.filter((q: any) => q.params.includes(BUSINESS_A));
+      const businessBListQueries = listQueries.filter((q: any) => q.params.includes(BUSINESS_B));
 
       expect(businessAListQueries.length).toBeGreaterThan(0);
       expect(businessBListQueries.length).toBeGreaterThan(0);
@@ -369,7 +369,7 @@ describe('Business ID Isolation Tests', () => {
 
       const queries = mockDb.getQueries();
 
-      const listQueries = queries.filter(q =>
+      const listQueries = queries.filter((q: any) =>
         q.sql.toLowerCase().includes('gdpr_export_requests') &&
         q.sql.toLowerCase().includes('where')
       );
@@ -377,8 +377,8 @@ describe('Business ID Isolation Tests', () => {
       expect(listQueries.length).toBeGreaterThan(0);
 
       // Verify each list query is isolated
-      const businessAListQueries = listQueries.filter(q => q.params.includes(BUSINESS_A));
-      const businessBListQueries = listQueries.filter(q => q.params.includes(BUSINESS_B));
+      const businessAListQueries = listQueries.filter((q: any) => q.params.includes(BUSINESS_A));
+      const businessBListQueries = listQueries.filter((q: any) => q.params.includes(BUSINESS_B));
 
       expect(businessAListQueries.length).toBeGreaterThan(0);
       expect(businessBListQueries.length).toBeGreaterThan(0);
@@ -419,7 +419,7 @@ describe('Business ID Isolation Tests', () => {
 
       const queries = mockDb.getQueries();
 
-      const auditInserts = queries.filter(q =>
+      const auditInserts = queries.filter((q: any) =>
         q.sql.toLowerCase().includes('insert') &&
         q.sql.toLowerCase().includes('audit_logs')
       );
@@ -472,7 +472,7 @@ describe('Business ID Isolation Tests', () => {
 
         try {
           await customReportBuilder.listReportDefinitions(maliciousBusinessId, false);
-        } catch (error) {
+        } catch (error: any) {
           // Should fail due to validation, not execute malicious query
         }
 
@@ -547,9 +547,9 @@ describe('Business ID Isolation Tests', () => {
       const queries = mockDb.getQueries();
 
       // Verify no cross-contamination occurred
-      const businessAQueries = queries.filter(q => q.params.includes(BUSINESS_A));
-      const businessBQueries = queries.filter(q => q.params.includes(BUSINESS_B));
-      const businessCQueries = queries.filter(q => q.params.includes(BUSINESS_C));
+      const businessAQueries = queries.filter((q: any) => q.params.includes(BUSINESS_A));
+      const businessBQueries = queries.filter((q: any) => q.params.includes(BUSINESS_B));
+      const businessCQueries = queries.filter((q: any) => q.params.includes(BUSINESS_C));
 
       // Each business should have its own isolated queries
       for (const query of businessAQueries) {

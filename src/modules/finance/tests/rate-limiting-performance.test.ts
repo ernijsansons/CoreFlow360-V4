@@ -172,8 +172,8 @@ describe('Rate Limiting Performance Tests', () => {
 
       const results = await Promise.all(promises);
 
-      const allowedResults = results.filter(r => r.allowed);
-      const blockedResults = results.filter(r => !r.allowed);
+      const allowedResults = results.filter((r: any) => r.allowed);
+      const blockedResults = results.filter((r: any) => !r.allowed);
 
       // Note: Due to concurrent execution, results may vary slightly
       // but we should see approximately 50 allowed and 50 blocked
@@ -277,8 +277,8 @@ describe('Rate Limiting Performance Tests', () => {
       expect(avgTimePerRequest).toBeLessThan(1); // Less than 1ms per request
 
       // Verify results are properly distributed
-      const allowedCount = results.filter(r => r.allowed).length;
-      const blockedCount = results.filter(r => !r.allowed).length;
+      const allowedCount = results.filter((r: any) => r.allowed).length;
+      const blockedCount = results.filter((r: any) => !r.allowed).length;
 
       expect(allowedCount + blockedCount).toBe(10000);
       expect(allowedCount).toBeGreaterThan(0);
@@ -334,8 +334,8 @@ describe('Rate Limiting Performance Tests', () => {
         await new Promise(resolve => setTimeout(resolve, 1));
       }
 
-      const allowedResults = results.filter(r => r.allowed);
-      const blockedResults = results.filter(r => !r.allowed);
+      const allowedResults = results.filter((r: any) => r.allowed);
+      const blockedResults = results.filter((r: any) => !r.allowed);
 
       // Should allow exactly 100 requests, block the rest
       expect(allowedResults.length).toBe(100);
@@ -347,7 +347,7 @@ describe('Rate Limiting Performance Tests', () => {
       }
 
       // All blocked results should have 0 remaining
-      blockedResults.forEach(result => {
+      blockedResults.forEach((result: any) => {
         expect(result.remaining).toBe(0);
         expect(result.retryAfter).toBeGreaterThan(0);
       });

@@ -404,7 +404,7 @@ export class QuantumComplianceAuditor {
             files.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Skip directories we can't read
       }
     }

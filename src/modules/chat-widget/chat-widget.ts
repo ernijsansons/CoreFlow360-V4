@@ -417,7 +417,7 @@ export class ChatWidget {
     input?.addEventListener('input', () => this.autoResize(input));
 
     // Qualification form events
-    [emailInput, nameInput, companyInput].forEach(input => {
+    [emailInput, nameInput, companyInput].forEach((input: any) => {
       input?.addEventListener('blur', () => this.updateVisitorInfo());
     });
 
@@ -527,7 +527,7 @@ export class ChatWidget {
       } else {
         this.addMessage("I'm sorry, I'm having trouble responding right now. Please try again.", 'ai');
       }
-    } catch (error) {
+    } catch (error: any) {
       this.hideTyping();
       this.addMessage("I'm experiencing technical difficulties. Please try again or contact us directly.", 'ai');
     }
@@ -668,7 +668,7 @@ export class ChatWidget {
 
     // Custom tracking
     if (this.config.integrations.customTracking) {
-      this.config.integrations.customTracking.forEach(tracker => {
+      this.config.integrations.customTracking.forEach((tracker: any) => {
         // Call custom tracking functions
         if (typeof window[tracker] === 'function') {
           window[tracker](event, data);

@@ -117,7 +117,7 @@ class MonitoringService {
 
     // Limit retention in memory
     const cutoff = Date.now() - this.config.metricsRetention;
-    const retained = metrics.filter(m => m.timestamp > cutoff);
+    const retained = metrics.filter((m: any) => m.timestamp > cutoff);
     this.metrics.set(name, retained);
 
     // Update aggregated metrics
@@ -221,7 +221,7 @@ class MonitoringService {
           await this.resolveAlert(alert);
         }
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Alert evaluation failed', error, { alertId });
       }
     }
@@ -236,7 +236,7 @@ class MonitoringService {
 
     const duration = alert.condition.duration || 0;
     const cutoff = Date.now() - (duration * 1000);
-    const relevantMetrics = metrics.filter(m => m.timestamp >= cutoff);
+    const relevantMetrics = metrics.filter((m: any) => m.timestamp >= cutoff);
 
     if (relevantMetrics.length === 0) return false;
 
@@ -370,7 +370,7 @@ class MonitoringService {
 
       alert.lastNotification = Date.now();
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to send notification', error, {
         channel: channel.type,
         alertId: alert.id
@@ -449,7 +449,7 @@ class MonitoringService {
         throw new Error('Health check failed');
       }
 
-    } catch (error) {
+    } catch (error: any) {
       check.consecutiveFailures++;
       check.status = 'unhealthy';
 
@@ -487,7 +487,7 @@ class MonitoringService {
     this.healthCheckIntervals.set(check.name, interval);
 
     // Perform initial check
-    this.performHealthCheck(check).catch(error => {
+    this.performHealthCheck(check).catch((error: any) => {
       this.logger.error('Initial health check failed', error);
     });
   }
@@ -551,7 +551,7 @@ class MonitoringService {
     healthy: boolean;
     checks: Array<{ name: string; status: string; lastCheck?: number }>;
   } {
-    const checks = Array.from(this.healthChecks.values()).map(check => ({
+    const checks = Array.from(this.healthChecks.values()).map((check: any) => ({
       name: check.name,
       status: check.status,
       lastCheck: check.lastCheck
@@ -604,7 +604,7 @@ class MonitoringService {
   private startMonitoring(): void {
     // Start metrics export
     this.metricsInterval = setInterval(() => {
-      this.exportMetrics().catch(error => {
+      this.exportMetrics().catch((error: any) => {
         this.logger.error('Metrics export failed', error);
       });
     }, this.config.metricsInterval) as any;
@@ -612,7 +612,7 @@ class MonitoringService {
     // Start alert evaluation
     if (this.config.enableAlerts) {
       this.alertInterval = setInterval(() => {
-        this.evaluateAlerts().catch(error => {
+        this.evaluateAlerts().catch((error: any) => {
           this.logger.error('Alert evaluation failed', error);
         });
       }, this.config.alertEvaluationInterval) as any;

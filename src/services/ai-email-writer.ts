@@ -297,7 +297,7 @@ export class AIEmailWriter {
       - Company growth stage: ${intelligence.companyGrowthStage || 'Unknown'}
       - Buying signals detected: ${intelligence.buyingSignals?.join(', ') || 'None'}
       ${intelligence.triggers && intelligence.triggers.length > 0 ?
-        `- Recent triggers: ${intelligence.triggers.map(t => t.description).join(', ')}` : ''}
+        `- Recent triggers: ${intelligence.triggers.map((t: any) => t.description).join(', ')}` : ''}
 
       OUR CONTEXT:
       - Value proposition: ${context.valueProp}
@@ -438,7 +438,7 @@ export class AIEmailWriter {
       }
 
       throw new Error('Failed to parse AI response');
-    } catch (error) {
+    } catch (error: any) {
       return this.getFallbackEmail();
     }
   }

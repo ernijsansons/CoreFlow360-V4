@@ -86,7 +86,7 @@ const optimizationRequestSchema = z.object({
 });
 
 // Comprehensive AI Systems Audit
-aiAuditRoutes.post('/audit/comprehensive', async (c) => {
+aiAuditRoutes.post('/audit/comprehensive', async (c: any) => {
   try {
 
     const body = await c.req.json();
@@ -124,7 +124,7 @@ aiAuditRoutes.post('/audit/comprehensive', async (c) => {
 
     return c.json(response);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Comprehensive AI audit failed', error);
     return c.json({
       success: false,
@@ -136,7 +136,7 @@ aiAuditRoutes.post('/audit/comprehensive', async (c) => {
 });
 
 // Model Performance Analysis
-aiAuditRoutes.post('/audit/models', async (c) => {
+aiAuditRoutes.post('/audit/models', async (c: any) => {
   try {
 
     const body = await c.req.json();
@@ -157,7 +157,7 @@ aiAuditRoutes.post('/audit/models', async (c) => {
           topPerformingModel: report.models.reduce((best, current) =>
             current.metrics.accuracy > best.metrics.accuracy ? current : best
           ),
-          criticalIssues: report.models.flatMap(m => m.issues.filter(i => i.severity === 'critical')),
+          criticalIssues: report.models.flatMap(m => m.issues.filter((i: any) => i.severity === 'critical')),
           optimizationOpportunities: report.models.flatMap(m => m.optimizations).length,
           estimatedSavings: Math.round(Math.random() * 10000) // Mock calculation
         }
@@ -176,7 +176,7 @@ aiAuditRoutes.post('/audit/models', async (c) => {
 
     return c.json(response);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Model performance analysis failed', error);
     return c.json({
       success: false,
@@ -188,7 +188,7 @@ aiAuditRoutes.post('/audit/models', async (c) => {
 });
 
 // Workflow Automation Analysis
-aiAuditRoutes.post('/audit/workflows', async (c) => {
+aiAuditRoutes.post('/audit/workflows', async (c: any) => {
   try {
 
     const body = await c.req.json();
@@ -228,7 +228,7 @@ aiAuditRoutes.post('/audit/workflows', async (c) => {
 
     return c.json(response);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Workflow automation analysis failed', error);
     return c.json({
       success: false,
@@ -240,7 +240,7 @@ aiAuditRoutes.post('/audit/workflows', async (c) => {
 });
 
 // AI Safety Validation
-aiAuditRoutes.post('/audit/safety', async (c) => {
+aiAuditRoutes.post('/audit/safety', async (c: any) => {
   try {
 
     logger.info('Starting AI safety validation');
@@ -258,11 +258,11 @@ aiAuditRoutes.post('/audit/safety', async (c) => {
                       report.jailbreakVulnerability.vulnerabilityLevel === 'critical' ?
                       'critical' : 'manageable',
           priorityActions: report.recommendations
-            .filter(r => r.priority === 'critical')
-            .map(r => r.recommendation),
+            .filter((r: any) => r.priority === 'critical')
+            .map((r: any) => r.recommendation),
           safetyGaps: [
-            ...report.contentSafety.violations.filter(v => v.severity === 'high'),
-            ...report.ethicalCompliance.violations.filter(v => v.severity === 'high')
+            ...report.contentSafety.violations.filter((v: any) => v.severity === 'high'),
+            ...report.ethicalCompliance.violations.filter((v: any) => v.severity === 'high')
           ].length
         }
       },
@@ -279,7 +279,7 @@ aiAuditRoutes.post('/audit/safety', async (c) => {
 
     return c.json(response);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('AI safety validation failed', error);
     return c.json({
       success: false,
@@ -291,7 +291,7 @@ aiAuditRoutes.post('/audit/safety', async (c) => {
 });
 
 // Bias Detection Analysis
-aiAuditRoutes.post('/audit/bias', async (c) => {
+aiAuditRoutes.post('/audit/bias', async (c: any) => {
   try {
 
     logger.info('Starting AI bias detection');
@@ -312,9 +312,9 @@ aiAuditRoutes.post('/audit/bias', async (c) => {
               current.biasScore > worst.biasScore ? current : worst
             ) : null,
           mitigationPriority: report.recommendations
-            .filter(r => r.priority === 'critical' || r.priority === 'high')
+            .filter((r: any) => r.priority === 'critical' || r.priority === 'high')
             .length,
-          fairnessGaps: report.biasTypes.filter(bt => bt.score > 0.2).length
+          fairnessGaps: report.biasTypes.filter((bt: any) => bt.score > 0.2).length
         }
       },
       meta: {
@@ -330,7 +330,7 @@ aiAuditRoutes.post('/audit/bias', async (c) => {
 
     return c.json(response);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('AI bias detection failed', error);
     return c.json({
       success: false,
@@ -342,7 +342,7 @@ aiAuditRoutes.post('/audit/bias', async (c) => {
 });
 
 // Hallucination Detection
-aiAuditRoutes.post('/audit/hallucination', async (c) => {
+aiAuditRoutes.post('/audit/hallucination', async (c: any) => {
   try {
 
     const body = await c.req.json();
@@ -373,7 +373,7 @@ aiAuditRoutes.post('/audit/hallucination', async (c) => {
               const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
               return severityOrder[current.severity] > severityOrder[worst.severity] ? current : worst;
             }) : null,
-          factualAccuracy: result.factChecks.filter(fc => fc.isFactual).length / Math.max(result.factChecks.length, 1),
+          factualAccuracy: result.factChecks.filter((fc: any) => fc.isFactual).length / Math.max(result.factChecks.length, 1),
           groundingQuality: result.grounding.groundingQuality
         }
       },
@@ -391,7 +391,7 @@ aiAuditRoutes.post('/audit/hallucination', async (c) => {
 
     return c.json(response);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Hallucination detection failed', error);
     return c.json({
       success: false,
@@ -403,7 +403,7 @@ aiAuditRoutes.post('/audit/hallucination', async (c) => {
 });
 
 // AI Optimization Strategies
-aiAuditRoutes.post('/optimize/strategies', async (c) => {
+aiAuditRoutes.post('/optimize/strategies', async (c: any) => {
   try {
 
     const body = await c.req.json();
@@ -453,7 +453,7 @@ aiAuditRoutes.post('/optimize/strategies', async (c) => {
         autoOptimizations,
         insights: {
           totalStrategies: strategies.length,
-          highPriorityStrategies: strategies.filter(s => s.priority === 'critical' || s.priority === 'high').length,
+          highPriorityStrategies: strategies.filter((s: any) => s.priority === 'critical' || s.priority === 'high').length,
           automatedStrategies: autoOptimizations.length,
           estimatedBusinessValue: strategies.reduce((sum, s) => sum + s.impact.businessValue, 0),
           estimatedImplementationTime: strategies.reduce((sum, s) => sum + s.estimatedTime, 0)
@@ -472,7 +472,7 @@ aiAuditRoutes.post('/optimize/strategies', async (c) => {
 
     return c.json(response);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Optimization strategy generation failed', error);
     return c.json({
       success: false,
@@ -484,7 +484,7 @@ aiAuditRoutes.post('/optimize/strategies', async (c) => {
 });
 
 // Execute Optimization
-aiAuditRoutes.post('/optimize/execute/:strategyId', async (c) => {
+aiAuditRoutes.post('/optimize/execute/:strategyId', async (c: any) => {
   try {
     const strategyId = c.req.param('strategyId');
     const body = await c.req.json();
@@ -613,7 +613,7 @@ aiAuditRoutes.post('/optimize/execute/:strategyId', async (c) => {
       return c.json(response);
     }
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Optimization execution failed', error);
     return c.json({
       success: false,
@@ -625,7 +625,7 @@ aiAuditRoutes.post('/optimize/execute/:strategyId', async (c) => {
 });
 
 // Get Audit History
-aiAuditRoutes.get('/audit/history', async (c) => {
+aiAuditRoutes.get('/audit/history', async (c: any) => {
   try {
     const limit = parseInt(c.req.query('limit') || '10');
     const offset = parseInt(c.req.query('offset') || '0');
@@ -646,7 +646,7 @@ aiAuditRoutes.get('/audit/history', async (c) => {
     }));
 
     const filteredHistory = type ?
-      mockHistory.filter(h => h.type === type) :
+      mockHistory.filter((h: any) => h.type === type) :
       mockHistory;
 
     const paginatedHistory = filteredHistory.slice(offset, offset + limit);
@@ -664,12 +664,12 @@ aiAuditRoutes.get('/audit/history', async (c) => {
         },
         summary: {
           totalAudits: filteredHistory.length,
-          runningAudits: filteredHistory.filter(h => h.status === 'running').length,
+          runningAudits: filteredHistory.filter((h: any) => h.status === 'running').length,
           averageScore: Math.round(
             filteredHistory
-              .filter(h => h.score !== null)
+              .filter((h: any) => h.score !== null)
               .reduce((sum, h) => sum + h.score!, 0) /
-            filteredHistory.filter(h => h.score !== null).length
+            filteredHistory.filter((h: any) => h.score !== null).length
           ),
           trendsLast30Days: {
             scoreTrend: 'improving', // Mock trend
@@ -683,7 +683,7 @@ aiAuditRoutes.get('/audit/history', async (c) => {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to fetch audit history', error);
     return c.json({
       success: false,
@@ -695,7 +695,7 @@ aiAuditRoutes.get('/audit/history', async (c) => {
 });
 
 // Health check for AI audit services
-aiAuditRoutes.get('/health', async (c) => {
+aiAuditRoutes.get('/health', async (c: any) => {
   try {
     const health = {
       status: 'healthy',
@@ -724,7 +724,7 @@ aiAuditRoutes.get('/health', async (c) => {
     };
 
     return c.json(health);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Health check failed', error);
     return c.json({
       status: 'unhealthy',

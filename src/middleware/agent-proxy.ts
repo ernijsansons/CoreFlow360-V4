@@ -72,7 +72,7 @@ export class AgentProxy {
         const responseHeaders = new Headers(response.headers);
 
         // Remove hop-by-hop headers
-        ['Connection', 'Keep-Alive', 'Transfer-Encoding', 'TE', 'Trailer', 'Upgrade'].forEach(header => {
+        ['Connection', 'Keep-Alive', 'Transfer-Encoding', 'TE', 'Trailer', 'Upgrade'].forEach((header: any) => {
           responseHeaders.delete(header);
         });
 
@@ -81,7 +81,7 @@ export class AgentProxy {
           statusText: response.statusText,
           headers: responseHeaders
         });
-      } catch (error) {
+      } catch (error: any) {
 
         if ((error as any).name === 'AbortError') {
           return c.json({
@@ -156,7 +156,7 @@ export class AgentProxy {
         };
 
         return response;
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           error: 'WebSocket Proxy Failed',
           message: error instanceof Error ? error.message : 'Unknown error'
@@ -200,7 +200,7 @@ export class AgentProxy {
             return headers;
           })()
         });
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           error: 'SSE Proxy Failed',
           message: error instanceof Error ? error.message : 'Unknown error'

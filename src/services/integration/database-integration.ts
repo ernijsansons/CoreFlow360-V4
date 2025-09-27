@@ -84,7 +84,7 @@ export class AgentDatabaseIntegration {
       await this.createIndices();
       await this.verifyConnection();
       this.initialized = true;
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -163,7 +163,7 @@ export class AgentDatabaseIntegration {
     for (const query of tables) {
       try {
         await this.db.prepare(query).run();
-      } catch (error) {
+      } catch (error: any) {
         throw error;
       }
     }
@@ -184,7 +184,7 @@ export class AgentDatabaseIntegration {
     for (const query of indices) {
       try {
         await this.db.prepare(query).run();
-      } catch (error) {
+      } catch (error: any) {
         // Non-critical, continue
       }
     }

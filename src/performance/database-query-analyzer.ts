@@ -120,7 +120,7 @@ export class DatabaseQueryAnalyzer {
       try {
         const stats = await this.getTableStatistics(tableName);
         this.tableStats.set(tableName, stats);
-      } catch (error) {
+      } catch (error: any) {
         this.logger.warn('Failed to collect stats for table', error, { tableName });
       }
     }
@@ -269,7 +269,7 @@ export class DatabaseQueryAnalyzer {
         operations,
         bottlenecks
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn('Failed to explain query', error, { query: query.substring(0, 100) });
       return {
         plan: 'Unable to generate query plan',
@@ -453,7 +453,7 @@ export class DatabaseQueryAnalyzer {
       const columnMatches = whereClause.match(/(\w+)\s*[=<>]/g);
 
       if (columnMatches) {
-        const columns = columnMatches.map(match => match.split(/\s*[=<>]/)[0]);
+        const columns = columnMatches.map((match: any) => match.split(/\s*[=<>]/)[0]);
         return `CREATE INDEX idx_${tableName}_${columns.join('_')} ON ${tableName}(${columns.join(', ')});`;
       }
     }
@@ -595,7 +595,7 @@ for (const lead of leads) {
 }
 
 // Use:
-const leadIds = leads.map(l => l.id);
+const leadIds = leads.map((l: any) => l.id);
 const conversations = await db.prepare('SELECT * FROM conversations WHERE
   lead_id IN (' + leadIds.map(() => '?').join(',') + ')').bind(...leadIds).all();
 const conversationsByLead = groupBy(conversations, 'lead_id');

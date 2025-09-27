@@ -151,7 +151,7 @@ class AuthService {
           }
         };
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Registration failed', { error: error.message, email: data.email });
         
         // Log audit entry
@@ -266,7 +266,7 @@ class AuthService {
           }
         };
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Login failed', { error: error.message, email: data.email });
         
         // Log audit entry
@@ -349,7 +349,7 @@ class AuthService {
           }
         };
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('MFA verification failed', { error: error.message, challengeId });
         
         // Log audit entry
@@ -409,7 +409,7 @@ class AuthService {
           refreshToken: newRefreshToken
         };
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Token refresh failed', { error: error.message });
         throw new AuthenticationError('Invalid refresh token');
       }
@@ -438,7 +438,7 @@ class AuthService {
           success: true
         });
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Logout failed', { error: error.message });
         // Don't throw error for logout failures
       }
@@ -489,7 +489,7 @@ class AuthService {
           success: true
         });
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Password reset request failed', { error: error.message, email });
         throw error;
       }
@@ -544,7 +544,7 @@ class AuthService {
           success: true
         });
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Password reset confirmation failed', { error: error.message });
         throw error;
       }
@@ -581,7 +581,7 @@ class AuthService {
           updatedAt: user.updated_at
         };
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Get user profile failed', { error: error.message, userId });
         throw error;
       }
@@ -596,15 +596,15 @@ class AuthService {
       try {
         // Validate updates
         const allowedFields = ['first_name', 'last_name', 'phone'];
-        const updateFields = Object.keys(updates).filter(key => allowedFields.includes(key));
+        const updateFields = Object.keys(updates).filter((key: any) => allowedFields.includes(key));
         
         if (updateFields.length === 0) {
           throw new ValidationError('No valid fields to update');
         }
 
         // Build update query
-        const setClause = updateFields.map(field => `${field} = ?`).join(', ');
-        const values = updateFields.map(field => updates[field]);
+        const setClause = updateFields.map((field: any) => `${field} = ?`).join(', ');
+        const values = updateFields.map((field: any) => updates[field]);
         values.push(new Date().toISOString(), userId);
 
         await this.db.prepare(`
@@ -614,7 +614,7 @@ class AuthService {
         // Return updated profile
         return await this.getUserProfile(userId);
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Update user profile failed', { error: error.message, userId });
         throw error;
       }
@@ -642,7 +642,7 @@ class AuthService {
         event.error,
         new Date().toISOString()
       ).run();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to log auth event', { error: error.message });
     }
   }
@@ -659,7 +659,7 @@ class AuthService {
         status: 'healthy',
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'unhealthy',
         timestamp: new Date().toISOString()

@@ -127,7 +127,7 @@ export class StreamMetricsCollector {
    */
   getRecentAlerts(since?: number): PerformanceAlert[] {
     const cutoff = since || Date.now() - 3600000; // Last hour by default
-    return this.alerts.filter(alert => alert.timestamp > cutoff);
+    return this.alerts.filter((alert: any) => alert.timestamp > cutoff);
   }
 
   /**
@@ -204,9 +204,9 @@ export class StreamMetricsCollector {
     if (allMetrics.length === 0) return;
 
     this.aggregatedMetrics.totalStreams = allMetrics.length;
-    this.aggregatedMetrics.activeStreams = allMetrics.filter(m => !m.endTime).length;
+    this.aggregatedMetrics.activeStreams = allMetrics.filter((m: any) => !m.endTime).length;
 
-    const completedMetrics = allMetrics.filter(m => m.endTime);
+    const completedMetrics = allMetrics.filter((m: any) => m.endTime);
 
     if (completedMetrics.length > 0) {
       this.aggregatedMetrics.averageLatency =
@@ -389,7 +389,7 @@ export class StreamMetricsCollector {
     }
 
     // Clean up old alerts
-    this.alerts = this.alerts.filter(alert => alert.timestamp > cutoff);
+    this.alerts = this.alerts.filter((alert: any) => alert.timestamp > cutoff);
   }
 
   /**

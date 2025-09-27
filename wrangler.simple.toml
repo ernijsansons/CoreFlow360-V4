@@ -1,0 +1,19 @@
+name = "coreflow360-v4-dev"
+main = "src/index.minimal-test.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables
+[vars]
+APP_NAME = "CoreFlow360 V4 Dev"
+API_VERSION = "v4-dev"
+LOG_LEVEL = "debug"
+ENVIRONMENT = "development"
+API_BASE_URL = "http://localhost:8787"
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001,http://localhost:8787"
+
+[dev]
+port = 8787
+local_protocol = "http"
+upstream_protocol = "https"
+ip = "0.0.0.0"

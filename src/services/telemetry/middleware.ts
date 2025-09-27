@@ -130,7 +130,7 @@ export class ObservabilityMiddleware {
 
         return response;
 
-      } catch (error) {
+      } catch (error: any) {
         const latency = Date.now() - startTime;
 
         // Record error metrics
@@ -210,7 +210,7 @@ export class ObservabilityMiddleware {
         const token = authHeader.substring(7);
         const payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.businessId) return payload.businessId;
-      } catch (error) {
+      } catch (error: any) {
         // Ignore JWT parsing errors
       }
     }
@@ -240,7 +240,7 @@ export class ObservabilityMiddleware {
         const payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.userId) return payload.userId;
         if (payload.sub) return payload.sub;
-      } catch (error) {
+      } catch (error: any) {
         // Ignore JWT parsing errors
       }
     }
@@ -309,7 +309,7 @@ export class ObservabilityMiddleware {
             metadata.requestBody = body;
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Ignore body reading errors
       }
     }
@@ -329,7 +329,7 @@ export class ObservabilityMiddleware {
               metadata.responseBody = body;
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           // Ignore body reading errors
         }
       }
@@ -423,7 +423,7 @@ export class AIObservabilityMiddleware {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       const latency = Date.now() - startTime;
 
       // Record AI error
@@ -554,7 +554,7 @@ export class DatabaseObservabilityMiddleware {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       const latency = Date.now() - startTime;
 
       // Record database error metrics

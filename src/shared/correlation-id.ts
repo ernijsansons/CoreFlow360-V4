@@ -263,11 +263,11 @@ export class CorrelationIdManager {
   } {
     const context = this.traceContexts.get(correlationId);
     const spanIds = this.spanHierarchy.get(correlationId) || [];
-    const spans = spanIds.map(id => this.activeSpans.get(id)).filter(Boolean) as TraceSpan[];
+    const spans = spanIds.map((id: any) => this.activeSpans.get(id)).filter(Boolean) as TraceSpan[];
 
-    const completedSpans = spans.filter(s => s.endTime);
+    const completedSpans = spans.filter((s: any) => s.endTime);
     const totalDuration = completedSpans.length > 0
-      ? Math.max(...completedSpans.map(s => s.endTime!)) - Math.min(...spans.map(s => s.startTime))
+      ? Math.max(...completedSpans.map((s: any) => s.endTime!)) - Math.min(...spans.map((s: any) => s.startTime))
       : undefined;
 
     return {
@@ -296,7 +296,7 @@ export class CorrelationIdManager {
 
     for (const [correlationId, context] of this.traceContexts) {
       const spanIds = this.spanHierarchy.get(correlationId) || [];
-      const activeSpans = spanIds.filter(id => {
+      const activeSpans = spanIds.filter((id: any) => {
         const span = this.activeSpans.get(id);
         return span && span.status === 'pending';
       }).length;
@@ -415,7 +415,7 @@ export async function withTracing<T>(
     const result = await operation(span);
     manager.finishSpan(span.spanId, 'success');
     return result;
-  } catch (error) {
+  } catch (error: any) {
     manager.finishSpan(span.spanId, 'error', error as Error);
     throw error;
   }
@@ -481,5 +481,4 @@ export class CorrelationId {
   }
 }
 
-// Export types and utilities
-export type { TraceContext, TraceSpan, TracingConfig };
+// Types are already exported above

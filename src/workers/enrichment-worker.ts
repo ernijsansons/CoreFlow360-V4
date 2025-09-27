@@ -66,7 +66,7 @@ export class EnrichmentWorker {
         default:
           throw new Error(`Unknown job type: ${job.type}`);
       }
-    } catch (error) {
+    } catch (error: any) {
 
       return {
         job_id: job.id,
@@ -128,7 +128,7 @@ export class EnrichmentWorker {
     }
 
     // Add business context and defaults
-    const requests: EnrichmentRequest[] = bulk_requests.map(req => ({
+    const requests: EnrichmentRequest[] = bulk_requests.map((req: any) => ({
       ...req,
       sources: req.sources || this.getDefaultSources(),
       priority: job.priority
@@ -155,8 +155,8 @@ export class EnrichmentWorker {
       total_cost: result.total_cost,
       processing_time_ms: Date.now() - startTime,
       errors: result.results
-        .filter(r => !r.success)
-        .map(r => r.error || 'Unknown error')
+        .filter((r: any) => !r.success)
+        .map((r: any) => r.error || 'Unknown error')
     };
   }
 
@@ -260,7 +260,7 @@ export class EnrichmentWorker {
 
       // Store enrichment data in analytics
       await this.storeEnrichmentAnalytics(enrichedLead, businessId);
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -309,7 +309,7 @@ export class EnrichmentWorker {
           })
         });
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -387,7 +387,7 @@ export class EnrichmentWorker {
           ]
         });
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -456,7 +456,7 @@ export class EnrichmentWorker {
             timestamp: new Date().toISOString()
           })
         });
-      } catch (error) {
+      } catch (error: any) {
       }
     }
   }
@@ -571,7 +571,7 @@ export default {
         );
 
         message.ack();
-      } catch (error) {
+      } catch (error: any) {
 
         const job = message.body;
         if (job.retry_count < job.max_retries) {

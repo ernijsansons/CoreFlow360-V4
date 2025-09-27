@@ -182,13 +182,13 @@ export class ReplicationConsistencyAnalyzer {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error analyzing replication lag', error);
     }
 
     const averageLag = replicas.reduce((sum, replica) => sum + replica.lagSeconds, 0) / Math.max(replicas.length, 1);
-    const maxLag = Math.max(...replicas.map(r => r.lagSeconds), 0);
-    const acceptableThreshold = Math.max(...this.regions.map(r => r.lagThreshold));
+    const maxLag = Math.max(...replicas.map((r: any) => r.lagSeconds), 0);
+    const acceptableThreshold = Math.max(...this.regions.map((r: any) => r.lagThreshold));
 
     return {
       primaryRegion,
@@ -240,7 +240,7 @@ export class ReplicationConsistencyAnalyzer {
         pendingTransactions: 0
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error checking lag for region ${region}`, error);
       // Return simulated values for demonstration
       return {
@@ -297,7 +297,7 @@ export class ReplicationConsistencyAnalyzer {
         new Date((lastFullSyncResult as any).last_full_sync) :
         new Date(Date.now() - 24 * 60 * 60 * 1000); // Default to 24 hours ago
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error validating sync status', error);
     }
 
@@ -346,7 +346,7 @@ export class ReplicationConsistencyAnalyzer {
         }
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error checking sync for table ${table}`, error);
       return {
         isOutOfSync: false,
@@ -370,7 +370,7 @@ export class ReplicationConsistencyAnalyzer {
       `).bind(region).first();
 
       return (result as any)?.count || 0;
-    } catch (error) {
+    } catch (error: any) {
       // Table might not have region column
       const result = await this.context.env.DB.prepare(`
         SELECT COUNT(*) as count FROM ${table}
@@ -406,7 +406,7 @@ export class ReplicationConsistencyAnalyzer {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error finding discrepancies in ${table}`, error);
     }
 
@@ -445,7 +445,7 @@ export class ReplicationConsistencyAnalyzer {
       // Get historical conflict statistics
       const conflictStats = await this.getConflictStats();
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error detecting conflicts', error);
     }
 
@@ -468,7 +468,7 @@ export class ReplicationConsistencyAnalyzer {
       `).first();
 
       return (result as any)?.count || 0;
-    } catch (error) {
+    } catch (error: any) {
       return 0;
     }
   }
@@ -491,7 +491,7 @@ export class ReplicationConsistencyAnalyzer {
       const conflicts = (conflictCount as any)?.count || 0;
 
       return (conflicts / operations) * 100; // Percentage
-    } catch (error) {
+    } catch (error: any) {
       return 0.1; // 0.1% default conflict rate
     }
   }
@@ -507,7 +507,7 @@ export class ReplicationConsistencyAnalyzer {
       `).first();
 
       return (result as any)?.count || 0;
-    } catch (error) {
+    } catch (error: any) {
       return 0;
     }
   }
@@ -523,7 +523,7 @@ export class ReplicationConsistencyAnalyzer {
       `).first();
 
       return (result as any)?.count || 0;
-    } catch (error) {
+    } catch (error: any) {
       return 0;
     }
   }
@@ -556,7 +556,7 @@ export class ReplicationConsistencyAnalyzer {
         };
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error getting conflict statistics', error);
     }
 
@@ -662,7 +662,7 @@ export class ReplicationConsistencyAnalyzer {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error finding residency violations', error);
     }
 
@@ -708,7 +708,7 @@ export class ReplicationConsistencyAnalyzer {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error detecting data leakage', error);
 
       // Simulate some potential leakage for demo
@@ -768,7 +768,7 @@ export class ReplicationConsistencyAnalyzer {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error validating isolation', error);
     }
 
@@ -897,7 +897,7 @@ export class ReplicationConsistencyAnalyzer {
         preventiveAction: 'Implement transaction locking during high-volume periods'
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error analyzing conflicts', error);
     }
 
@@ -953,15 +953,15 @@ export class ReplicationConsistencyAnalyzer {
     let score = 100;
 
     // Critical violations
-    score -= violations.filter(v => v.severity === 'critical').length * 25;
-    score -= violations.filter(v => v.severity === 'high').length * 15;
-    score -= violations.filter(v => v.severity === 'medium').length * 5;
+    score -= violations.filter((v: any) => v.severity === 'critical').length * 25;
+    score -= violations.filter((v: any) => v.severity === 'high').length * 15;
+    score -= violations.filter((v: any) => v.severity === 'medium').length * 5;
 
     // Data leakages
     score -= leakages.length * 20;
 
     // Isolation issues
-    score -= isolation.filter(i => i.crossContamination).length * 30;
+    score -= isolation.filter((i: any) => i.crossContamination).length * 30;
 
     return Math.max(0, score);
   }
@@ -1009,7 +1009,7 @@ export class ReplicationConsistencyAnalyzer {
 
     // Compliance recommendations
     if (dataResidency.violations.length > 0) {
-      const criticalViolations = dataResidency.violations.filter(v => v.severity === 'critical');
+      const criticalViolations = dataResidency.violations.filter((v: any) => v.severity === 'critical');
       if (criticalViolations.length > 0) {
         recommendations.push({
           area: 'Data Residency',

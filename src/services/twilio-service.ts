@@ -129,7 +129,7 @@ class TwilioService {
         status: response.status,
         cost: this.estimateCallCost(response.direction, 0) // Initial estimate
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -141,7 +141,7 @@ class TwilioService {
     try {
       const response = await this.makeApiCall('GET', `/Calls/${callSid}.json`);
       return response as TwilioCall;
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -150,7 +150,7 @@ class TwilioService {
     try {
       const response = await this.makeApiCall('GET', `/Calls/${callSid}/Recordings.json`);
       return response.recordings || [];
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -159,7 +159,7 @@ class TwilioService {
     try {
       await this.makeApiCall('DELETE', `/Recordings/${recordingSid}.json`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -175,7 +175,7 @@ class TwilioService {
     try {
       await this.makeApiCall('POST', `/Calls/${callSid}.json`, updates);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -279,7 +279,7 @@ class TwilioService {
         Buffer.from(signature),
         Buffer.from(bodyHash)
       );
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -341,7 +341,7 @@ class TwilioService {
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           if (Array.isArray(value)) {
-            value.forEach(item => formData.append(key, String(item)));
+            value.forEach((item: any) => formData.append(key, String(item)));
           } else {
             formData.append(key, String(value));
           }
@@ -411,7 +411,7 @@ class TwilioService {
         rate_limit_remaining: 1000, // Placeholder
         can_make_call: concurrentCalls < 100
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         concurrent_calls: 0,
         max_concurrent_calls: 100,
@@ -428,7 +428,7 @@ class TwilioService {
         balance: parseFloat(account.balance),
         currency: account.account_balance_currency || 'USD'
       };
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -439,7 +439,7 @@ class TwilioService {
       // This would integrate with a queue system (Redis, Cloudflare Queues, etc.)
       // For now, just return success
       return true;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -474,7 +474,7 @@ class TwilioService {
       });
 
       return response.sid;
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -491,7 +491,7 @@ class TwilioService {
       });
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }

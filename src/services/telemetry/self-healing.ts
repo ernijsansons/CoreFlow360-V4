@@ -70,7 +70,7 @@ export class SelfHealingEngine {
 
   private findApplicableRules(alert: Alert): HealingRule[] {
     return Array.from(this.healingRules.values())
-      .filter(rule => rule.enabled && this.evaluateCondition(rule.condition, alert))
+      .filter((rule: any) => rule.enabled && this.evaluateCondition(rule.condition, alert))
       .sort((a, b) => b.priority - a.priority);
   }
 
@@ -86,7 +86,7 @@ export class SelfHealingEngine {
 
       const func = new Function('context', `with(context) { return ${condition}; }`);
       return func(context);
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -131,7 +131,7 @@ export class SelfHealingEngine {
       }
 
       await this.executeAction(executionLog, rule.action, alert);
-    } catch (error) {
+    } catch (error: any) {
       executionLog.status = 'failed';
       executionLog.error = (error as Error).message;
     }
@@ -249,7 +249,7 @@ export class SelfHealingEngine {
         target: action.target
       });
 
-    } catch (error) {
+    } catch (error: any) {
       log.status = 'failed';
       log.error = (error as Error).message;
       log.duration = Date.now() - startTime;
@@ -442,7 +442,7 @@ export class SelfHealingEngine {
           service,
           status: health.status
         });
-      } catch (error) {
+      } catch (error: any) {
       }
     }
   }
@@ -455,7 +455,7 @@ export class SelfHealingEngine {
 
     const metrics = await this.collector.getMetrics('default', timeRange);
 
-    const serviceMetrics = metrics.filter(m =>
+    const serviceMetrics = metrics.filter((m: any) =>
       m.dimensions.service === service ||
       m.dimensions.component === service
     );
@@ -588,7 +588,7 @@ export class SelfHealingEngine {
       }
     ];
 
-    defaultRules.forEach(rule => {
+    defaultRules.forEach((rule: any) => {
       this.healingRules.set(rule.id, rule);
     });
   }

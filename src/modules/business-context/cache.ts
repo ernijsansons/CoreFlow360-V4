@@ -78,7 +78,7 @@ export class ContextCache {
 
       return null;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get from context cache', error, { key });
       this.updateAccessStats(key, false);
       return null;
@@ -129,7 +129,7 @@ export class ContextCache {
         this.cleanupMemoryCache();
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to store in context cache', error, { key, ttlSeconds });
     }
   }
@@ -144,7 +144,7 @@ export class ContextCache {
 
       this.logger.debug('Context cache invalidated', { key });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to invalidate context cache', error, { key });
     }
   }
@@ -174,7 +174,7 @@ export class ContextCache {
         memoryKeysDeleted: keysToDelete.length,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to invalidate context cache by pattern', error, { pattern });
     }
   }
@@ -246,7 +246,7 @@ export class ContextCache {
         remainingStats: this.accessStats.size,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to cleanup context cache', error);
     }
   }

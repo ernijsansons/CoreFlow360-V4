@@ -86,7 +86,7 @@ export class CRMService {
     try {
       const company = await this.db.companies.create(data);
       return { success: true, data: company };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -107,7 +107,7 @@ export class CRMService {
       
       this.setCache(cacheKey, company);
       return { success: true, data: company };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -116,7 +116,7 @@ export class CRMService {
     try {
       const company = await this.db.companies.update(id, data);
       return { success: true, data: company };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -125,7 +125,7 @@ export class CRMService {
     try {
       await this.db.companies.delete(id);
       return { success: true, data: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -135,7 +135,7 @@ export class CRMService {
     try {
       const contact = await this.db.contacts.create(data);
       return { success: true, data: contact };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -147,7 +147,7 @@ export class CRMService {
         return { success: false, error: 'Contact not found' };
       }
       return { success: true, data: contact };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -156,7 +156,7 @@ export class CRMService {
     try {
       const contact = await this.db.contacts.update(id, data);
       return { success: true, data: contact };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -165,7 +165,7 @@ export class CRMService {
     try {
       await this.db.contacts.delete(id);
       return { success: true, data: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -193,7 +193,7 @@ export class CRMService {
       }
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
       return {
         data: [],
         pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
@@ -207,7 +207,7 @@ export class CRMService {
     try {
       const lead = await this.db.leads.create(data);
       return { success: true, data: lead };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -219,7 +219,7 @@ export class CRMService {
         return { success: false, error: 'Lead not found' };
       }
       return { success: true, data: lead };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -228,7 +228,7 @@ export class CRMService {
     try {
       const lead = await this.db.leads.update(id, data);
       return { success: true, data: lead };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -237,7 +237,7 @@ export class CRMService {
     try {
       await this.db.leads.delete(id);
       return { success: true, data: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -246,7 +246,7 @@ export class CRMService {
     try {
       const result = await this.db.leads.search(filters, pagination);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       return {
         data: [],
         pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
@@ -260,7 +260,7 @@ export class CRMService {
     try {
       const task = await this.db.aiTasks.create(data);
       return { success: true, data: task };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -272,7 +272,7 @@ export class CRMService {
         return { success: false, error: 'AI Task not found' };
       }
       return { success: true, data: task };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -281,7 +281,7 @@ export class CRMService {
     try {
       const task = await this.db.aiTasks.update(id, data);
       return { success: true, data: task };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -290,7 +290,7 @@ export class CRMService {
     try {
       await this.db.aiTasks.delete(id);
       return { success: true, data: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -300,7 +300,7 @@ export class CRMService {
     try {
       const conversation = await this.db.conversations.create(data);
       return { success: true, data: conversation };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -312,7 +312,7 @@ export class CRMService {
         return { success: false, error: 'Conversation not found' };
       }
       return { success: true, data: conversation };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -321,7 +321,7 @@ export class CRMService {
     try {
       const conversation = await this.db.conversations.update(id, data);
       return { success: true, data: conversation };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -330,7 +330,7 @@ export class CRMService {
     try {
       const result = await this.db.conversations.search(filters, pagination);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       return {
         data: [],
         pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
@@ -350,7 +350,7 @@ export class CRMService {
 
       await this.db.leadActivities.create(leadId, newActivity);
       return { success: true, data: newActivity };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -359,7 +359,7 @@ export class CRMService {
     try {
       const result = await this.db.leadActivities.getByLeadId(leadId, pagination);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       return {
         data: [],
         pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
@@ -394,7 +394,7 @@ export class CRMService {
 
       await this.db.companies.create(company);
       return { success: true, data: company };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -413,7 +413,7 @@ export class CRMService {
       };
 
       return { success: true, data: result };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -423,7 +423,7 @@ export class CRMService {
       // Mock followup sending - would integrate with email/SMS in production
       console.log(`Sending followup to lead ${payload.leadId}: ${payload.message}`);
       return { success: true, data: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -441,7 +441,7 @@ export class CRMService {
       };
 
       return { success: true, data: context };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -469,7 +469,7 @@ export class CRMService {
 
       await this.db.meetings.create(meeting);
       return { success: true, data: meeting };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -481,7 +481,7 @@ export class CRMService {
         return { success: false, error: 'Meeting not found' };
       }
       return { success: true, data: meeting };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -490,7 +490,7 @@ export class CRMService {
     try {
       const meeting = await this.db.meetings.update(id, data);
       return { success: true, data: meeting };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -499,7 +499,7 @@ export class CRMService {
     try {
       await this.db.meetings.update(id, { status: 'cancelled' });
       return { success: true, data: true };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -521,7 +521,7 @@ export class CRMService {
       ];
 
       return { success: true, data: slots };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -543,7 +543,7 @@ export class CRMService {
 
       await this.db.voicemails.create(voicemail);
       return { success: true, data: voicemail };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -555,7 +555,7 @@ export class CRMService {
         return { success: false, error: 'Voicemail not found' };
       }
       return { success: true, data: voicemail };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -575,7 +575,7 @@ export class CRMService {
 
       await this.db.voicemailCampaigns.create(campaign);
       return { success: true, data: campaign };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -596,7 +596,7 @@ export class CRMService {
       };
 
       return { success: true, data: stats };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -617,7 +617,7 @@ export class CRMService {
       };
 
       return { success: true, data: metrics };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -635,7 +635,7 @@ export class CRMService {
       };
 
       return { success: true, data: metrics };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -654,7 +654,7 @@ export class CRMService {
       };
 
       return { success: true, data: metrics };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -664,7 +664,7 @@ export class CRMService {
     try {
       // Mock event emission - would integrate with event system in production
       console.log('CRM Event:', event);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to emit CRM event:', error);
     }
   }
@@ -673,7 +673,7 @@ export class CRMService {
     try {
       // Mock event subscription - would integrate with event system in production
       console.log(`Subscribed to CRM event: ${eventType}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to subscribe to CRM event:', error);
     }
   }
@@ -689,7 +689,7 @@ export class CRMService {
           timestamp: new Date().toISOString()
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -701,7 +701,7 @@ export class CRMService {
     try {
       // Mock cleanup - would close database connections in production
       console.log('CRM Service cleanup completed');
-    } catch (error) {
+    } catch (error: any) {
       console.error('CRM Service cleanup failed:', error);
     }
   }

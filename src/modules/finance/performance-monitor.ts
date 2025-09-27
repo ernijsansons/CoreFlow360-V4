@@ -237,7 +237,7 @@ export class PerformanceMonitor {
       return null;
     }
 
-    const durations = metrics.map(m => m.duration).sort((a, b) => a - b);
+    const durations = metrics.map((m: any) => m.duration).sort((a, b) => a - b);
     const count = durations.length;
 
     // Calculate percentiles to match test expectations
@@ -269,14 +269,14 @@ export class PerformanceMonitor {
    * Get active traces
    */
   getActiveTraces(): TraceSpan[] {
-    return Array.from(this.spans.values()).filter(span => !span.endTime);
+    return Array.from(this.spans.values()).filter((span: any) => !span.endTime);
   }
 
   /**
    * Get trace by ID
    */
   getTrace(traceId: string): TraceSpan[] {
-    return Array.from(this.spans.values()).filter(span => span.traceId === traceId);
+    return Array.from(this.spans.values()).filter((span: any) => span.traceId === traceId);
   }
 
   /**
@@ -301,7 +301,7 @@ export class PerformanceMonitor {
           const result = await method.apply(this, args);
           monitor.finishSpan(spanId, 'success');
           return result;
-        } catch (error) {
+        } catch (error: any) {
           monitor.finishSpan(spanId, 'error', error instanceof Error ? error.message : 'Unknown error');
           throw error;
         }
@@ -425,7 +425,7 @@ export function Trace(operationName?: string) {
         const result = await method.apply(this, args);
         monitor.finishSpan(spanId, 'success');
         return result;
-      } catch (error) {
+      } catch (error: any) {
         monitor.finishSpan(spanId, 'error', error instanceof Error ? error.message : 'Unknown error');
         throw error;
       }

@@ -175,8 +175,7 @@ Business Metrics:
 - NPS: ${current.businessMetrics.nps.toFixed(1)}
 - Churn Rate: ${(current.businessMetrics.churnRate * 100).toFixed(2)}%
 
-${health.issues.length > 0 ? `Issues Detected:\n${health.issues.map(issue
-  => `- ${issue}`).join('\n')}` : 'No issues detected'}
+${health.issues.length > 0 ? `Issues Detected:\n${health.issues.map((issue: any) => `- ${issue}`).join('\n')}` : 'No issues detected'}
 `;
   }
 }

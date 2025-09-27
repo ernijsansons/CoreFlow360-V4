@@ -1,0 +1,97 @@
+name = "coreflow360-v4-enhanced"
+main = "src/index.enhanced.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Database bindings
+[[d1_databases]]
+binding = "DB"
+database_name = "coreflow360-agents"
+database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
+migrations_dir = "database/migrations"
+
+[[d1_databases]]
+binding = "DB_MAIN"
+database_name = "coreflow360-agents"
+database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
+migrations_dir = "database/migrations"
+
+[[d1_databases]]
+binding = "DB_ANALYTICS"
+database_name = "mustbeviral-db"
+database_id = "4cdeab75-a1b4-477e-a92c-de996065578c"
+
+# KV Namespace bindings
+[[kv_namespaces]]
+binding = "KV_CACHE"
+id = "62253644abcf4ce78558fbd764b366fb"
+preview_id = "dev-kv-cache"
+
+[[kv_namespaces]]
+binding = "KV_SESSION"
+id = "bd87c1fb6fd34a21b47e6cdbdd5a20ae"
+preview_id = "dev-kv-session"
+
+[[kv_namespaces]]
+binding = "KV_RATE_LIMIT_METRICS"
+id = "rate-limit-metrics-namespace"
+preview_id = "dev-rate-limit"
+
+[[kv_namespaces]]
+binding = "KV_AUTH"
+id = "auth-namespace"
+preview_id = "dev-auth"
+
+# R2 Bucket bindings
+[[r2_buckets]]
+binding = "R2_DOCUMENTS"
+bucket_name = "coreflow360-documents"
+
+[[r2_buckets]]
+binding = "R2_BACKUPS"
+bucket_name = "coreflow360-backups"
+
+# Durable Objects
+[[durable_objects.bindings]]
+name = "RATE_LIMITER_DO"
+class_name = "AdvancedRateLimiterDO"
+
+# Durable Object migrations
+[[migrations]]
+tag = "v1"
+new_classes = ["AdvancedRateLimiterDO"]
+
+# AI binding
+[ai]
+binding = "AI"
+remote = true
+
+# Environment variables
+[vars]
+APP_NAME = "CoreFlow360 V4 Enhanced"
+API_VERSION = "v4.1"
+LOG_LEVEL = "debug"
+ENVIRONMENT = "development"
+API_BASE_URL = "http://localhost:8787"
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:3001,http://localhost:8787"
+
+[observability]
+enabled = true
+head_sampling_rate = 0.1
+
+[placement]
+mode = "smart"
+
+[dev]
+port = 8788
+local_protocol = "http"
+upstream_protocol = "https"
+ip = "0.0.0.0"
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# JWT_SECRET
+# ANTHROPIC_API_KEY
+# OPENAI_API_KEY
+# EMAIL_API_KEY
+# STRIPE_SECRET_KEY
+# SENTRY_DSN

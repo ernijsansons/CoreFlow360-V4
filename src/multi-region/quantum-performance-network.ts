@@ -766,7 +766,7 @@ export class QuantumPerformanceNetwork {
     const results = {
       duration: config.duration,
       totalRequests: config.users.total * 50, // Estimate
-      regions: config.regions.map(region => ({
+      regions: config.regions.map((region: any) => ({
         region,
         requests: Math.floor(Math.random() * 50000) + 10000,
         errors: Math.floor(Math.random() * 100),

@@ -92,7 +92,7 @@ export class CustomReportBuilder {
 
       return reportDefinition;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create report definition', error, {
         name: definition.name,
         businessId: validBusinessId
@@ -160,7 +160,7 @@ export class CustomReportBuilder {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to execute custom report', error, {
         definitionId,
         businessId: validBusinessId
@@ -185,8 +185,8 @@ export class CustomReportBuilder {
 
     // Build SELECT clause
     const selectColumns = definition.columns
-      .filter(col => col.isVisible)
-      .map(col => {
+      .filter((col: any) => col.isVisible)
+      .map((col: any) => {
         if (col.aggregationType) {
           return `${this.getAggregationFunction(col.aggregationType)}(${col.field}) as ${col.id}`;
         }
@@ -232,7 +232,7 @@ export class CustomReportBuilder {
     if (definition.grouping && definition.grouping.length > 0) {
       const groupFields = definition.grouping
         .sort((a, b) => a.level - b.level)
-        .map(g => g.field);
+        .map((g: any) => g.field);
       groupByClause = `GROUP BY ${groupFields.join(', ')}`;
     }
 
@@ -241,7 +241,7 @@ export class CustomReportBuilder {
     if (definition.sorting && definition.sorting.length > 0) {
       const sortFields = definition.sorting
         .sort((a, b) => a.priority - b.priority)
-        .map(s => `${s.field} ${s.direction}`);
+        .map((s: any) => `${s.field} ${s.direction}`);
       orderByClause = `ORDER BY ${sortFields.join(', ')}`;
     }
 
@@ -516,7 +516,7 @@ export class CustomReportBuilder {
     try {
       const result = await this.db.prepare(query.sql).bind(...query.params).all();
       return result.results || [];
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Query execution failed', error, {
         sql: query.sql,
         paramCount: query.params.length
@@ -533,7 +533,7 @@ export class CustomReportBuilder {
     definition: CustomReportDefinition
   ): CustomReportResult {
     const result: CustomReportResult = {
-      columns: definition.columns.filter(col => col.isVisible),
+      columns: definition.columns.filter((col: any) => col.isVisible),
       rows,
       totalRows: rows.length
     };
@@ -542,7 +542,7 @@ export class CustomReportBuilder {
     if (definition.aggregations && definition.aggregations.length > 0) {
       result.aggregations = {};
       for (const agg of definition.aggregations) {
-        const values = rows.map(row => row[agg.field]).filter(val => val != null);
+        const values = rows.map((row: any) => row[agg.field]).filter((val: any) => val != null);
         result.aggregations[agg.field] = this.calculateAggregation(values, agg.type);
       }
     }
@@ -624,7 +624,7 @@ export class CustomReportBuilder {
       if (aggregations && aggregations.length > 0 && primaryGroup.showSubtotals) {
         groupData.subtotals = {};
         for (const agg of aggregations) {
-          const values = groupRows.map(row => row[agg.field]).filter(val => val != null);
+          const values = groupRows.map((row: any) => row[agg.field]).filter((val: any) => val != null);
           groupData.subtotals[agg.field] = this.calculateAggregation(values, agg.type);
         }
       }
@@ -653,7 +653,7 @@ export class CustomReportBuilder {
 
       return this.mapToReportDefinition(result);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get report definition', error, {
         definitionId,
         businessId: validBusinessId
@@ -748,9 +748,9 @@ export class CustomReportBuilder {
 
       const result = await this.db.prepare(sql).bind(...params).all();
 
-      return (result.results || []).map(row => this.mapToReportDefinition(row));
+      return (result.results || []).map((row: any) => this.mapToReportDefinition(row));
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to list report definitions', error, {
         businessId: validBusinessId
       });

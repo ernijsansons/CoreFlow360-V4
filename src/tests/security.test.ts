@@ -174,7 +174,7 @@ describe('Performance Tests', () => {
       for (let i = 0; i < 1000; i++) {
         const data = new Array(1000).fill(0);
         // Process data
-        data.forEach(x => x * 2);
+        data.forEach((x: any) => x * 2);
       }
       
       // Force garbage collection
@@ -477,7 +477,7 @@ describe('Input Sanitization Tests', () => {
       '<iframe src="javascript:alert(1)"></iframe>'
     ];
 
-    maliciousInputs.forEach(input => {
+    maliciousInputs.forEach((input: any) => {
       const sanitized = preventXSS(input);
       expect(sanitized).not.toContain('<script');
       expect(sanitized).not.toContain('javascript:');
@@ -500,12 +500,12 @@ describe('Input Sanitization Tests', () => {
       '<script>alert(1)</script>@domain.com'
     ];
 
-    validEmails.forEach(email => {
+    validEmails.forEach((email: any) => {
       const sanitized = sanitizeEmail(email);
       expect(sanitized).toBe(email);
     });
 
-    invalidEmails.forEach(email => {
+    invalidEmails.forEach((email: any) => {
       const sanitized = sanitizeEmail(email);
       expect(sanitized).toBe('');
     });
@@ -770,9 +770,9 @@ function createMockKV(): KVNamespace {
     },
     list: async (options?: any) => {
       const keys = Array.from(store.keys())
-        .filter(key => !options?.prefix || key.startsWith(options.prefix))
+        .filter((key: any) => !options?.prefix || key.startsWith(options.prefix))
         .slice(0, options?.limit || 1000)
-        .map(name => ({ name }));
+        .map((name: any) => ({ name }));
 
       return { keys, list_complete: true, cursor: '' };
     }

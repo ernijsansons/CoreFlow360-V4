@@ -86,7 +86,7 @@ export class LeadIngestionService {
           originalPayload: payload
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -120,7 +120,7 @@ export class LeadIngestionService {
       await this.updateChatSession(session);
       
       return response;
-    } catch (error) {
+    } catch (error: any) {
       return {
         message: 'Sorry, I encountered an error. Please try again.',
         confidence: 0,
@@ -176,7 +176,7 @@ export class LeadIngestionService {
           originalEmail: email
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -221,7 +221,7 @@ export class LeadIngestionService {
           originalSubmission: submission
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -451,7 +451,7 @@ export class LeadIngestionService {
         status: 'healthy',
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'unhealthy',
         timestamp: new Date().toISOString()

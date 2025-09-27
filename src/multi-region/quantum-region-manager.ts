@@ -173,7 +173,7 @@ export class GeographicAI {
 
     return {
       primaryRegion: optimal.region,
-      fallbackRegions: scored.slice(1, 4).map(s => s.region),
+      fallbackRegions: scored.slice(1, 4).map((s: any) => s.region),
       reasoning: optimal.reasoning,
       confidence: optimal.confidence,
       latencyEstimate: optimal.latency,
@@ -185,7 +185,7 @@ export class GeographicAI {
   private async filterCandidates(factors: RoutingFactors, constraints: any): Promise<string[]> {
     const allRegions = ['us-east', 'us-west', 'eu-west', 'eu-central', 'ap-southeast', 'ap-south'];
 
-    return allRegions.filter(region => {
+    return allRegions.filter((region: any) => {
       // Compliance check
       if (constraints.constraints.compliance) {
         const regionCompliance = this.checkCompliance(region, factors.compliance);
@@ -414,11 +414,11 @@ export class GeographicAI {
   private selectOptimal(scored: any[], objective: string): any {
     switch (objective) {
       case 'minimize-latency':
-        return scored.find(s => s.latency === Math.min(...scored.map(x => x.latency))) || scored[0];
+        return scored.find(s => s.latency === Math.min(...scored.map((x: any) => x.latency))) || scored[0];
       case 'minimize-cost':
-        return scored.find(s => s.cost === Math.min(...scored.map(x => x.cost))) || scored[0];
+        return scored.find(s => s.cost === Math.min(...scored.map((x: any) => x.cost))) || scored[0];
       case 'maximize-health':
-        return scored.find(s => s.health === Math.max(...scored.map(x => x.health))) || scored[0];
+        return scored.find(s => s.health === Math.max(...scored.map((x: any) => x.health))) || scored[0];
       default:
         return scored[0]; // Highest overall score
     }
@@ -548,8 +548,8 @@ class QuantumRegionManager {
     const recommendations = await this.generateOptimizationRecommendations(analysis);
 
     return {
-      recommendations: recommendations.map(r => r.description),
-      estimatedImprovements: new Map(recommendations.map(r => [r.metric, r.improvement])),
+      recommendations: recommendations.map((r: any) => r.description),
+      estimatedImprovements: new Map(recommendations.map((r: any) => [r.metric, r.improvement])),
       migrationPlan: await this.createMigrationPlan(recommendations)
     };
   }
@@ -591,7 +591,7 @@ class QuantumRegionManager {
   }
 
   private async getCitiesForRegion(cityCodes: string[]): Promise<City[]> {
-    return this.cloudflarePoPs.filter(city => cityCodes.includes(city.code));
+    return this.cloudflarePoPs.filter((city: any) => cityCodes.includes(city.code));
   }
 
   private async getRegionCapacity(region: string): Promise<RegionCapacity> {
@@ -804,7 +804,7 @@ class QuantumRegionManager {
   }
 
   private async createMigrationPlan(recommendations: any[]): Promise<any[]> {
-    return recommendations.map(rec => ({
+    return recommendations.map((rec: any) => ({
       action: rec.description,
       timeline: '2-4 weeks',
       dependencies: [],

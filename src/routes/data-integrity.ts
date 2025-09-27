@@ -90,7 +90,7 @@ app.use('*', async (c, next) => {
 /**
  * GET /audit - Trigger comprehensive data integrity audit
  */
-app.get('/audit', async (c) => {
+app.get('/audit', async (c: any) => {
   try {
     const user = c.get('user');
     const query = c.req.query();
@@ -123,7 +123,7 @@ app.get('/audit', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Data integrity audit failed', error);
 
     if (error instanceof z.ZodError) {
@@ -143,7 +143,7 @@ app.get('/audit', async (c) => {
 /**
  * POST /audit - Trigger audit with detailed configuration
  */
-app.post('/audit', async (c) => {
+app.post('/audit', async (c: any) => {
   try {
     const user = c.get('user');
     const body = await c.req.json();
@@ -168,7 +168,7 @@ app.post('/audit', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Configured data integrity audit failed', error);
 
     if (error instanceof z.ZodError) {
@@ -188,7 +188,7 @@ app.post('/audit', async (c) => {
 /**
  * GET /issues - Get paginated list of data integrity issues
  */
-app.get('/issues', async (c) => {
+app.get('/issues', async (c: any) => {
   try {
     const user = c.get('user');
     const query = c.req.query();
@@ -249,7 +249,7 @@ app.get('/issues', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to retrieve data issues', error);
     return c.json({
       error: 'Failed to retrieve issues',
@@ -261,7 +261,7 @@ app.get('/issues', async (c) => {
 /**
  * GET /issues/:issueId - Get specific data integrity issue
  */
-app.get('/issues/:issueId', async (c) => {
+app.get('/issues/:issueId', async (c: any) => {
   try {
     const user = c.get('user');
     const issueId = c.req.param('issueId');
@@ -281,7 +281,7 @@ app.get('/issues/:issueId', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to retrieve data issue', error);
     return c.json({
       error: 'Failed to retrieve issue',
@@ -293,7 +293,7 @@ app.get('/issues/:issueId', async (c) => {
 /**
  * POST /issues/:issueId/strategies - Get fix strategies for an issue
  */
-app.post('/issues/:issueId/strategies', async (c) => {
+app.post('/issues/:issueId/strategies', async (c: any) => {
   try {
     const user = c.get('user');
     const issueId = c.req.param('issueId');
@@ -344,7 +344,7 @@ app.post('/issues/:issueId/strategies', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to generate fix strategies', error);
 
     if (error instanceof z.ZodError) {
@@ -364,7 +364,7 @@ app.post('/issues/:issueId/strategies', async (c) => {
 /**
  * POST /issues/:issueId/preview - Preview fix execution
  */
-app.post('/issues/:issueId/preview', async (c) => {
+app.post('/issues/:issueId/preview', async (c: any) => {
   try {
     const user = c.get('user');
     const issueId = c.req.param('issueId');
@@ -420,7 +420,7 @@ app.post('/issues/:issueId/preview', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to generate fix preview', error);
 
     if (error instanceof z.ZodError) {
@@ -440,7 +440,7 @@ app.post('/issues/:issueId/preview', async (c) => {
 /**
  * POST /issues/:issueId/fix - Execute fix for an issue
  */
-app.post('/issues/:issueId/fix', async (c) => {
+app.post('/issues/:issueId/fix', async (c: any) => {
   try {
     const user = c.get('user');
     const issueId = c.req.param('issueId');
@@ -527,7 +527,7 @@ app.post('/issues/:issueId/fix', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to execute fix', error);
 
     if (error instanceof z.ZodError) {
@@ -547,7 +547,7 @@ app.post('/issues/:issueId/fix', async (c) => {
 /**
  * GET /executions - Get fix execution history
  */
-app.get('/executions', async (c) => {
+app.get('/executions', async (c: any) => {
   try {
     const user = c.get('user');
     const query = c.req.query();
@@ -596,7 +596,7 @@ app.get('/executions', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to retrieve fix executions', error);
     return c.json({
       error: 'Failed to retrieve executions',
@@ -608,7 +608,7 @@ app.get('/executions', async (c) => {
 /**
  * POST /executions/:executionId/rollback - Rollback a fix execution
  */
-app.post('/executions/:executionId/rollback', async (c) => {
+app.post('/executions/:executionId/rollback', async (c: any) => {
   try {
     const user = c.get('user');
     const executionId = c.req.param('executionId');
@@ -662,7 +662,7 @@ app.post('/executions/:executionId/rollback', async (c) => {
       }, 400);
     }
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to rollback fix', error);
     return c.json({
       error: 'Rollback failed',
@@ -674,7 +674,7 @@ app.post('/executions/:executionId/rollback', async (c) => {
 /**
  * GET /config - Get data fixer configuration
  */
-app.get('/config', async (c) => {
+app.get('/config', async (c: any) => {
   try {
     const user = c.get('user');
 
@@ -704,7 +704,7 @@ app.get('/config', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to retrieve fixer configuration', error);
     return c.json({
       error: 'Failed to retrieve configuration',
@@ -716,7 +716,7 @@ app.get('/config', async (c) => {
 /**
  * PUT /config - Update data fixer configuration
  */
-app.put('/config', async (c) => {
+app.put('/config', async (c: any) => {
   try {
     const user = c.get('user');
     const body = await c.req.json();
@@ -751,7 +751,7 @@ app.put('/config', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to update fixer configuration', error);
 
     if (error instanceof z.ZodError) {
@@ -771,7 +771,7 @@ app.put('/config', async (c) => {
 /**
  * GET /dashboard - Get data integrity dashboard data
  */
-app.get('/dashboard', async (c) => {
+app.get('/dashboard', async (c: any) => {
   try {
     const user = c.get('user');
 
@@ -827,7 +827,7 @@ app.get('/dashboard', async (c) => {
       timestamp: new Date().toISOString()
     });
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Failed to retrieve dashboard data', error);
     return c.json({
       error: 'Failed to retrieve dashboard',

@@ -23,7 +23,7 @@ async function main() {
     // Exit with appropriate code
     process.exit(report.summary.critical > 0 ? 1 : 0);
 
-  } catch (error) {
+  } catch (error: any) {
     process.exit(1);
   }
 }

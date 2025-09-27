@@ -78,7 +78,7 @@ export class WorkflowOrchestrator implements DurableObject {
       }
 
       this.startPeriodicTasks();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to initialize workflow orchestrator state', error);
       throw new WorkflowError('Initialization failed', 'INIT_ERROR');
     }
@@ -100,7 +100,7 @@ export class WorkflowOrchestrator implements DurableObject {
 
       // Check concurrent workflow limits
       const userWorkflows = Array.from(this.orchestratorState.executions.values())
-        .filter(exec => exec.userId === validatedUserId && exec.status === 'running');
+        .filter((exec: any) => exec.userId === validatedUserId && exec.status === 'running');
 
       if (userWorkflows.length >= this.orchestratorState.config.maxConcurrentWorkflows) {
         throw new WorkflowError(
@@ -163,7 +163,7 @@ export class WorkflowOrchestrator implements DurableObject {
         headers: { 'Content-Type': 'application/json' },
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to start workflow', error);
       return new Response(JSON.stringify({
         success: false,
@@ -204,7 +204,7 @@ export class WorkflowOrchestrator implements DurableObject {
         headers: { 'Content-Type': 'application/json' },
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get workflow status', error);
       return new Response(JSON.stringify({
         success: false,
@@ -250,8 +250,8 @@ export class WorkflowOrchestrator implements DurableObject {
       // Check if we have enough approvals
       const pendingApproval = execution.pendingApprovals.find(pa => pa.stepId === stepId);
       if (pendingApproval) {
-        const approvalCount = stepResult.approvals.filter(a => a.decision === 'approve').length;
-        const rejectionCount = stepResult.approvals.filter(a => a.decision === 'reject').length;
+        const approvalCount = stepResult.approvals.filter((a: any) => a.decision === 'approve').length;
+        const rejectionCount = stepResult.approvals.filter((a: any) => a.decision === 'reject').length;
 
         if (rejectionCount > 0) {
           // Rejection - fail the step
@@ -265,7 +265,7 @@ export class WorkflowOrchestrator implements DurableObject {
         } else if (approvalCount >= pendingApproval.requiredApprovers.length) {
           // Approved - continue execution
           stepResult.status = 'completed';
-          execution.pendingApprovals = execution.pendingApprovals.filter(pa => pa.stepId !== stepId);
+          execution.pendingApprovals = execution.pendingApprovals.filter((pa: any) => pa.stepId !== stepId);
           await this.continueWorkflowExecution(execution);
         }
       }
@@ -281,7 +281,7 @@ export class WorkflowOrchestrator implements DurableObject {
         headers: { 'Content-Type': 'application/json' },
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to approve step', error);
       return new Response(JSON.stringify({
         success: false,
@@ -349,7 +349,7 @@ export class WorkflowOrchestrator implements DurableObject {
         headers: { 'Content-Type': 'application/json' },
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to cancel workflow', error);
       return new Response(JSON.stringify({
         success: false,
@@ -407,7 +407,7 @@ export class WorkflowOrchestrator implements DurableObject {
         },
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to subscribe to progress', error);
       return new Response('Failed to establish SSE connection', { status: 500 });
     }
@@ -420,7 +420,7 @@ export class WorkflowOrchestrator implements DurableObject {
     try {
       const now = Date.now();
       const activeAlarms = Array.from(this.orchestratorState.alarms.values())
-        .filter(alarm => alarm.active && alarm.scheduledTime <= now);
+        .filter((alarm: any) => alarm.active && alarm.scheduledTime <= now);
 
       for (const alarm of activeAlarms) {
         await this.handleAlarmEvent(alarm);
@@ -438,14 +438,14 @@ export class WorkflowOrchestrator implements DurableObject {
 
       // Schedule next alarm check
       const nextAlarm = Array.from(this.orchestratorState.alarms.values())
-        .filter(alarm => alarm.active)
+        .filter((alarm: any) => alarm.active)
         .sort((a, b) => a.scheduledTime - b.scheduledTime)[0];
 
       if (nextAlarm) {
         this.state.storage.setAlarm(nextAlarm.scheduledTime);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to handle alarm', error);
     }
   }
@@ -479,17 +479,17 @@ export class WorkflowOrchestrator implements DurableObject {
       }
 
       // Find initial steps (no dependencies)
-      const initialSteps = definition.steps.filter(step => step.dependsOn.length === 0);
+      const initialSteps = definition.steps.filter((step: any) => step.dependsOn.length === 0);
 
       if (initialSteps.length === 0) {
         throw new WorkflowError('No initial steps found', 'NO_INITIAL_STEPS');
       }
 
       // Start initial steps
-      await this.executeSteps(definition, execution, initialSteps.map(s => s.id));
+      await this.executeSteps(definition, execution, initialSteps.map((s: any) => s.id));
       await this.emitProgressEvent(execution, 'step_started');
 
-    } catch (error) {
+    } catch (error: any) {
       execution.status = 'failed';
       execution.error = {
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -503,7 +503,7 @@ export class WorkflowOrchestrator implements DurableObject {
 
   private async executeSteps(definition: WorkflowDefinition,
   execution: WorkflowExecution, stepIds: string[]): Promise<void> {
-    const steps = stepIds.map(id => definition.steps.find(s => s.id === id)).filter(Boolean) as WorkflowStep[];
+    const steps = stepIds.map((id: any) => definition.steps.find(s => s.id === id)).filter(Boolean) as WorkflowStep[];
 
     // Group steps by parallel groups
     const parallelGroups = new Map<string, WorkflowStep[]>();
@@ -539,7 +539,7 @@ export class WorkflowOrchestrator implements DurableObject {
   WorkflowExecution, groupId: string, steps: WorkflowStep[]): Promise<void> {
     const groupState = {
       groupId,
-      stepIds: steps.map(s => s.id),
+      stepIds: steps.map((s: any) => s.id),
       status: 'running' as const,
       startTime: Date.now(),
     };
@@ -548,13 +548,13 @@ export class WorkflowOrchestrator implements DurableObject {
 
     try {
       // Execute all steps in parallel
-      const stepPromises = steps.map(step => this.executeStep(definition, execution, step));
+      const stepPromises = steps.map((step: any) => this.executeStep(definition, execution, step));
       await Promise.all(stepPromises);
 
       groupState.status = 'completed';
       groupState.endTime = Date.now();
 
-    } catch (error) {
+    } catch (error: any) {
       groupState.status = 'failed';
       groupState.endTime = Date.now();
       throw error;
@@ -584,7 +584,7 @@ export class WorkflowOrchestrator implements DurableObject {
         stepResult.endTime = Date.now();
         stepResult.duration = stepResult.endTime - stepResult.startTime;
         execution.completedSteps.push(step.id);
-        execution.currentSteps = execution.currentSteps.filter(id => id !== step.id);
+        execution.currentSteps = execution.currentSteps.filter((id: any) => id !== step.id);
         await this.continueWorkflowExecution(execution);
         return;
       }
@@ -611,7 +611,7 @@ export class WorkflowOrchestrator implements DurableObject {
       // Execute step with retry logic
       await this.executeStepWithRetry(execution, step, stepResult);
 
-    } catch (error) {
+    } catch (error: any) {
       await this.handleStepFailure(execution, step.id, error);
     }
   }
@@ -659,7 +659,7 @@ export class WorkflowOrchestrator implements DurableObject {
           }
 
           execution.completedSteps.push(step.id);
-          execution.currentSteps = execution.currentSteps.filter(id => id !== step.id);
+          execution.currentSteps = execution.currentSteps.filter((id: any) => id !== step.id);
 
           await this.emitProgressEvent(execution, 'step_completed', step.id);
           await this.continueWorkflowExecution(execution);
@@ -669,7 +669,7 @@ export class WorkflowOrchestrator implements DurableObject {
           throw new Error(result.error || 'Step execution failed');
         }
 
-      } catch (error) {
+      } catch (error: any) {
         stepResult.retryHistory.push({
           attempt,
           timestamp: Date.now(),
@@ -695,7 +695,7 @@ export class WorkflowOrchestrator implements DurableObject {
           stepResult.duration = stepResult.endTime - stepResult.startTime;
 
           execution.failedSteps.push(step.id);
-          execution.currentSteps = execution.currentSteps.filter(id => id !== step.id);
+          execution.currentSteps = execution.currentSteps.filter((id: any) => id !== step.id);
 
           throw error;
         }
@@ -736,7 +736,7 @@ export class WorkflowOrchestrator implements DurableObject {
   }
 
   private async handleStepFailure(execution: WorkflowExecution, stepId: string, error?: unknown): Promise<void> {
-    execution.currentSteps = execution.currentSteps.filter(id => id !== stepId);
+    execution.currentSteps = execution.currentSteps.filter((id: any) => id !== stepId);
 
     // Check if workflow should be rolled back
     const workflowDefinition = await this.getWorkflowDefinition(execution.workflowId);
@@ -770,7 +770,7 @@ export class WorkflowOrchestrator implements DurableObject {
     }
 
     // Find next steps to execute
-    const nextSteps = workflowDefinition.steps.filter(step => {
+    const nextSteps = workflowDefinition.steps.filter((step: any) => {
       // Skip if already completed or failed
       if (execution.completedSteps.includes(step.id) || execution.failedSteps.includes(step.id)) {
         return false;
@@ -786,7 +786,7 @@ export class WorkflowOrchestrator implements DurableObject {
     });
 
     if (nextSteps.length > 0) {
-      await this.executeSteps(workflowDefinition, execution, nextSteps.map(s => s.id));
+      await this.executeSteps(workflowDefinition, execution, nextSteps.map((s: any) => s.id));
     } else if (execution.currentSteps.length === 0) {
       // Workflow completed
       execution.status = 'completed';
@@ -815,8 +815,8 @@ export class WorkflowOrchestrator implements DurableObject {
 
       // Rollback completed steps in reverse order
       const stepsToRollback = execution.completedSteps
-        .map(stepId => workflowDefinition.steps.find(s => s.id === stepId))
-        .filter(step => step?.canRollback)
+        .map((stepId: any) => workflowDefinition.steps.find(s => s.id === stepId))
+        .filter((step: any) => step?.canRollback)
         .reverse();
 
       for (const step of stepsToRollback) {
@@ -825,7 +825,7 @@ export class WorkflowOrchestrator implements DurableObject {
         try {
           await this.rollbackStep(execution, step);
           execution.rollbackSteps.push(step.id);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error('Failed to rollback step', error, { stepId: step.id });
           // Continue with other rollbacks even if one fails
         }
@@ -834,7 +834,7 @@ export class WorkflowOrchestrator implements DurableObject {
       execution.status = 'rolled_back';
       execution.rollbackInProgress = false;
 
-    } catch (error) {
+    } catch (error: any) {
       execution.status = 'failed';
       execution.rollbackInProgress = false;
       execution.error = {
@@ -939,7 +939,7 @@ export class WorkflowOrchestrator implements DurableObject {
       retryable: false,
     };
 
-    execution.pendingApprovals = execution.pendingApprovals.filter(pa => pa.stepId !== stepId);
+    execution.pendingApprovals = execution.pendingApprovals.filter((pa: any) => pa.stepId !== stepId);
 
     await this.handleStepFailure(execution, stepId, new ApprovalTimeoutError(stepId, stepResult.duration));
   }
@@ -1027,7 +1027,7 @@ export class WorkflowOrchestrator implements DurableObject {
       if (connection.workflowIds.has(execution.workflowId) || connection.workflowIds.size === 0) {
         try {
           await connection.writer.write(data);
-        } catch (error) {
+        } catch (error: any) {
           // Connection closed, clean up
           this.sseConnections.delete(connectionId);
         }
@@ -1046,7 +1046,7 @@ export class WorkflowOrchestrator implements DurableObject {
       const allVariables = { ...condition.variables, ...workflowVariables };
       const func = new Function(...Object.keys(allVariables), `return ${condition.expression}`);
       return Boolean(func(...Object.values(allVariables)));
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn('Failed to evaluate condition', error, { expression: condition.expression });
       return false;
     }
@@ -1121,7 +1121,7 @@ export class WorkflowOrchestrator implements DurableObject {
       };
 
       await this.storage.put('orchestrator_state', stateToStore);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to persist orchestrator state', error);
     }
   }
@@ -1129,7 +1129,7 @@ export class WorkflowOrchestrator implements DurableObject {
   private startPeriodicTasks(): void {
     // Start alarm checker
     this.alarmTimer = setInterval(() => {
-      this.checkAlarms().catch(error => {
+      this.checkAlarms().catch((error: any) => {
         this.logger.error('Alarm check failed', error);
       });
     }, this.orchestratorState.config.alarmCheckIntervalMs) as any;
@@ -1137,7 +1137,7 @@ export class WorkflowOrchestrator implements DurableObject {
     // Start progress updater
     if (this.orchestratorState.config.enableSSEUpdates) {
       this.progressTimer = setInterval(() => {
-        this.sendPeriodicProgressUpdates().catch(error => {
+        this.sendPeriodicProgressUpdates().catch((error: any) => {
           this.logger.error('Progress update failed', error);
         });
       }, this.orchestratorState.config.progressUpdateIntervalMs) as any;
@@ -1147,7 +1147,7 @@ export class WorkflowOrchestrator implements DurableObject {
   private async checkAlarms(): Promise<void> {
     const now = Date.now();
     const dueAlarms = Array.from(this.orchestratorState.alarms.values())
-      .filter(alarm => alarm.active && alarm.scheduledTime <= now);
+      .filter((alarm: any) => alarm.active && alarm.scheduledTime <= now);
 
     if (dueAlarms.length > 0) {
       // Trigger alarm handler

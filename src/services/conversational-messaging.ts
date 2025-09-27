@@ -150,7 +150,7 @@ export class ConversationalMessagingService {
       }
 
       fullMessage.status = 'delivered';
-    } catch (error) {
+    } catch (error: any) {
       fullMessage.status = 'failed';
       console.error('Failed to send message:', error);
     }

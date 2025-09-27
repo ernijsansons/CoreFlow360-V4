@@ -70,7 +70,7 @@ const getServices = (env: Env) => {
 chat.post('/message',
   requireAuth,
   validateRequest(SendMessageSchema),
-  async (c) => {
+  async (c: any) => {
     try {
       const { conversationId, message, attachments, context } = c.get('validatedData')
       const user = c.get('user')
@@ -119,7 +119,7 @@ chat.post('/message',
         fullContext
       )
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         return c.json({ error: error.message }, error.statusCode)
       }
@@ -138,7 +138,7 @@ chat.post('/message',
  */
 chat.get('/conversations',
   requireAuth,
-  async (c) => {
+  async (c: any) => {
     try {
       const user = c.get('user')
       const services = getServices(c.env)
@@ -156,7 +156,7 @@ chat.get('/conversations',
 
       return c.json(result)
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         return c.json({ error: error.message }, error.statusCode)
       }
@@ -176,7 +176,7 @@ chat.get('/conversations',
 chat.post('/conversations',
   requireAuth,
   validateRequest(CreateConversationSchema),
-  async (c) => {
+  async (c: any) => {
     try {
       const { title } = c.get('validatedData')
       const user = c.get('user')
@@ -190,7 +190,7 @@ chat.post('/conversations',
 
       return c.json(conversation)
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         return c.json({ error: error.message }, error.statusCode)
       }
@@ -209,7 +209,7 @@ chat.post('/conversations',
  */
 chat.get('/conversations/:id/messages',
   requireAuth,
-  async (c) => {
+  async (c: any) => {
     try {
       const conversationId = c.req.param('id')
       const user = c.get('user')
@@ -226,7 +226,7 @@ chat.get('/conversations/:id/messages',
 
       return c.json(result)
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         return c.json({ error: error.message }, error.statusCode)
       }
@@ -245,7 +245,7 @@ chat.get('/conversations/:id/messages',
  */
 chat.delete('/conversations/:id',
   requireAuth,
-  async (c) => {
+  async (c: any) => {
     try {
       const conversationId = c.req.param('id')
       const user = c.get('user')
@@ -255,7 +255,7 @@ chat.delete('/conversations/:id',
 
       return c.json({ success: true })
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         return c.json({ error: error.message }, error.statusCode)
       }
@@ -275,7 +275,7 @@ chat.delete('/conversations/:id',
 chat.post('/upload-file',
   requireAuth,
   validateRequest(FileUploadSchema),
-  async (c) => {
+  async (c: any) => {
     try {
       const fileData = c.get('validatedData')
       const user = c.get('user')
@@ -293,7 +293,7 @@ chat.post('/upload-file',
 
       return c.json(result)
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         return c.json({ error: error.message }, error.statusCode)
       }
@@ -313,7 +313,7 @@ chat.post('/upload-file',
 chat.post('/transcribe',
   requireAuth,
   validateRequest(TranscriptionSchema),
-  async (c) => {
+  async (c: any) => {
     try {
       const transcriptionData = c.get('validatedData')
       const user = c.get('user')
@@ -326,7 +326,7 @@ chat.post('/transcribe',
 
       return c.json(result)
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         return c.json({ error: error.message }, error.statusCode)
       }
@@ -346,7 +346,7 @@ chat.post('/transcribe',
 chat.post('/suggestions',
   requireAuth,
   validateRequest(SuggestionsRequestSchema),
-  async (c) => {
+  async (c: any) => {
     try {
       const { userId, businessId, context } = c.get('validatedData')
       const user = c.get('user')
@@ -365,7 +365,7 @@ chat.post('/suggestions',
 
       return c.json({ suggestions })
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         return c.json({ error: error.message }, error.statusCode)
       }
@@ -384,7 +384,7 @@ chat.post('/suggestions',
  */
 chat.post('/suggestions/dismiss',
   requireAuth,
-  async (c) => {
+  async (c: any) => {
     try {
       const { suggestionId, reason } = await c.req.json()
       const user = c.get('user')
@@ -398,7 +398,7 @@ chat.post('/suggestions/dismiss',
 
       return c.json({ success: true })
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json(
         { error: 'Internal server error' },
         500
@@ -413,7 +413,7 @@ chat.post('/suggestions/dismiss',
  */
 chat.get('/search',
   requireAuth,
-  async (c) => {
+  async (c: any) => {
     try {
       const user = c.get('user')
       const services = getServices(c.env)
@@ -436,7 +436,7 @@ chat.get('/search',
 
       return c.json(result)
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         return c.json({ error: error.message }, error.statusCode)
       }
@@ -455,12 +455,12 @@ chat.get('/search',
  */
 chat.get('/stream',
   requireAuth,
-  async (c) => {
+  async (c: any) => {
     try {
       const services = getServices(c.env)
       return services.streaming.handleStreamConnection(c.req.raw)
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json(
         { error: 'Internal server error' },
         500

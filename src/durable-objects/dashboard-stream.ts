@@ -23,7 +23,7 @@ export class DashboardStream {
       this.logger.warn('WebSocket connection evicted due to capacity limit', { connectionId });
       try {
         webSocket.close(1008, 'Connection limit reached');
-      } catch (error) {
+      } catch (error: any) {
         this.logger.debug('Failed to close evicted WebSocket', { connectionId, error });
       }
     });
@@ -109,7 +109,7 @@ export class DashboardStream {
     // Start streaming
     await this.startStreaming(connectionId);
 
-    webSocket.addEventListener('message', async (event) => {
+    webSocket.addEventListener('message', async (event: any) => {
       await this.handleWebSocketMessage(connectionId, event.data);
     });
 
@@ -145,7 +145,7 @@ export class DashboardStream {
 
       webSocket.send(JSON.stringify(message));
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to send initial data', error, { connectionId });
     }
   }
@@ -192,7 +192,7 @@ export class DashboardStream {
         storageUtilization: metrics.utilizationPercentage
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to start streaming', { connectionId, error });
       throw error;
     }
@@ -263,7 +263,7 @@ export class DashboardStream {
         subscription.lastUpdate = new Date();
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to send stream update', error, { connectionId });
     }
   }
@@ -298,7 +298,7 @@ export class DashboardStream {
           break;
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to handle WebSocket message', error, { connectionId });
     }
   }
@@ -319,7 +319,7 @@ export class DashboardStream {
 
       webSocket.send(JSON.stringify(response));
 
-    } catch (error) {
+    } catch (error: any) {
       const response = {
         type: 'query_error',
         queryId: query.id,
@@ -368,7 +368,7 @@ export class DashboardStream {
         headers: { 'Content-Type': 'application/json' }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       return new Response(JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -517,7 +517,7 @@ export class DashboardStream {
 
       return metrics;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to enrich metrics with ML', error);
       return metrics;
     }
@@ -617,7 +617,7 @@ export class DashboardStream {
 
       return result.results;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Query execution failed', {
         queryHash: queryHash.slice(0, 16),
         error: error instanceof Error ? error.message : String(error),
@@ -633,14 +633,14 @@ export class DashboardStream {
     const data = encoder.encode(queryString);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b: any) => b.toString(16).padStart(2, '0')).join('');
   }
 
   private broadcastToAll(message: string): void {
     for (const webSocket of this.subscribers.values()) {
       try {
         webSocket.send(message);
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to broadcast message', error);
       }
     }
@@ -684,7 +684,7 @@ export class DashboardStream {
       // Set up periodic storage monitoring (every 5 minutes)
       this.storageMonitor.setupAutomaticMonitoring(5 * 60 * 1000);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to setup storage monitoring', error);
     }
   }
@@ -720,7 +720,7 @@ export class DashboardStream {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Emergency cleanup failed', error);
     }
   }

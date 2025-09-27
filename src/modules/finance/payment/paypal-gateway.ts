@@ -209,7 +209,7 @@ export class PayPalPaymentGateway {
 
       return order
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'paypal_order_creation_failed',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -255,7 +255,7 @@ export class PayPalPaymentGateway {
 
       return capture
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'paypal_order_capture_failed',
         orderId,
@@ -324,7 +324,7 @@ export class PayPalPaymentGateway {
 
       return refund
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'paypal_refund_failed',
         captureId,
@@ -353,7 +353,7 @@ export class PayPalPaymentGateway {
 
       return await response.json()
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve PayPal order',
         'PAYPAL_ORDER_RETRIEVAL_ERROR',
@@ -412,7 +412,7 @@ export class PayPalPaymentGateway {
 
       return event
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'paypal_webhook_processing_failed',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -563,7 +563,7 @@ export class PayPalPaymentGateway {
         expiresIn: this.accessToken.expiresIn
       })
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'paypal_access_token_refresh_failed',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -683,7 +683,7 @@ export class PayPalPaymentGateway {
 
       return await response.json()
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve PayPal capture',
         'PAYPAL_CAPTURE_RETRIEVAL_ERROR',
@@ -706,7 +706,7 @@ export class PayPalPaymentGateway {
 
       return await response.json()
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve PayPal refund',
         'PAYPAL_REFUND_RETRIEVAL_ERROR',

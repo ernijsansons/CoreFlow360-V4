@@ -188,7 +188,7 @@ class ResourceCleanupManager {
 
       this.logger.debug('Resource cleaned up', { id, type: task.type });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Resource cleanup failed', error, { id });
     }
   }
@@ -249,7 +249,7 @@ class ResourceCleanupManager {
         memoryUsage
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Cleanup failed', error);
     }
   }
@@ -418,7 +418,7 @@ class ResourceCleanupManager {
         } else if (stream.close) {
           await stream.close();
         }
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Stream cleanup failed', error);
       }
     }
@@ -431,7 +431,7 @@ class ResourceCleanupManager {
    */
   private startAutoCleanup(): void {
     this.cleanupInterval = setInterval(() => {
-      this.performCleanup().catch(error => {
+      this.performCleanup().catch((error: any) => {
         this.logger.error('Auto cleanup failed', error);
       });
     }, this.config.cleanupInterval) as any;

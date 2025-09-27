@@ -72,7 +72,7 @@ class CurrencyManager {
       }
       await this.db.batch(batch);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to initialize standard currencies', error);
     }
   }
@@ -178,7 +178,7 @@ class CurrencyManager {
       ORDER BY code ASC
     `).all();
 
-    return (result.results || []).map(row => ({
+    return (result.results || []).map((row: any) => ({
       code: row.code as string,
       name: row.name as string,
       symbol: row.symbol as string,
@@ -315,7 +315,7 @@ class CurrencyManager {
           );
           return fetchedRate;
         }
-      } catch (error) {
+      } catch (error: any) {
         this.logger.warn('Failed to fetch exchange rate from external API', error);
       }
     }
@@ -442,7 +442,7 @@ class CurrencyManager {
 
     const result = await this.db.prepare(query).bind(...params).all();
 
-    return (result.results || []).map(row => ({
+    return (result.results || []).map((row: any) => ({
       id: row.id as string,
       fromCurrency: row.from_currency as string,
       toCurrency: row.to_currency as string,
@@ -533,7 +533,7 @@ class CurrencyManager {
           );
           updated++;
         }
-      } catch (error) {
+      } catch (error: any) {
         errors.push(`Failed to update ${currency.code}: ${error}`);
       }
     }
@@ -588,7 +588,7 @@ class CurrencyManager {
 
       return rate;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to fetch exchange rate from external API', error, {
         fromCurrency,
         toCurrency

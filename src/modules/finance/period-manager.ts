@@ -147,7 +147,7 @@ class PeriodManager {
 
       return periods;
 
-    } catch (error) {
+    } catch (error: any) {
       await this.transactionManager.rollbackTransaction(transactionId, 'Period creation failed');
       this.logger.error('Failed to create fiscal year periods', error, {
         fiscalYear,
@@ -211,7 +211,7 @@ class PeriodManager {
       ORDER BY fiscal_period ASC
     `).bind(fiscalYear, validBusinessId).all();
 
-    return (result.results || []).map(row => this.mapToPeriod(row));
+    return (result.results || []).map((row: any) => this.mapToPeriod(row));
   }
 
   /**
@@ -255,7 +255,7 @@ class PeriodManager {
 
     const result = await this.db.prepare(query).bind(...params).all();
 
-    return (result.results || []).map(row => this.mapToPeriod(row));
+    return (result.results || []).map((row: any) => this.mapToPeriod(row));
   }
 
   /**
@@ -362,7 +362,7 @@ class PeriodManager {
 
       return { period, closingEntries };
 
-    } catch (error) {
+    } catch (error: any) {
       await this.transactionManager.rollbackTransaction(transactionId, 'Period closing failed');
       this.logger.error('Failed to close accounting period', error, {
         periodId: request.periodId
@@ -503,7 +503,7 @@ class PeriodManager {
     // 1. Close revenue accounts to Income Summary
     if (closingAccounts.revenueAccounts.length > 0) {
       const revenueBalances = await this.getAccountBalancesForPeriod(
-        closingAccounts.revenueAccounts.map(a => a.id),
+        closingAccounts.revenueAccounts.map((a: any) => a.id),
         period,
         businessId
       );
@@ -512,8 +512,8 @@ class PeriodManager {
 
       if (totalRevenue !== 0) {
         const revenueClosingLines = revenueBalances
-          .filter(balance => (balance.credit - balance.debit) !== 0)
-          .map(balance => ({
+          .filter((balance: any) => (balance.credit - balance.debit) !== 0)
+          .map((balance: any) => ({
             accountId: balance.accountId,
             debit: balance.credit - balance.debit, // Close credit balances with debits
             credit: 0
@@ -549,7 +549,7 @@ class PeriodManager {
     // 2. Close expense accounts to Income Summary
     if (closingAccounts.expenseAccounts.length > 0) {
       const expenseBalances = await this.getAccountBalancesForPeriod(
-        closingAccounts.expenseAccounts.map(a => a.id),
+        closingAccounts.expenseAccounts.map((a: any) => a.id),
         period,
         businessId
       );
@@ -558,8 +558,8 @@ class PeriodManager {
 
       if (totalExpenses !== 0) {
         const expenseClosingLines = expenseBalances
-          .filter(balance => (balance.debit - balance.credit) !== 0)
-          .map(balance => ({
+          .filter((balance: any) => (balance.debit - balance.credit) !== 0)
+          .map((balance: any) => ({
             accountId: balance.accountId,
             debit: 0,
             credit: balance.debit - balance.credit // Close debit balances with credits
@@ -668,7 +668,7 @@ class PeriodManager {
       GROUP BY jl.account_id
     `).bind(...accountIds, businessId, period.startDate, period.endDate).all();
 
-    return (result.results || []).map(row => ({
+    return (result.results || []).map((row: any) => ({
       accountId: row.account_id as string,
       debit: (row.total_debit as number) || 0,
       credit: (row.total_credit as number) || 0

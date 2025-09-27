@@ -114,7 +114,7 @@ export class QuantumDataAuditor {
 
       // Check for inconsistent data formats
       const dateFormats = content.match(/\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}|\d{2}-\d{2}-\d{4}/g);
-      if (dateFormats && new Set(dateFormats.map(d => d.replace(/\d/g, 'X'))).size > 1) {
+      if (dateFormats && new Set(dateFormats.map((d: any) => d.replace(/\d/g, 'X'))).size > 1) {
         issues.push({
           id: `consistency-${Date.now()}-date-formats`,
           category: 'data-integrity',
@@ -235,7 +235,7 @@ export class QuantumDataAuditor {
           recommendation: 'Implement automated backup testing'
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       issues.push({
         id: `backup-${Date.now()}-audit-failed`,
         category: 'data-integrity',
@@ -361,7 +361,7 @@ export class QuantumDataAuditor {
             files.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Skip directories we can't read
       }
     }
@@ -393,7 +393,7 @@ export class QuantumDataAuditor {
             }
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Skip directories we can't read
       }
     }
@@ -419,7 +419,7 @@ export class QuantumDataAuditor {
             files.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Skip directories we can't read
       }
     }

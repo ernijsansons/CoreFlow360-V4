@@ -329,7 +329,7 @@ export class CachePredictor {
   }
 
   async warmCriticalPaths(region: string, predictions: CachePrediction[]): Promise<void> {
-    const criticalPredictions = predictions.filter(p => p.probability > 0.8 && p.confidence > 0.7);
+    const criticalPredictions = predictions.filter((p: any) => p.probability > 0.8 && p.confidence > 0.7);
 
     for (const prediction of criticalPredictions) {
       await this.scheduleWarming({

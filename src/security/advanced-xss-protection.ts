@@ -151,7 +151,7 @@ export class AdvancedXSSProtection {
 
       return finalResult;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('XSS protection error', error, {
         correlationId: requestId,
         context: context.context
@@ -214,7 +214,7 @@ export class AdvancedXSSProtection {
       isXSS: detectedPatterns.length > 0,
       confidence: highestConfidence,
       patterns: detectedPatterns,
-      attackTypes: [...new Set(detectedPatterns.map(p => p.attackType))]
+      attackTypes: [...new Set(detectedPatterns.map((p: any) => p.attackType))]
     };
   }
 
@@ -460,7 +460,7 @@ export class AdvancedXSSProtection {
     // HTML entity evasion
     if (/&#x?[0-9a-f]+;/i.test(content)) {
       const entityMatches = content.match(/&#x?[0-9a-f]+;/gi) || [];
-      const decodedEntities = entityMatches.map(entity => {
+      const decodedEntities = entityMatches.map((entity: any) => {
         const isHex = entity.startsWith('&#x');
         const numStr = entity.slice(isHex ? 3 : 2, -1);
         const num = parseInt(numStr, isHex ? 16 : 10);
@@ -605,7 +605,7 @@ export class AdvancedXSSProtection {
       isXSS,
       confidence,
       attackType: [...new Set(attackTypes)],
-      maliciousPayloads: patternResult.patterns.map(p => p.matches[0]),
+      maliciousPayloads: patternResult.patterns.map((p: any) => p.matches[0]),
       sanitizedContent: shouldBlock ? '' : sanitizedContent,
       blocked: shouldBlock,
       reason: shouldBlock ? `XSS detected with ${Math.round(confidence * 100)}% confidence` : undefined,
@@ -654,7 +654,7 @@ export class AdvancedXSSProtection {
     if (typeof value === 'string') {
       return this.sanitizePlainText(value, context);
     } else if (Array.isArray(value)) {
-      return value.map(item => this.sanitizeJSONValue(item, context));
+      return value.map((item: any) => this.sanitizeJSONValue(item, context));
     } else if (typeof value === 'object' && value !== null) {
       const sanitized: any = {};
       for (const [key, val] of Object.entries(value)) {
@@ -819,7 +819,7 @@ class XSSDetectionModel {
 
   private countSuspiciousKeywords(content: string): number {
     const keywords = ['alert', 'prompt', 'confirm', 'eval', 'document', 'window', 'location'];
-    return keywords.filter(keyword => content.toLowerCase().includes(keyword)).length;
+    return keywords.filter((keyword: any) => content.toLowerCase().includes(keyword)).length;
   }
 }
 

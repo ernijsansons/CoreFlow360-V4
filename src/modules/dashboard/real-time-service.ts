@@ -147,7 +147,7 @@ class RealTimeService {
         default:
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.sendToConnection(connectionId, {
         type: 'error',
         data: { error: 'Invalid message format' },
@@ -203,7 +203,7 @@ class RealTimeService {
         }
       })
 
-    } catch (error) {
+    } catch (error: any) {
       this.sendToConnection(connectionId, {
         type: 'error',
         data: { error: 'Invalid subscription format' },
@@ -284,7 +284,7 @@ class RealTimeService {
       if (connection.websocket.readyState === WebSocket.OPEN) {
         connection.websocket.send(JSON.stringify(update))
       }
-    } catch (error) {
+    } catch (error: any) {
       this.handleDisconnection(connectionId)
     }
   }
@@ -341,7 +341,7 @@ class RealTimeService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subscription)
       })
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -356,7 +356,7 @@ class RealTimeService {
       await durableObject.fetch('/stop-collection', {
         method: 'POST'
       })
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -378,7 +378,7 @@ class RealTimeService {
       if (response.ok) {
         return await response.json()
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return null
@@ -410,7 +410,7 @@ class RealTimeService {
         timestamp: new Date().toISOString()
       })
 
-    } catch (error) {
+    } catch (error: any) {
       this.sendToConnection(connectionId, {
         type: 'error',
         data: { error: 'Failed to get snapshot data' },
@@ -440,7 +440,7 @@ class RealTimeService {
           const metricData = await this.getWidgetMetricData(widget)
           data[widgetId] = metricData
         }
-      } catch (error) {
+      } catch (error: any) {
         data[widgetId] = { error: 'Failed to load data' }
       }
     }

@@ -252,7 +252,7 @@ class ClearbitService {
         company: this.transformCompanyData(data.company),
         rateLimit
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         contact: null,
         company: null,
@@ -299,7 +299,7 @@ class ClearbitService {
         company: this.transformCompanyData(data),
         rateLimit
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         company: null,
         rateLimit: { requests_remaining: 0, reset_time: '', cost_per_request: 0 },
@@ -344,7 +344,7 @@ class ClearbitService {
         contacts: data.map((person: ClearbitPersonResponse) => this.transformPersonData(person)),
         rateLimit
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         contacts: [],
         rateLimit: { requests_remaining: 0, reset_time: '', cost_per_request: 0 },

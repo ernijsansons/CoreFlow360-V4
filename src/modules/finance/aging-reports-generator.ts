@@ -84,7 +84,7 @@ export class AgingReportsGenerator {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate AR Aging Report', error, {
         businessId: validBusinessId
       });
@@ -135,7 +135,7 @@ export class AgingReportsGenerator {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate AP Aging Report', error, {
         businessId: validBusinessId
       });
@@ -200,7 +200,7 @@ export class AgingReportsGenerator {
       ...(parameters.customerIds || [])
     ).all();
 
-    return (result.results || []).map(row => this.mapToInvoice(row));
+    return (result.results || []).map((row: any) => this.mapToInvoice(row));
   }
 
   /**

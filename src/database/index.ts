@@ -240,7 +240,7 @@ class DatabaseService {
   // Batch ledger operations for performance
   async createLedgerEntries(entries: Omit<LedgerEntry, 'created_at'>[]): Promise<void> {
     const now = new Date().toISOString();
-    const statements = entries.map(entry =>
+    const statements = entries.map((entry: any) =>
       this.db.prepare(`
         INSERT INTO ledger_entries (id, business_id, account_id, amount, type, description, metadata, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -407,7 +407,7 @@ export async function runMigrations(db: D1Database): Promise<void> {
       const schema = fs.readFileSync(schemaPath, 'utf8');
 
       // Split by semicolon and execute each statement
-      const statements = schema.split(';').filter(stmt => stmt.trim());
+      const statements = schema.split(';').filter((stmt: any) => stmt.trim());
 
       for (const statement of statements) {
         if (statement.trim()) {
@@ -415,7 +415,7 @@ export async function runMigrations(db: D1Database): Promise<void> {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }

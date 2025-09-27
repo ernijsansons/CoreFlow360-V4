@@ -205,7 +205,7 @@ export class ComplexityAnalyzer {
       // For now, simulate complexity data
       const functions = this.simulateFunctionComplexity(filePath);
       this.complexityData.set(filePath, functions);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error analyzing file', { filePath, error });
     }
   }
@@ -440,13 +440,13 @@ export class ComplexityAnalyzer {
 
     // Check for specific high-complexity patterns
     for (const [file, functions] of this.complexityData) {
-      const highComplexityFuncs = functions.filter(f => f.cyclomatic > 15);
+      const highComplexityFuncs = functions.filter((f: any) => f.cyclomatic > 15);
       if (highComplexityFuncs.length > 0) {
         recommendations.push({
           target: file,
           issue: `${highComplexityFuncs.length} functions with excessive complexity`,
           recommendation: 'Refactor using Strategy or Command patterns',
-          complexity: Math.max(...highComplexityFuncs.map(f => f.cyclomatic)),
+          complexity: Math.max(...highComplexityFuncs.map((f: any) => f.cyclomatic)),
           improvement: 40
         });
       }
@@ -463,8 +463,8 @@ export class ComplexityAnalyzer {
       { min: 21, max: Infinity, label: '21+ (Very Complex)' }
     ];
 
-    return ranges.map(range => {
-      const count = values.filter(v => v >= range.min && v <= range.max).length;
+    return ranges.map((range: any) => {
+      const count = values.filter((v: any) => v >= range.min && v <= range.max).length;
       return {
         range: range.label,
         count,

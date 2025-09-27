@@ -238,7 +238,7 @@ export class TrialBalanceGenerator {
     }
 
     // Calculate variances
-    const variance = current.accounts.map(currentAccount => {
+    const variance = current.accounts.map((currentAccount: any) => {
       const priorAccount = priorAccountMap.get(currentAccount.accountId);
       const priorDebit = priorAccount?.closingDebit || 0;
       const priorCredit = priorAccount?.closingCredit || 0;
@@ -310,7 +310,7 @@ export class TrialBalanceGenerator {
     }
 
     // Check for missing standard accounts
-    const accountTypes = new Set(trialBalance.accounts.map(a => a.accountType));
+    const accountTypes = new Set(trialBalance.accounts.map((a: any) => a.accountType));
     const requiredTypes = [AccountType.ASSET, AccountType.LIABILITY, AccountType.EQUITY];
 
     for (const requiredType of requiredTypes) {

@@ -98,7 +98,7 @@ export class AIAlertEngine {
       );
 
       return alerts;
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -131,9 +131,9 @@ export class AIAlertEngine {
   ): Anomaly[] {
     const anomalies: Anomaly[] = [];
 
-    const latencies = metrics.map(m => m.metrics.golden.latency.p95);
-    const errors = metrics.map(m => m.metrics.golden.errors.errorRate);
-    const costs = metrics.map(m => m.metrics.ai.costCents);
+    const latencies = metrics.map((m: any) => m.metrics.golden.latency.p95);
+    const errors = metrics.map((m: any) => m.metrics.golden.errors.errorRate);
+    const costs = metrics.map((m: any) => m.metrics.ai.costCents);
 
     const latencyStats = this.calculateStats(latencies);
     const errorStats = this.calculateStats(errors);
@@ -242,7 +242,7 @@ export class AIAlertEngine {
           'Authorization': `Bearer ${this.env.AI_API_KEY}`
         },
         body: JSON.stringify({
-          metrics: metrics.map(m => ({
+          metrics: metrics.map((m: any) => ({
             timestamp: m.timestamp,
             latency: m.metrics.golden.latency.p95,
             errors: m.metrics.golden.errors.errorRate,
@@ -255,7 +255,7 @@ export class AIAlertEngine {
 
       const result = await response.json();
       return result.anomalies || [];
-    } catch (error) {
+    } catch (error: any) {
       return this.detectStatisticalAnomalies(metrics, config);
     }
   }
@@ -268,15 +268,15 @@ export class AIAlertEngine {
 
     if (metrics.length < 20) return predictions;
 
-    const latencies = metrics.map(m => ({
+    const latencies = metrics.map((m: any) => ({
       timestamp: m.timestamp,
       value: m.metrics.golden.latency.p95
     }));
-    const errors = metrics.map(m => ({
+    const errors = metrics.map((m: any) => ({
       timestamp: m.timestamp,
       value: m.metrics.golden.errors.errorRate
     }));
-    const costs = metrics.map(m => ({
+    const costs = metrics.map((m: any) => ({
       timestamp: m.timestamp,
       value: m.metrics.ai.costCents
     }));
@@ -340,7 +340,7 @@ export class AIAlertEngine {
     if (metrics.length < 10) return rootCauses;
 
     // Identify issues with high error rates
-    const highErrorMetrics = metrics.filter(m => m.metrics.golden.errors.errorRate > 0.05);
+    const highErrorMetrics = metrics.filter((m: any) => m.metrics.golden.errors.errorRate > 0.05);
 
     if (highErrorMetrics.length > 0) {
       rootCauses.push({
@@ -349,8 +349,8 @@ export class AIAlertEngine {
           {
             factor: 'Increased latency',
             correlation: this.calculateCorrelation(
-              metrics.map(m => m.metrics.golden.errors.errorRate),
-              metrics.map(m => m.metrics.golden.latency.p95)
+              metrics.map((m: any) => m.metrics.golden.errors.errorRate),
+              metrics.map((m: any) => m.metrics.golden.latency.p95)
             ),
             impact: 0.8,
             evidence: ['Error rate correlation with latency spikes']
@@ -358,8 +358,8 @@ export class AIAlertEngine {
           {
             factor: 'AI service degradation',
             correlation: this.calculateCorrelation(
-              metrics.map(m => m.metrics.golden.errors.errorRate),
-              metrics.map(m => m.metrics.ai.errorRate)
+              metrics.map((m: any) => m.metrics.golden.errors.errorRate),
+              metrics.map((m: any) => m.metrics.ai.errorRate)
             ),
             impact: 0.7,
             evidence: ['AI service error rate correlation']
@@ -376,7 +376,7 @@ export class AIAlertEngine {
 
     // Identify cost anomalies
     const avgCost = metrics.reduce((sum, m) => sum + m.metrics.ai.costCents, 0) / metrics.length;
-    const highCostMetrics = metrics.filter(m => m.metrics.ai.costCents > avgCost * 2);
+    const highCostMetrics = metrics.filter((m: any) => m.metrics.ai.costCents > avgCost * 2);
 
     if (highCostMetrics.length > 0) {
       rootCauses.push({
@@ -385,8 +385,8 @@ export class AIAlertEngine {
           {
             factor: 'Increased token usage',
             correlation: this.calculateCorrelation(
-              metrics.map(m => m.metrics.ai.costCents),
-              metrics.map(m => m.metrics.ai.totalTokens)
+              metrics.map((m: any) => m.metrics.ai.costCents),
+              metrics.map((m: any) => m.metrics.ai.totalTokens)
             ),
             impact: 0.9,
             evidence: ['Direct correlation between tokens and cost']
@@ -427,7 +427,7 @@ export class AIAlertEngine {
   }
 
   private generateAnomalyAlerts(anomalies: Anomaly[]): Alert[] {
-    return anomalies.map(anomaly => ({
+    return anomalies.map((anomaly: any) => ({
       id: crypto.randomUUID(),
       name: `Anomaly Detected: ${anomaly.metric}`,
       severity: anomaly.severity === 'high' ? 'critical' :
@@ -451,7 +451,7 @@ export class AIAlertEngine {
   private generatePredictionAlerts(predictions: Prediction[]): Alert[] {
     const alerts: Alert[] = [];
 
-    predictions.forEach(prediction => {
+    predictions.forEach((prediction: any) => {
       if (prediction.trend === 'increasing' && prediction.metric === 'error_rate') {
         alerts.push({
           id: crypto.randomUUID(),
@@ -478,7 +478,7 @@ export class AIAlertEngine {
   }
 
   private generateRCAAlerts(rootCauses: RootCause[]): Alert[] {
-    return rootCauses.map(rca => ({
+    return rootCauses.map((rca: any) => ({
       id: crypto.randomUUID(),
       name: `Root Cause Analysis: ${rca.issue}`,
       severity: 'high' as const,
@@ -530,12 +530,12 @@ export class AIAlertEngine {
   }
 
   private async detectCostAnomalies(metrics: AnalyticsData[]): Promise<Anomaly[]> {
-    const costs = metrics.map(m => m.metrics.ai.costCents);
+    const costs = metrics.map((m: any) => m.metrics.ai.costCents);
     const stats = this.calculateStats(costs);
 
     return metrics
-      .filter(m => this.isOutlier(m.metrics.ai.costCents, stats, 0.95))
-      .map(m => ({
+      .filter((m: any) => this.isOutlier(m.metrics.ai.costCents, stats, 0.95))
+      .map((m: any) => ({
         timestamp: m.timestamp,
         metric: 'cost',
         value: m.metrics.ai.costCents,

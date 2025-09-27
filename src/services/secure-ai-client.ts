@@ -48,7 +48,7 @@ export class SecureAIClient {
       await this.logUsage(request.prompt.length, response.length);
 
       return response;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('AI service temporarily unavailable');
     }
   }
@@ -199,7 +199,7 @@ export class SecureAIClient {
           usage.estimatedTokens
         ).run();
       }
-    } catch (error) {
+    } catch (error: any) {
       // Don't fail the request if logging fails
     }
   }
@@ -241,7 +241,7 @@ export class SecureAIClient {
 
       // If no JSON found, try to parse the entire response
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: any) {
       // Return structured error response
       return {
         error: 'Failed to parse response',

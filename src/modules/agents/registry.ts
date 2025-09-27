@@ -97,7 +97,7 @@ export class AgentRegistry {
         hasInstance: !!agentInstance,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to register agent', error, {
         agentId: config.id,
       });
@@ -133,7 +133,7 @@ export class AgentRegistry {
         name: entry.config.name,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to unregister agent', error, {
         agentId,
       });
@@ -177,7 +177,7 @@ export class AgentRegistry {
     let agents = Array.from(this.agents.values());
 
     if (filters) {
-      agents = agents.filter(entry => {
+      agents = agents.filter((entry: any) => {
         if (filters.type && entry.config.type !== filters.type) return false;
         if (filters.capability && !entry.config.capabilities.includes(filters.capability)) return false;
         if (filters.department && !entry.config.departments?.includes(filters.department)) return false;
@@ -194,7 +194,7 @@ export class AgentRegistry {
    * Find agents by capability
    */
   findAgentsByCapability(capability: string, requireOnline = true): AgentRegistryEntry[] {
-    return Array.from(this.agents.values()).filter(entry => {
+    return Array.from(this.agents.values()).filter((entry: any) => {
       if (!entry.config.enabled) return false;
       if (!entry.config.capabilities.includes(capability)) return false;
       if (requireOnline && entry.health.status !== 'online') return false;
@@ -222,7 +222,7 @@ export class AgentRegistry {
     // Filter excluded agents
     let filtered = candidates;
     if (preferences?.excludeAgents) {
-      filtered = candidates.filter(entry =>
+      filtered = candidates.filter((entry: any) =>
         !preferences.excludeAgents!.includes(entry.config.id)
       );
     }
@@ -286,7 +286,7 @@ export class AgentRegistry {
         updates: Object.keys(updates),
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to update agent configuration', error, {
         agentId,
       });
@@ -328,7 +328,7 @@ export class AgentRegistry {
         agentName: instance.name,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to set agent instance', error, {
         agentId,
       });
@@ -398,7 +398,7 @@ export class AgentRegistry {
 
       return health;
 
-    } catch (error) {
+    } catch (error: any) {
       // Mark agent as error status
       entry.health = {
         status: 'error',
@@ -472,7 +472,7 @@ export class AgentRegistry {
             // Register agent without instance (will be set later)
             await this.registerAgent(config);
           }
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error('Failed to load agent config from storage', error, {
             key: key.name,
           });
@@ -483,7 +483,7 @@ export class AgentRegistry {
         count: keys.length,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to load agents from storage', error);
     }
   }
@@ -503,11 +503,11 @@ export class AgentRegistry {
 
       // Cleanup all agent instances
       const cleanupPromises = Array.from(this.agents.values())
-        .filter(entry => entry.instance?.cleanup)
+        .filter((entry: any) => entry.instance?.cleanup)
         .map(async entry => {
           try {
             await entry.instance!.cleanup!();
-          } catch (error) {
+          } catch (error: any) {
             this.logger.error('Failed to cleanup agent', error, {
               agentId: entry.config.id,
             });
@@ -518,7 +518,7 @@ export class AgentRegistry {
 
       this.logger.info('Agent registry shutdown completed');
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to shutdown agent registry', error);
       throw error;
     }
@@ -568,7 +568,7 @@ export class AgentRegistry {
           'validation'
         );
       }
-    } catch (error) {
+    } catch (error: any) {
       throw new AgentError(
         `Agent health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'HEALTH_CHECK_FAILED',
@@ -608,7 +608,7 @@ export class AgentRegistry {
           },
         }
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to persist agent config', error, {
         agentId: config.id,
       });
@@ -618,7 +618,7 @@ export class AgentRegistry {
   private startPeriodicTasks(): void {
     // Health checks every 30 seconds
     this.healthCheckInterval = setInterval(() => {
-      this.performHealthChecks().catch(error => {
+      this.performHealthChecks().catch((error: any) => {
         this.logger.error('Health check task failed', error);
       });
     }, 30000) as any;
@@ -631,12 +631,12 @@ export class AgentRegistry {
 
   private async performHealthChecks(): Promise<void> {
     const agents = Array.from(this.agents.values())
-      .filter(entry => entry.instance && entry.config.enabled);
+      .filter((entry: any) => entry.instance && entry.config.enabled);
 
     const healthCheckPromises = agents.map(async entry => {
       try {
         await this.updateAgentHealth(entry.config.id);
-      } catch (error) {
+      } catch (error: any) {
         // Health check failures are logged in updateAgentHealth
       }
     });

@@ -82,7 +82,7 @@ export class ABACCache<T = any> {
 
       this.logger.debug('Cache entry set', { key, ttl: ttl || this.config.defaultTTL });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error setting cache entry', { key, error: error instanceof Error ? error.message : String(error) });
     }
   }
@@ -118,7 +118,7 @@ export class ABACCache<T = any> {
       
       return entry.value;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error getting cache entry', { key, error: error instanceof Error ? error.message : String(error) });
       return null;
     }
@@ -165,7 +165,7 @@ export class ABACCache<T = any> {
   }
 
   values(): T[] {
-    return Array.from(this.cache.values()).map(entry => entry.value);
+    return Array.from(this.cache.values()).map((entry: any) => entry.value);
   }
 
   entries(): Array<[string, T]> {

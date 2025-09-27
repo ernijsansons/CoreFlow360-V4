@@ -160,7 +160,7 @@ export class BusinessContextManager {
 
       return response;
 
-    } catch (error) {
+    } catch (error: any) {
       const errorTime = Date.now() - startTime;
 
       // Log error
@@ -219,7 +219,7 @@ export class BusinessContextManager {
   ): Promise<DepartmentProfile | null> {
     try {
       return await this.provider.getDepartmentProfile(businessId, department);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get department profile', error, {
         businessId,
         department,
@@ -234,7 +234,7 @@ export class BusinessContextManager {
   async getCompanyProfile(businessId: string): Promise<CompanyProfile | null> {
     try {
       return await this.provider.getCompanyProfile(businessId);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get company profile', error, {
         businessId,
       });
@@ -278,7 +278,7 @@ export class BusinessContextManager {
         },
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to refresh business context', error, {
         businessId,
         userId,
@@ -298,7 +298,7 @@ export class BusinessContextManager {
   ): Promise<boolean> {
     try {
       return await this.provider.validateAccess(userId, businessId, requiredRole);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to validate context access', error, {
         userId,
         businessId,

@@ -83,7 +83,7 @@ export class LearningWorker {
         default:
       }
 
-    } catch (error) {
+    } catch (error: any) {
 
       // Re-queue with lower priority if critical
       if (task.priority === 'critical') {
@@ -221,7 +221,7 @@ export class LearningWorker {
         LIMIT 20
       `).bind(row.id, businessId).all();
 
-      const feedbackData = feedback.results.map(f => ({
+      const feedbackData = feedback.results.map((f: any) => ({
         id: f.id as string,
         type: f.type as any,
         rating: f.rating as number,
@@ -427,7 +427,7 @@ export default {
     // Start worker if not already running
     if (url.pathname === '/worker/start') {
       const worker = new LearningWorker(env);
-      worker.start().catch(error => {
+      worker.start().catch((error: any) => {
       });
 
       return new Response(JSON.stringify({ success: true, message: 'Worker started' }), {
@@ -453,7 +453,7 @@ export default {
     // Process queued tasks
     const status = await worker.getStatus();
     if (!status.isProcessing && status.queueLength > 0) {
-      worker.start().catch(error => {
+      worker.start().catch((error: any) => {
       });
     }
   }

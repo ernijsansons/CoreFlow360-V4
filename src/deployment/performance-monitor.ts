@@ -672,7 +672,7 @@ export class PerformanceMonitor {
 
       return enrichedMetrics;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to collect performance metrics', error, { correlationId });
       throw error;
     }
@@ -720,7 +720,7 @@ export class PerformanceMonitor {
 
       return analysis;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Performance analysis failed', error, { correlationId });
       throw error;
     }
@@ -776,7 +776,7 @@ export class PerformanceMonitor {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Report generation failed', error, { correlationId });
       throw error;
     }
@@ -836,7 +836,7 @@ export class PerformanceMonitor {
         // Check for immediate alerts
         await this.checkAlerts(analysis);
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Monitoring loop error', error, { correlationId });
       }
     }, interval);
@@ -1015,7 +1015,7 @@ export class PerformanceMonitor {
     return {
       overallScore: analysis.overall.score,
       trend: analysis.overall.trend,
-      keyFindings: analysis.insights.slice(0, 5).map(i => i.title),
+      keyFindings: analysis.insights.slice(0, 5).map((i: any) => i.title),
       criticalIssues: analysis.vitals.critical.length,
       opportunitiesCount: analysis.recommendations.length
     };

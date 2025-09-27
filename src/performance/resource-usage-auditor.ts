@@ -820,7 +820,7 @@ export class ResourceUsageAuditor {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Resource usage analysis failed', error);
       throw new ValidationError('Failed to analyze resource usage', {
         code: 'RESOURCE_ANALYSIS_FAILED',
@@ -1008,7 +1008,7 @@ export class ResourceUsageAuditor {
     const recommendations: MemoryRecommendation[] = [];
 
     // Memory leak recommendations
-    leaks.forEach(leak => {
+    leaks.forEach((leak: any) => {
       recommendations.push({
         category: 'deallocation',
         priority: leak.severity as any,
@@ -1237,7 +1237,7 @@ export class ResourceUsageAuditor {
     const recommendations: CPURecommendation[] = [];
 
     // Hot spot optimizations
-    hotSpots.forEach(hotSpot => {
+    hotSpots.forEach((hotSpot: any) => {
       recommendations.push({
         category: 'optimization',
         priority: hotSpot.priority as any,
@@ -1249,7 +1249,7 @@ export class ResourceUsageAuditor {
     });
 
     // Parallelization opportunities
-    computationEfficiency.parallelizationOpportunities.forEach(opportunity => {
+    computationEfficiency.parallelizationOpportunities.forEach((opportunity: any) => {
       recommendations.push({
         category: 'parallelization',
         priority: opportunity.estimatedSpeedup > 3 ? 'high' : 'medium',
@@ -1261,7 +1261,7 @@ export class ResourceUsageAuditor {
     });
 
     // Blocking operation fixes
-    blockingOperations.forEach(blocking => {
+    blockingOperations.forEach((blocking: any) => {
       recommendations.push({
         category: 'async',
         priority: blocking.impact as any,
@@ -1842,7 +1842,7 @@ export class ResourceUsageAuditor {
     const issues: CriticalResourceIssue[] = [];
 
     // Critical memory leaks
-    const criticalLeaks = memory.memoryLeaks.filter(leak =>
+    const criticalLeaks = memory.memoryLeaks.filter((leak: any) =>
       leak.severity === 'critical' || leak.estimatedTimeToFailure < 360 // 6 hours
     );
 
@@ -1851,7 +1851,7 @@ export class ResourceUsageAuditor {
         type: 'memory-leak',
         severity: 'critical',
         description: `Critical
-  memory leaks will cause system failure within ${Math.min(...criticalLeaks.map(l => l.estimatedTimeToFailure))} minutes`,
+  memory leaks will cause system failure within ${Math.min(...criticalLeaks.map((l: any) => l.estimatedTimeToFailure))} minutes`,
         currentImpact: 'Increasing memory usage and GC pressure',
         projectedImpact: 'Application crash due to memory exhaustion',
         immediateActions: [
@@ -1932,7 +1932,7 @@ export class ResourceUsageAuditor {
 
     // Memory optimizations
     if (memory.largeObjects.length > 0) {
-      memory.largeObjects.forEach(obj => {
+      memory.largeObjects.forEach((obj: any) => {
         optimizations.push({
           type: 'memory',
           description: `Optimize large object: ${obj.object}`,
@@ -1965,8 +1965,8 @@ class StreamingProcessor {
     }
 
     // CPU optimizations
-    const criticalHotSpots = cpu.hotSpots.filter(spot => spot.priority === 'critical');
-    criticalHotSpots.forEach(hotSpot => {
+    const criticalHotSpots = cpu.hotSpots.filter((spot: any) => spot.priority === 'critical');
+    criticalHotSpots.forEach((hotSpot: any) => {
       optimizations.push({
         type: 'cpu',
         description: `Optimize CPU hot spot in ${hotSpot.function}`,
@@ -2096,8 +2096,8 @@ setInterval(() => {
     }
 
     // Memory leaks penalty
-    score -= memory.memoryLeaks.filter(leak => leak.severity === 'critical').length * 15;
-    score -= memory.memoryLeaks.filter(leak => leak.severity === 'high').length * 10;
+    score -= memory.memoryLeaks.filter((leak: any) => leak.severity === 'critical').length * 15;
+    score -= memory.memoryLeaks.filter((leak: any) => leak.severity === 'high').length * 10;
 
     // CPU score impact
     if (cpu.averageCPUUsage > this.cpuThreshold * 100) {
@@ -2105,8 +2105,8 @@ setInterval(() => {
     }
 
     // CPU hot spots penalty
-    score -= cpu.hotSpots.filter(spot => spot.priority === 'critical').length * 8;
-    score -= cpu.hotSpots.filter(spot => spot.priority === 'high').length * 5;
+    score -= cpu.hotSpots.filter((spot: any) => spot.priority === 'critical').length * 8;
+    score -= cpu.hotSpots.filter((spot: any) => spot.priority === 'high').length * 5;
 
     // Network performance impact
     if (network.latencyAnalysis.p95Latency > 200) {

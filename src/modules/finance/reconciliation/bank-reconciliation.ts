@@ -271,7 +271,7 @@ class BankReconciliationService {
 
       return session
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'reconciliation_session_failed',
         accountId,
@@ -305,14 +305,14 @@ class BankReconciliationService {
 
       // Sort rules by priority
       const sortedRules = Array.from(this.matchingRules.values())
-        .filter(rule => rule.isActive)
+        .filter((rule: any) => rule.isActive)
         .sort((a, b) => b.priority - a.priority)
 
       // Match each bank transaction
       for (const bankTx of bankTransactions) {
         const bestMatch = await this.findBestMatch(
           bankTx,
-          bookTransactions.filter(bt => !usedBookTransactions.has(bt.id)),
+          bookTransactions.filter((bt: any) => !usedBookTransactions.has(bt.id)),
           sortedRules
         )
 
@@ -342,12 +342,12 @@ class BankReconciliationService {
         action: 'automated_matching_completed',
         sessionId,
         matchCount: matches.length,
-        autoApprovedCount: matches.filter(m => m.approvedAt).length
+        autoApprovedCount: matches.filter((m: any) => m.approvedAt).length
       })
 
       return matches
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'automated_matching_failed',
         sessionId,
@@ -595,7 +595,7 @@ class BankReconciliationService {
 
       return match
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'manual_match_creation_failed',
         sessionId,
@@ -668,9 +668,9 @@ class BankReconciliationService {
 
       // Validate all matches are reviewed
       const sessionMatches = Array.from(this.transactionMatches.values())
-        .filter(m => m.sessionId === sessionId)
+        .filter((m: any) => m.sessionId === sessionId)
 
-      const pendingReviews = sessionMatches.filter(m => m.reviewRequired && !m.reviewedAt)
+      const pendingReviews = sessionMatches.filter((m: any) => m.reviewRequired && !m.reviewedAt)
       if (pendingReviews.length > 0) {
         throw new AppError(
           `${pendingReviews.length} matches require review before completion`,
@@ -696,7 +696,7 @@ class BankReconciliationService {
 
       return session
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'reconciliation_completion_failed',
         sessionId,
@@ -915,16 +915,16 @@ class BankReconciliationService {
 
     if (filters) {
       if (filters.accountId) {
-        sessions = sessions.filter(s => s.accountId === filters.accountId)
+        sessions = sessions.filter((s: any) => s.accountId === filters.accountId)
       }
       if (filters.status) {
-        sessions = sessions.filter(s => s.status === filters.status)
+        sessions = sessions.filter((s: any) => s.status === filters.status)
       }
       if (filters.startDate) {
-        sessions = sessions.filter(s => s.createdAt >= filters.startDate!)
+        sessions = sessions.filter((s: any) => s.createdAt >= filters.startDate!)
       }
       if (filters.endDate) {
-        sessions = sessions.filter(s => s.createdAt <= filters.endDate!)
+        sessions = sessions.filter((s: any) => s.createdAt <= filters.endDate!)
       }
     }
 
@@ -933,7 +933,7 @@ class BankReconciliationService {
 
   async getSessionMatches(sessionId: string): Promise<TransactionMatch[]> {
     return Array.from(this.transactionMatches.values())
-      .filter(m => m.sessionId === sessionId)
+      .filter((m: any) => m.sessionId === sessionId)
       .sort((a, b) => b.score - a.score)
   }
 
@@ -947,8 +947,8 @@ class BankReconciliationService {
     }
 
     const sessionMatches = await this.getSessionMatches(sessionId)
-    const matchedBankIds = new Set(sessionMatches.map(m => m.bankTransactionId))
-    const matchedBookIds = new Set(sessionMatches.map(m => m.bookTransactionId))
+    const matchedBankIds = new Set(sessionMatches.map((m: any) => m.bankTransactionId))
+    const matchedBookIds = new Set(sessionMatches.map((m: any) => m.bookTransactionId))
 
     const [allBankTx, allBookTx] = await Promise.all([
       this.getBankTransactions(session.accountId, session.periodStart, session.periodEnd),
@@ -956,8 +956,8 @@ class BankReconciliationService {
     ])
 
     return {
-      bankTransactions: allBankTx.filter(tx => !matchedBankIds.has(tx.id)),
-      bookTransactions: allBookTx.filter(tx => !matchedBookIds.has(tx.id))
+      bankTransactions: allBankTx.filter((tx: any) => !matchedBankIds.has(tx.id)),
+      bookTransactions: allBookTx.filter((tx: any) => !matchedBookIds.has(tx.id))
     }
   }
 

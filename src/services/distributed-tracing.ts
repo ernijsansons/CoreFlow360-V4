@@ -225,7 +225,7 @@ export class DistributedTracing {
       SELECT * FROM spans WHERE trace_id = ? ORDER BY start_time
     `).bind(traceId).all();
 
-    const spans = spansResult.results.map(row => ({
+    const spans = spansResult.results.map((row: any) => ({
       spanId: row.id as string,
       traceId: row.trace_id as string,
       parentSpanId: row.parent_span_id as string,
@@ -292,7 +292,7 @@ export class DistributedTracing {
 
     const result = await this.db.prepare(query).bind(...params).all();
 
-    return result.results.map(row => ({
+    return result.results.map((row: any) => ({
       traceId: row.id as string,
       businessId: row.business_id as string,
       userId: undefined,
@@ -345,16 +345,16 @@ export class DistributedTracing {
     }
 
     const totalSpans = trace.spans.length;
-    const errorSpans = trace.spans.filter(s => s.status === 'error').length;
-    const slowSpans = trace.spans.filter(s => (s.durationMs || 0) > 1000).length; // > 1 second
+    const errorSpans = trace.spans.filter((s: any) => s.status === 'error').length;
+    const slowSpans = trace.spans.filter((s: any) => (s.durationMs || 0) > 1000).length; // > 1 second
 
     // Find critical path (longest path through the trace)
     const criticalPath = this.findCriticalPath(trace.spans);
     
     // Find bottlenecks (spans with high duration)
     const bottlenecks = trace.spans
-      .filter(s => (s.durationMs || 0) > 500) // > 500ms
-      .map(s => s.operationName)
+      .filter((s: any) => (s.durationMs || 0) > 500) // > 500ms
+      .map((s: any) => s.operationName)
       .sort((a, b) => {
         const spanA = trace.spans.find(s => s.operationName === a);
         const spanB = trace.spans.find(s => s.operationName === b);
@@ -374,7 +374,7 @@ export class DistributedTracing {
   private findCriticalPath(spans: Span[]): string[] {
     // Simple critical path algorithm
     // In a real implementation, this would be more sophisticated
-    const rootSpans = spans.filter(s => !s.parentSpanId);
+    const rootSpans = spans.filter((s: any) => !s.parentSpanId);
     if (rootSpans.length === 0) return [];
 
     const path: string[] = [];
@@ -384,7 +384,7 @@ export class DistributedTracing {
       path.push(currentSpan.operationName);
       
       // Find child span with longest duration
-      const childSpans = spans.filter(s => s.parentSpanId === currentSpan.spanId);
+      const childSpans = spans.filter((s: any) => s.parentSpanId === currentSpan.spanId);
       if (childSpans.length === 0) break;
 
       currentSpan = childSpans.reduce((longest, current) => 
@@ -418,7 +418,7 @@ export class DistributedTracing {
       ORDER BY duration
     `).bind(businessId, timeRange.start, timeRange.end).all();
 
-    const durationsArray = durations.results.map(row => row.duration);
+    const durationsArray = durations.results.map((row: any) => row.duration);
     const p95Index = Math.floor(durationsArray.length * 0.95);
     const p99Index = Math.floor(durationsArray.length * 0.99);
 
@@ -441,7 +441,7 @@ export class DistributedTracing {
         status: 'healthy',
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'unhealthy',
         timestamp: new Date().toISOString()

@@ -81,7 +81,7 @@ class NewsService {
       };
 
       return { news };
-    } catch (error) {
+    } catch (error: any) {
       return {
         news: null,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -102,7 +102,7 @@ class NewsService {
 
       const data: NewsAPIResponse = await response.json();
 
-      return data.articles.map(article => ({
+      return data.articles.map((article: any) => ({
         title: article.title,
         url: article.url,
         source: article.source.name,
@@ -112,7 +112,7 @@ class NewsService {
         relevance_score: this.calculateRelevance(article.title + ' ' + article.description, companyName),
         topics: this.extractTopics(article.title + ' ' + article.description)
       }));
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -132,7 +132,7 @@ class NewsService {
 
       const data: NewsAPIResponse = await response.json();
 
-      return data.articles.map(article => ({
+      return data.articles.map((article: any) => ({
         title: article.title,
         url: article.url,
         source: article.source.name,
@@ -142,7 +142,7 @@ class NewsService {
         relevance_score: this.calculateRelevance(article.title + ' ' + article.description, companyName),
         topics: ['funding', ...this.extractTopics(article.title + ' ' + article.description)]
       }));
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -162,7 +162,7 @@ class NewsService {
 
       const data: NewsAPIResponse = await response.json();
 
-      return data.articles.map(article => ({
+      return data.articles.map((article: any) => ({
         title: article.title,
         url: article.url,
         source: article.source.name,
@@ -172,7 +172,7 @@ class NewsService {
         relevance_score: this.calculateRelevance(article.title + ' ' + article.description, companyName),
         topics: ['product', ...this.extractTopics(article.title + ' ' + article.description)]
       }));
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -189,7 +189,7 @@ class NewsService {
 
       const data: GoogleNewsResponse = await response.json();
 
-      return data.items?.map(item => ({
+      return data.items?.map((item: any) => ({
         title: item.title,
         url: item.link,
         source: 'Google News',
@@ -199,7 +199,7 @@ class NewsService {
         relevance_score: this.calculateRelevance(item.title + ' ' + item.snippet, query),
         topics: this.extractTopics(item.title + ' ' + item.snippet)
       })) || [];
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -218,7 +218,7 @@ class NewsService {
     const sentimentCounts = { positive: 0, neutral: 0, negative: 0 };
     let totalScore = 0;
 
-    articles.forEach(article => {
+    articles.forEach((article: any) => {
       sentimentCounts[article.sentiment]++;
       totalScore += this.getSentimentScore(article.sentiment);
     });
@@ -239,10 +239,10 @@ class NewsService {
       .map(([topic]) => topic);
 
     // Determine trending direction based on recent vs older articles
-    const recentArticles = articles.filter(article =>
+    const recentArticles = articles.filter((article: any) =>
       new Date(article.published_date) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     );
-    const olderArticles = articles.filter(article =>
+    const olderArticles = articles.filter((article: any) =>
       new Date(article.published_date) <= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     );
 
@@ -269,8 +269,8 @@ class NewsService {
 
   private extractFundingNews(articles: NewsArticle[]): any[] {
     return articles
-      .filter(article => article.topics.includes('funding'))
-      .map(article => ({
+      .filter((article: any) => article.topics.includes('funding'))
+      .map((article: any) => ({
         amount: this.extractFundingAmount(article.title + ' ' + article.summary),
         round_type: this.extractRoundType(article.title + ' ' + article.summary),
         date: article.published_date,
@@ -282,8 +282,8 @@ class NewsService {
 
   private extractProductNews(articles: NewsArticle[]): any[] {
     return articles
-      .filter(article => article.topics.includes('product'))
-      .map(article => ({
+      .filter((article: any) => article.topics.includes('product'))
+      .map((article: any) => ({
         product_name: this.extractProductName(article.title),
         launch_date: article.published_date,
         description: article.summary,
@@ -342,8 +342,8 @@ class NewsService {
     const negativeWords = ['lawsuit', 'fine', 'decline', 'loss', 'problem', 'issue', 'controversy', 'scandal'];
 
     const lowerText = text.toLowerCase();
-    const positiveCount = positiveWords.filter(word => lowerText.includes(word)).length;
-    const negativeCount = negativeWords.filter(word => lowerText.includes(word)).length;
+    const positiveCount = positiveWords.filter((word: any) => lowerText.includes(word)).length;
+    const negativeCount = negativeWords.filter((word: any) => lowerText.includes(word)).length;
 
     if (positiveCount > negativeCount) return 'positive';
     if (negativeCount > positiveCount) return 'negative';

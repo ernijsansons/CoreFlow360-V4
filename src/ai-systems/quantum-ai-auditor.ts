@@ -963,7 +963,7 @@ export class QuantumAIAuditor {
     const recommendations = await this.generateAIRecommendations(issues, data);
 
     // Filter critical issues
-    const criticalIssues = issues.filter(i => i.severity === 'critical');
+    const criticalIssues = issues.filter((i: any) => i.severity === 'critical');
 
     return {
       overallScore,
@@ -1269,7 +1269,7 @@ export class QuantumAIAuditor {
       totalModels,
       activeWorkflows,
       issuesFound: issues.length,
-      criticalIssues: issues.filter(i => i.severity === 'critical').length,
+      criticalIssues: issues.filter((i: any) => i.severity === 'critical').length,
       performanceScore: data.modelAudit.score,
       safetyScore: data.safetyAudit.score,
       efficiencyScore: (data.modelAudit.efficiency.tokenAnalysis.tokenEfficiency * 100),
@@ -1300,7 +1300,7 @@ export class QuantumAIAuditor {
     const recommendations: AIRecommendation[] = [];
 
     // Critical safety issues
-    const safetyIssues = issues.filter(i => i.type === 'safety_violation' || i.type === 'hallucination_risk');
+    const safetyIssues = issues.filter((i: any) => i.type === 'safety_violation' || i.type === 'hallucination_risk');
     if (safetyIssues.length > 0) {
       recommendations.push({
         priority: 'critical',
@@ -1319,7 +1319,7 @@ export class QuantumAIAuditor {
     }
 
     // Bias mitigation
-    const biasIssues = issues.filter(i => i.type === 'bias_detected');
+    const biasIssues = issues.filter((i: any) => i.type === 'bias_detected');
     if (biasIssues.length > 0) {
       recommendations.push({
         priority: 'high',
@@ -1338,7 +1338,7 @@ export class QuantumAIAuditor {
     }
 
     // Performance optimization
-    const performanceIssues = issues.filter(i => i.type === 'latency_issue' || i.type === 'token_waste');
+    const performanceIssues = issues.filter((i: any) => i.type === 'latency_issue' || i.type === 'token_waste');
     if (performanceIssues.length > 0) {
       recommendations.push({
         priority: 'medium',
@@ -1357,7 +1357,7 @@ export class QuantumAIAuditor {
     }
 
     // Workflow optimization
-    const workflowIssues = issues.filter(i => i.type === 'inefficient_workflow');
+    const workflowIssues = issues.filter((i: any) => i.type === 'inefficient_workflow');
     if (workflowIssues.length > 0) {
       recommendations.push({
         priority: 'medium',
@@ -1430,23 +1430,23 @@ Overall Score: ${report.overallScore}/100
 `;
 
   const criticalActions = [
-    ...report.criticalIssues.slice(0, 5).map(issue =>
+    ...report.criticalIssues.slice(0, 5).map((issue: any) =>
       `🚨 ${issue.title}: ${issue.description} (${issue.affectedComponent})`
     ),
     ...report.recommendations
-      .filter(rec => rec.priority === 'critical')
+      .filter((rec: any) => rec.priority === 'critical')
       .slice(0, 3)
-      .map(rec => `⚠️ ${rec.title}: ${rec.description}`)
+      .map((rec: any) => `⚠️ ${rec.title}: ${rec.description}`)
   ];
 
   const optimizations = [
-    ...report.autoOptimizations.slice(0, 5).map(opt =>
+    ...report.autoOptimizations.slice(0, 5).map((opt: any) =>
       `⚡ ${opt.description} (${opt.improvement}% improvement, Risk: ${opt.risk})`
     ),
     ...report.recommendations
-      .filter(rec => rec.riskLevel === 'low' && rec.effort < 20)
+      .filter((rec: any) => rec.riskLevel === 'low' && rec.effort < 20)
       .slice(0, 3)
-      .map(rec => `💡 ${rec.title}: ${rec.impact}`)
+      .map((rec: any) => `💡 ${rec.title}: ${rec.impact}`)
   ];
 
   return { report, summary, criticalActions, optimizations };

@@ -401,7 +401,7 @@ export class QuantumAIAuditor {
             }
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Skip directories we can't read
       }
     }

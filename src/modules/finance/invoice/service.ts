@@ -149,7 +149,7 @@ class InvoiceService {
 
       return validatedInvoice
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         throw new AppError(400, 'Invalid invoice data', true, error.errors)
       }
@@ -253,7 +253,7 @@ class InvoiceService {
 
       return validatedInvoice
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         throw new AppError(400, 'Invalid update data', true, error.errors)
       }
@@ -284,7 +284,7 @@ class InvoiceService {
 
       return this.mapDatabaseRowToInvoice(result)
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(500, 'Failed to retrieve invoice', false, { originalError: error })
     }
   }
@@ -371,7 +371,7 @@ class InvoiceService {
 
       const results = await dataStmt.bind(...bindings, limit, offset).all()
 
-      const invoices = results.results?.map(row => this.mapDatabaseRowToInvoice(row)) || []
+      const invoices = results.results?.map((row: any) => this.mapDatabaseRowToInvoice(row)) || []
 
       // Calculate summary
       const summaryStmt = this.db.prepare(`
@@ -407,7 +407,7 @@ class InvoiceService {
         },
       }
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(500, 'Failed to search invoices', false, { originalError: error })
     }
   }
@@ -432,7 +432,7 @@ class InvoiceService {
 
       return pdfBuffer
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error
       }
@@ -483,7 +483,7 @@ class InvoiceService {
         },
       })
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error
       }
@@ -538,7 +538,7 @@ class InvoiceService {
 
       return updatedInvoice
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error
       }

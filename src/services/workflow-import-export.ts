@@ -177,7 +177,7 @@ class WorkflowImportExportService {
         validationResults
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         warnings: [],
@@ -284,7 +284,7 @@ class WorkflowImportExportService {
       const converted = await this.aiClient.parseJSONResponse(aiPrompt);
       converted.metadata.originalData = parsed;
       return converted;
-    } catch (error) {
+    } catch (error: any) {
       return this.fallbackConversion(parsed, sourceFormat);
     }
   }
@@ -303,14 +303,14 @@ class WorkflowImportExportService {
 
   private parseMermaid(content: string): any {
     // Parse Mermaid flowchart syntax
-    const lines = content.split('\n').filter(line => line.trim());
+    const lines = content.split('\n').filter((line: any) => line.trim());
     const nodes = new Map();
     const edges = [];
 
     for (const line of lines) {
       if (line.includes('-->')) {
         // Edge definition
-        const [source, target] = line.split('-->').map(s => s.trim());
+        const [source, target] = line.split('-->').map((s: any) => s.trim());
         edges.push({ source, target });
       } else if (line.includes('[') && line.includes(']')) {
         // Node definition with label
@@ -397,7 +397,7 @@ class WorkflowImportExportService {
         }
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         content: '',
@@ -486,6 +486,322 @@ class WorkflowImportExportService {
 </bpmn:definitions>`;
 
     return bpmnTemplate;
+  }
+
+  private generateBPMNDiagram(workflow: any): string {
+    // Generate BPMN diagram elements
+    let diagramElements = '';
+    
+    // Add nodes as BPMN shapes
+    const nodes = JSON.parse(workflow.nodes as string);
+    nodes.forEach((node: any, index: number) => {
+      const x = 100 + (index * 200);
+      const y = 100;
+      diagramElements += `
+    <bpmndi:BPMNShape id="Shape_${node.id}" bpmnElement="${node.id}">
+      <dc:Bounds x="${x}" y="${y}" width="100" height="80" />
+    </bpmndi:BPMNShape>`;
+    });
+
+    // Add edges as BPMN edges
+    const edges = JSON.parse(workflow.edges as string);
+    edges.forEach((edge: any, index: number) => {
+      diagramElements += `
+    <bpmndi:BPMNEdge id="Edge_${edge.id}" bpmnElement="${edge.id}">
+      <di:waypoint x="150" y="140" />
+      <di:waypoint x="250" y="140" />
+    </bpmndi:BPMNEdge>`;
+    });
+
+    return `
+  <bpmndi:BPMNDiagram id="BPMNDiagram_${workflow.id}">
+    <bpmndi:BPMNPlane id="BPMNPlane_${workflow.id}" bpmnElement="Process_${workflow.id}">
+      ${diagramElements}
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>`;
+  }
+
+  private generateOpenAPIPaths(workflow: any): any {
+    const paths: any = {};
+    
+    // Generate paths for workflow endpoints
+    const nodes = JSON.parse(workflow.nodes as string);
+    nodes.forEach((node: any) => {
+      if (node.type === 'api_endpoint') {
+        const path = node.config?.path || `/workflow/${workflow.id}/step/${node.id}`;
+        paths[path] = {
+          post: {
+            summary: node.name || `Execute ${node.type}`,
+            description: node.description || `Execute workflow step: ${node.id}`,
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      input: {
+                        type: 'object',
+                        description: 'Input data for the workflow step'
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              '200': {
+                description: 'Success',
+                content: {
+                  'application/json': {
+                    schema: {
+                      type: 'object',
+                      properties: {
+                        success: { type: 'boolean' },
+                        data: { type: 'object' }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        };
+      }
+    });
+
+    return paths;
+  }
+
+  private generateOpenAPISchemas(workflow: any): any {
+    const schemas: any = {};
+    
+    // Generate schemas for workflow data structures
+    schemas.WorkflowInput = {
+      type: 'object',
+      properties: {
+        workflowId: { type: 'string' },
+        input: { type: 'object' }
+      }
+    };
+
+    schemas.WorkflowOutput = {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean' },
+        data: { type: 'object' },
+        errors: { type: 'array', items: { type: 'string' } }
+      }
+    };
+
+    return schemas;
+  }
+
+  private convertToZapierTrigger(workflow: any): any {
+    const nodes = JSON.parse(workflow.nodes as string);
+    const triggerNode = nodes.find((node: any) => node.type === 'trigger');
+    
+    if (!triggerNode) {
+      return {
+        type: 'webhook',
+        name: 'Webhook Trigger',
+        description: 'Triggered by webhook'
+      };
+    }
+
+    return {
+      type: triggerNode.config?.triggerType || 'webhook',
+      name: triggerNode.name || 'Workflow Trigger',
+      description: triggerNode.description || 'Trigger for workflow execution',
+      config: triggerNode.config || {}
+    };
+  }
+
+  private convertToZapierActions(workflow: any): any[] {
+    const nodes = JSON.parse(workflow.nodes as string);
+    const actionNodes = nodes.filter((node: any) => node.type !== 'trigger');
+    
+    return actionNodes.map((node: any) => ({
+      type: node.type,
+      name: node.name || `Action: ${node.type}`,
+      description: node.description || `Execute ${node.type} action`,
+      config: node.config || {}
+    }));
+  }
+
+  private convertToMakeModules(workflow: any): any[] {
+    const nodes = JSON.parse(workflow.nodes as string);
+    const edges = JSON.parse(workflow.edges as string);
+    
+    return nodes.map((node: any, index: number) => {
+      const module = {
+        id: index + 1,
+        type: node.type,
+        name: node.name || `Module ${index + 1}`,
+        config: node.config || {},
+        position: {
+          x: 100 + (index * 200),
+          y: 100
+        }
+      };
+
+      // Add connections based on edges
+      const outgoingEdges = edges.filter((edge: any) => edge.sourceNodeId === node.id);
+      if (outgoingEdges.length > 0) {
+        module.connections = outgoingEdges.map((edge: any) => ({
+          targetModuleId: nodes.findIndex((n: any) => n.id === edge.targetNodeId) + 1,
+          condition: edge.conditionType || 'always'
+        }));
+      }
+
+      return module;
+    });
+  }
+
+  private extractRequiredFeatures(workflow: any): string[] {
+    const features: string[] = [];
+    const nodes = JSON.parse(workflow.nodes as string);
+    
+    nodes.forEach((node: any) => {
+      switch (node.type) {
+        case 'ai_agent':
+          features.push('ai_integration');
+          break;
+        case 'api_call':
+          features.push('api_integration');
+          break;
+        case 'email':
+          features.push('email_service');
+          break;
+        case 'database':
+          features.push('database_access');
+          break;
+        case 'webhook':
+          features.push('webhook_support');
+          break;
+        default:
+          features.push('basic_workflow');
+      }
+    });
+
+    return [...new Set(features)]; // Remove duplicates
+  }
+
+  private async saveTemplate(template: any): Promise<void> {
+    // Save template to database or file system
+    // This is a placeholder implementation
+    console.log('Saving template:', template.name);
+  }
+
+  private async loadTemplate(templateId: string): Promise<any> {
+    // Load template from database or file system
+    // This is a placeholder implementation
+    return {
+      id: templateId,
+      name: 'Sample Template',
+      description: 'A sample workflow template',
+      workflow: {}
+    };
+  }
+
+  private async updateTemplateUsage(templateId: string): Promise<void> {
+    // Update template usage statistics
+    // This is a placeholder implementation
+    console.log('Updating usage for template:', templateId);
+  }
+
+  private async resolveMergeConflicts(sourceWorkflow: any, targetWorkflow: any): Promise<any> {
+    // Simple merge conflict resolution
+    // In a real implementation, this would use AI to intelligently merge workflows
+    const mergedWorkflow = {
+      ...targetWorkflow,
+      name: `${targetWorkflow.name} (Merged)`,
+      description: `${targetWorkflow.description}\n\nMerged with: ${sourceWorkflow.name}`,
+      nodes: JSON.stringify([
+        ...JSON.parse(targetWorkflow.nodes as string),
+        ...JSON.parse(sourceWorkflow.nodes as string)
+      ]),
+      edges: JSON.stringify([
+        ...JSON.parse(targetWorkflow.edges as string),
+        ...JSON.parse(sourceWorkflow.edges as string)
+      ])
+    };
+
+    return {
+      success: true,
+      mergedWorkflow,
+      conflicts: []
+    };
+  }
+
+  private async updateWorkflowFromMerge(workflowId: string, mergedWorkflow: any, userId: string): Promise<void> {
+    // Update the workflow with merged changes
+    // This is a placeholder implementation
+    console.log('Updating workflow from merge:', workflowId, 'by user:', userId);
+  }
+
+  private compareNodes(nodes1: string, nodes2: string): any {
+    const nodes1Array = JSON.parse(nodes1);
+    const nodes2Array = JSON.parse(nodes2);
+    
+    const added = nodes2Array.filter((node2: any) => 
+      !nodes1Array.some((node1: any) => node1.id === node2.id)
+    );
+    
+    const removed = nodes1Array.filter((node1: any) => 
+      !nodes2Array.some((node2: any) => node2.id === node1.id)
+    );
+    
+    const modified = nodes2Array.filter((node2: any) => {
+      const node1 = nodes1Array.find((n: any) => n.id === node2.id);
+      return node1 && JSON.stringify(node1) !== JSON.stringify(node2);
+    });
+
+    return { added, removed, modified };
+  }
+
+  private compareEdges(edges1: string, edges2: string): any {
+    const edges1Array = JSON.parse(edges1);
+    const edges2Array = JSON.parse(edges2);
+    
+    const added = edges2Array.filter((edge2: any) => 
+      !edges1Array.some((edge1: any) => edge1.id === edge2.id)
+    );
+    
+    const removed = edges1Array.filter((edge1: any) => 
+      !edges2Array.some((edge2: any) => edge2.id === edge1.id)
+    );
+    
+    const modified = edges2Array.filter((edge2: any) => {
+      const edge1 = edges1Array.find((e: any) => e.id === edge2.id);
+      return edge1 && JSON.stringify(edge1) !== JSON.stringify(edge2);
+    });
+
+    return { added, removed, modified };
+  }
+
+  private compareConfigurations(workflow1: any, workflow2: any): any {
+    const changes: any = {};
+    
+    // Compare workflow-level configuration
+    if (workflow1.name !== workflow2.name) {
+      changes.name = { from: workflow1.name, to: workflow2.name };
+    }
+    
+    if (workflow1.description !== workflow2.description) {
+      changes.description = { from: workflow1.description, to: workflow2.description };
+    }
+    
+    // Compare other configuration properties
+    const config1 = workflow1.config || {};
+    const config2 = workflow2.config || {};
+    
+    Object.keys(config2).forEach(key => {
+      if (config1[key] !== config2[key]) {
+        changes[key] = { from: config1[key], to: config2[key] };
+      }
+    });
+
+    return changes;
   }
 
   private exportToMermaid(workflow: any, options?: ExportOptions): string {
@@ -604,7 +920,7 @@ class WorkflowImportExportService {
 
     try {
       return await this.aiClient.callAI({ prompt: docPrompt });
-    } catch (error) {
+    } catch (error: any) {
       return this.generateBasicDocumentation(workflow);
     }
   }
@@ -746,7 +1062,7 @@ class WorkflowImportExportService {
       }
 
       return false;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -811,8 +1127,8 @@ class WorkflowImportExportService {
 
     return {
       ...workflow,
-      nodes: JSON.parse(workflow.nodes),
-      edges: JSON.parse(workflow.edges)
+      nodes: JSON.parse(workflow.nodes as string),
+      edges: JSON.parse(workflow.edges as string)
     };
   }
 
@@ -909,7 +1225,7 @@ class WorkflowImportExportService {
     // Update dependencies
     for (const node of workflow.nodes || []) {
       if (node.dependsOn) {
-        node.dependsOn = node.dependsOn.map(depId => idMap.get(depId) || depId);
+        node.dependsOn = node.dependsOn.map((depId: any) => idMap.get(depId) || depId);
       }
     }
   }
@@ -944,7 +1260,7 @@ class WorkflowImportExportService {
       'hubspot': 'hubspot'
     };
 
-    return providerMappings[requestedProvider.toLowerCase()] || null;
+    return (providerMappings as any)[requestedProvider.toLowerCase()] || null;
   }
 
   private fallbackConversion(parsed: any, sourceFormat: string): any {
@@ -975,7 +1291,7 @@ class WorkflowImportExportService {
       'approval': ['((', '))'],
       'trigger': ['>', ']']
     };
-    return shapes[nodeType] || ['[', ']'];
+    return (shapes as any)[nodeType] || ['[', ']'];
   }
 
   private getMermaidArrow(conditionType: string): string {
@@ -985,7 +1301,7 @@ class WorkflowImportExportService {
       'failure': '-.->',
       'conditional': '==>',
     };
-    return arrows[conditionType] || '-->';
+    return (arrows as any)[conditionType] || '-->';
   }
 
   private getNodeColor(nodeType: string): string {
@@ -995,7 +1311,7 @@ class WorkflowImportExportService {
       'integration': 'integration',
       'approval': 'approval'
     };
-    return colors[nodeType] || 'default';
+    return (colors as any)[nodeType] || 'default';
   }
 
   private generateBasicDocumentation(workflow: any): string {
@@ -1005,7 +1321,7 @@ class WorkflowImportExportService {
 ${workflow.description}
 
 ## Nodes
-${workflow.nodes?.map(node => `- **${node.label}** (${node.type}): ${node.description
+${workflow.nodes?.map((node: any) => `- **${node.label}** (${node.type}): ${node.description
   || 'No description'}`).join('\n') || 'No nodes'}
 
 ## Configuration

@@ -81,7 +81,7 @@ export class StorageMonitor {
             totalSizeBytes += keySize;
             largestKeySize = Math.max(largestKeySize, keySize);
           }
-        } catch (error) {
+        } catch (error: any) {
           this.logger.warn('Failed to read storage key for metrics', { key, error });
         }
       }
@@ -119,7 +119,7 @@ export class StorageMonitor {
         estimatedTimeToFull
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to calculate storage metrics', error);
       throw error;
     }
@@ -197,7 +197,7 @@ export class StorageMonitor {
 
       return alerts;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to check storage alerts', error);
       return [{
         level: 'critical',
@@ -266,7 +266,7 @@ export class StorageMonitor {
             break;
           }
 
-        } catch (error) {
+        } catch (error: any) {
           errors.push(`Failed to evaluate key ${key}: ${error}`);
         }
       }
@@ -282,7 +282,7 @@ export class StorageMonitor {
               itemsRemoved++;
               bytesFreed += keySize;
             }
-          } catch (error) {
+          } catch (error: any) {
             errors.push(`Failed to delete key ${key}: ${error}`);
           }
         }
@@ -295,7 +295,7 @@ export class StorageMonitor {
             if (value !== undefined) {
               bytesFreed += new TextEncoder().encode(JSON.stringify(value)).length;
             }
-          } catch (error) {
+          } catch (error: any) {
             // Ignore errors in dry run estimation
           }
         }
@@ -317,7 +317,7 @@ export class StorageMonitor {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Storage cleanup failed', error);
       return {
         itemsRemoved: 0,
@@ -365,7 +365,7 @@ export class StorageMonitor {
         savings
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn('Failed to compress storage value', { key, error });
       return {
         compressed: JSON.stringify(value),
@@ -401,7 +401,7 @@ export class StorageMonitor {
           }
         }
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Automatic storage monitoring failed', error);
       }
     }, intervalMs);
@@ -437,7 +437,7 @@ export class StorageMonitor {
       // If no timestamp in key, return null (can't determine age)
       return null;
 
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }

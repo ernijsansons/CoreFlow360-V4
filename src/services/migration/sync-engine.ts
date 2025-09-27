@@ -113,7 +113,7 @@ export class SyncEngine {
 
     try {
       await this.performSync(syncState);
-    } catch (error) {
+    } catch (error: any) {
       syncState.isRunning = false;
       throw error;
     }
@@ -165,7 +165,7 @@ export class SyncEngine {
       syncState.statistics.averageLatency =
         (syncState.statistics.averageLatency + latency) / 2;
 
-    } catch (error) {
+    } catch (error: any) {
       syncState.statistics.errorCount++;
       throw error;
     } finally {
@@ -282,7 +282,7 @@ export class SyncEngine {
         // Convert API response to CDCEvent format
         changes.push(...this.convertAPIResponseToCDCEvents(data));
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return changes;
@@ -293,7 +293,7 @@ export class SyncEngine {
 
     // Convert API-specific format to standard CDCEvent format
     if (Array.isArray(data)) {
-      data.forEach(item => {
+      data.forEach((item: any) => {
         events.push({
           id: item.id || crypto.randomUUID(),
           timestamp: new Date(item.timestamp || Date.now()),
@@ -315,7 +315,7 @@ export class SyncEngine {
       return events;
     }
 
-    return events.filter(event => {
+    return events.filter((event: any) => {
       return filters.every(filter => {
         const value = this.getFilterValue(event, filter.column);
         return this.evaluateFilter(value, filter.operator, filter.value);
@@ -350,7 +350,7 @@ export class SyncEngine {
     for (const event of events) {
       try {
         await this.processEvent(syncState, event);
-      } catch (error) {
+      } catch (error: any) {
         syncState.statistics.errorCount++;
       }
     }
@@ -423,7 +423,7 @@ export class SyncEngine {
           break;
       }
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -506,7 +506,7 @@ export class SyncEngine {
         try {
           const func = new Function('value', rule.code);
           return func(value);
-        } catch (error) {
+        } catch (error: any) {
           return value;
         }
       default:
@@ -566,7 +566,7 @@ export class SyncEngine {
       if (response.ok) {
         return await response.json();
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return null;
@@ -624,7 +624,7 @@ export class SyncEngine {
             const result = func(conflict.sourceData, conflict.targetData);
             conflict.resolution = result ? 'SOURCE_WINS' : 'TARGET_WINS';
             return result;
-          } catch (error) {
+          } catch (error: any) {
             return false;
           }
         }
@@ -697,7 +697,7 @@ export class SyncEngine {
       if (!response.ok) {
         throw new Error(`API request failed: ${response.statusText}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -809,6 +809,6 @@ export class SyncEngine {
     }
 
     // Remove from conflicts list
-    syncState.conflicts = syncState.conflicts.filter(c => c.id !== conflictId);
+    syncState.conflicts = syncState.conflicts.filter((c: any) => c.id !== conflictId);
   }
 }

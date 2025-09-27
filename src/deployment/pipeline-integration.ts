@@ -177,7 +177,7 @@ export class UltimateDeploymentPipeline {
 
         const health = await this.healthMonitor.getDeploymentHealth();
         if (health.overall !== 'healthy') {
-          throw new Error(`Health check failed: ${health.alerts.map(a => a.message).join(', ')}`);
+          throw new Error(`Health check failed: ${health.alerts.map((a: any) => a.message).join(', ')}`);
         }
 
         return health;
@@ -237,7 +237,7 @@ export class UltimateDeploymentPipeline {
 
       return execution;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Deployment pipeline failed', error, { correlationId, executionId });
 
       // Execute rollback if deployment was successful but later stages failed
@@ -274,7 +274,7 @@ export class UltimateDeploymentPipeline {
       const result = await stageFunction();
       stage.status = 'success';
       stage.results = result;
-    } catch (error) {
+    } catch (error: any) {
       stage.status = 'failed';
       stage.error = error instanceof Error ? error.message : String(error);
       throw error;
@@ -525,7 +525,7 @@ export class UltimateDeploymentPipeline {
     metrics.totalDuration = (execution.endTime || Date.now()) - execution.startTime;
 
     // Calculate stage-specific durations
-    execution.stages.forEach(stage => {
+    execution.stages.forEach((stage: any) => {
       if (stage.duration) {
         switch (stage.name) {
           case 'validation':
@@ -545,7 +545,7 @@ export class UltimateDeploymentPipeline {
     });
 
     // Calculate success rate
-    const successfulStages = execution.stages.filter(s => s.status === 'success').length;
+    const successfulStages = execution.stages.filter((s: any) => s.status === 'success').length;
     metrics.successRate = (successfulStages / execution.stages.length) * 100;
 
     return metrics;
@@ -655,12 +655,12 @@ export class DeploymentPipelineExample {
         executionId: execution.id,
         duration: execution.metrics.totalDuration,
         successRate: execution.metrics.successRate,
-        stagesCompleted: execution.stages.filter(s => s.status === 'success').length
+        stagesCompleted: execution.stages.filter((s: any) => s.status === 'success').length
       });
 
       // Display execution summary
 
-      execution.stages.forEach(stage => {
+      execution.stages.forEach((stage: any) => {
         const status = stage.status === 'success' ? '✅' :
                       stage.status === 'failed' ? '❌' :
                       stage.status === 'running' ? '🔄' : '⏳';
@@ -668,7 +668,7 @@ export class DeploymentPipelineExample {
       });
 
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Deployment pipeline failed', error);
 
     }

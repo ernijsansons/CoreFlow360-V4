@@ -103,7 +103,7 @@ export class BalanceSheetGenerator {
 
       return balanceSheet;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate Balance Sheet', error, {
         businessId: validBusinessId
       });
@@ -507,7 +507,7 @@ export class BalanceSheetGenerator {
         }
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate Balance Sheet comparison', error, { businessId });
       throw error;
     }

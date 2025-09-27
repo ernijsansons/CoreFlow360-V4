@@ -191,7 +191,7 @@ export class QuantumCodeAuditor {
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       issues.push({
         id: `test-${Date.now()}-no-tests`,
         category: 'code-quality',
@@ -307,7 +307,7 @@ export class QuantumCodeAuditor {
             files.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Skip directories we can't read
       }
     }
@@ -333,7 +333,7 @@ export class QuantumCodeAuditor {
             files.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Skip directories we can't read
       }
     }

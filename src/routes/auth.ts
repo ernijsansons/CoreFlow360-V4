@@ -25,7 +25,7 @@ auth.onError(errorHandler);
  * Register new user and business
  * POST /auth/register
  */
-auth.post('/register', rateLimiters.register, asyncHandler(async (c) => {
+auth.post('/register', rateLimiters.register, asyncHandler(async (c: any) => {
   const body = await c.req.json();
 
   // Validate input
@@ -70,7 +70,7 @@ auth.post('/register', rateLimiters.register, asyncHandler(async (c) => {
  * Login user
  * POST /auth/login
  */
-auth.post('/login', rateLimiters.login, asyncHandler(async (c) => {
+auth.post('/login', rateLimiters.login, asyncHandler(async (c: any) => {
   const body = await c.req.json();
 
   // Validate input
@@ -132,7 +132,7 @@ auth.post('/login', rateLimiters.login, asyncHandler(async (c) => {
  * Logout user
  * POST /auth/logout
  */
-auth.post('/logout', authenticate(), asyncHandler(async (c) => {
+auth.post('/logout', authenticate(), asyncHandler(async (c: any) => {
   const authService = new AuthService(c.env);
   const sessionId = c.get('sessionId');
 
@@ -145,7 +145,7 @@ auth.post('/logout', authenticate(), asyncHandler(async (c) => {
  * Refresh access token
  * POST /auth/refresh
  */
-auth.post('/refresh', asyncHandler(async (c) => {
+auth.post('/refresh', asyncHandler(async (c: any) => {
   const authService = new AuthService(c.env);
   const body = await c.req.json();
   const validated = RefreshTokenRequestSchema.parse(body);
@@ -159,7 +159,7 @@ auth.post('/refresh', asyncHandler(async (c) => {
  * Get current user info
  * GET /auth/me
  */
-auth.get('/me', authenticate(), asyncHandler(async (c) => {
+auth.get('/me', authenticate(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const businessId = c.get('businessId');
 
@@ -191,7 +191,7 @@ auth.get('/me', authenticate(), asyncHandler(async (c) => {
  * Update current user profile
  * PUT /auth/me
  */
-auth.put('/me', authenticate(), asyncHandler(async (c) => {
+auth.put('/me', authenticate(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const body = await c.req.json();
 
@@ -229,7 +229,7 @@ auth.put('/me', authenticate(), asyncHandler(async (c) => {
  * Change password
  * POST /auth/change-password
  */
-auth.post('/change-password', authenticate(), requireMFA(), asyncHandler(async (c) => {
+auth.post('/change-password', authenticate(), requireMFA(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const body = await c.req.json();
   const { currentPassword, newPassword } = body;
@@ -286,7 +286,7 @@ auth.post('/change-password', authenticate(), requireMFA(), asyncHandler(async (
  * Request password reset
  * POST /auth/forgot-password
  */
-auth.post('/forgot-password', rateLimiters.passwordReset, asyncHandler(async (c) => {
+auth.post('/forgot-password', rateLimiters.passwordReset, asyncHandler(async (c: any) => {
   const authService = new AuthService(c.env);
   const body = await c.req.json();
   const validated = PasswordResetRequestSchema.parse(body);
@@ -304,7 +304,7 @@ auth.post('/forgot-password', rateLimiters.passwordReset, asyncHandler(async (c)
  * Confirm password reset
  * POST /auth/reset-password
  */
-auth.post('/reset-password', rateLimiters.passwordReset, asyncHandler(async (c) => {
+auth.post('/reset-password', rateLimiters.passwordReset, asyncHandler(async (c: any) => {
   const authService = new AuthService(c.env);
   const body = await c.req.json();
   const validated = PasswordResetConfirmSchema.parse(body);
@@ -321,7 +321,7 @@ auth.post('/reset-password', rateLimiters.passwordReset, asyncHandler(async (c) 
  * Setup MFA
  * POST /auth/mfa/setup
  */
-auth.post('/mfa/setup', authenticate(), requireMFA(), asyncHandler(async (c) => {
+auth.post('/mfa/setup', authenticate(), requireMFA(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const authService = new AuthService(c.env);
   const body = await c.req.json();
@@ -339,7 +339,7 @@ auth.post('/mfa/setup', authenticate(), requireMFA(), asyncHandler(async (c) => 
  * Verify MFA setup
  * POST /auth/mfa/verify
  */
-auth.post('/mfa/verify', authenticate(), asyncHandler(async (c) => {
+auth.post('/mfa/verify', authenticate(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const sessionId = c.get('sessionId');
   const body = await c.req.json();
@@ -386,7 +386,7 @@ auth.post('/mfa/verify', authenticate(), asyncHandler(async (c) => {
  * Disable MFA
  * POST /auth/mfa/disable
  */
-auth.post('/mfa/disable', authenticate(), requireMFA(), asyncHandler(async (c) => {
+auth.post('/mfa/disable', authenticate(), requireMFA(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const body = await c.req.json();
 
@@ -427,7 +427,7 @@ auth.post('/mfa/disable', authenticate(), requireMFA(), asyncHandler(async (c) =
  * Get active sessions
  * GET /auth/sessions
  */
-auth.get('/sessions', authenticate(), asyncHandler(async (c) => {
+auth.get('/sessions', authenticate(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const currentSessionId = c.get('sessionId');
 
@@ -454,7 +454,7 @@ auth.get('/sessions', authenticate(), asyncHandler(async (c) => {
  * Revoke session
  * DELETE /auth/sessions/:sessionId
  */
-auth.delete('/sessions/:sessionId', authenticate(), asyncHandler(async (c) => {
+auth.delete('/sessions/:sessionId', authenticate(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const sessionId = c.req.param('sessionId');
 
@@ -492,7 +492,7 @@ auth.delete('/sessions/:sessionId', authenticate(), asyncHandler(async (c) => {
  * Check password strength
  * POST /auth/password-strength
  */
-auth.post('/password-strength', asyncHandler(async (c) => {
+auth.post('/password-strength', asyncHandler(async (c: any) => {
   const body = await c.req.json();
   const { password } = body;
 

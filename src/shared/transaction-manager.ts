@@ -121,7 +121,7 @@ class TransactionManager {
         duration
       };
 
-    } catch (error) {
+    } catch (error: any) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
@@ -150,14 +150,14 @@ class TransactionManager {
     operations: Array<(db: D1Database) => Promise<T>>,
     options: TransactionOptions
   ): Promise<TransactionResult<T[]>> {
-    return this.withTransaction(async (db) => {
+    return this.withTransaction(async (db: any) => {
       const results: T[] = [];
 
       for (let i = 0; i < operations.length; i++) {
         try {
           const result = await operations[i](db);
           results.push(result);
-        } catch (error) {
+        } catch (error: any) {
           throw new Error(`Batch
   operation ${i + 1} failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
@@ -199,7 +199,7 @@ class TransactionManager {
       });
 
       return savepointName;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create savepoint', error, {
         transactionId,
         savepointName
@@ -247,7 +247,7 @@ class TransactionManager {
         transactionId,
         savepointName
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to rollback to savepoint', error, {
         transactionId,
         savepointName
@@ -275,7 +275,7 @@ class TransactionManager {
         operation: context.operation,
         duration: Date.now() - context.startTime
       });
-    } catch (error) {
+    } catch (error: any) {
       context.status = 'failed';
       this.logger.error('Failed to rollback transaction', error, {
         transactionId,
@@ -419,12 +419,12 @@ export function withTransaction(options: Omit<TransactionOptions, 'operation'>) 
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const transactionManager = new TransactionManager(this.env || args[0]?.env);
+      const transactionManager = new TransactionManager((this as any).env || args[0]?.env);
 
       return transactionManager.withTransaction(
-        async (db) => {
+        async (db: any) => {
           // Replace database instance in arguments
-          const modifiedArgs = args.map(arg =>
+          const modifiedArgs = args.map((arg: any) =>
             arg && typeof arg === 'object' && 'DB' in arg
               ? { ...arg, DB: db }
               : arg
@@ -483,7 +483,7 @@ class CompensationManager {
     for (let i = compensations.length - 1; i >= 0; i--) {
       try {
         await compensations[i]();
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Compensation failed', error, {
           transactionId,
           compensationIndex: i

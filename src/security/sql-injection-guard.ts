@@ -264,7 +264,7 @@ export class SQLInjectionGuard {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('SQL validation error', error, {
         correlationId
       });
@@ -599,7 +599,7 @@ export class SQLInjectionGuard {
   }
 
   private tokenize(input: string): string[] {
-    return input.split(/\s+/).filter(t => t.length > 0);
+    return input.split(/\s+/).filter((t: any) => t.length > 0);
   }
 
   private hasSQLStructure(tokens: string[]): boolean {

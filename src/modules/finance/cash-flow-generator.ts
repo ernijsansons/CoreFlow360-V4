@@ -119,7 +119,7 @@ export class CashFlowGenerator {
 
       return statement;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate Cash Flow Statement', error, {
         businessId: validBusinessId
       });
@@ -564,7 +564,7 @@ export class CashFlowGenerator {
         }
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate Cash Flow comparison', error, { businessId });
       throw error;
     }

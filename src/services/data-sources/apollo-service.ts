@@ -230,7 +230,7 @@ class ApolloService {
         total_entries: data.pagination?.total_entries || 0,
         rateLimit
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         contacts: [],
         total_entries: 0,
@@ -279,7 +279,7 @@ class ApolloService {
         contact: this.transformPersonData(data.person),
         rateLimit
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         contact: null,
         rateLimit: { requests_remaining: 0, reset_time: '', cost_per_request: 0 },
@@ -327,7 +327,7 @@ class ApolloService {
         company: this.transformCompanyData(data.organization),
         rateLimit
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         company: null,
         rateLimit: { requests_remaining: 0, reset_time: '', cost_per_request: 0 },
@@ -376,7 +376,7 @@ class ApolloService {
         confidence: data.confidence,
         rateLimit
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         email: null,
         confidence: 0,
@@ -433,7 +433,7 @@ class ApolloService {
         total_entries: data.pagination?.total_entries || 0,
         rateLimit
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         companies: [],
         total_entries: 0,
@@ -454,7 +454,7 @@ class ApolloService {
       seniority_level: this.mapSeniority(person.seniority),
       department: this.mapDepartment(person.departments?.[0]),
 
-      employment_history: person.employment_history?.map(emp => ({
+      employment_history: person.employment_history?.map((emp: any) => ({
         company: emp.organization_name,
         title: emp.title,
         start_date: emp.start_date,
@@ -504,7 +504,7 @@ class ApolloService {
       annual_revenue: company.annual_revenue,
       funding_total: company.total_funding,
 
-      funding_rounds: company.funding_events?.map(event => ({
+      funding_rounds: company.funding_events?.map((event: any) => ({
         round_type: event.funding_round_type,
         amount: event.money_raised,
         currency: event.money_raised_currency_code,

@@ -141,7 +141,7 @@ export class QuantumSecurityAuditor {
           recommendation: 'Enable noImplicitAny for better type safety'
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       issues.push({
         id: `config-${Date.now()}-missing`,
         category: 'security',
@@ -169,7 +169,7 @@ export class QuantumSecurityAuditor {
           recommendation: 'Add npm audit script to package.json'
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       // Package.json already exists, this is expected
     }
 
@@ -331,7 +331,7 @@ export class QuantumSecurityAuditor {
             files.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Skip directories we can't read
       }
     }
@@ -356,7 +356,7 @@ export class QuantumSecurityAuditor {
             files.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Skip directories we can't read
       }
     }

@@ -154,7 +154,7 @@ export class DataAnomalyDetector {
       score: this.calculateAnomalyScore(anomalies),
       predictions: [],
       anomaliesDetected: anomalies.length,
-      highSeverityAnomalies: anomalies.filter(a => a.severity === 'high' || a.severity === 'critical').length
+      highSeverityAnomalies: anomalies.filter((a: any) => a.severity === 'high' || a.severity === 'critical').length
     };
   }
 
@@ -214,7 +214,7 @@ export class DataAnomalyDetector {
       return anomalies;
     }
 
-    const values = samples.map(s => s.value).filter(v => typeof v === 'number');
+    const values = samples.map((s: any) => s.value).filter((v: any) => typeof v === 'number');
     if (values.length === 0) return anomalies;
 
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
@@ -335,7 +335,7 @@ export class DataAnomalyDetector {
       return anomalies;
     }
 
-    const values = samples.map(s => s.value).filter(v => typeof v === 'number');
+    const values = samples.map((s: any) => s.value).filter((v: any) => typeof v === 'number');
     if (values.length === 0) return anomalies;
 
     // Detect outliers using IQR method
@@ -369,11 +369,11 @@ export class DataAnomalyDetector {
   }
 
   private async analyzePattern(table: string, column: string, samples: DataSample[]): Promise<AnomalyPatternExtended> {
-    const values = samples.map(s => s.value);
-    const timestamps = samples.map(s => s.timestamp);
+    const values = samples.map((s: any) => s.value);
+    const timestamps = samples.map((s: any) => s.timestamp);
 
     // Calculate basic statistics
-    const numericValues = values.filter(v => typeof v === 'number');
+    const numericValues = values.filter((v: any) => typeof v === 'number');
     const mean = numericValues.length > 0 ? numericValues.reduce((sum, val) => sum + val, 0) / numericValues.length : 0;
     const variance = numericValues.length > 0 ? numericValues.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / numericValues.length : 0;
     const stdDev = Math.sqrt(variance);
@@ -393,8 +393,8 @@ export class DataAnomalyDetector {
       frequency: samples.length,
       tables: [table],
       timeRange: {
-        start: new Date(Math.min(...timestamps.map(t => t.getTime()))),
-        end: new Date(Math.max(...timestamps.map(t => t.getTime())))
+        start: new Date(Math.min(...timestamps.map((t: any) => t.getTime()))),
+        end: new Date(Math.max(...timestamps.map((t: any) => t.getTime())))
       },
       correlation: `statistical_${column}`,
       significance: this.calculatePatternConfidence(samples),
@@ -544,7 +544,7 @@ export class DataAnomalyDetector {
   private calculateConsistency(samples: DataSample[]): number {
     if (samples.length < 2) return 0;
 
-    const values = samples.map(s => s.value).filter(v => typeof v === 'number');
+    const values = samples.map((s: any) => s.value).filter((v: any) => typeof v === 'number');
     if (values.length < 2) return 0;
 
     const mean = values.reduce((sum, val) => sum + val, 0) / values.length;
@@ -556,7 +556,7 @@ export class DataAnomalyDetector {
 
   private predictValue(samples: DataSample[], pattern: AnomalyPattern): number {
     // Simple linear prediction based on most recent values
-    const recentValues = samples.slice(-10).map(s => parseFloat(s.value.toString()));
+    const recentValues = samples.slice(-10).map((s: any) => parseFloat(s.value.toString()));
     const mean = recentValues.reduce((sum, val) => sum + val, 0) / recentValues.length;
     return mean || 0;
   }

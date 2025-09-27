@@ -459,7 +459,7 @@ export class ConversationIntelligence {
 
   private generateCacheKey(transcript: Transcript, participants: Participant[]): string {
     const transcriptHash = transcript.id;
-    const participantsHash = participants.map(p => p.id).join(',');
+    const participantsHash = participants.map((p: any) => p.id).join(',');
     return `${transcriptHash}_${participantsHash}`;
   }
 
@@ -484,7 +484,7 @@ export class ConversationIntelligence {
         status: 'healthy',
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'unhealthy',
         timestamp: new Date().toISOString()

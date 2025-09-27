@@ -63,7 +63,7 @@ export class SpatialIndex {
   private createHash(vector: number[]): string {
     // Simple locality-sensitive hashing
     return vector
-      .map(v => Math.floor(v * 10))
+      .map((v: any) => Math.floor(v * 10))
       .join(',');
   }
 
@@ -130,7 +130,7 @@ export class OptimizedStringSimilarity {
     const set1 = new Set(str1.toLowerCase().split(''));
     const set2 = new Set(str2.toLowerCase().split(''));
 
-    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const intersection = new Set([...set1].filter((x: any) => set2.has(x)));
     const union = new Set([...set1, ...set2]);
 
     return intersection.size / union.size;
@@ -299,7 +299,7 @@ export class ParallelProcessor<T, R> {
       try {
         const result = await task.processor(task.data);
         this.results.set(task.id, result);
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Task ${task.id} failed:`, error);
         // Could implement retry logic here
       }
@@ -346,7 +346,7 @@ export class BusinessRuleCache {
   private createRuleHash(ruleSet: Record<string, unknown>): string {
     const sortedKeys = Object.keys(ruleSet).sort();
     const ruleString = sortedKeys
-      .map(key => `${key}:${JSON.stringify(ruleSet[key])}`)
+      .map((key: any) => `${key}:${JSON.stringify(ruleSet[key])}`)
       .join('|');
     
     // Simple hash function
@@ -390,7 +390,7 @@ export class SupernovaOptimizer {
     const spatialIndex = new SpatialIndex();
     
     // Add leads to spatial index
-    leads.forEach(lead => {
+    leads.forEach((lead: any) => {
       const vector = this.createFeatureVector(lead, fields);
       spatialIndex.add({
         id: lead.id,
@@ -409,7 +409,7 @@ export class SupernovaOptimizer {
 
     // Find similar items
     const similarItems = spatialIndex.findSimilar(targetItem, similarityThreshold);
-    return similarItems.map(item => item.metadata as T);
+    return similarItems.map((item: any) => item.metadata as T);
   }
 
   /**

@@ -508,7 +508,7 @@ export class FinanceValidationEngine {
           }
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error applying custom validation rules', error);
     }
 
@@ -529,7 +529,7 @@ export class FinanceValidationEngine {
         }
       `);
       return func(context);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn('Failed to evaluate validation rule', { condition, error });
       return true; // Assume valid if evaluation fails
     }
@@ -649,7 +649,7 @@ export class FinanceValidationEngine {
       AND (ar.id IS NULL OR ar.status != 'completed')
     `).bind(businessId).all();
 
-    return (result.results || []).map(row => row.id as string);
+    return (result.results || []).map((row: any) => row.id as string);
   }
 
   private async validateTrialBalanceForPeriod(periodId: string, businessId: string): Promise<boolean> {
@@ -681,7 +681,7 @@ export class FinanceValidationEngine {
       ORDER BY id
     `).bind(type, businessId).all();
 
-    return (result.results || []).map(row => ({
+    return (result.results || []).map((row: any) => ({
       id: row.id as string,
       name: row.name as string,
       type: row.type as any,

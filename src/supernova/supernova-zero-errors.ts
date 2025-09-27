@@ -86,7 +86,7 @@ export class SupernovaZeroErrors {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ SUPERNOVA Zero Errors failed:', error);
       throw error;
     }
@@ -100,7 +100,7 @@ export class SupernovaZeroErrors {
       const result = execSync('npx tsc --noEmit 2>&1', { encoding: 'utf-8' });
       const errorMatches = result.match(/error TS\d+/g);
       return errorMatches ? errorMatches.length : 0;
-    } catch (error) {
+    } catch (error: any) {
       // TypeScript compilation failed, count errors from stderr
       const errorOutput = (error as any).stdout || (error as any).stderr || '';
       const errorMatches = errorOutput.match(/error TS\d+/g);
@@ -130,7 +130,7 @@ export class SupernovaZeroErrors {
       const result = execSync('npx tsc --noEmit 2>&1', { encoding: 'utf-8' });
       const fileMatches = result.match(/src\/[^:]+\.ts/g);
       return fileMatches ? [...new Set(fileMatches as string[])] : [];
-    } catch (error) {
+    } catch (error: any) {
       const errorOutput = (error as any).stdout || (error as any).stderr || '';
       const fileMatches = errorOutput.match(/src\/[^:]+\.ts/g);
       return fileMatches ? [...new Set(fileMatches as string[])] : [];
@@ -310,7 +310,7 @@ export class SupernovaZeroErrors {
         await fs.writeFile(filePath, fixedContent, 'utf-8');
         logger.info(`✅ Fixed errors in ${filePath}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`❌ Failed to fix errors in ${filePath}:`, error);
     }
   }

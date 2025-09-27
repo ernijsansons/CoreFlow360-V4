@@ -211,9 +211,6 @@ export class BoundedArray<T> {
         case 'fifo':
         default:
           evictedItem = this.items.shift()!;
-          if (this.options.evictionPolicy === 'lru') {
-            this.updateAccessOrderAfterShift();
-          }
           break;
       }
 
@@ -354,7 +351,7 @@ export class BoundedSet<T> {
    */
   delete(item: T): boolean {
     if (this.items.delete(item)) {
-      this.insertionOrder = this.insertionOrder.filter(i => i !== item);
+      this.insertionOrder = this.insertionOrder.filter((i: any) => i !== item);
       return true;
     }
     return false;
@@ -400,7 +397,7 @@ export class BoundedSet<T> {
    * Update insertion order for existing item
    */
   private updateInsertionOrder(item: T): void {
-    this.insertionOrder = this.insertionOrder.filter(i => i !== item);
+    this.insertionOrder = this.insertionOrder.filter((i: any) => i !== item);
     this.insertionOrder.push(item);
   }
 
@@ -480,7 +477,7 @@ export class BoundedMap<K, V> {
    */
   delete(key: K): boolean {
     if (this.items.delete(key)) {
-      this.insertionOrder = this.insertionOrder.filter(k => k !== key);
+      this.insertionOrder = this.insertionOrder.filter((k: any) => k !== key);
       return true;
     }
     return false;
@@ -519,21 +516,21 @@ export class BoundedMap<K, V> {
    * Get all values
    */
   values(): V[] {
-    return this.insertionOrder.map(key => this.items.get(key)!);
+    return this.insertionOrder.map((key: any) => this.items.get(key)!);
   }
 
   /**
    * Get all entries
    */
   entries(): [K, V][] {
-    return this.insertionOrder.map(key => [key, this.items.get(key)!]);
+    return this.insertionOrder.map((key: any) => [key, this.items.get(key)!]);
   }
 
   /**
    * Iterate over entries
    */
   forEach(callback: (value: V, key: K) => void): void {
-    this.insertionOrder.forEach(key => {
+    this.insertionOrder.forEach((key: any) => {
       const value = this.items.get(key)!;
       callback(value, key);
     });
@@ -543,7 +540,7 @@ export class BoundedMap<K, V> {
    * Update insertion order for existing key
    */
   private updateInsertionOrder(key: K): void {
-    this.insertionOrder = this.insertionOrder.filter(k => k !== key);
+    this.insertionOrder = this.insertionOrder.filter((k: any) => k !== key);
     this.insertionOrder.push(key);
   }
 

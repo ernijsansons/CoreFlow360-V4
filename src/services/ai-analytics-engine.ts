@@ -132,7 +132,7 @@ export class AIAnalyticsEngine {
 
       return anomalies;
 
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -151,7 +151,7 @@ export class AIAnalyticsEngine {
 
     // Analyze each metric group
     for (const [metricName, metricData] of metricGroups) {
-      const values = metricData.map(m => m.value);
+      const values = metricData.map((m: any) => m.value);
 
       // Calculate statistics
       const mean = values.reduce((a, b) => a + b, 0) / values.length;
@@ -233,7 +233,7 @@ export class AIAnalyticsEngine {
 
       return anomalies;
 
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -289,7 +289,7 @@ export class AIAnalyticsEngine {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return predictions;
@@ -352,7 +352,7 @@ export class AIAnalyticsEngine {
     try {
       const response = await this.aiClient.generateText(prompt);
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -501,7 +501,7 @@ export class AIAnalyticsEngine {
     try {
       const response = await this.aiClient.generateText(prompt);
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -528,7 +528,7 @@ export class AIAnalyticsEngine {
     try {
       const response = await this.aiClient.generateText(prompt);
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }

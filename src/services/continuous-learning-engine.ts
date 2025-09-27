@@ -137,7 +137,7 @@ export class ContinuousLearningEngine {
     const experiment: ExperimentResult = {
       id: experimentId,
       strategyId: strategy.id,
-      variants: variants.map(v => ({ ...v, id: `var_${Date.now()}_${Math.random()}` })),
+      variants: variants.map((v: any) => ({ ...v, id: `var_${Date.now()}_${Math.random()}` })),
       startDate: new Date(),
       status: 'running',
       results: [],
@@ -202,8 +202,8 @@ export class ContinuousLearningEngine {
       totalInteractions,
       successfulInteractions,
       successRate: totalInteractions > 0 ? successfulInteractions / totalInteractions : 0,
-      activeExperiments: Array.from(this.experimentTracker.values()).filter(e => e.status === 'running').length,
-      completedExperiments: Array.from(this.experimentTracker.values()).filter(e => e.status === 'completed').length,
+      activeExperiments: Array.from(this.experimentTracker.values()).filter((e: any) => e.status === 'running').length,
+      completedExperiments: Array.from(this.experimentTracker.values()).filter((e: any) => e.status === 'completed').length,
       patternsDiscovered: this.patterns.size,
       strategiesOptimized: this.strategies.size,
       lastLearningUpdate: new Date()
@@ -275,7 +275,7 @@ export class ContinuousLearningEngine {
         status: 'healthy',
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'unhealthy',
         timestamp: new Date().toISOString()

@@ -94,7 +94,7 @@ export class AIService {
       }
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('Quick AI response failed');
     }
   }
@@ -156,7 +156,7 @@ export class AIService {
       }
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('Complex AI response failed');
     }
   }
@@ -189,7 +189,7 @@ export class AIService {
       }
 
       return embedding;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('Embedding generation failed');
     }
   }
@@ -214,7 +214,7 @@ export class AIService {
       if (request.prompt.length < 500 && !this.requiresComplexReasoning(request.prompt)) {
         try {
           return await this.quickResponse(request.prompt, request.maxTokens);
-        } catch (error) {
+        } catch (error: any) {
           // Fallback to Anthropic on Workers AI failure
           const messages = [{ role: 'user' as const, content: request.prompt }];
           return await this.complexResponse(messages, request.context, request.maxTokens);
@@ -223,7 +223,7 @@ export class AIService {
         const messages: Message[] = request.messages || [{ role: 'user' as const, content: request.prompt }];
         return await this.complexResponse(messages, request.context, request.maxTokens);
       }
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('AI service unavailable');
     }
   }
@@ -375,7 +375,7 @@ Provide actionable insights and recommendations.`;
   }
 
   private hashMessages(messages: Message[]): string {
-    const combined = messages.map(m => `${m.role}:${m.content}`).join('|');
+    const combined = messages.map((m: any) => `${m.role}:${m.content}`).join('|');
     return this.hashPrompt(combined);
   }
 
@@ -397,7 +397,7 @@ Provide actionable insights and recommendations.`;
         max_tokens: 1
       });
       results.workersAI = true;
-    } catch (error) {
+    } catch (error: any) {
     }
 
     try {
@@ -415,13 +415,13 @@ Provide actionable insights and recommendations.`;
         })
       });
       results.anthropic = response.ok;
-    } catch (error) {
+    } catch (error: any) {
     }
 
     try {
       await this.ai.run('@cf/baai/bge-base-en-v1.5', { text: 'test' });
       results.embeddings = true;
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return results;

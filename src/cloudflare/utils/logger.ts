@@ -465,7 +465,7 @@ export function withPerformanceLogging(logger: Logger, operation: string) {
 
         return result;
 
-      } catch (error) {
+      } catch (error: any) {
         const duration = Date.now() - startTime;
 
         logger.error(`${operation}_${propertyName} failed`, error, {
@@ -485,7 +485,7 @@ export function withPerformanceLogging(logger: Logger, operation: string) {
  */
 export function withErrorLogging(logger: Logger, operation: string) {
   return function <T>(fn: () => Promise<T>): Promise<T> {
-    return fn().catch(error => {
+    return fn().catch((error: any) => {
       logger.error(`${operation} failed`, error);
       throw error;
     });

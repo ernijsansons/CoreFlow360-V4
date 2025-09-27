@@ -588,7 +588,7 @@ export class PerformanceAnalyzer {
     }
 
     const recent = this.history.slice(-5);
-    const p95Trend = this.calculateMetricTrend(recent.map(m => m.business.apiLatency.p95));
+    const p95Trend = this.calculateMetricTrend(recent.map((m: any) => m.business.apiLatency.p95));
 
     return {
       direction: p95Trend > 0.1 ? 'degrading' : p95Trend < -0.1 ? 'improving' : 'stable',
@@ -970,7 +970,7 @@ export class QuantumPerformanceMonitor {
   }
 
   private async generateBottleneckOptimizations(bottlenecks: Bottleneck[]): Promise<BottleneckOptimization[]> {
-    return bottlenecks.map(bottleneck => ({
+    return bottlenecks.map((bottleneck: any) => ({
       bottleneck: bottleneck.component,
       strategies: [
         {

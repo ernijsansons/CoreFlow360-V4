@@ -102,7 +102,7 @@ class D1MigrationManager {
       try {
         const migration = await this.parseMigrationFile(file);
         migrations.push(migration);
-      } catch (error) {
+      } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         this.logger.error('Failed to parse migration file', errorMessage, { file });
       }
@@ -120,11 +120,11 @@ class D1MigrationManager {
     const appliedVersions = await this.getAppliedMigrations();
 
     const currentVersion = appliedVersions.length > 0
-      ? Math.max(...appliedVersions.map(m => m.version))
+      ? Math.max(...appliedVersions.map((m: any) => m.version))
       : 0;
 
     const target = targetVersion || (allMigrations.length > 0
-      ? Math.max(...allMigrations.map(m => m.version))
+      ? Math.max(...allMigrations.map((m: any) => m.version))
       : currentVersion);
 
     let migrationsToApply: D1Migration[] = [];
@@ -132,15 +132,15 @@ class D1MigrationManager {
 
     if (target > currentVersion) {
       // Forward migration
-      migrationsToApply = allMigrations.filter(m =>
+      migrationsToApply = allMigrations.filter((m: any) =>
         m.version > currentVersion && m.version <= target
       );
     } else if (target < currentVersion) {
       // Rollback migration
       migrationsToRollback = appliedVersions
-        .filter(m => m.version > target)
+        .filter((m: any) => m.version > target)
         .sort((a, b) => b.version - a.version) // Reverse order for rollback
-        .map(history => ({
+        .map((history: any) => ({
           version: history.version,
           name: history.name,
           filename: `${history.version}_${history.name}.sql`,
@@ -210,7 +210,7 @@ class D1MigrationManager {
             success = false;
             if (!options.continueOnFailure) {
               // Rollback applied migrations in this execution
-              await this.rollbackFailedExecution(results.filter(r => r.status === 'applied'));
+              await this.rollbackFailedExecution(results.filter((r: any) => r.status === 'applied'));
               break;
             }
           }
@@ -223,19 +223,19 @@ class D1MigrationManager {
         correlationId,
         success,
         duration,
-        appliedCount: results.filter(r => r.status === 'applied').length,
-        failedCount: results.filter(r => r.status === 'failed').length
+        appliedCount: results.filter((r: any) => r.status === 'applied').length,
+        failedCount: results.filter((r: any) => r.status === 'failed').length
       });
 
       return {
         success,
         duration,
         results,
-        appliedMigrations: results.filter(r => r.status === 'applied').map(r => r.migration),
-        failedMigrations: results.filter(r => r.status === 'failed').map(r => r.migration)
+        appliedMigrations: results.filter((r: any) => r.status === 'applied').map((r: any) => r.migration),
+        failedMigrations: results.filter((r: any) => r.status === 'failed').map((r: any) => r.migration)
       };
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Migration execution failed', errorMessage, { correlationId });
 
@@ -287,7 +287,7 @@ class D1MigrationManager {
   async getCurrentVersion(): Promise<number> {
     const appliedMigrations = await this.getAppliedMigrations();
     return appliedMigrations.length > 0
-      ? Math.max(...appliedMigrations.map(m => m.version))
+      ? Math.max(...appliedMigrations.map((m: any) => m.version))
       : 0;
   }
 
@@ -300,14 +300,14 @@ class D1MigrationManager {
     const warnings: string[] = [];
 
     // Check for duplicate versions
-    const versions = migrations.map(m => m.version);
+    const versions = migrations.map((m: any) => m.version);
     const duplicates = versions.filter((v, i) => versions.indexOf(v) !== i);
     if (duplicates.length > 0) {
       issues.push({
         type: 'duplicate_version',
         severity: 'error',
         message: `Duplicate migration versions found: ${duplicates.join(', ')}`,
-        migrations: migrations.filter(m => duplicates.includes(m.version))
+        migrations: migrations.filter((m: any) => duplicates.includes(m.version))
       });
     }
 
@@ -334,7 +334,7 @@ class D1MigrationManager {
         type: 'circular_dependency',
         severity: 'error',
         message: `Circular dependencies detected: ${circularDeps.join(' -> ')}`,
-        migrations: migrations.filter(m => circularDeps.includes(m.name))
+        migrations: migrations.filter((m: any) => circularDeps.includes(m.name))
       });
     }
 
@@ -351,7 +351,7 @@ class D1MigrationManager {
     }
 
     return {
-      valid: issues.filter(i => i.severity === 'error').length === 0,
+      valid: issues.filter((i: any) => i.severity === 'error').length === 0,
       issues,
       warnings
     };
@@ -585,7 +585,7 @@ COMMIT;
         operation
       };
 
-    } catch (error) {
+    } catch (error: any) {
       const duration = Date.now() - startTime;
 
       this.logger.error('Migration execution failed', error, {
@@ -639,7 +639,7 @@ COMMIT;
       try {
         await this.executeSql(result.migration.downSql);
         await this.recordMigrationRolledBack(result.migration);
-      } catch (error) {
+      } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         this.logger.error('Rollback failed', errorMessage, {
           migration: result.migration.name
@@ -780,7 +780,7 @@ export class MigrationCLI {
 
 
     if (plan.warnings.length > 0) {
-      plan.warnings.forEach(warning => console.log(`  - ${warning}`));
+      plan.warnings.forEach((warning: any) => console.log(`  - ${warning}`));
     }
   }
 
@@ -817,12 +817,12 @@ export class MigrationCLI {
 
     if (validation.valid) {
     } else {
-      validation.issues.forEach(issue => {
+      validation.issues.forEach((issue: any) => {
       });
     }
 
     if (validation.warnings.length > 0) {
-      validation.warnings.forEach(warning => console.log(`  - ${warning}`));
+      validation.warnings.forEach((warning: any) => console.log(`  - ${warning}`));
     }
   }
 }

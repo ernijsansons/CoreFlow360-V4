@@ -139,7 +139,7 @@ export class CRMDatabase {
     }
 
     // Validate all companies first
-    const validatedCompanies = companies.map(company => {
+    const validatedCompanies = companies.map((company: any) => {
       const validation = CreateCompanySchema.safeParse(company);
       if (!validation.success) {
         throw ErrorFactories.validation(
@@ -151,7 +151,7 @@ export class CRMDatabase {
     });
 
     const result = await this.transactionManager.withTransaction(
-      async (db) => {
+      async (db: any) => {
         const results: any[] = [];
         const createdIds: string[] = [];
 
@@ -172,14 +172,14 @@ export class CRMDatabase {
             if (queryResult.success) {
               createdIds.push(id);
             }
-          } catch (error) {
+          } catch (error: any) {
             results.push({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
             // Transaction will be rolled back automatically on error
             throw error;
           }
         }
 
-        const successful = results.filter(r => r.success).length;
+        const successful = results.filter((r: any) => r.success).length;
         const errors = results.length - successful;
 
         this.logger.info('Batch company creation completed', {
@@ -216,7 +216,7 @@ export class CRMDatabase {
     }
 
     try {
-      const statements = contacts.map(contact => {
+      const statements = contacts.map((contact: any) => {
         const validation = CreateContactSchema.safeParse(contact);
         if (!validation.success) {
           throw new Error(validation.error.message);
@@ -233,7 +233,7 @@ export class CRMDatabase {
       });
 
       const results = await this.db.batch(statements);
-      const successful = results.filter(r => r.success).length;
+      const successful = results.filter((r: any) => r.success).length;
       const errors = results.length - successful;
 
       return {
@@ -241,7 +241,7 @@ export class CRMDatabase {
         data: { created: successful, errors }
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Batch create failed' };
     }
   }
@@ -264,12 +264,12 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.success) {
+      if (!result.meta.success) {
         return { success: false, error: 'Failed to create company' };
       }
 
       return { success: true, data: { id } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -286,7 +286,7 @@ export class CRMDatabase {
       }
 
       return { success: true, data: result };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -309,15 +309,15 @@ export class CRMDatabase {
         return { success: false, error: 'No data provided for update' };
       }
 
-      const values = Object.values(aiData).filter(value => value !== undefined);
+      const values = Object.values(aiData).filter((value: any) => value !== undefined);
 
       const result = await this.db
         .prepare(`UPDATE companies SET ${updates}, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND business_id = ?`)
         .bind(...values, id, businessId)
         .run();
 
-      return { success: result.success, data: { updated: result.meta.changes } };
-    } catch (error) {
+      return { success: result.meta.success, data: { updated: result.meta.changes } };
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -340,12 +340,12 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.success) {
+      if (!result.meta.success) {
         return { success: false, error: 'Failed to create contact' };
       }
 
       return { success: true, data: { id } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -367,7 +367,7 @@ export class CRMDatabase {
       }
 
       return { success: true, data: result };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -380,7 +380,7 @@ export class CRMDatabase {
         .first();
 
       return { success: true, data: result };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -403,12 +403,12 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.success) {
+      if (!result.meta.success) {
         return { success: false, error: 'Failed to create lead' };
       }
 
       return { success: true, data: { id } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -500,7 +500,7 @@ export class CRMDatabase {
           }
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -517,8 +517,8 @@ export class CRMDatabase {
         .bind(status, aiSummary, id)
         .run();
 
-      return { success: result.success, data: { updated: result.meta.changes } };
-    } catch (error) {
+      return { success: result.meta.success, data: { updated: result.meta.changes } };
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -541,12 +541,12 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.success) {
+      if (!result.meta.success) {
         return { success: false, error: 'Failed to create AI task' };
       }
 
       return { success: true, data: { id } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -571,7 +571,7 @@ export class CRMDatabase {
         .all();
 
       return { success: true, data: results.results || [] };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -607,8 +607,8 @@ export class CRMDatabase {
         .bind(...params)
         .run();
 
-      return { success: result.success, data: { updated: result.meta.changes } };
-    } catch (error) {
+      return { success: result.meta.success, data: { updated: result.meta.changes } };
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -637,12 +637,12 @@ export class CRMDatabase {
         .bind(id, ...Object.values(data))
         .run();
 
-      if (!result.success) {
+      if (!result.meta.success) {
         return { success: false, error: 'Failed to create conversation' };
       }
 
       return { success: true, data: { id } };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -664,15 +664,15 @@ export class CRMDatabase {
         return { success: false, error: 'No AI data provided for update' };
       }
 
-      const values = Object.values(aiData).filter(value => value !== undefined);
+      const values = Object.values(aiData).filter((value: any) => value !== undefined);
 
       const result = await this.db
         .prepare(`UPDATE conversations SET ${updates} WHERE id = ?`)
         .bind(...values, id)
         .run();
 
-      return { success: result.success, data: { updated: result.meta.changes } };
-    } catch (error) {
+      return { success: result.meta.success, data: { updated: result.meta.changes } };
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -705,7 +705,7 @@ export class CRMDatabase {
         .first();
 
       return { success: true, data: metrics };
-    } catch (error) {
+    } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -756,7 +756,7 @@ export class CRMDatabase {
       throw new Error(`Unknown table: ${tableName}`);
     }
 
-    return fields.filter(field => {
+    return fields.filter((field: any) => {
       // Only allow alphanumeric characters and underscores
       const isValidFormat = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(field);
       const isAllowedField = tableFields.includes(field);

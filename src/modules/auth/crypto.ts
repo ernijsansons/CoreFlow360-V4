@@ -77,7 +77,7 @@ export async function verifyPassword(password: string, hash: string, salt: strin
     }
 
     return result === 0;
-  } catch (error) {
+  } catch (error: any) {
     return false;
   }
 }
@@ -152,7 +152,7 @@ export async function verifyHMAC(data: string, signature: string, secret: string
     }
 
     return result === 0;
-  } catch (error) {
+  } catch (error: any) {
     return false;
   }
 }

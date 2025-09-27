@@ -55,7 +55,7 @@ export class SupernovaImplementation {
 
       this.isInitialized = true;
       logger.info('✅ SUPERNOVA initialization complete');
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ SUPERNOVA initialization failed:', error);
       throw error;
     }
@@ -99,7 +99,7 @@ export class SupernovaImplementation {
       logger.info(`✅ Performance optimizations applied in ${totalTime}ms`);
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Performance optimization failed:', error);
       throw error;
     }
@@ -142,7 +142,7 @@ export class SupernovaImplementation {
       logger.info(`✅ Security hardening applied in ${totalTime}ms`);
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Security hardening failed:', error);
       throw error;
     }
@@ -188,7 +188,7 @@ export class SupernovaImplementation {
       logger.info(`✅ Architecture improvements applied in ${totalTime}ms`);
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Architecture improvement failed:', error);
       throw error;
     }
@@ -231,7 +231,7 @@ export class SupernovaImplementation {
       logger.info(`✅ Code quality enhancements applied in ${totalTime}ms`);
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ Code quality enhancement failed:', error);
       throw error;
     }

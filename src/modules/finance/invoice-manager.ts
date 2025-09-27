@@ -251,7 +251,7 @@ class InvoiceManager {
 
       return invoice;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create invoice', error, {
         customerId: request.customerId,
         businessId: validBusinessId
@@ -409,7 +409,7 @@ class InvoiceManager {
 
       return updatedInvoice;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to update invoice', error, {
         invoiceId,
         businessId: validBusinessId
@@ -539,7 +539,7 @@ class InvoiceManager {
         journalEntryId: journalEntry.id
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to post invoice', error, {
         invoiceId,
         businessId: validBusinessId
@@ -566,7 +566,7 @@ class InvoiceManager {
 
       return this.mapToInvoice(result);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get invoice', error, {
         invoiceId,
         businessId: validBusinessId

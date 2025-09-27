@@ -847,7 +847,7 @@ export class QuantumDataAuditor {
         recommendations: ['Consider updating table statistics']
       },
       violations: [],
-      recommendations: results.flatMap(r => r.recommendations).map(rec => ({
+      recommendations: results.flatMap(r => r.recommendations).map((rec: any) => ({
         area: 'integrity',
         issue: rec,
         recommendation: rec,
@@ -872,7 +872,7 @@ export class QuantumDataAuditor {
     // Generate sample data for anomaly detection
     const samples: any[] = [];
     const report = await detector.detectAnomalies(samples);
-    const highSeverityCount = report.anomalies.filter(a => a.severity === 'high' || a.severity === 'critical').length;
+    const highSeverityCount = report.anomalies.filter((a: any) => a.severity === 'high' || a.severity === 'critical').length;
 
     // Calculate score based on anomaly severity
     const totalAnomalies = report.anomalies.length;
@@ -886,7 +886,7 @@ export class QuantumDataAuditor {
       score,
       patterns: [],
       predictions: [],
-      anomalies: report.anomalies.map(a => ({
+      anomalies: report.anomalies.map((a: any) => ({
         id: a.id,
         type: 'outlier' as const,
         severity: a.severity,
@@ -901,7 +901,7 @@ export class QuantumDataAuditor {
       })),
       statistics: {
         totalAnomalies,
-        criticalAnomalies: report.anomalies.filter(a => a.severity === 'critical').length,
+        criticalAnomalies: report.anomalies.filter((a: any) => a.severity === 'critical').length,
         falsePositiveRate: 0.05,
         detectionAccuracy: report.confidence || 0.8,
         averageResolutionTime: 24
@@ -937,7 +937,7 @@ export class QuantumDataAuditor {
     const recommendations = await this.generateDataRecommendations(issues, data);
 
     // Filter critical issues
-    const criticalIssues = issues.filter(i => i.severity === 'critical');
+    const criticalIssues = issues.filter((i: any) => i.severity === 'critical');
 
     return {
       overallScore,
@@ -1209,13 +1209,13 @@ export class QuantumDataAuditor {
     return {
       totalRecords: 2500000,
       issuesFound: issues.length,
-      criticalIssues: issues.filter(i => i.severity === 'critical').length,
+      criticalIssues: issues.filter((i: any) => i.severity === 'critical').length,
       dataQualityScore: data.dataAnomalies.score,
       consistencyScore: (data.dbAudit.consistency.consistencyScore + data.cacheConsistency.score) / 2,
       integrityScore: data.dbAudit.integrity.integrityScore,
       complianceScore: data.replicationAudit.dataResidency.complianceScore,
       autoFixable: autoFixableIssues.length,
-      estimatedDataLoss: issues.filter(i => i.dataLossRisk).reduce((sum, i) => sum + i.affectedRecords, 0),
+      estimatedDataLoss: issues.filter((i: any) => i.dataLossRisk).reduce((sum, i) => sum + i.affectedRecords, 0),
       estimatedDowntime: issues.reduce((sum, i) => sum + i.estimatedFixTime, 0)
     };
   }
@@ -1241,7 +1241,7 @@ export class QuantumDataAuditor {
     const recommendations: DataRecommendation[] = [];
 
     // Critical integrity issues
-    const criticalIntegrityIssues = issues.filter(i =>
+    const criticalIntegrityIssues = issues.filter((i: any) =>
       i.category === 'Database Integrity' && i.severity === 'critical'
     );
 
@@ -1260,7 +1260,7 @@ export class QuantumDataAuditor {
     }
 
     // Replication issues
-    const replicationIssues = issues.filter(i => i.category === 'Replication');
+    const replicationIssues = issues.filter((i: any) => i.category === 'Replication');
     if (replicationIssues.length > 0) {
       recommendations.push({
         priority: 'high',
@@ -1276,7 +1276,7 @@ export class QuantumDataAuditor {
     }
 
     // Compliance violations
-    const complianceIssues = issues.filter(i => i.type === 'compliance_violation');
+    const complianceIssues = issues.filter((i: any) => i.type === 'compliance_violation');
     if (complianceIssues.length > 0) {
       recommendations.push({
         priority: 'critical',
@@ -1356,13 +1356,13 @@ Overall Score: ${report.overallScore}/100
 `;
 
   const criticalActions = [
-    ...report.criticalIssues.slice(0, 5).map(issue =>
+    ...report.criticalIssues.slice(0, 5).map((issue: any) =>
       `🚨 ${issue.title}: ${issue.description} (${issue.affectedRecords} records affected)`
     ),
     ...report.recommendations
-      .filter(rec => rec.priority === 'critical')
+      .filter((rec: any) => rec.priority === 'critical')
       .slice(0, 3)
-      .map(rec => `⚠️ ${rec.title}: ${rec.description}`)
+      .map((rec: any) => `⚠️ ${rec.title}: ${rec.description}`)
   ];
 
   const dataRisks = [

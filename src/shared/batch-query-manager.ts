@@ -73,7 +73,7 @@ class BatchQueryManager {
 
       if (parallel && batches.length > 1) {
         // Execute batches in parallel
-        const batchPromises = batches.map(batch => this.executeSingleBatch<T>(batch, timeoutMs));
+        const batchPromises = batches.map((batch: any) => this.executeSingleBatch<T>(batch, timeoutMs));
         const batchResults = await Promise.allSettled(batchPromises);
 
         for (const result of batchResults) {
@@ -107,7 +107,7 @@ class BatchQueryManager {
 
       return results;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Batch query execution failed', error);
       throw error;
     }
@@ -155,7 +155,7 @@ class BatchQueryManager {
           success: result.success
         });
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Batch insert failed', error, {
           table: tableName,
           chunk: i + 1,
@@ -222,7 +222,7 @@ class BatchQueryManager {
           recordsInChunk: chunk.length
         });
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Batch update failed', error, {
           table: tableName,
           chunk: i + 1,
@@ -275,12 +275,12 @@ class BatchQueryManager {
     const results: BatchResult<T>[] = [];
 
     // Separate read and write operations
-    const readOps = operations.filter(op => op.type === 'select');
-    const writeOps = operations.filter(op => op.type !== 'select');
+    const readOps = operations.filter((op: any) => op.type === 'select');
+    const writeOps = operations.filter((op: any) => op.type !== 'select');
 
     // Execute read operations in parallel
     if (readOps.length > 0) {
-      const readPromises = readOps.map(async (op) => {
+      const readPromises = readOps.map(async (op: any) => {
         try {
           const result = await Promise.race([
             this.db.prepare(op.query).bind(...op.params).all(),
@@ -294,7 +294,7 @@ class BatchQueryManager {
             success: true,
             data: result.results || result
           };
-        } catch (error) {
+        } catch (error: any) {
           return {
             id: op.id,
             success: false,
@@ -314,7 +314,7 @@ class BatchQueryManager {
     // Execute write operations using D1 batch API
     if (writeOps.length > 0) {
       try {
-        const statements = writeOps.map(op =>
+        const statements = writeOps.map((op: any) =>
           this.db.prepare(op.query).bind(...op.params)
         );
 
@@ -331,7 +331,7 @@ class BatchQueryManager {
             data: result.meta as T
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         // Add error results for all write operations
         for (const op of writeOps) {
           results.push({
@@ -361,7 +361,7 @@ class BatchQueryManager {
         batchKey,
         operationCount: operations.length
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Pending batch execution failed', error, { batchKey });
     } finally {
       // Clean up
@@ -419,7 +419,7 @@ class BatchQueryManager {
     }
 
     // Ensure all records have business_id
-    const enrichedRecords = records.map(record => ({
+    const enrichedRecords = records.map((record: any) => ({
       ...record,
       business_id: businessId
     }));
@@ -435,7 +435,7 @@ class BatchQueryManager {
     `;
 
     const params = enrichedRecords.flatMap(record =>
-      columns.map(col => record[col])
+      columns.map((col: any) => record[col])
     );
 
     return { query, params };
@@ -451,7 +451,7 @@ class BatchQueryManager {
     businessId: string
   ): { query: string; params: any[] } {
     const columns = Object.keys(data);
-    const setClause = columns.map(col => `${col} = ?`).join(', ');
+    const setClause = columns.map((col: any) => `${col} = ?`).join(', ');
 
     const query = `
       UPDATE ${tableName}

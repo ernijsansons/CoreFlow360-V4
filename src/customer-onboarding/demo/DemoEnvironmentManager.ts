@@ -304,7 +304,7 @@ class DemoEnvironmentManager {
     ];
 
     // Store scenarios for later use
-    scenarios.forEach(scenario => {
+    scenarios.forEach((scenario: any) => {
       this.scenarios.set(scenario.id, scenario);
     });
 
@@ -420,7 +420,7 @@ class DemoEnvironmentManager {
 
       // Default to true for demo purposes
       return Math.random() > 0.3; // 70% success rate for demo
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }

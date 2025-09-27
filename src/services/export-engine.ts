@@ -143,7 +143,7 @@ export class ExportEngine extends DurableObject {
 
       return downloadUrl
 
-    } catch (error) {
+    } catch (error: any) {
       await this.updateProgress(progressKey, {
         stage: 'failed',
         progress: 0,
@@ -621,7 +621,7 @@ export class ExportEngine extends DurableObject {
     server.accept()
 
     // Handle export progress subscriptions
-    server.addEventListener('message', async (event) => {
+    server.addEventListener('message', async (event: any) => {
       const message = JSON.parse(event.data)
 
       if (message.type === 'subscribe' && message.exportId) {

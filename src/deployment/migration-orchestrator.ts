@@ -282,17 +282,17 @@ export class MigrationOrchestrator {
 
       this.logger.info('Migration orchestration completed', {
         correlationId,
-        successCount: results.filter(r => r.status === 'SUCCESS').length,
-        failureCount: results.filter(r => r.status === 'FAILED').length
+        successCount: results.filter((r: any) => r.status === 'SUCCESS').length,
+        failureCount: results.filter((r: any) => r.status === 'FAILED').length
       });
 
       return results;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Migration orchestration failed', error, { correlationId });
 
       // Emergency rollback if any migrations were partially applied
-      const appliedMigrations = results.filter(r => r.status !== 'FAILED');
+      const appliedMigrations = results.filter((r: any) => r.status !== 'FAILED');
       if (appliedMigrations.length > 0) {
         await this.emergencyRollback(appliedMigrations, correlationId);
       }
@@ -381,7 +381,7 @@ export class MigrationOrchestrator {
           affectedRows: result.affectedRows
         });
 
-      } catch (error) {
+      } catch (error: any) {
         const result: MigrationResult = {
           status: 'FAILED',
           duration: Date.now() - startTime,
@@ -471,7 +471,7 @@ export class MigrationOrchestrator {
 
           results.push(result);
 
-        } catch (error) {
+        } catch (error: any) {
           results.push({
             status: 'FAILED',
             duration: Date.now() - startTime,
@@ -514,7 +514,7 @@ export class MigrationOrchestrator {
 
       this.logger.info('Blue-green migration completed successfully', { correlationId });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Blue-green migration failed', error, { correlationId });
 
       // Ensure traffic stays on blue database
@@ -573,7 +573,7 @@ export class MigrationOrchestrator {
 
         results.push(result);
 
-      } catch (error) {
+      } catch (error: any) {
         const result: MigrationResult = {
           status: 'FAILED',
           duration: Date.now() - startTime,
@@ -631,7 +631,7 @@ export class MigrationOrchestrator {
         correlationId,
         stage: i + 1,
         totalStages: stages.length,
-        migrations: stage.map(m => m.name)
+        migrations: stage.map((m: any) => m.name)
       });
 
       try {
@@ -656,7 +656,7 @@ export class MigrationOrchestrator {
           duration: Date.now() - stageStartTime
         });
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Migration stage failed', error, {
           correlationId,
           stage: i + 1
@@ -698,7 +698,7 @@ export class MigrationOrchestrator {
 
         results.push(result);
 
-      } catch (error) {
+      } catch (error: any) {
         const result: MigrationResult = {
           status: 'FAILED',
           duration: Date.now() - startTime,
@@ -772,7 +772,7 @@ export class MigrationOrchestrator {
   }
 
   private async executeSchemaChanges(migration: Migration, shadowTables: ShadowTable[]): Promise<void> {
-    await this.database.executeTransaction(async (tx) => {
+    await this.database.executeTransaction(async (tx: any) => {
       for (const table of shadowTables) {
         await tx.execute(migration.upSql.replace(table.originalName, table.shadowName));
       }
@@ -780,7 +780,7 @@ export class MigrationOrchestrator {
   }
 
   private async atomicTableSwap(migration: Migration, shadowTables: ShadowTable[]): Promise<void> {
-    await this.database.executeTransaction(async (tx) => {
+    await this.database.executeTransaction(async (tx: any) => {
       for (const table of shadowTables) {
         // Rename original table to backup
         await tx.execute(`ALTER TABLE ${table.originalName} RENAME TO ${table.originalName}_backup_${Date.now()}`);
@@ -825,12 +825,12 @@ export class MigrationOrchestrator {
     this.logger.warn('Rolling back migration', { migration: migration.name });
 
     try {
-      await this.database.executeTransaction(async (tx) => {
+      await this.database.executeTransaction(async (tx: any) => {
         await tx.execute(migration.downSql);
       });
 
       this.logger.info('Migration rollback completed', { migration: migration.name });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Migration rollback failed', error, { migration: migration.name });
       throw error;
     }
@@ -1011,7 +1011,7 @@ export class MigrationOrchestrator {
         rollbackPoint: await this.createRollbackPoint(migration),
         verification: await this.verifyMigration(migration)
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'FAILED',
         duration: Date.now() - startTime,
@@ -1047,7 +1047,7 @@ export class MigrationOrchestrator {
   private async executeMigrationDirect(migration: Migration): Promise<DirectMigrationResult> {
     const startTime = Date.now();
 
-    await this.database.executeTransaction(async (tx) => {
+    await this.database.executeTransaction(async (tx: any) => {
       await tx.execute(migration.upSql);
     });
 

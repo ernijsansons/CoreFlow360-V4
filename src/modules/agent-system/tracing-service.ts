@@ -165,7 +165,7 @@ class TracingService {
 
     // Check if we should export
     if (this.completedSpans.length >= 100) {
-      this.exportSpans().catch(error => {
+      this.exportSpans().catch((error: any) => {
         this.logger.error('Failed to export spans', error);
       });
     }
@@ -221,7 +221,7 @@ class TracingService {
         const result = await fn(...args);
         this.endSpan(span.spanId);
         return result;
-      } catch (error) {
+      } catch (error: any) {
         this.endSpan(span.spanId, error as Error);
         throw error;
       }
@@ -261,7 +261,7 @@ class TracingService {
     const baggage: Record<string, string> = {};
 
     if (baggageHeader) {
-      baggageHeader.split(',').forEach(item => {
+      baggageHeader.split(',').forEach((item: any) => {
         const [key, value] = item.trim().split('=');
         if (key && value) {
           baggage[key] = decodeURIComponent(value);
@@ -361,9 +361,9 @@ class TracingService {
           ORDER BY start_time ASC
         `).bind(traceId).all();
 
-        const dbSpans = (result.results || []).map(row => this.deserializeSpan(row));
+        const dbSpans = (result.results || []).map((row: any) => this.deserializeSpan(row));
         spans.push(...dbSpans);
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to fetch spans from database', error);
       }
     }
@@ -417,7 +417,7 @@ class TracingService {
 
       this.logger.info('Exported spans', { count: spansToExport.length });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to export spans', error);
       // Re-add spans to be exported later
       this.completedSpans.push(...spansToExport);
@@ -452,7 +452,7 @@ class TracingService {
     const buffer = new Uint8Array(16);
     crypto.getRandomValues(buffer);
     return Array.from(buffer)
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b: any) => b.toString(16).padStart(2, '0'))
       .join('');
   }
 
@@ -464,7 +464,7 @@ class TracingService {
     const buffer = new Uint8Array(8);
     crypto.getRandomValues(buffer);
     return Array.from(buffer)
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b: any) => b.toString(16).padStart(2, '0'))
       .join('');
   }
 
@@ -490,7 +490,7 @@ class TracingService {
    */
   private startExporter(): void {
     this.exportInterval = setInterval(() => {
-      this.exportSpans().catch(error => {
+      this.exportSpans().catch((error: any) => {
         this.logger.error('Export interval failed', error);
       });
     }, this.config.exportInterval) as any;

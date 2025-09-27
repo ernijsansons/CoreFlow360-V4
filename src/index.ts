@@ -16,13 +16,13 @@ import { addSecurityHeaders, rateLimitByIP, validateJWT,
   detectSuspiciousActivity, logSecurityEvent, getCorsHeaders } from './middleware/security';
 import { createAnalyticsDashboard, AnalyticsDashboard } from './analytics/dashboard';
 import { SupernovaIntegration } from './supernova/supernova-integration';
-import { memoryOptimizer } from './monitoring/memory-optimizer';
+import { MemoryOptimizer } from './monitoring/memory-optimizer';
 import { handleAPIRequest } from './routes'; // Import our Hono API routes
 
 // SECURITY IMPORTS
 import { EnvironmentValidator } from './shared/environment-validator';
 import { TokenBlacklist } from './modules/auth/token-blacklist';
-import { createJWTRotation, JWTSecretRotation } from './modules/auth/jwt-secret-rotation';
+import { JWTSecretRotation } from './modules/auth/jwt-secret-rotation';
 import { EnterpriseRateLimiter } from './security/enterprise-rate-limiter';
 import { RateLimitMonitor } from './security/rate-limit-monitor';
 import type { Ai } from '@cloudflare/ai';
@@ -47,6 +47,7 @@ let ws: WebSocketService | null = null;
 let queue: QueueHandler | null = null;
 let analytics: AnalyticsDashboard | null = null;
 let supernova: SupernovaIntegration | null = null;
+let memoryOptimizer: MemoryOptimizer | null = null;
 
 // SECURITY: Global security service instances
 let tokenBlacklist: TokenBlacklist | null = null;
@@ -72,7 +73,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
     console.log('🔒 Validating environment security configuration...');
     EnvironmentValidator.validate(env);
     console.log('✅ Environment validation passed - JWT Authentication Bypass vulnerability mitigated');
-  } catch (error) {
+  } catch (error: any) {
     console.error('🚨 CRITICAL SECURITY ERROR: Environment validation failed');
     console.error(error);
     throw new Error('Application startup blocked due to security configuration errors');
@@ -80,11 +81,11 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
   
   try {
     // Initialize memory optimizer first (critical dependency)
-    memoryOptimizer.registerCleanupCallback(async () => {
+    memoryOptimizer?.registerCleanupCallback(async () => {
       if (db && 'cleanup' in db && typeof (db as any).cleanup === 'function') await (db as any).cleanup();
     });
     
-    memoryOptimizer.registerCleanupCallback(async () => {
+    memoryOptimizer?.registerCleanupCallback(async () => {
       if (cf && 'clearCaches' in cf && typeof (cf as any).clearCaches === 'function') await (cf as any).clearCaches();
     });
     
@@ -110,8 +111,8 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
 
       // SECURITY: Initialize token blacklist system
       Promise.resolve().then(async () => {
-        if (env.KV_SESSION) {
-          tokenBlacklist = new TokenBlacklist(env.KV_SESSION);
+        if (env.KV_AUTH) {
+          tokenBlacklist = new TokenBlacklist(env);
           console.log('🛡️ Token blacklist system initialized');
         }
         return tokenBlacklist;
@@ -119,14 +120,8 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
 
       // SECURITY: Initialize JWT rotation system
       Promise.resolve().then(async () => {
-        if (env.KV_SESSION) {
-          jwtRotation = createJWTRotation(env.KV_SESSION, {
-            rotationIntervalHours: 24,
-            gracePeriodHours: 2,
-            maxKeyAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-            emergencyRotationEnabled: true
-          });
-          await jwtRotation.initialize();
+        if (env.KV_AUTH) {
+          jwtRotation = new JWTSecretRotation(env);
           console.log('🔄 JWT secret rotation system initialized');
         }
         return jwtRotation;
@@ -153,7 +148,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
     const coreResults = await Promise.allSettled(coreInfraPromises);
     
     // Check if core services initialized successfully
-    const failedCore = coreResults.filter(result => result.status === 'rejected');
+    const failedCore = coreResults.filter((result: any) => result.status === 'rejected');
     if (failedCore.length > 0) {
       console.warn('Some core services failed to initialize:', failedCore);
     }
@@ -168,7 +163,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
           ws = await createWebSocketService((env as any).REALTIME, 'default');
           return ws;
         })
-          .catch(error => { console.warn('WebSocket service failed:', error); return null; })
+          .catch((error: any) => { console.warn('WebSocket service failed:', error); return null; })
       );
     }
     
@@ -178,7 +173,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
           queue = await createQueueHandler();
           return queue;
         })
-          .catch(error => { console.warn('Queue handler failed:', error); return null; })
+          .catch((error: any) => { console.warn('Queue handler failed:', error); return null; })
       );
     }
     
@@ -188,7 +183,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
           analytics = await createAnalyticsDashboard(env.ANALYTICS as any, (env as any).PERFORMANCE_ANALYTICS, db!, ai!);
           return analytics;
         })
-          .catch(error => { console.warn('Analytics dashboard failed:', error); return null; })
+          .catch((error: any) => { console.warn('Analytics dashboard failed:', error); return null; })
       );
     }
     
@@ -200,6 +195,10 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       Promise.resolve().then(() => {
         supernova = new SupernovaIntegration();
         return supernova;
+      }),
+      Promise.resolve().then(() => {
+        memoryOptimizer = new MemoryOptimizer(env);
+        return memoryOptimizer;
       })
     ];
     
@@ -211,8 +210,8 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
     // Calculate success rate
     const totalServices = coreInfraPromises.length + dependentServicesPromises.length + lightweightPromises.length;
     const successfulServices = [
-      ...coreResults.filter(r => r.status === 'fulfilled'),
-      ...dependentResults.filter(r => r.status === 'fulfilled'),
+      ...coreResults.filter((r: any) => r.status === 'fulfilled'),
+      ...dependentResults.filter((r: any) => r.status === 'fulfilled'),
       ...lightweightPromises
     ].length;
     
@@ -232,7 +231,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       }).catch(() => {}); // Don't block on analytics failure
     }
     
-  } catch (error) {
+  } catch (error: any) {
     const failureTime = performance.now() - startTime;
     initializationComplete = false;
     console.error(`❌ Critical service initialization failure after ${failureTime.toFixed(2)}ms:`, error);
@@ -305,7 +304,7 @@ router.post('/api/supernova/integrate', async (request: Request, env: Env) => {
     return new Response(JSON.stringify(result), {
       headers: { 'Content-Type': 'application/json' }
     });
-  } catch (error) {
+  } catch (error: any) {
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -397,7 +396,7 @@ const requestProcessor = {
       if (responseTime > 200) {
         console.warn(`⚠️ Slow request: ${method} ${pathname} - ${responseTime.toFixed(2)}ms (${status})`);
       }
-    } catch (error) {
+    } catch (error: any) {
       // Don't block on tracking failures
       console.debug('Performance tracking failed:', error);
     }
@@ -438,7 +437,7 @@ export default {
       }
       
       // Track request start (non-blocking)
-      (memoryOptimizer as any).trackObject({ requestId, startTime: requestStart }, `request-${requestId}`);
+      (memoryOptimizer as any)?.trackObject?.({ requestId, startTime: requestStart }, `request-${requestId}`);
       
       // Fast path for health checks and static assets
       if (url.pathname === '/health' || url.pathname.startsWith('/static/')) {
@@ -450,7 +449,7 @@ export default {
       const [allowedOrigins, corsHeaders] = await Promise.all([
         Promise.resolve(
           env.ALLOWED_ORIGINS 
-            ? env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+            ? env.ALLOWED_ORIGINS.split(',').map((origin: any) => origin.trim())
             : [
                 'https://app.coreflow360.com',
                 'https://dashboard.coreflow360.com',
@@ -460,7 +459,7 @@ export default {
         Promise.resolve(
           getCorsHeaders(
             request, 
-            env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || [],
+            env.ALLOWED_ORIGINS?.split(',').map((origin: any) => origin.trim()) || [],
             true, // allowCredentials
             env.ENVIRONMENT || 'production'
           )
@@ -469,7 +468,22 @@ export default {
 
       // Apply enterprise rate limiting before request processing
       if (enterpriseRateLimiter) {
-        const rateLimitMiddleware = enterpriseRateLimiter.createMiddleware();
+        // Check rate limit
+        const clientIp = request.headers.get('CF-Connecting-IP') || 'unknown';
+        const rateLimitResult = await enterpriseRateLimiter.checkLimit(clientIp);
+
+        if (!rateLimitResult.allowed) {
+          return new Response(JSON.stringify({
+            error: 'Too many requests',
+            retryAfter: rateLimitResult.retryAfter
+          }), {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Retry-After': String(rateLimitResult.retryAfter || 60)
+            }
+          });
+        }
 
         // Create a middleware context compatible with Hono
         const middlewareContext = {
@@ -501,13 +515,17 @@ export default {
         // Check rate limiting
         try {
           let rateLimitPassed = false;
-          const rateLimitResponse = await rateLimitMiddleware(middlewareContext as any, async () => {
-            rateLimitPassed = true;
-          });
-
-          // If rate limit failed, return early
-          if (!rateLimitPassed && rateLimitResponse) {
-            return rateLimitResponse;
+          const rateLimitResponse = await rateLimitByIP(request, env.KV_RATE_LIMIT_METRICS || env.RATE_LIMITER);
+          
+          // If rate limit exceeded, return error response
+          if (!rateLimitResponse.allowed) {
+            return new Response(JSON.stringify({
+              error: 'Rate limit exceeded',
+              retryAfter: rateLimitResponse.resetTime
+            }), {
+              status: 429,
+              headers: { 'Content-Type': 'application/json' }
+            });
           }
         } catch (rateLimitError) {
           console.warn('Rate limiting error, proceeding with request:', rateLimitError);
@@ -539,7 +557,7 @@ export default {
       
       return optimizedResponse;
       
-    } catch (error) {
+    } catch (error: any) {
       const responseTime = performance.now() - requestStart;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
@@ -574,7 +592,7 @@ export default {
     
     try {
       await (queue as any).processBatch(batch);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Queue processing error:', error);
     }
   },
@@ -587,7 +605,7 @@ export default {
     
     try {
       return await (ws as any).handleRequest(request);
-    } catch (error) {
+    } catch (error: any) {
       console.error('WebSocket error:', error);
       return new Response('WebSocket error', { status: 500 });
     }

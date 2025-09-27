@@ -379,7 +379,7 @@ export class DocumentationGenerator {
 
       return outputs;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Documentation generation failed', error, { correlationId });
       throw error;
     }
@@ -771,7 +771,7 @@ This API supports two authentication methods:
 
 ## Base URLs
 
-${spec.servers.map(server => `- **${server.description}**: ${server.url}`).join('\n')}
+${spec.servers.map((server: any) => `- **${server.description}**: ${server.url}`).join('\n')}
 
 ## Endpoints
 
@@ -1186,7 +1186,7 @@ Welcome to the CoreFlow360 V4 documentation. This documentation
 
 ## Documentation Sections
 
-${outputs.map(output => `- [${output.metadata.title}](${output.path})`).join('\n')}
+${outputs.map((output: any) => `- [${output.metadata.title}](${output.path})`).join('\n')}
 
 ## Quick Links
 - [API Documentation](./api/README.md)
@@ -1210,7 +1210,7 @@ ${new Date().toISOString()}
         author: 'CoreFlow360 Documentation Generator',
         tags: ['index', 'navigation', 'overview'],
         last_updated: Date.now(),
-        dependencies: outputs.map(o => o.path)
+        dependencies: outputs.map((o: any) => o.path)
       },
       generated_at: Date.now()
     };

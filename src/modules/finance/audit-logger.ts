@@ -85,7 +85,7 @@ export class FinanceAuditLogger {
         businessId: validBusinessId
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to log finance audit', error, {
         entityType,
         entityId,
@@ -163,7 +163,7 @@ export class FinanceAuditLogger {
 
     const result = await this.db.prepare(query).bind(...params).all();
 
-    const records = (result.results || []).map(row => this.mapToAuditTrail(row));
+    const records = (result.results || []).map((row: any) => this.mapToAuditTrail(row));
 
     return { records, total };
   }
@@ -252,7 +252,7 @@ export class FinanceAuditLogger {
       LIMIT 20
     `).bind(...params).all();
 
-    const recentActivity = (recentResult.results || []).map(row => this.mapToAuditTrail(row));
+    const recentActivity = (recentResult.results || []).map((row: any) => this.mapToAuditTrail(row));
 
     return {
       totalActions,
@@ -401,7 +401,7 @@ export class FinanceAuditLogger {
 
     // Convert to hex string
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b: any) => b.toString(16).padStart(2, '0')).join('');
   }
 
   /**

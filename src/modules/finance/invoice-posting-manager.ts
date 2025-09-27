@@ -172,7 +172,7 @@ class InvoicePostingManager {
         journalEntryId: journalEntry.id
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to post invoice to ledger', error, {
         invoiceId,
         businessId: validBusinessId
@@ -334,7 +334,7 @@ class InvoicePostingManager {
         journalEntryId: journalEntry.id
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to record payment', error, {
         invoiceId: request.invoiceId,
         amount: request.amount,
@@ -447,7 +447,7 @@ class InvoicePostingManager {
 
       return { journalEntryId: journalEntry.id };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to apply early payment discount', error, {
         invoiceId,
         discountAmount,
@@ -563,7 +563,7 @@ class InvoicePostingManager {
 
       return { journalEntryId: journalEntry.id };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to write off bad debt', error, {
         invoiceId,
         writeOffAmount,
@@ -654,7 +654,7 @@ class InvoicePostingManager {
             if (this.evaluatePaymentRule(conditions, { amount, currency, paymentMethod })) {
               return rule.target_account_id as string;
             }
-          } catch (error) {
+          } catch (error: any) {
             this.logger.warn('Invalid payment rule conditions', { ruleId: rule.id, error });
           }
         }
@@ -702,7 +702,7 @@ class InvoicePostingManager {
       const config = await this.getPostingConfiguration(validBusinessId);
       return config.cashAccountId;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get cash account for payment method', error, {
         paymentMethod,
         businessId: validBusinessId
@@ -758,7 +758,7 @@ class InvoicePostingManager {
       }
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -802,7 +802,7 @@ class InvoicePostingManager {
 
       return accountResult ? accountResult.account_id as string : null;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get fees account for payment method', error, {
         paymentMethod,
         businessId: validBusinessId

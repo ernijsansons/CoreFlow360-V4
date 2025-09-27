@@ -157,7 +157,7 @@ export class DashboardStream {
   private async getChartData(widget: WidgetConfig, businessId: string, timeRange: any): Promise<any> {
     const metrics = await this.collector.getMetrics(businessId, timeRange);
 
-    const series = metrics.map(m => ({
+    const series = metrics.map((m: any) => ({
       timestamp: m.timestamp,
       value: this.extractValue(m, widget.query),
       dimensions: m.dimensions
@@ -167,7 +167,7 @@ export class DashboardStream {
       type: 'time-series',
       series: [{
         name: widget.title,
-        data: series.map(s => [s.timestamp, s.value])
+        data: series.map((s: any) => [s.timestamp, s.value])
       }],
       aggregation: widget.visualization?.aggregation || 'avg'
     };
@@ -190,7 +190,7 @@ export class DashboardStream {
       return { type: 'stat', value: 0, unit: '', trend: 'neutral' };
     }
 
-    const values = metrics.map(m => this.extractValue(m, widget.query));
+    const values = metrics.map((m: any) => this.extractValue(m, widget.query));
     const currentValue = values[values.length - 1];
     const previousValue = values[Math.floor(values.length * 0.8)] || currentValue;
 
@@ -229,11 +229,11 @@ export class DashboardStream {
 
     const results = await this.collector.queryWithParams(sql, [businessId, timeRange.start, timeRange.end]);
 
-    const hours = [...new Set(results.map(r => r.hour))].sort();
-    const paths = [...new Set(results.map(r => r.path))].sort();
+    const hours = [...new Set(results.map((r: any) => r.hour))].sort();
+    const paths = [...new Set(results.map((r: any) => r.path))].sort();
 
-    const data = hours.map(hour =>
-      paths.map(path => {
+    const data = hours.map((hour: any) =>
+      paths.map((path: any) => {
         const result = results.find(r => r.hour === hour && r.path === path);
         return result ? result.avg_latency : 0;
       })
@@ -263,15 +263,15 @@ export class DashboardStream {
     const results = await this.collector.query(sql);
 
     const nodes = new Set<string>();
-    results.forEach(r => {
+    results.forEach((r: any) => {
       nodes.add(r.source);
       nodes.add(r.target);
     });
 
     return {
       type: 'topology',
-      nodes: Array.from(nodes).map(id => ({ id, label: id })),
-      edges: results.map(r => ({
+      nodes: Array.from(nodes).map((id: any) => ({ id, label: id })),
+      edges: results.map((r: any) => ({
         source: r.source,
         target: r.target,
         weight: r.requests,
@@ -285,7 +285,7 @@ export class DashboardStream {
 
     return {
       type: 'alert-list',
-      alerts: alerts.map(alert => ({
+      alerts: alerts.map((alert: any) => ({
         id: alert.id,
         name: alert.name,
         severity: alert.severity,
@@ -331,7 +331,7 @@ export class DashboardStream {
         : query + ' WHERE business_id = ?';
 
       return await this.collector.queryWithParams(modifiedQuery, [businessId]);
-    } catch (error) {
+    } catch (error: any) {
       return { error: (error as Error).message };
     }
   }
@@ -395,7 +395,7 @@ export class DashboardStream {
   private exportToCSV(data: any[]): string {
     const rows: string[] = [];
 
-    data.forEach(item => {
+    data.forEach((item: any) => {
       if (item.data.type === 'table') {
         rows.push(`\n# ${item.widget}`);
         rows.push(item.data.columns.join(','));
@@ -434,7 +434,7 @@ export class DashboardStream {
     for (const subscription of this.subscriptions.values()) {
       try {
         await this.sendRealtimeUpdates(subscription);
-      } catch (error) {
+      } catch (error: any) {
       }
     }
   }
@@ -468,7 +468,7 @@ export class DashboardStream {
 
     // Check for new alerts
     const alerts = await this.aiEngine.analyzeMetrics(businessId);
-    const newAlerts = alerts.filter(alert => alert.timestamp > lastUpdate);
+    const newAlerts = alerts.filter((alert: any) => alert.timestamp > lastUpdate);
 
     if (newAlerts.length > 0) {
       this.sendMessage(subscription, {

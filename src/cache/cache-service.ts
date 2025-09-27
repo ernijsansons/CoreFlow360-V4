@@ -100,7 +100,7 @@ export class CacheService {
       });
       
       // Delete in parallel batches
-      const deletions = result.keys.map(key => this.kv.delete(key.name));
+      const deletions = result.keys.map((key: any) => this.kv.delete(key.name));
       await Promise.allSettled(deletions);
       
       cursor = result.list_complete ? undefined : result.cursor;
@@ -113,11 +113,11 @@ export class CacheService {
       const keys = await cache.keys();
       
       const deletions = keys
-        .filter(request => request.url.includes(prefix))
-        .map(request => cache.delete(request));
+        .filter((request: any) => request.url.includes(prefix))
+        .map((request: any) => cache.delete(request));
         
       await Promise.allSettled(deletions);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Cache API invalidation failed:', error);
     }
   }
@@ -126,7 +126,7 @@ export class CacheService {
     try {
       const cache = await caches.open('default');
       await cache.delete(key);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Cache API key deletion failed for ${key}:`, error);
     }
   }
@@ -273,7 +273,7 @@ export class CacheService {
     const results: Record<string, any> = {};
 
     // Process in parallel for better performance
-    const promises = keys.map(async (key) => {
+    const promises = keys.map(async (key: any) => {
       const value = await this.get(key);
       if (value !== null) {
         results[key] = value;
@@ -293,7 +293,7 @@ export class CacheService {
   }
 
   async deleteMany(keys: string[]): Promise<void> {
-    const promises = keys.map(key => this.invalidate(key));
+    const promises = keys.map((key: any) => this.invalidate(key));
     await Promise.all(promises);
   }
 }

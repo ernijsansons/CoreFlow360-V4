@@ -91,7 +91,7 @@ export class LinkedInChannel extends BaseChannel {
         await this.trackProfileView(recipient.linkedin_url);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       message.status = 'failed';
       message.error_message = error instanceof Error ? error.message : 'Unknown error';
       await this.updateMessageStatus(message.id, 'failed', {

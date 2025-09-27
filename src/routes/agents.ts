@@ -42,7 +42,7 @@ agents.use('*', async (c, next) => {
 });
 
 // === Agent System Status and Health ===
-agents.get('/status', async (c) => {
+agents.get('/status', async (c: any) => {
   try {
     const bridge = c.get('agentBridge');
     const status = await bridge.getAgentStatus();
@@ -52,7 +52,7 @@ agents.get('/status', async (c) => {
       agents: Object.fromEntries(status),
       timestamp: new Date()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       connected: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -61,7 +61,7 @@ agents.get('/status', async (c) => {
   }
 });
 
-agents.get('/health', async (c) => {
+agents.get('/health', async (c: any) => {
   try {
     const response = await fetch(`${c.env.AGENT_SYSTEM_URL || 'http://localhost:3000'}/health`);
     const health = await response.json();
@@ -74,7 +74,7 @@ agents.get('/health', async (c) => {
         syncActive: c.get('dataSync').getSyncStatistics().isRunning
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       agentSystem: { status: 'unreachable' },
       integration: {
@@ -87,20 +87,20 @@ agents.get('/health', async (c) => {
 });
 
 // === Agent Capabilities ===
-agents.get('/capabilities', async (c) => {
+agents.get('/capabilities', async (c: any) => {
   try {
     const connector = c.get('agentConnector');
     const capabilities = await connector.getAvailableAgents();
 
     return c.json({ capabilities });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
   }
 });
 
-agents.get('/capabilities/:agentId', async (c) => {
+agents.get('/capabilities/:agentId', async (c: any) => {
   try {
     const connector = c.get('agentConnector');
     const agentId = c.req.param('agentId');
@@ -111,7 +111,7 @@ agents.get('/capabilities/:agentId', async (c) => {
     }
 
     return c.json({ capability });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
@@ -119,7 +119,7 @@ agents.get('/capabilities/:agentId', async (c) => {
 });
 
 // === Decision Making ===
-agents.post('/decision', async (c) => {
+agents.post('/decision', async (c: any) => {
   try {
     const bridge = c.get('agentBridge');
     const context = await c.req.json();
@@ -133,14 +133,14 @@ agents.post('/decision', async (c) => {
     });
 
     return c.json({ decision });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
   }
 });
 
-agents.post('/agent/:agentId/request', async (c) => {
+agents.post('/agent/:agentId/request', async (c: any) => {
   try {
     const connector = c.get('agentConnector');
     const agentId = c.req.param('agentId');
@@ -155,7 +155,7 @@ agents.post('/agent/:agentId/request', async (c) => {
     });
 
     return c.json({ response });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
@@ -163,7 +163,7 @@ agents.post('/agent/:agentId/request', async (c) => {
 });
 
 // === Workflow Integration ===
-agents.post('/workflow/:workflowId/connect', async (c) => {
+agents.post('/workflow/:workflowId/connect', async (c: any) => {
   try {
     const bridge = c.get('agentBridge');
     const workflowId = c.req.param('workflowId');
@@ -175,7 +175,7 @@ agents.post('/workflow/:workflowId/connect', async (c) => {
       success: true,
       message: `Workflow ${workflowId} connected to agent system`
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -183,7 +183,7 @@ agents.post('/workflow/:workflowId/connect', async (c) => {
   }
 });
 
-agents.post('/workflow/:workflowId/execute', async (c) => {
+agents.post('/workflow/:workflowId/execute', async (c: any) => {
   try {
     const bridge = c.get('agentBridge');
     const workflowId = c.req.param('workflowId');
@@ -192,7 +192,7 @@ agents.post('/workflow/:workflowId/execute', async (c) => {
     const result = await bridge.executeWithAgents(workflowId, input);
 
     return c.json({ result });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
@@ -200,7 +200,7 @@ agents.post('/workflow/:workflowId/execute', async (c) => {
 });
 
 // === Multi-Agent Collaboration ===
-agents.post('/collaborate', async (c) => {
+agents.post('/collaborate', async (c: any) => {
   try {
     const connector = c.get('agentConnector');
     const { task, agents: requiredAgents, context } = await c.req.json();
@@ -211,14 +211,14 @@ agents.post('/collaborate', async (c) => {
       results: Object.fromEntries(result.results),
       consensus: result.consensus
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
   }
 });
 
-agents.post('/orchestrate', async (c) => {
+agents.post('/orchestrate', async (c: any) => {
   try {
     const connector = c.get('agentConnector');
     const workflowDefinition = await c.req.json();
@@ -226,7 +226,7 @@ agents.post('/orchestrate', async (c) => {
     const result = await connector.orchestrateWorkflow(workflowDefinition);
 
     return c.json({ result });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
@@ -234,7 +234,7 @@ agents.post('/orchestrate', async (c) => {
 });
 
 // === Data Synchronization ===
-agents.post('/sync/start', async (c) => {
+agents.post('/sync/start', async (c: any) => {
   try {
     const sync = c.get('dataSync');
     await sync.startSync();
@@ -243,7 +243,7 @@ agents.post('/sync/start', async (c) => {
       success: true,
       message: 'Data synchronization started'
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -251,7 +251,7 @@ agents.post('/sync/start', async (c) => {
   }
 });
 
-agents.post('/sync/stop', async (c) => {
+agents.post('/sync/stop', async (c: any) => {
   try {
     const sync = c.get('dataSync');
     sync.stopSync();
@@ -260,7 +260,7 @@ agents.post('/sync/stop', async (c) => {
       success: true,
       message: 'Data synchronization stopped'
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -268,26 +268,26 @@ agents.post('/sync/stop', async (c) => {
   }
 });
 
-agents.post('/sync/full', async (c) => {
+agents.post('/sync/full', async (c: any) => {
   try {
     const sync = c.get('dataSync');
     const job = await sync.performFullSync();
 
     return c.json({ job });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
   }
 });
 
-agents.get('/sync/status', async (c) => {
+agents.get('/sync/status', async (c: any) => {
   try {
     const sync = c.get('dataSync');
     const statistics = sync.getSyncStatistics();
 
     return c.json({ statistics });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
@@ -295,27 +295,27 @@ agents.get('/sync/status', async (c) => {
 });
 
 // === Metrics and Analytics ===
-agents.get('/metrics', async (c) => {
+agents.get('/metrics', async (c: any) => {
   try {
     const connector = c.get('agentConnector');
     const metrics = await connector.getAgentMetrics();
 
     return c.json({ metrics });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
   }
 });
 
-agents.get('/metrics/:agentId', async (c) => {
+agents.get('/metrics/:agentId', async (c: any) => {
   try {
     const connector = c.get('agentConnector');
     const agentId = c.req.param('agentId');
     const metrics = await connector.getAgentMetrics(agentId);
 
     return c.json({ metrics });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
@@ -323,7 +323,7 @@ agents.get('/metrics/:agentId', async (c) => {
 });
 
 // === Real-time Streaming ===
-agents.get('/stream', async (c) => {
+agents.get('/stream', async (c: any) => {
   try {
     const bridge = c.get('agentBridge');
 
@@ -361,7 +361,7 @@ agents.get('/stream', async (c) => {
     });
 
     return new Response(stream, { headers });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
@@ -369,7 +369,7 @@ agents.get('/stream', async (c) => {
 });
 
 // === WebSocket endpoint for bidirectional communication ===
-agents.get('/ws', async (c) => {
+agents.get('/ws', async (c: any) => {
   const upgradeHeader = c.req.header('Upgrade');
   if (!upgradeHeader || upgradeHeader !== 'websocket') {
     return c.json({ error: 'Expected WebSocket' }, 426);
@@ -388,7 +388,7 @@ agents.get('/ws', async (c) => {
     }));
   };
 
-  socket.onmessage = async (event) => {
+  socket.onmessage = async (event: any) => {
     try {
       const message = JSON.parse(event.data);
 
@@ -412,7 +412,7 @@ agents.get('/ws', async (c) => {
         default:
           socket.send(JSON.stringify({ type: 'error', message: 'Unknown message type' }));
       }
-    } catch (error) {
+    } catch (error: any) {
       socket.send(JSON.stringify({
         type: 'error',
         message: error instanceof Error ? error.message : 'Processing error'
@@ -427,7 +427,7 @@ agents.get('/ws', async (c) => {
 });
 
 // === Configuration Management ===
-agents.get('/config', async (c) => {
+agents.get('/config', async (c: any) => {
   try {
     return c.json({
       agentEndpoint: c.env.AGENT_SYSTEM_URL || 'http://localhost:3000',
@@ -436,14 +436,14 @@ agents.get('/config', async (c) => {
       realtimeEnabled: true,
       bidirectionalSync: true
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 500);
   }
 });
 
-agents.put('/config', async (c) => {
+agents.put('/config', async (c: any) => {
   try {
     const config = await c.req.json();
 
@@ -455,7 +455,7 @@ agents.put('/config', async (c) => {
       message: 'Configuration updated',
       config
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -464,7 +464,7 @@ agents.put('/config', async (c) => {
 });
 
 // === Testing and Debugging ===
-agents.post('/test', async (c) => {
+agents.post('/test', async (c: any) => {
   try {
     const bridge = c.get('agentBridge');
 
@@ -488,7 +488,7 @@ agents.post('/test', async (c) => {
       testResult: decision,
       message: 'Agent integration test successful'
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Test failed'

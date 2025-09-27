@@ -30,11 +30,8 @@ export class StartupValidator {
       this.validateServiceBindings(env);
 
 
-    } catch (error) {
-      throw new SecurityError('Application startup validation failed', {
-        code: 'STARTUP_VALIDATION_FAILED',
-        originalError: error instanceof Error ? error.message : String(error)
-      });
+    } catch (error: any) {
+      throw new SecurityError('Application startup validation failed');
     }
   }
 
@@ -51,7 +48,7 @@ export class StartupValidator {
       }
     }
 
-    const configuredOptional = optionalDatabases.filter(db => env[db as keyof Env]);
+    const configuredOptional = optionalDatabases.filter((db: any) => env[db as keyof Env]);
   }
 
   /**
@@ -67,7 +64,7 @@ export class StartupValidator {
       }
     }
 
-    const configuredOptional = optionalKV.filter(kv => env[kv as keyof Env]);
+    const configuredOptional = optionalKV.filter((kv: any) => env[kv as keyof Env]);
   }
 
   /**
@@ -91,7 +88,7 @@ export class StartupValidator {
       }
     }
 
-    const configuredOptional = optionalDOs.filter(dobj => env[dobj as keyof Env]);
+    const configuredOptional = optionalDOs.filter((dobj: any) => env[dobj as keyof Env]);
   }
 
   /**
@@ -107,7 +104,7 @@ export class StartupValidator {
       }
     }
 
-    const configuredOptional = optionalServices.filter(service => env[service as keyof Env]);
+    const configuredOptional = optionalServices.filter((service: any) => env[service as keyof Env]);
   }
 
   /**
@@ -134,7 +131,7 @@ export class StartupValidator {
       }
     }
 
-    const configuredOptional = optionalQueues.filter(queue => env[queue as keyof Env]);
+    const configuredOptional = optionalQueues.filter((queue: any) => env[queue as keyof Env]);
   }
 
   /**

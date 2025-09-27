@@ -120,7 +120,7 @@ export class QueryMLModel {
       maxIO: number;
     };
   }): Promise<any> {
-    const scoredStrategies = strategies.map(strategy => ({
+    const scoredStrategies = strategies.map((strategy: any) => ({
       strategy,
       score: this.scoreStrategy(strategy, constraints)
     }));
@@ -207,7 +207,7 @@ export class QueryMLModel {
   }
 
   private calculateComplexity(query: SQLQuery, historical: QueryAnalysis[]): number {
-    const similar = historical.filter(h =>
+    const similar = historical.filter((h: any) =>
       this.calculateSimilarity(query.fingerprint, h) > 0.8
     );
 
@@ -284,7 +284,7 @@ export class QueryMLModel {
   }
 
   private filterByCostBenefit(recommendations: IndexRecommendation[]): IndexRecommendation[] {
-    return recommendations.filter(rec =>
+    return recommendations.filter((rec: any) =>
       rec.estimatedBenefit > (rec.storageOverhead + rec.maintenanceCost) / 100
     );
   }
@@ -478,7 +478,7 @@ export class QuantumQueryOptimizer {
   private async optimizeIndexUsage(query: SQLQuery, analysis: QueryAnalysis): Promise<any> {
     return {
       type: 'index-optimization',
-      recommendations: analysis.optimizations.filter(opt => opt.includes('INDEX')),
+      recommendations: analysis.optimizations.filter((opt: any) => opt.includes('INDEX')),
       estimatedImprovement: 0.3
     };
   }
@@ -596,7 +596,7 @@ export class ExecutionPlanOptimizer {
 
   private identifyParallelizable(plan: ExecutionPlan): any {
     return {
-      operations: plan.operations.filter(op => op.type === 'scan'),
+      operations: plan.operations.filter((op: any) => op.type === 'scan'),
       maxParallelism: 4
     };
   }

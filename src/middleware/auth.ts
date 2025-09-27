@@ -116,7 +116,7 @@ export class AuthMiddleware {
         user
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Authentication error', { error: error instanceof Error ? error.message : String(error) });
       return {
         success: false,
@@ -157,7 +157,7 @@ export class AuthMiddleware {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Authorization error', { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
@@ -182,7 +182,7 @@ export class AuthMiddleware {
 
       return { token: newToken, expiresAt };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Token refresh error', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
@@ -195,7 +195,7 @@ export class AuthMiddleware {
       this.logger.info('Token revoked', { token: token.substring(0, 10) + '...' });
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Token revocation error', { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
@@ -351,7 +351,7 @@ export class AuthMiddleware {
         };
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('JWT validation error', { 
         error: error instanceof Error ? error.message : String(error),
         tokenPrefix: token.substring(0, 20) + '...'
@@ -412,7 +412,7 @@ export class AuthMiddleware {
       } else {
         return false;
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Signature verification error', { 
         error: error instanceof Error ? error.message : String(error),
         algorithm 
@@ -445,7 +445,7 @@ export class AuthMiddleware {
 
       // Compare signatures using constant-time comparison
       return this.constantTimeCompare(signature, expectedSignature);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('HMAC verification error', { 
         error: error instanceof Error ? error.message : String(error)
       });
@@ -568,7 +568,7 @@ export class AuthMiddleware {
 
       return user;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error fetching user', { userId, error: error instanceof Error ? error.message : String(error) });
       return null;
     }
@@ -593,7 +593,7 @@ export class AuthMiddleware {
       
       return `${header}.${payload}.${signature}`;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Token generation error', { error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
@@ -604,7 +604,7 @@ export class AuthMiddleware {
       // In a real implementation, you would update the database
       this.logger.info('Last login updated', { userId });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error updating last login', { userId, error: error instanceof Error ? error.message : String(error) });
     }
   }
@@ -770,6 +770,7 @@ export function requireMFA() {
     }
 
     await next();
+    return; // Ensure all paths return
   };
 }
 

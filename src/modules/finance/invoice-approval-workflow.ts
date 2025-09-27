@@ -117,7 +117,7 @@ export class InvoiceApprovalWorkflow {
 
       return { required: false };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to check approval requirements', error, {
         invoiceId: invoice.id,
         businessId: validBusinessId
@@ -210,7 +210,7 @@ export class InvoiceApprovalWorkflow {
 
       return { approvals, nextApprovers };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to initialize approval workflow', error, {
         invoiceId,
         businessId: validBusinessId
@@ -267,8 +267,8 @@ export class InvoiceApprovalWorkflow {
       // Check if current level is complete
       const allApprovals = await this.getInvoiceApprovals(request.invoiceId, validBusinessId);
       const currentLevel = userApproval.level;
-      const currentLevelApprovals = allApprovals.filter(a => a.level === currentLevel);
-      const currentLevelApproved = currentLevelApprovals.filter(a => a.status === ApprovalStatus.APPROVED);
+      const currentLevelApprovals = allApprovals.filter((a: any) => a.level === currentLevel);
+      const currentLevelApproved = currentLevelApprovals.filter((a: any) => a.status === ApprovalStatus.APPROVED);
 
       // Get approval configuration to check required approvals
       const approvalRule = await this.getApprovalRuleForInvoice(invoice, validBusinessId);
@@ -280,12 +280,12 @@ export class InvoiceApprovalWorkflow {
 
       if (currentLevelApproved.length >= requiredApprovals) {
         // Current level complete, check if there are more levels
-        const maxLevel = Math.max(...allApprovals.map(a => a.level));
+        const maxLevel = Math.max(...allApprovals.map((a: any) => a.level));
 
         if (currentLevel < maxLevel) {
           // Move to next level
           const nextLevel = currentLevel + 1;
-          const nextLevelApprovals = allApprovals.filter(a => a.level === nextLevel);
+          const nextLevelApprovals = allApprovals.filter((a: any) => a.level === nextLevel);
 
           // Activate next level approvals
           for (const approval of nextLevelApprovals) {
@@ -306,8 +306,8 @@ export class InvoiceApprovalWorkflow {
       } else {
         // Still need more approvals at current level
         nextApprovers = currentLevelApprovals
-          .filter(a => a.status === ApprovalStatus.PENDING)
-          .map(a => a.approverUserId);
+          .filter((a: any) => a.status === ApprovalStatus.PENDING)
+          .map((a: any) => a.approverUserId);
       }
 
       // Get updated invoice
@@ -347,7 +347,7 @@ export class InvoiceApprovalWorkflow {
         invoice: updatedInvoice
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to approve invoice', error, {
         invoiceId: request.invoiceId,
         approvedBy,
@@ -445,7 +445,7 @@ export class InvoiceApprovalWorkflow {
         invoice: updatedInvoice
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to reject invoice', error, {
         invoiceId: request.invoiceId,
         rejectedBy,
@@ -556,7 +556,7 @@ export class InvoiceApprovalWorkflow {
         approvalsByUser
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get approval stats', error, {
         businessId: validBusinessId
       });
@@ -570,7 +570,7 @@ export class InvoiceApprovalWorkflow {
   private findApplicableRule(invoice: Invoice, rules: ApprovalRule[]): ApprovalRule | null {
     // Sort rules by threshold amount (descending) to find the most specific rule
     const sortedRules = rules
-      .filter(rule => rule.isActive && rule.currency === invoice.currency)
+      .filter((rule: any) => rule.isActive && rule.currency === invoice.currency)
       .sort((a, b) => b.thresholdAmount - a.thresholdAmount);
 
     return sortedRules.find(rule => invoice.total >= rule.thresholdAmount) || null;
@@ -613,7 +613,7 @@ export class InvoiceApprovalWorkflow {
       ORDER BY threshold_amount DESC
     `).bind(businessId).all();
 
-    return (result.results || []).map(row => this.mapToApprovalRule(row));
+    return (result.results || []).map((row: any) => this.mapToApprovalRule(row));
   }
 
   /**
@@ -719,7 +719,7 @@ export class InvoiceApprovalWorkflow {
       ORDER BY a.level, a.id
     `).bind(invoiceId, businessId).all();
 
-    return (result.results || []).map(row => this.mapToInvoiceApproval(row));
+    return (result.results || []).map((row: any) => this.mapToInvoiceApproval(row));
   }
 
   private async getApprovalRuleForInvoice(invoice: Invoice, businessId: string): Promise<ApprovalRule | null> {

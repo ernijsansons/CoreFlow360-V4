@@ -64,7 +64,7 @@ export class CloudflareIntegration {
         }
       };
 
-    } catch (error) {
+    } catch (error: any) {
 
       await this.analytics.track('cloudflare_init_error', {
         error: error instanceof Error ? error.message : String(error),
@@ -154,7 +154,7 @@ export class CloudflareAnalytics {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       // Don't throw - analytics failures shouldn't break the app
     }
   }
@@ -223,7 +223,7 @@ export class CloudflareCache {
 
       return null;
 
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -252,7 +252,7 @@ export class CloudflareCache {
       const cache = await caches.open('api-cache');
       await cache.put(cacheKey, response);
 
-    } catch (error) {
+    } catch (error: any) {
       // Don't throw - cache failures shouldn't break the app
     }
   }
@@ -268,7 +268,7 @@ export class CloudflareCache {
       // For patterns, we'd need to implement a more sophisticated approach
       // This is a simplified version
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -361,7 +361,7 @@ export class CloudflareSecurity {
         message: `${currentCount + 1}/${limit} requests`
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'rate_limit',
         passed: true, // Fail open for security checks
@@ -569,7 +569,7 @@ export class CloudflarePerformance {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       const duration = Date.now() - start;
 
       // Track error performance

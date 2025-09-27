@@ -178,7 +178,7 @@ export class AIAuditScheduler {
   async executeScheduledAudits(): Promise<void> {
     const now = new Date();
     const readyAudits = Array.from(this.scheduledAudits.values())
-      .filter(audit => audit.enabled && audit.nextRun <= now);
+      .filter((audit: any) => audit.enabled && audit.nextRun <= now);
 
     if (readyAudits.length === 0) {
       return;
@@ -188,7 +188,7 @@ export class AIAuditScheduler {
 
     // Respect concurrency limits
     const currentRunning = this.runningExecutions.size;
-    const maxConcurrent = Math.min(...readyAudits.map(a => a.schedule.maxConcurrent));
+    const maxConcurrent = Math.min(...readyAudits.map((a: any) => a.schedule.maxConcurrent));
     const availableSlots = Math.max(0, maxConcurrent - currentRunning);
 
     const auditsToRun = readyAudits.slice(0, availableSlots);
@@ -196,7 +196,7 @@ export class AIAuditScheduler {
     for (const audit of auditsToRun) {
       try {
         await this.executeAudit(audit);
-      } catch (error) {
+      } catch (error: any) {
         logger.error('Failed to execute scheduled audit', error, { auditId: audit.id });
         await this.handleAuditFailure(audit, error);
       }
@@ -286,7 +286,7 @@ export class AIAuditScheduler {
         status: 'success'
       });
 
-    } catch (error) {
+    } catch (error: any) {
       const endTime = new Date();
       const duration = endTime.getTime() - startTime.getTime();
 
@@ -500,7 +500,7 @@ export class AIAuditScheduler {
     setInterval(async () => {
       try {
         await this.executeScheduledAudits();
-      } catch (error) {
+      } catch (error: any) {
         logger.error('Scheduled audit execution failed', error);
       }
     }, 60000); // Check every minute
@@ -509,7 +509,7 @@ export class AIAuditScheduler {
     setInterval(async () => {
       try {
         await this.monitorSystemHealth();
-      } catch (error) {
+      } catch (error: any) {
         logger.error('System health monitoring failed', error);
       }
     }, 300000); // Check every 5 minutes
@@ -518,7 +518,7 @@ export class AIAuditScheduler {
     setInterval(async () => {
       try {
         await this.cleanupOldData();
-      } catch (error) {
+      } catch (error: any) {
         logger.error('Data cleanup failed', error);
       }
     }, 3600000); // Check every hour
@@ -718,7 +718,7 @@ export class AIAuditScheduler {
 
       try {
         await this.sendNotificationToChannel(channel, message, audit.notifications.recipients);
-      } catch (error) {
+      } catch (error: any) {
         logger.error('Failed to send notification', error, {
           channel: channel.type,
           trigger,
@@ -781,12 +781,12 @@ export class AIAuditScheduler {
     const now = new Date();
 
     // Cleanup old alert history
-    const oldAlerts = this.alertHistory.filter(alert => {
+    const oldAlerts = this.alertHistory.filter((alert: any) => {
       const age = now.getTime() - alert.timestamp.getTime();
       return age > 30 * 24 * 60 * 60 * 1000; // 30 days
     });
 
-    this.alertHistory = this.alertHistory.filter(alert => !oldAlerts.includes(alert));
+    this.alertHistory = this.alertHistory.filter((alert: any) => !oldAlerts.includes(alert));
 
     if (oldAlerts.length > 0) {
       logger.info('Cleaned up old alerts', { count: oldAlerts.length });

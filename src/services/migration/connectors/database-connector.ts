@@ -84,7 +84,7 @@ export class DatabaseConnector extends BaseConnector {
       }
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logError('testConnection', error as Error);
       return false;
     }
@@ -163,7 +163,7 @@ export class DatabaseConnector extends BaseConnector {
         default:
           throw new Error(`Write operation not supported for ${dialect}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logError('write', error as Error);
       errors = data.length;
     }
@@ -441,8 +441,8 @@ export class DatabaseConnector extends BaseConnector {
       }));
 
       const primaryKey = columns
-        .filter(col => col.metadata.primaryKey)
-        .map(col => col.name);
+        .filter((col: any) => col.metadata.primaryKey)
+        .map((col: any) => col.name);
 
       tables.push({
         name: tableName,
@@ -493,7 +493,7 @@ export class DatabaseConnector extends BaseConnector {
     const fieldTypes: Record<string, Set<string>> = {};
 
     // Analyze document structure
-    documents.forEach(doc => {
+    documents.forEach((doc: any) => {
       this.analyzeDocument(doc, fieldTypes);
     });
 
@@ -584,7 +584,7 @@ export class DatabaseConnector extends BaseConnector {
           await this.insertBatch(table, batch);
           success += batch.length;
         }
-      } catch (error) {
+      } catch (error: any) {
         if (options.ignoreErrors) {
           errors += batch.length;
         } else {
@@ -604,7 +604,7 @@ export class DatabaseConnector extends BaseConnector {
     const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`;
 
     for (const record of batch) {
-      const values = columns.map(col => record[col]);
+      const values = columns.map((col: any) => record[col]);
       await this.executeQuery(sql, values);
     }
   }
@@ -647,7 +647,7 @@ export class DatabaseConnector extends BaseConnector {
     try {
       if (options.upsert) {
         // Bulk upsert operations
-        const operations = data.map(doc => ({
+        const operations = data.map((doc: any) => ({
           replaceOne: {
             filter: { _id: doc._id },
             replacement: doc,
@@ -661,7 +661,7 @@ export class DatabaseConnector extends BaseConnector {
         const result = await collection.insertMany(data);
         return { success: result.insertedCount, errors: 0 };
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logError('writeMongoDB', error as Error);
       return { success: 0, errors: data.length };
     }
@@ -703,7 +703,7 @@ export class DatabaseConnector extends BaseConnector {
         const value = typeof record === 'string' ? record : JSON.stringify(record);
         await this.connection.set(key, value);
         success++;
-      } catch (error) {
+      } catch (error: any) {
         if (!options.ignoreErrors) {
           throw error;
         }
@@ -748,7 +748,7 @@ export class DatabaseConnector extends BaseConnector {
       });
 
       this.logOperation('startCDC', 'MongoDB CDC started');
-    } catch (error) {
+    } catch (error: any) {
       this.logError('startMongoCDC', error as Error);
       throw error;
     }

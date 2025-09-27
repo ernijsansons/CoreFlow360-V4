@@ -151,7 +151,7 @@ export class WorkflowModule {
       name: config.name,
       description: config.description,
       version: config.version || '1.0.0',
-      steps: config.steps.map(step => ({
+      steps: config.steps.map((step: any) => ({
         ...step,
         executionMode: step.parallelGroup ? 'parallel' : 'sequential',
         dependsOn: step.dependsOn || [],
@@ -173,7 +173,7 @@ export class WorkflowModule {
     // Validate the definition
     try {
       WorkflowDefinitionSchema.parse(definition);
-    } catch (error) {
+    } catch (error: any) {
       throw new WorkflowValidationError(`Invalid workflow definition: ${error}`);
     }
 
@@ -222,7 +222,7 @@ export class WorkflowModule {
   }): WorkflowDefinition {
     const parallelGroupId = 'parallel_group_1';
 
-    const steps = config.parallelSteps.map(step => ({
+    const steps = config.parallelSteps.map((step: any) => ({
       ...step,
       type: 'action' as const,
       dependsOn: [],

@@ -331,7 +331,7 @@ export class ModelPerformanceAnalyzer {
 
   private async analyzeEfficiency(models: ModelAnalysis[], config: ModelAnalysisConfig): Promise<EfficiencyAnalysis> {
     // Latency analysis
-    const latencies = models.map(m => m.metrics.latency);
+    const latencies = models.map((m: any) => m.metrics.latency);
     const averageLatency = latencies.reduce((sum, l) => sum + l, 0) / latencies.length;
 
     const latencyAnalysis: LatencyAnalysis = {

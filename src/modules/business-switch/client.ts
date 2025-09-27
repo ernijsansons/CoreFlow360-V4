@@ -87,7 +87,7 @@ export class BusinessSwitchClientHelper {
           performanceMs: duration,
         };
       }
-    } catch (error) {
+    } catch (error: any) {
       const duration = performance.now() - startTime;
       this.recordPerformance('switch_business_error', duration);
 
@@ -133,7 +133,7 @@ export class BusinessSwitchClientHelper {
           error: errorData.message || 'Failed to get available businesses',
         };
       }
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -150,7 +150,7 @@ export class BusinessSwitchClientHelper {
       if (stored) {
         return JSON.parse(stored);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to parse stored business context:', error);
     }
     return null;
@@ -167,7 +167,7 @@ export class BusinessSwitchClientHelper {
         refreshToken: context.refreshToken,
       };
       localStorage.setItem('business_context', JSON.stringify(businessContext));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to store business context:', error);
     }
   }
@@ -178,7 +178,7 @@ export class BusinessSwitchClientHelper {
   clearContext(): void {
     try {
       localStorage.removeItem('business_context');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to clear business context:', error);
     }
   }
@@ -198,8 +198,8 @@ export class BusinessSwitchClientHelper {
     totalSwitches: number;
     errorRate: number;
   } {
-    const switches = this.performanceBuffer.filter(p => p.operation === 'switch_business');
-    const errors = this.performanceBuffer.filter(p => p.operation === 'switch_business_error');
+    const switches = this.performanceBuffer.filter((p: any) => p.operation === 'switch_business');
+    const errors = this.performanceBuffer.filter((p: any) => p.operation === 'switch_business_error');
     
     const averageSwitchTime = switches.length > 0 
       ? switches.reduce((sum, p) => sum + p.duration, 0) / switches.length 
@@ -246,7 +246,7 @@ export class BusinessSwitchClientHelper {
       });
 
       return response.ok;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -289,7 +289,7 @@ export class BusinessSwitchClientHelper {
           error: errorData.message || 'Failed to get business details',
         };
       }
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -327,7 +327,7 @@ export class BusinessSwitchClientHelper {
           error: errorData.message || 'Failed to refresh context',
         };
       }
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -379,7 +379,7 @@ export class BusinessSwitchClientHelper {
     if (history) {
       try {
         return JSON.parse(history);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to parse switch history:', error);
       }
     }
@@ -408,7 +408,7 @@ export class BusinessSwitchClientHelper {
       }
 
       localStorage.setItem('business_switch_history', JSON.stringify(history));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to add to switch history:', error);
     }
   }
@@ -419,7 +419,7 @@ export class BusinessSwitchClientHelper {
   clearSwitchHistory(): void {
     try {
       localStorage.removeItem('business_switch_history');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to clear switch history:', error);
     }
   }

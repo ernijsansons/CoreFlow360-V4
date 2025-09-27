@@ -200,7 +200,7 @@ class RetentionManager {
         stats
       });
 
-    } catch (error) {
+    } catch (error: any) {
       stats.errors++;
       this.logger.error('Retention policy failed', error, { policyId });
       throw error;
@@ -327,7 +327,7 @@ class RetentionManager {
 
       return records.length;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Archive failed', error, {
         policy: policy.name,
         count: records.length
@@ -428,7 +428,7 @@ class RetentionManager {
   ): Promise<void> {
     if (records.length === 0) return;
 
-    const ids = records.map(r => r.id).filter(Boolean);
+    const ids = records.map((r: any) => r.id).filter(Boolean);
     if (ids.length === 0) return;
 
     await this.db.prepare(`
@@ -444,7 +444,7 @@ class RetentionManager {
   private buildWhereClause(filters?: PolicyFilter[]): string {
     if (!filters || filters.length === 0) return '';
 
-    const conditions = filters.map(filter => {
+    const conditions = filters.map((filter: any) => {
       switch (filter.operator) {
         case 'IN':
         case 'NOT IN':
@@ -468,8 +468,8 @@ class RetentionManager {
     const headers = Object.keys(records[0]);
     const csvHeaders = headers.join(',');
 
-    const csvRows = records.map(record => {
-      return headers.map(header => {
+    const csvRows = records.map((record: any) => {
+      return headers.map((header: any) => {
         const value = record[header];
         if (value === null || value === undefined) return '';
         if (typeof value === 'string' && value.includes(',')) {
@@ -573,7 +573,7 @@ class RetentionManager {
       return Date.now() + 86400000; // Default to 24 hours
     }
 
-    const [minute, hour] = parts.map(p => parseInt(p) || 0);
+    const [minute, hour] = parts.map((p: any) => parseInt(p) || 0);
     const next = new Date();
     next.setHours(hour, minute, 0, 0);
 
@@ -638,7 +638,7 @@ class RetentionManager {
         count: this.policies.size
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to load retention policies', error);
     }
   }
@@ -690,7 +690,7 @@ class RetentionManager {
     }, 3600000) as any; // 1 hour
 
     // Run initial check
-    this.runScheduledPolicies().catch(error => {
+    this.runScheduledPolicies().catch((error: any) => {
       this.logger.error('Initial policy run failed', error);
     });
   }
@@ -708,7 +708,7 @@ class RetentionManager {
       if (policy.nextRun && policy.nextRun <= now) {
         try {
           await this.executePolicy(policyId);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error('Scheduled policy execution failed', error, {
             policyId,
             name: policy.name

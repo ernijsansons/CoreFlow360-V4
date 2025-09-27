@@ -64,7 +64,7 @@ export class CapabilityRegistry {
         supportedAgents: contract.supportedAgents.length,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to register capability contract', error, {
         capability: contract.name,
       });
@@ -91,7 +91,7 @@ export class CapabilityRegistry {
    */
   getCapabilitiesByCategory(category: string): CapabilityContract[] {
     return Array.from(this.contracts.values())
-      .filter(contract => contract.category === category);
+      .filter((contract: any) => contract.category === category);
   }
 
   /**
@@ -144,7 +144,7 @@ export class CapabilityRegistry {
         sanitizedInput: validation.sanitizedInput,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         valid: false,
         errors: [`Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`],
@@ -180,7 +180,7 @@ export class CapabilityRegistry {
   searchCapabilities(query: string): CapabilityContract[] {
     const queryLower = query.toLowerCase();
 
-    return Array.from(this.contracts.values()).filter(contract => {
+    return Array.from(this.contracts.values()).filter((contract: any) => {
       return contract.name.toLowerCase().includes(queryLower) ||
              contract.description.toLowerCase().includes(queryLower) ||
              contract.category.toLowerCase().includes(queryLower);
@@ -212,7 +212,7 @@ export class CapabilityRegistry {
 
       // Check description keywords
       const descWords = contract.description.toLowerCase().split(/\s+/);
-      const matchingWords = descWords.filter(word =>
+      const matchingWords = descWords.filter((word: any) =>
         word.length > 3 && inputLower.includes(word)
       );
       if (matchingWords.length > 0) {
@@ -388,7 +388,7 @@ export class CapabilityRegistry {
         sanitizedInput: validated.value,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         valid: false,
         errors: [`Schema validation error: ${error instanceof Error ? error.message : 'Unknown error'}`],
@@ -517,8 +517,7 @@ export class CapabilityRegistry {
     // Check permissions
     if (contract.requiredPermissions.length > 0) {
       const userPermissions = task.context.permissions || [];
-      const missingPermissions = contract.requiredPermissions.filter(
-        perm => !userPermissions.includes(perm)
+      const missingPermissions = contract.requiredPermissions.filter((perm: any) => !userPermissions.includes(perm)
       );
 
       if (missingPermissions.length > 0) {
@@ -557,7 +556,7 @@ export class CapabilityRegistry {
     const words1 = new Set(text1.toLowerCase().split(/\s+/));
     const words2 = new Set(text2.toLowerCase().split(/\s+/));
 
-    const intersection = new Set([...words1].filter(word => words2.has(word)));
+    const intersection = new Set([...words1].filter((word: any) => words2.has(word)));
     const union = new Set([...words1, ...words2]);
 
     return union.size > 0 ? intersection.size / union.size : 0;
@@ -584,17 +583,17 @@ export class CapabilityRegistry {
       '```',
       '',
       '## Required Permissions',
-      ...contract.requiredPermissions.map(perm => `- ${perm}`),
+      ...contract.requiredPermissions.map((perm: any) => `- ${perm}`),
       '',
       '## Supported Agents',
-      ...contract.supportedAgents.map(agent => `- ${agent}`),
+      ...contract.supportedAgents.map((agent: any) => `- ${agent}`),
       '',
       '## Cost & Performance',
       `- Estimated latency: ${contract.estimatedLatency}ms`,
       `- Estimated cost: $${contract.estimatedCost}`,
       '',
       '## Examples',
-      ...contract.examples.map(example => [
+      ...contract.examples.map((example: any) => [
         `### ${example.name}`,
         example.description,
         '**Input:**',

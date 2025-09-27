@@ -10,7 +10,7 @@ const dashboardRoutes = new Hono<{ Bindings: Env }>();
 // DASHBOARD OVERVIEW
 // =====================================================
 
-dashboardRoutes.get('/overview', async (c) => {
+dashboardRoutes.get('/overview', async (c: any) => {
   try {
     const learningEngine = new ContinuousLearningEngine(c.env);
     const patternRecognition = new PatternRecognition(c.env);
@@ -65,7 +65,7 @@ dashboardRoutes.get('/overview', async (c) => {
       },
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve dashboard data'
@@ -77,7 +77,7 @@ dashboardRoutes.get('/overview', async (c) => {
 // PERFORMANCE METRICS
 // =====================================================
 
-dashboardRoutes.get('/performance', async (c) => {
+dashboardRoutes.get('/performance', async (c: any) => {
   try {
     const db = c.env.DB_CRM;
     const timeframe = c.req.query('timeframe') || '30d';
@@ -163,7 +163,7 @@ dashboardRoutes.get('/performance', async (c) => {
       },
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve performance metrics'
@@ -175,7 +175,7 @@ dashboardRoutes.get('/performance', async (c) => {
 // LEARNING INSIGHTS
 // =====================================================
 
-dashboardRoutes.get('/insights', async (c) => {
+dashboardRoutes.get('/insights', async (c: any) => {
   try {
     const db = c.env.DB_CRM;
     const learningEngine = new ContinuousLearningEngine(c.env);
@@ -218,7 +218,7 @@ dashboardRoutes.get('/insights', async (c) => {
       },
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve learning insights'
@@ -230,7 +230,7 @@ dashboardRoutes.get('/insights', async (c) => {
 // EXPERIMENT MONITORING
 // =====================================================
 
-dashboardRoutes.get('/experiments/monitoring', async (c) => {
+dashboardRoutes.get('/experiments/monitoring', async (c: any) => {
   try {
     const db = c.env.DB_CRM;
 
@@ -286,7 +286,7 @@ dashboardRoutes.get('/experiments/monitoring', async (c) => {
       },
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve experiment data'
@@ -298,7 +298,7 @@ dashboardRoutes.get('/experiments/monitoring', async (c) => {
 // PATTERN ANALYTICS
 // =====================================================
 
-dashboardRoutes.get('/patterns/analytics', async (c) => {
+dashboardRoutes.get('/patterns/analytics', async (c: any) => {
   try {
     const db = c.env.DB_CRM;
 
@@ -350,7 +350,7 @@ dashboardRoutes.get('/patterns/analytics', async (c) => {
       },
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve pattern analytics'
@@ -362,7 +362,7 @@ dashboardRoutes.get('/patterns/analytics', async (c) => {
 // PLAYBOOK ANALYTICS
 // =====================================================
 
-dashboardRoutes.get('/playbooks/analytics', async (c) => {
+dashboardRoutes.get('/playbooks/analytics', async (c: any) => {
   try {
     const db = c.env.DB_CRM;
 
@@ -419,7 +419,7 @@ dashboardRoutes.get('/playbooks/analytics', async (c) => {
       },
       timestamp: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve playbook analytics'
@@ -465,7 +465,7 @@ async function getSystemHealth(this: any, env: Env): Promise<any> {
       recentActivity: recentActivity?.count || 0,
       lastCheck: new Date().toISOString()
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       status: 'degraded',
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -538,7 +538,7 @@ async function identifyImprovements(this: any, env: Env): Promise<any[]> {
       });
     }
 
-  } catch (error) {
+  } catch (error: any) {
   }
 
   return improvements;
@@ -626,7 +626,7 @@ async function detectAnomalies(this: any, env: Env): Promise<any[]> {
       });
     }
 
-  } catch (error) {
+  } catch (error: any) {
   }
 
   return anomalies;

@@ -94,7 +94,7 @@ router.post('/', async (req, res) => {
       progressUrl: `/api/export/${exportRequest.id}/progress`
     })
 
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
         success: false,
@@ -136,7 +136,7 @@ router.get('/:id/progress', async (req, res) => {
       ...progress
     })
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to get export progress'
@@ -166,7 +166,7 @@ router.get('/:id/progress/ws', async (req, res) => {
     const response = await exportEngine.websocket(req)
     return response
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'WebSocket upgrade failed'
@@ -206,7 +206,7 @@ router.get('/:id/download', async (req, res) => {
 
     res.send(buffer)
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Download failed'
@@ -249,7 +249,7 @@ router.delete('/:id', async (req, res) => {
       message: 'Export deleted successfully'
     })
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to delete export'
@@ -279,13 +279,13 @@ router.get('/history', async (req, res) => {
 
     // Filter by user and format
     const exports = result.objects
-      .filter(obj => {
+      .filter((obj: any) => {
         if (!obj.customMetadata?.requestedBy) return false
         if (userId && obj.customMetadata.requestedBy !== userId) return false
         if (format && !obj.key.endsWith(`.${format}`)) return false
         return true
       })
-      .map(obj => ({
+      .map((obj: any) => ({
         id: obj.key.replace('exports/', '').split('.')[0],
         filename: obj.key,
         size: obj.size,
@@ -307,7 +307,7 @@ router.get('/history', async (req, res) => {
       }
     })
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to get export history'
@@ -359,7 +359,7 @@ router.post('/batch', async (req, res) => {
           downloadUrl,
           progressUrl: `/api/export/${exportRequest.id}/progress`
         })
-      } catch (error) {
+      } catch (error: any) {
         results.push({
           success: false,
           exportId: exportRequest.id,
@@ -373,10 +373,10 @@ router.post('/batch', async (req, res) => {
       batchId,
       results,
       totalExports: exports.length,
-      successfulExports: results.filter(r => r.success).length
+      successfulExports: results.filter((r: any) => r.success).length
     })
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Batch export failed'
@@ -427,7 +427,7 @@ router.get('/templates', async (req, res) => {
       templates
     })
 
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
       success: false,
       error: 'Failed to get templates'

@@ -125,15 +125,15 @@ export class AdaptiveRateLimiter {
 
       // Check all rate limits
       const limitChecks = await Promise.all(
-        keys.map(key => this.checkLimit(key, request))
+        keys.map((key: any) => this.checkLimit(key, request))
       );
 
       // Find any exceeded limits
-      const exceededLimits = limitChecks.filter(check => check.exceeded);
+      const exceededLimits = limitChecks.filter((check: any) => check.exceeded);
 
       if (exceededLimits.length === 0) {
         // No limits exceeded - update counters
-        await Promise.all(keys.map(key => this.incrementCounter(key)));
+        await Promise.all(keys.map((key: any) => this.incrementCounter(key)));
         const config = this.getLimitConfig(keys[0]);
         return { 
           limited: false, 
@@ -154,7 +154,7 @@ export class AdaptiveRateLimiter {
 
         this.logger.info('Legitimate traffic spike detected, adjusting limits', {
           correlationId,
-          keys: keys.map(k => `${k.type}:${k.identifier}`)
+          keys: keys.map((k: any) => `${k.type}:${k.identifier}`)
         });
 
         return { limited: false };
@@ -195,7 +195,7 @@ export class AdaptiveRateLimiter {
         windowSize: mostRestrictive.windowSize
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Rate limiting error', error, { correlationId });
 
       // Fail open - allow request but log error
@@ -276,7 +276,7 @@ export class AdaptiveRateLimiter {
     const windowStart = now - (config.window * 1000);
 
     // Clean old entries
-    state.requests = state.requests.filter(timestamp => timestamp > windowStart);
+    state.requests = state.requests.filter((timestamp: any) => timestamp > windowStart);
 
     // Check burst limit first
     if (config.burst && state.requests.length >= config.burst) {
@@ -598,7 +598,7 @@ export class AdaptiveRateLimiter {
 
     // Update patterns
     const now = Date.now();
-    const minuteRequests = state.requests.filter(r => r > now - 60000).length;
+    const minuteRequests = state.requests.filter((r: any) => r > now - 60000).length;
 
     behavior.requestPattern.push(minuteRequests);
     if (behavior.requestPattern.length > 60) {
@@ -680,7 +680,7 @@ export class AdaptiveRateLimiter {
     if (!state) return false;
 
     const now = Date.now();
-    const recentRequests = state.requests.filter(r => r > now - 60000);
+    const recentRequests = state.requests.filter((r: any) => r > now - 60000);
 
     return recentRequests.length > 30; // More than 30 requests per minute
   }
@@ -721,7 +721,7 @@ export class AdaptiveRateLimiter {
     let totalErrors = 0;
 
     for (const [key, state] of this.limits.entries()) {
-      const recentRequests = state.requests.filter(r => r > Date.now() - 60000);
+      const recentRequests = state.requests.filter((r: any) => r > Date.now() - 60000);
       totalRequests += recentRequests.length;
 
       if (key.includes('user:')) {

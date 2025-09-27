@@ -1,5 +1,5 @@
 import type { Env } from '../types/env';
-import { DealIntelligence, type Opportunity } from './deal-intelligence';
+import { DealIntelligenceService, type Opportunity } from './deal-intelligence';
 import { PredictiveScoring } from './predictive-scoring';
 
 export interface Forecast {
@@ -276,13 +276,13 @@ export interface CompetitiveFactors {
 
 export class RevenueForecast {
   private env: Env;
-  private dealIntelligence: DealIntelligence;
+  private dealIntelligence: DealIntelligenceService;
   private predictiveScoring: PredictiveScoring;
   private forecastCache: Map<string, Forecast>;
 
   constructor(env: Env) {
     this.env = env;
-    this.dealIntelligence = new DealIntelligence(env);
+    this.dealIntelligence = new DealIntelligenceService(env);
     this.predictiveScoring = new PredictiveScoring(env);
     this.forecastCache = new Map();
   }
@@ -429,10 +429,10 @@ export class RevenueForecast {
     `).bind(period.startDate, period.endDate).all();
 
     // Calculate pipeline metrics
-    const deals = opportunities.results as Opportunity[];
+    const deals = opportunities.results as unknown as Opportunity[];
     const totalValue = deals.reduce((sum, d) => sum + d.value, 0);
     const qualifiedValue = deals
-      .filter(d => d.stage !== 'prospecting' && d.stage !== 'qualification')
+      .filter((d: any) => d.stage !== 'prospecting' && d.stage !== 'qualification')
       .reduce((sum, d) => sum + d.value, 0);
 
     // Calculate weighted value based on stage probability
@@ -634,7 +634,7 @@ export class RevenueForecast {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': this.env.ANTHROPIC_API_KEY,
+          'x-api-key': this.env.ANTHROPIC_API_KEY || '',
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
@@ -661,7 +661,7 @@ export class RevenueForecast {
 
         return scenarios;
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     // Fallback calculation
@@ -813,7 +813,7 @@ export class RevenueForecast {
     // Large deal dependency
     const largeDeals = pipeline.stages
       .flatMap(s => [s])
-      .filter(s => s.totalValue > pipeline.averageDealSize * 3);
+      .filter((s: any) => s.totalValue > pipeline.averageDealSize * 3);
 
     if (largeDeals.length > 0) {
       risks.push({
@@ -959,8 +959,8 @@ export class RevenueForecast {
     }
 
     // Calculate overall confidence
-    const positiveFactors = factors.filter(f => f.impact === 'positive');
-    const negativeFactors = factors.filter(f => f.impact === 'negative');
+    const positiveFactors = factors.filter((f: any) => f.impact === 'positive');
+    const negativeFactors = factors.filter((f: any) => f.impact === 'negative');
 
     const positiveWeight = positiveFactors.reduce((sum, f) => sum + f.weight, 0);
     const negativeWeight = negativeFactors.reduce((sum, f) => sum + f.weight, 0);
@@ -1191,7 +1191,7 @@ export class RevenueForecast {
     // Analyze each stage
     const stages = ['prospecting', 'qualification', 'proposal', 'negotiation'];
     for (const stage of stages) {
-      const stageDeals = deals.filter(d => d.stage === stage);
+      const stageDeals = deals.filter((d: any) => d.stage === stage);
       if (stageDeals.length > 0) {
         const avgDays = stageDeals.reduce((sum, d) => sum + d.daysInStage, 0) / stageDeals.length;
         const benchmark = this.getStageBenchmark(stage);
@@ -1271,7 +1271,7 @@ export class RevenueForecast {
     });
 
     // Calculate health score
-    const goodIndicators = indicators.filter(i => i.status === 'good').length;
+    const goodIndicators = indicators.filter((i: any) => i.status === 'good').length;
     const score = (goodIndicators / indicators.length) * 100;
 
     return {
@@ -1288,7 +1288,7 @@ export class RevenueForecast {
     const analysis: StageAnalysis[] = [];
 
     for (const stage of stages) {
-      const stageDeals = deals.filter(d => d.stage === stage);
+      const stageDeals = deals.filter((d: any) => d.stage === stage);
       const totalValue = stageDeals.reduce((sum, d) => sum + d.value, 0);
       const probability = this.getStageProbability(stage);
       const weightedValue = totalValue * probability;

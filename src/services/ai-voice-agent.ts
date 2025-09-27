@@ -107,7 +107,7 @@ export class AIVoiceAgent {
         queue_position: 0
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message: 'Internal error during call initiation',
@@ -159,7 +159,7 @@ export class AIVoiceAgent {
           return this.conversationHandler.handleIncomingAudio(callSid, webhookData);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       return this.twilioService.generateTwiMLResponse(
         "I apologize, but we're experiencing technical difficulties. Please try again later.",
         { hangup: true }
@@ -211,7 +211,7 @@ export class AIVoiceAgent {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -254,7 +254,7 @@ export class AIVoiceAgent {
 
       return success;
 
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -345,7 +345,7 @@ export class AIVoiceAgent {
       talk_time: talkTime,
       total_duration: duration,
       ai_talk_ratio: duration > 0 ? (talkTime / duration) * 100 : 0,
-      interruptions: callState.conversation_history.filter(turn =>
+      interruptions: callState.conversation_history.filter((turn: any) =>
         turn.text.includes('[interrupted]')
       ).length,
       silence_periods: 0, // Would calculate from audio analysis
@@ -357,7 +357,7 @@ export class AIVoiceAgent {
       qualification_score: callState.qualification_progress.overall_score,
       interest_score: 70, // AI-calculated from sentiment
       objection_count: callState.objections_encountered.length,
-      objections_resolved: callState.objections_encountered.filter(obj => obj.resolved).length,
+      objections_resolved: callState.objections_encountered.filter((obj: any) => obj.resolved).length,
       call_cost: this.twilioService.estimateCallCost('outbound-api', duration),
       conversion_value: 0, // Would calculate based on outcome
       roi_estimate: 0 // Would calculate based on conversion probability
@@ -406,7 +406,7 @@ export class AIVoiceAgent {
     try {
       const recordings = await this.twilioService.getCallRecordings(callSid);
       return recordings.length > 0 ? recordings[0].uri : undefined;
-    } catch (error) {
+    } catch (error: any) {
       return undefined;
     }
   }
