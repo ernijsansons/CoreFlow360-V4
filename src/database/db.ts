@@ -84,7 +84,7 @@ export class Database {
 
   // Batch statements for complex operations
   async batch(statements: { sql: string; params: any[] }[]): Promise<void> {
-    const prepared = statements.map(stmt =>
+    const prepared = statements.map((stmt: any) =>
       this.db.prepare(stmt.sql).bind(...stmt.params)
     );
     await this.db.batch(prepared);
@@ -161,7 +161,7 @@ export class Database {
     description?: string;
     metadata?: any;
   }>): Promise<void> {
-    const statements = entries.map(entry => ({
+    const statements = entries.map((entry: any) => ({
       sql: `
         INSERT INTO ledger_entries (id, business_id, account_id, amount, type, description, metadata, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
@@ -180,8 +180,8 @@ export class Database {
     await this.batch(statements);
 
     // Invalidate relevant caches
-    const businessIds = Array.from(new Set(entries.map(e => e.businessId)));
-    const accountIds = Array.from(new Set(entries.map(e => e.accountId)));
+    const businessIds = Array.from(new Set(entries.map((e: any) => e.businessId)));
+    const accountIds = Array.from(new Set(entries.map((e: any) => e.accountId)));
 
     for (const businessId of businessIds) {
       for (const accountId of accountIds) {
@@ -309,7 +309,7 @@ export class Database {
        ORDER BY created_at DESC LIMIT ?:["${businessId}",100]`
     ];
 
-    await Promise.all(patterns.map(pattern =>
+    await Promise.all(patterns.map((pattern: any) =>
       this.cache.delete(pattern).catch(() => {})
     ));
   }

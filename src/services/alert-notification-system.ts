@@ -31,7 +31,7 @@ export class AlertNotificationSystem {
       ORDER BY type
     `).bind(businessId).all();
 
-    return result.results.map(row => ({
+    return result.results.map((row: any) => ({
       id: row.id as string,
       businessId: row.business_id as string,
       name: row.name as string,
@@ -51,7 +51,7 @@ export class AlertNotificationSystem {
   }
 
   private filterChannelsBySeverity(channels: NotificationChannel[], severity: string): NotificationChannel[] {
-    return channels.filter(channel => {
+    return channels.filter((channel: any) => {
       // For now, allow all channels - severity filtering would be configured per channel
       return true;
     });
@@ -89,7 +89,7 @@ export class AlertNotificationSystem {
       // Record successful notification
       await this.recordNotification(alert, channel, 'sent');
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to send notification through channel ${channel.id}:`, error);
       await this.recordNotification(alert, channel, 'failed', error.message);
     }
@@ -365,7 +365,7 @@ export class AlertNotificationSystem {
 
       return { success: true };
 
-    } catch (error) {
+    } catch (error: any) {
       // Update channel with test failure
       await this.db.prepare(`
         UPDATE notification_channels SET
@@ -400,7 +400,7 @@ export class AlertNotificationSystem {
 
     const result = await this.db.prepare(query).bind(...params).all();
 
-    return result.results.map(row => ({
+    return result.results.map((row: any) => ({
       id: row.id as string,
       alertId: row.alert_id as string,
       channelType: row.channel_type as string,
@@ -454,7 +454,7 @@ export class AlertNotificationSystem {
         status: 'healthy',
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'unhealthy',
         timestamp: new Date().toISOString()

@@ -15,7 +15,7 @@ import { ProgressTracker } from '../services/migration/progress-tracker';
 
 const migration = new Hono();
 
-migration.post('/connections/test', async (c) => {
+migration.post('/connections/test', async (c: any) => {
   try {
     const config: ConnectionConfig = await c.req.json();
     const env = c.env;
@@ -38,7 +38,7 @@ migration.post('/connections/test', async (c) => {
       success: isValid,
       message: isValid ? 'Connection successful' : 'Connection failed'
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -46,7 +46,7 @@ migration.post('/connections/test', async (c) => {
   }
 });
 
-migration.post('/connections/validate', async (c) => {
+migration.post('/connections/validate', async (c: any) => {
   try {
     const config: ConnectionConfig = await c.req.json();
     const env = c.env;
@@ -65,7 +65,7 @@ migration.post('/connections/validate', async (c) => {
     const validation = await connector.validateConfig();
 
     return c.json(validation);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       valid: false,
       errors: [error instanceof Error ? error.message : 'Unknown error']
@@ -73,7 +73,7 @@ migration.post('/connections/validate', async (c) => {
   }
 });
 
-migration.post('/schema/discover', async (c) => {
+migration.post('/schema/discover', async (c: any) => {
   try {
     const { connectionConfig } = await c.req.json();
     const env = c.env;
@@ -92,14 +92,14 @@ migration.post('/schema/discover', async (c) => {
     const schema = await connector.getSchema();
 
     return c.json({ schema });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 400);
   }
 });
 
-migration.post('/schema/map', async (c) => {
+migration.post('/schema/map', async (c: any) => {
   try {
     const { sourceSchema, targetSchema, options } = await c.req.json();
     const env = c.env;
@@ -108,14 +108,14 @@ migration.post('/schema/map', async (c) => {
     const mapping = await mapper.generateMapping(sourceSchema, targetSchema, options);
 
     return c.json({ mapping });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 400);
   }
 });
 
-migration.post('/migration/create', async (c) => {
+migration.post('/migration/create', async (c: any) => {
   try {
     const request: MigrationRequest = await c.req.json();
     const env = c.env;
@@ -155,7 +155,7 @@ migration.post('/migration/create', async (c) => {
       migrationId,
       validation
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -163,7 +163,7 @@ migration.post('/migration/create', async (c) => {
   }
 });
 
-migration.post('/migration/:id/start', async (c) => {
+migration.post('/migration/:id/start', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const env = c.env;
@@ -189,7 +189,7 @@ migration.post('/migration/:id/start', async (c) => {
     const result = await response.json();
 
     return c.json(result);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -197,7 +197,7 @@ migration.post('/migration/:id/start', async (c) => {
   }
 });
 
-migration.post('/migration/:id/pause', async (c) => {
+migration.post('/migration/:id/pause', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const { reason } = await c.req.json();
@@ -215,7 +215,7 @@ migration.post('/migration/:id/pause', async (c) => {
     const result = await response.json();
 
     return c.json(result);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -223,7 +223,7 @@ migration.post('/migration/:id/pause', async (c) => {
   }
 });
 
-migration.post('/migration/:id/resume', async (c) => {
+migration.post('/migration/:id/resume', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const env = c.env;
@@ -238,7 +238,7 @@ migration.post('/migration/:id/resume', async (c) => {
     const result = await response.json();
 
     return c.json(result);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -246,7 +246,7 @@ migration.post('/migration/:id/resume', async (c) => {
   }
 });
 
-migration.post('/migration/:id/cancel', async (c) => {
+migration.post('/migration/:id/cancel', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const { reason } = await c.req.json();
@@ -264,7 +264,7 @@ migration.post('/migration/:id/cancel', async (c) => {
     const result = await response.json();
 
     return c.json(result);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -272,7 +272,7 @@ migration.post('/migration/:id/cancel', async (c) => {
   }
 });
 
-migration.get('/migration/:id/status', async (c) => {
+migration.get('/migration/:id/status', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const env = c.env;
@@ -285,14 +285,14 @@ migration.get('/migration/:id/status', async (c) => {
     }
 
     return c.json({ state });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 400);
   }
 });
 
-migration.get('/migration/:id/progress', async (c) => {
+migration.get('/migration/:id/progress', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const env = c.env;
@@ -301,14 +301,14 @@ migration.get('/migration/:id/progress', async (c) => {
     const report = await progressTracker.generateProgressReport(migrationId);
 
     return c.json(report);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 400);
   }
 });
 
-migration.get('/migration/:id/audit', async (c) => {
+migration.get('/migration/:id/audit', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const limit = parseInt(c.req.query('limit') || '50');
@@ -318,14 +318,14 @@ migration.get('/migration/:id/audit', async (c) => {
     const auditLog = await progressTracker.getAuditLog(migrationId, limit);
 
     return c.json({ auditLog });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 400);
   }
 });
 
-migration.get('/migrations', async (c) => {
+migration.get('/migrations', async (c: any) => {
   try {
     const env = c.env;
 
@@ -333,14 +333,14 @@ migration.get('/migrations', async (c) => {
     const migrations = await progressTracker.getAllMigrationStates();
 
     return c.json({ migrations });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 400);
   }
 });
 
-migration.post('/migration/:id/rollback', async (c) => {
+migration.post('/migration/:id/rollback', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const { snapshotId, reason } = await c.req.json();
@@ -350,7 +350,7 @@ migration.post('/migration/:id/rollback', async (c) => {
     const result = await rollbackManager.rollback(migrationId, snapshotId, reason);
 
     return c.json(result);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -358,7 +358,7 @@ migration.post('/migration/:id/rollback', async (c) => {
   }
 });
 
-migration.get('/migration/:id/snapshots', async (c) => {
+migration.get('/migration/:id/snapshots', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const env = c.env;
@@ -367,14 +367,14 @@ migration.get('/migration/:id/snapshots', async (c) => {
     const snapshots = await rollbackManager.listSnapshots(migrationId);
 
     return c.json({ snapshots });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 400);
   }
 });
 
-migration.post('/migration/:id/test', async (c) => {
+migration.post('/migration/:id/test', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const { testType, options } = await c.req.json();
@@ -409,14 +409,14 @@ migration.post('/migration/:id/test', async (c) => {
     }
 
     return c.json(result);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 400);
   }
 });
 
-migration.get('/migration/:id/stream', async (c) => {
+migration.get('/migration/:id/stream', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
     const env = c.env;
@@ -468,7 +468,7 @@ migration.get('/migration/:id/stream', async (c) => {
     });
 
     return new Response(stream, { headers });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Unknown error'
     }, 400);

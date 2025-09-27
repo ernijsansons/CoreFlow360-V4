@@ -66,7 +66,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
       this.isConnected = true;
       this.emit('connected', { timestamp: new Date() });
 
-    } catch (error) {
+    } catch (error: any) {
       this.emit('error', error);
       throw error;
     }
@@ -98,7 +98,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
       await this.applyDecisionToWorkflow(workflowId, decision);
 
       this.emit('workflowConnected', { workflowId, decision });
-    } catch (error) {
+    } catch (error: any) {
       this.emit('workflowError', { workflowId, error });
       throw error;
     }
@@ -115,8 +115,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
 
       // Match and sync
       for (const workflow of activeWorkflows) {
-        const relevantDecisions = pendingDecisions.filter(
-          d => this.isDecisionRelevant(d, workflow)
+        const relevantDecisions = pendingDecisions.filter((d: any) => this.isDecisionRelevant(d, workflow)
         );
 
         for (const decision of relevantDecisions) {
@@ -128,7 +127,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
       await this.syncBusinessData();
 
       this.emit('dataSynced', { timestamp: new Date() });
-    } catch (error) {
+    } catch (error: any) {
       this.emit('syncError', error);
     }
   }
@@ -178,7 +177,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
 
       // Collect decisions from multiple agents
       const decisions = await Promise.all(
-        agentTypes.map(type => this.requestAgentDecision({
+        agentTypes.map((type: any) => this.requestAgentDecision({
           id: `exec-${workflowId}-${Date.now()}`,
           timestamp: new Date(),
           type,
@@ -192,7 +191,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
       const result = await this.executeWorkflowWithDecision(workflowId, aggregatedDecision);
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -226,7 +225,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
     }
 
     this.syncTimer = setInterval(() => {
-      this.syncData().catch(error => {
+      this.syncData().catch((error: any) => {
       });
     }, this.syncInterval);
   }
@@ -261,7 +260,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
         // Attempt reconnection after 5 seconds
         setTimeout(() => this.initializeRealtimeConnection(), 5000);
       };
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -431,7 +430,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
     // Aggregate multiple agent decisions
     const aggregated = {
       id: `agg-${Date.now()}`,
-      decisions: decisions.map(d => ({
+      decisions: decisions.map((d: any) => ({
         agentId: d.agentId,
         decision: d.decision,
         confidence: d.confidence
@@ -445,7 +444,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
     let weightedSum = 0;
     let totalWeight = 0;
 
-    decisions.forEach(d => {
+    decisions.forEach((d: any) => {
       weightedSum += d.confidence;
       totalWeight += 1;
       aggregated.reasoning.push(...d.reasoning);

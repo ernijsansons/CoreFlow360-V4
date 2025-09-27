@@ -122,7 +122,7 @@ class JWTService {
       }
 
       return payload as TokenClaims & JWTPayload;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof Error) {
         if (error.message.includes('expired')) {
           throw new Error('Token has expired');
@@ -147,7 +147,7 @@ class JWTService {
     try {
       const payload = JSON.parse(atob(parts[1]!.replace(/-/g, '').replace(/_/g, '`/')));
       return payload;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('Failed to decode token');
     }
   }
@@ -272,7 +272,7 @@ class JWTService {
 
       // Verify signature
       return await verifyHMAC(JSON.stringify(claims), signature, this.secret.toString());
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -297,7 +297,7 @@ class JWTService {
   static generateSessionId(): string {
     const buffer = crypto.getRandomValues(new Uint8Array(32));
     return Array.from(buffer)
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b: any) => b.toString(16).padStart(2, '0'))
       .join('');
   }
 }

@@ -72,7 +72,7 @@ export class EdgeCache {
       if (response) {
         return await response.json();
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return null;
@@ -95,7 +95,7 @@ export class EdgeCache {
         new Request(`https://cache.internal/${key}`),
         response
       );
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -114,7 +114,7 @@ export class KVCache {
     try {
       const value = await this.kv.get(key, 'json');
       return value;
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -128,7 +128,7 @@ export class KVCache {
           ttl: ttl
         }
       });
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -158,7 +158,7 @@ export class D1Cache {
       if (result) {
         return JSON.parse(result.data);
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return null;
@@ -172,7 +172,7 @@ export class D1Cache {
         .prepare('INSERT OR REPLACE INTO cache (key, data, expires_at, created_at) VALUES (?, ?, ?, ?)')
         .bind(key, JSON.stringify(data), expiresAt, Date.now())
         .run();
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -182,7 +182,7 @@ export class D1Cache {
         .prepare('DELETE FROM cache WHERE key LIKE ?')
         .bind(`${pattern}%`)
         .run();
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 }
@@ -208,7 +208,7 @@ export class R2Cache {
           await this.r2.delete(key);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return null;
@@ -224,7 +224,7 @@ export class R2Cache {
           ttl: ttl.toString()
         }
       });
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -235,7 +235,7 @@ export class R2Cache {
       for (const object of objects.objects) {
         await this.r2.delete(object.key);
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 }
@@ -540,7 +540,7 @@ export class QuantumCacheSystem {
     setTimeout(async () => {
       try {
         await this.get(key, context);
-      } catch (error) {
+      } catch (error: any) {
       }
     }, 100);
   }

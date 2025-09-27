@@ -54,7 +54,7 @@ export class PatternRecognition {
       LIMIT 100
     `).bind(this.businessId, this.businessId, this.businessId, this.businessId).all();
 
-    return successfulDeals.results.map(deal => ({
+    return successfulDeals.results.map((deal: any) => ({
       ...deal,
       interactions: this.parseInteractionData(deal.interactions as string),
       calls: this.parseCallData(deal.calls as string)
@@ -65,7 +65,7 @@ export class PatternRecognition {
     const prompt = `
       Analyze these successful deals and identify winning patterns:
 
-      ${JSON.stringify(successfulDeals.slice(0, 20).map(deal => ({
+      ${JSON.stringify(successfulDeals.slice(0, 20).map((deal: any) => ({
         id: deal.id,
         value: deal.value,
         salesCycle: deal.sales_cycle,
@@ -160,7 +160,7 @@ export class PatternRecognition {
       }
 
       return patterns;
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -187,7 +187,7 @@ export class PatternRecognition {
       const response = await this.callAI(prompt);
       const patterns = JSON.parse(response);
       return await this.processAndStorePatterns(patterns, 'channel');
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -215,7 +215,7 @@ export class PatternRecognition {
       const response = await this.callAI(prompt);
       const patterns = JSON.parse(response);
       return await this.processAndStorePatterns(patterns, 'timing');
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -245,7 +245,7 @@ export class PatternRecognition {
       const response = await this.callAI(prompt);
       const patterns = JSON.parse(response);
       return await this.processAndStorePatterns(patterns, 'content');
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -273,7 +273,7 @@ export class PatternRecognition {
       const response = await this.callAI(prompt);
       const patterns = JSON.parse(response);
       return await this.processAndStorePatterns(patterns, 'objection_handling');
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -302,7 +302,7 @@ export class PatternRecognition {
       const response = await this.callAI(prompt);
       const patterns = JSON.parse(response);
       return await this.processAndStorePatterns(patterns, 'sequence');
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -331,7 +331,7 @@ export class PatternRecognition {
       const response = await this.callAI(prompt);
       const patterns = JSON.parse(response);
       return await this.processAndStorePatterns(patterns, 'closing');
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -653,8 +653,8 @@ export class PatternRecognition {
   private parseInteractionData(data: string): any[] {
     if (!data) return [];
     try {
-      return data.split(',').map(item => JSON.parse(item));
-    } catch (error) {
+      return data.split(',').map((item: any) => JSON.parse(item));
+    } catch (error: any) {
       return [];
     }
   }
@@ -662,8 +662,8 @@ export class PatternRecognition {
   private parseCallData(data: string): any[] {
     if (!data) return [];
     try {
-      return data.split(',').map(item => JSON.parse(item));
-    } catch (error) {
+      return data.split(',').map((item: any) => JSON.parse(item));
+    } catch (error: any) {
       return [];
     }
   }
@@ -694,7 +694,7 @@ export class PatternRecognition {
       // Extract JSON if present
       const jsonMatch = content.match(/\[[\s\S]*\]|\{[\s\S]*\}/);
       return jsonMatch ? jsonMatch[0] : content;
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -761,7 +761,7 @@ export class PatternRecognition {
   }
 
   async getPatternsByType(type: string): Promise<Pattern[]> {
-    return Array.from(this.patterns.values()).filter(p => p.type === type);
+    return Array.from(this.patterns.values()).filter((p: any) => p.type === type);
   }
 
   async getTopPerformingPatterns(limit: number = 10): Promise<Pattern[]> {
@@ -827,7 +827,7 @@ export class PatternRecognition {
     validationRate: number;
   }> {
     const patterns = Array.from(this.patterns.values());
-    const recentPatterns = patterns.filter(p =>
+    const recentPatterns = patterns.filter((p: any) =>
       new Date(p.discovered).getTime() > Date.now() - (30 * 24 * 60 * 60 * 1000)
     );
 

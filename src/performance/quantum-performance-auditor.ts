@@ -382,7 +382,7 @@ export class QuantumPerformanceAuditor {
     return {
       score: result.score,
       totalQueries: result.slowQueries.length + result.nPlusOneQueries.length,
-      slowQueries: result.slowQueries.map(sq => ({
+      slowQueries: result.slowQueries.map((sq: any) => ({
         query: sq.query,
         executionTime: sq.averageExecutionTime,
         frequency: sq.executionCount,
@@ -401,7 +401,7 @@ export class QuantumPerformanceAuditor {
           improvement: sq.estimatedImprovement
         }
       })),
-      missingIndexes: result.missingIndexes.map(mi => ({
+      missingIndexes: result.missingIndexes.map((mi: any) => ({
         table: mi.table,
         columns: mi.columns,
         queries: [mi.creationSQL],
@@ -409,7 +409,7 @@ export class QuantumPerformanceAuditor {
         createStatement: mi.creationSQL
       })),
       inefficientQueries: [],
-      nPlusOneQueries: result.nPlusOneQueries.map(npq => ({
+      nPlusOneQueries: result.nPlusOneQueries.map((npq: any) => ({
         pattern: npq.pattern,
         occurrences: npq.occurrences,
         impact: npq.estimatedImprovement / 1000,
@@ -428,21 +428,21 @@ export class QuantumPerformanceAuditor {
       score: result.score,
       hitRatio: result.overallMetrics.hitRate / 100,
       missRatio: result.overallMetrics.missRate / 100,
-      endpoints: result.endpointAnalysis.map(ea => ({
+      endpoints: result.endpointAnalysis.map((ea: any) => ({
         endpoint: ea.endpoint,
         hitRatio: ea.hitRate / 100,
         avgResponseTime: ea.averageResponseTime,
         cacheSize: ea.cacheSize,
         ttl: ea.ttl,
-        issues: ea.issues.map(i => i.description)
+        issues: ea.issues.map((i: any) => i.description)
       })),
-      inefficiencies: result.inefficiencies.map(ineff => ({
+      inefficiencies: result.inefficiencies.map((ineff: any) => ({
         type: ineff.type as any,
         description: ineff.description,
         impact: ineff.impact,
         fix: ineff.solution
       })),
-      optimizations: result.recommendations.map(rec => ({
+      optimizations: result.recommendations.map((rec: any) => ({
         endpoint: rec.target,
         currentTTL: 300, // Default value
         optimalTTL: 600, // Default optimized value
@@ -462,13 +462,13 @@ export class QuantumPerformanceAuditor {
       initialBundleSize: result.bundleSize.chunks[0]?.size || 0,
       duplicatedCode: result.bundleSize.duplicatedCode.reduce((sum, dup) => sum + dup.estimatedSavings, 0),
       unusedCode: result.bundleSize.unusedCode.reduce((sum, unused) => sum + unused.estimatedSavings, 0),
-      largeFiles: result.assetOptimization.images.unoptimizedImages.map(img => ({
+      largeFiles: result.assetOptimization.images.unoptimizedImages.map((img: any) => ({
         path: img.path,
         size: img.currentSize,
         type: 'image' as const,
         optimization: `Convert to ${img.recommendedFormat} format`
       })),
-      optimizations: result.recommendations.map(rec => ({
+      optimizations: result.recommendations.map((rec: any) => ({
         type: rec.category === 'size' ? 'tree_shaking' :
               rec.category === 'loading' ? 'lazy_loading' :
               rec.category === 'compression' ? 'compression' : 'code_splitting',
@@ -489,21 +489,21 @@ export class QuantumPerformanceAuditor {
       p95: result.overallMetrics.p95ResponseTime,
       p99: result.overallMetrics.p99ResponseTime,
       slowEndpoints: result.endpointAnalysis
-        .filter(ea => ea.averageLatency > 200)
-        .map(ea => ({
+        .filter((ea: any) => ea.averageLatency > 200)
+        .map((ea: any) => ({
           path: ea.endpoint,
           method: ea.method,
           p95: ea.p95Latency,
           frequency: ea.requestCount / 3600, // Convert to requests per minute
-          bottlenecks: ea.bottlenecks.map(b => b.description)
+          bottlenecks: ea.bottlenecks.map((b: any) => b.description)
         })),
-      bottlenecks: result.performanceBottlenecks.map(pb => ({
+      bottlenecks: result.performanceBottlenecks.map((pb: any) => ({
         type: pb.type as any,
         location: pb.location,
         impact: pb.impact,
         solution: pb.solution
       })),
-      optimizations: result.recommendations.map(rec => ({
+      optimizations: result.recommendations.map((rec: any) => ({
         endpoint: rec.title,
         type: rec.category === 'cache' ? 'caching' :
               rec.category === 'database' ? 'indexing' : 'async',
@@ -522,13 +522,13 @@ export class QuantumPerformanceAuditor {
       memoryUsage: {
         used: result.memoryAnalysis.averageMemoryUsage,
         available: result.memoryAnalysis.totalMemoryUsage - result.memoryAnalysis.averageMemoryUsage,
-        leaks: result.memoryAnalysis.memoryLeaks.map(leak => ({
+        leaks: result.memoryAnalysis.memoryLeaks.map((leak: any) => ({
           location: leak.component,
           size: leak.leakRate * 60, // Convert per minute to per hour
           growth: leak.leakRate,
           fix: leak.fixSuggestion
         })),
-        hotspots: result.memoryAnalysis.largeObjects.map(obj => ({
+        hotspots: result.memoryAnalysis.largeObjects.map((obj: any) => ({
           function: obj.object,
           usage: obj.size,
           optimization: obj.optimization
@@ -536,12 +536,12 @@ export class QuantumPerformanceAuditor {
       },
       cpuUsage: {
         utilization: result.cpuAnalysis.averageCPUUsage,
-        hotspots: result.cpuAnalysis.hotSpots.map(hs => ({
+        hotspots: result.cpuAnalysis.hotSpots.map((hs: any) => ({
           function: hs.function,
           usage: hs.percentage / 100,
           optimization: hs.optimization
         })),
-        inefficiencies: result.cpuAnalysis.blockingOperations.map(bo => ({
+        inefficiencies: result.cpuAnalysis.blockingOperations.map((bo: any) => ({
           type: bo.type as any,
           location: bo.operation,
           impact: bo.averageBlockingTime,
@@ -552,20 +552,20 @@ export class QuantumPerformanceAuditor {
         active: result.networkAnalysis.connectionAnalysis.activeConnections,
         max: result.networkAnalysis.connectionAnalysis.maxConnections,
         poolEfficiency: result.networkAnalysis.connectionAnalysis.connectionUtilization,
-        leaks: result.networkAnalysis.connectionAnalysis.connectionErrors.map(ce => ({
+        leaks: result.networkAnalysis.connectionAnalysis.connectionErrors.map((ce: any) => ({
           location: ce.type,
           count: ce.frequency,
           fix: ce.recommendation
         }))
       },
-      issues: result.criticalIssues.map(ci => ({
+      issues: result.criticalIssues.map((ci: any) => ({
         type: ci.type as any,
         severity: ci.severity as any,
         description: ci.description,
         impact: 100, // Default high impact for critical issues
         fix: ci.longTermSolution
       })),
-      optimizations: result.optimizations.map(opt => ({
+      optimizations: result.optimizations.map((opt: any) => ({
         type: opt.type as any,
         description: opt.description,
         improvement: 50, // Default improvement percentage
@@ -593,10 +593,10 @@ export class QuantumPerformanceAuditor {
     this.collectResourceIssues(data.resourceAudit, issues, optimizations, autoFixable);
 
     // Categorize issues by severity
-    const critical = issues.filter(i => i.severity === 'critical');
-    const high = issues.filter(i => i.severity === 'high');
-    const medium = issues.filter(i => i.severity === 'medium');
-    const low = issues.filter(i => i.severity === 'low');
+    const critical = issues.filter((i: any) => i.severity === 'critical');
+    const high = issues.filter((i: any) => i.severity === 'high');
+    const medium = issues.filter((i: any) => i.severity === 'medium');
+    const low = issues.filter((i: any) => i.severity === 'low');
 
     // Calculate overall score
     const overallScore = this.calculateOverallScore(data);
@@ -877,7 +877,7 @@ export class QuantumPerformanceAuditor {
     const recommendations: PerformanceRecommendation[] = [];
 
     // High-impact, low-effort recommendations
-    const criticalIssues = issues.filter(i => i.severity === 'critical');
+    const criticalIssues = issues.filter((i: any) => i.severity === 'critical');
     for (const issue of criticalIssues) {
       recommendations.push({
         priority: 1,
@@ -955,16 +955,16 @@ Overall Score: ${report.overallScore}/100
 `;
 
   const criticalActions = [
-    ...report.critical.map(issue => `🚨 ${issue.title}: ${issue.description}`),
-    ...report.high.slice(0, 3).map(issue => `⚠️ ${issue.title}: ${issue.description}`)
+    ...report.critical.map((issue: any) => `🚨 ${issue.title}: ${issue.description}`),
+    ...report.high.slice(0, 3).map((issue: any) => `⚠️ ${issue.title}: ${issue.description}`)
   ];
 
   const quickWins = [
-    ...report.autoFixable.slice(0, 5).map(fix => `⚡ ${fix.description}`),
+    ...report.autoFixable.slice(0, 5).map((fix: any) => `⚡ ${fix.description}`),
     ...report.recommendations
-      .filter(rec => rec.effort < 30)
+      .filter((rec: any) => rec.effort < 30)
       .slice(0, 3)
-      .map(rec => `💡 ${rec.title}: ${rec.description}`)
+      .map((rec: any) => `💡 ${rec.title}: ${rec.description}`)
   ];
 
   return { report, summary, criticalActions, quickWins };

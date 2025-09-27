@@ -82,13 +82,13 @@ class CRMMigrationManager {
     try {
       const results = await this.executeCRMMigrations();
       const errors = results
-        .filter(r => r.status === 'failed')
-        .map(r => r.error || 'Unknown error');
+        .filter((r: any) => r.status === 'failed')
+        .map((r: any) => r.error || 'Unknown error');
 
       const success = errors.length === 0;
 
       return { success, results, errors };
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       return {
         success: false,
@@ -138,7 +138,7 @@ class CRMMigrationManager {
           }
           // SQLite table names cannot be parameterized, but we've validated the input
           await this.env.DB_MAIN.prepare(`SELECT 1 FROM ${table} LIMIT 1`).first();
-        } catch (error) {
+        } catch (error: any) {
           issues.push(`Table '${table}' does not exist or is not accessible`);
         }
       }
@@ -160,13 +160,13 @@ class CRMMigrationManager {
           if (!result) {
             issues.push(`Index '${check.name}' is missing`);
           }
-        } catch (error) {
+        } catch (error: any) {
           issues.push(`Could not verify index '${check.name}': ${error}`);
         }
       }
 
       return { valid: issues.length === 0, issues };
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       return { valid: false, issues: [errorMessage] };
     }
@@ -220,7 +220,7 @@ class CRMMigrationManager {
         .run();
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       return { success: false, error: errorMessage };
     }

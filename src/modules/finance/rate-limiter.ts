@@ -69,7 +69,7 @@ export class RateLimiter {
       if (currentData) {
         try {
           requestData = JSON.parse(currentData);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.warn('Invalid rate limit data, resetting', { key });
         }
       }
@@ -131,7 +131,7 @@ export class RateLimiter {
         resetTime
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Rate limit check failed', error, {
         businessId,
         userId,

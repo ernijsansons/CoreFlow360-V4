@@ -25,6 +25,7 @@ export class CostTracker {
   private kv: KVNamespace;
   private db: D1Database;
   private defaultLimits: CostLimits;
+  private rateLimitStorage: Map<string, { count: number; resetTime: number }> = new Map();
 
   constructor(kv: KVNamespace, db: D1Database, defaultLimits?: CostLimits) {
     this.logger = new Logger();
@@ -53,13 +54,16 @@ export class CostTracker {
       const safeTaskId = sanitizeSqlParam(metrics.taskId) as string;
 
       // Check rate limit
-      const rateLimit = checkRateLimit(`cost_tracking:${safeBusinessId}`, 1000, 60000);
-      if (!rateLimit.allowed) {
+      const rateLimitAllowed = await checkRateLimit(
+        `cost_tracking:${safeBusinessId}`,
+        1000,
+        60000,
+        this.rateLimitStorage
+      );
+      if (!rateLimitAllowed) {
         this.logger.warn('Cost tracking rate limit exceeded', sanitizeForLogging({
-          businessId: safeBusinessId,
-          remaining: rateLimit.remaining,
-          resetAt: rateLimit.resetAt
-        }));
+          businessId: safeBusinessId
+        }) as Record<string, unknown>);
         return;
       }
 
@@ -86,9 +90,9 @@ export class CostTracker {
         agentId: safeAgentId,
         cost: metrics.cost,
         capability: metrics.capability,
-      }));
+      }) as Record<string, unknown>);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to track cost metrics', error, sanitizeForLogging({
         trackingId,
         businessId: metrics.businessId,
@@ -147,7 +151,7 @@ export class CostTracker {
         limits: { daily: limits.daily, monthly: limits.monthly },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to check cost limits', error, { businessId });
       return {
         withinLimits: true, // Allow on error to prevent blocking
@@ -167,7 +171,7 @@ export class CostTracker {
     try {
       const cached = await this.kv.get(key);
       return cached ? parseFloat(cached) : 0;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get daily cost', error, { businessId });
       return 0;
     }
@@ -183,7 +187,7 @@ export class CostTracker {
     try {
       const cached = await this.kv.get(key);
       return cached ? parseFloat(cached) : 0;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get monthly cost', error, { businessId });
       return 0;
     }
@@ -247,7 +251,7 @@ export class CostTracker {
 
       return breakdown;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get cost breakdown', error, { businessId, period });
       return {
         total: 0,
@@ -372,7 +376,7 @@ export class CostTracker {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get cost analytics', error, { businessId, days });
       return {
         trends: [],
@@ -403,7 +407,7 @@ export class CostTracker {
         newLimits,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to set business limits', error, { businessId });
       throw error;
     }
@@ -416,7 +420,7 @@ export class CostTracker {
     try {
       const cached = await this.kv.get(`cost:limits:${businessId}`, 'json');
       return cached ? { ...this.defaultLimits, ...cached } : this.defaultLimits;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get business limits', error, { businessId });
       return this.defaultLimits;
     }
@@ -460,7 +464,7 @@ export class CostTracker {
         })),
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get system statistics', error);
       return {
         totalBusinesses: 0,
@@ -502,7 +506,7 @@ export class CostTracker {
         retentionDays,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to cleanup cost records', error);
     }
   }
@@ -538,7 +542,7 @@ export class CostTracker {
         expirationTtl: 86400 * 32, // 32 days
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn('Failed to update cost counter', error, { key });
     }
   }
@@ -568,7 +572,7 @@ export class CostTracker {
         trackingId
       ).run();
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to persist cost metrics to database', error, {
         trackingId,
         businessId: metrics.businessId,
@@ -622,7 +626,7 @@ export class CostTracker {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to check limits and alert', error, {
         businessId: metrics.businessId,
       });

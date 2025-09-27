@@ -121,7 +121,7 @@ export class EmailTemplateEngine {
       ORDER BY created_at DESC
     `).bind(category).all();
 
-    return results.results.map(r => ({
+    return results.results.map((r: any) => ({
       ...r,
       variables: JSON.parse(r.variables as string),
       performance: r.performance ? JSON.parse(r.performance as string) : undefined

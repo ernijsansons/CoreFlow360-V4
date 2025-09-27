@@ -149,7 +149,7 @@ export class BusinessContextProvider {
 
       return contextData;
 
-    } catch (error) {
+    } catch (error: any) {
       const processingTime = Date.now() - startTime;
       this.logger.error('Failed to get business context', error, {
         businessId,
@@ -226,7 +226,7 @@ export class BusinessContextProvider {
 
       return companyProfile;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get company profile', error, { businessId });
       return null;
     }
@@ -238,7 +238,7 @@ export class BusinessContextProvider {
   async getDepartmentProfile(businessId: string, department: string): Promise<DepartmentProfile | null> {
     try {
       return await this.departmentProfiler.getDepartmentProfile(businessId, department);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get department profile', error, { businessId, department });
       return null;
     }
@@ -310,7 +310,7 @@ export class BusinessContextProvider {
 
       return userProfile;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get user profile', error, { userId, businessId });
       return null;
     }
@@ -322,7 +322,7 @@ export class BusinessContextProvider {
   async getBusinessIntelligence(businessId: string): Promise<BusinessIntelligence> {
     try {
       return await this.companyAnalyzer.getBusinessIntelligence(businessId);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get business intelligence', error, { businessId });
 
       // Return default intelligence with low confidence
@@ -368,7 +368,7 @@ export class BusinessContextProvider {
   async getDepartmentCapabilities(businessId: string, department: string): Promise<DepartmentCapabilities> {
     try {
       return await this.departmentProfiler.getDepartmentCapabilities(businessId, department);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get department capabilities', error, { businessId, department });
       return this.getDefaultCapabilities();
     }
@@ -410,7 +410,7 @@ export class BusinessContextProvider {
         departmental: departmental ? { [department]: departmental } : undefined,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get real-time metrics', error, { businessId, department });
       return { timestamp: Date.now() };
     }
@@ -426,7 +426,7 @@ export class BusinessContextProvider {
 
       this.logger.info('Business context cache refreshed', { businessId });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to refresh business context', error, { businessId });
       throw error;
     }
@@ -457,7 +457,7 @@ export class BusinessContextProvider {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to validate context access', error, { userId, businessId, requiredRole });
       return false;
     }

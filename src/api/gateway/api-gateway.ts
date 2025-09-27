@@ -199,7 +199,7 @@ export class APIGateway {
 
       return response;
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('API Gateway error', { error: (error instanceof Error ? error.message : String(error)), path, method });
       return this.createErrorResponse(500, 'Internal server error');
     }
@@ -334,7 +334,7 @@ export class APIGateway {
       }
 
       return null;
-    } catch (error) {
+    } catch (error: any) {
       return this.createErrorResponse(400, `Validation error: ${(error instanceof Error ? error.message : String(error))}`);
     }
   }
@@ -387,7 +387,7 @@ export class APIGateway {
   }
 
   removeRoute(routeId: string): void {
-    this.config.routes = this.config.routes.filter(route => route.id !== routeId);
+    this.config.routes = this.config.routes.filter((route: any) => route.id !== routeId);
     this.routeCache.clear();
     this.initializeRoutes();
   }

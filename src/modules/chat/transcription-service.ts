@@ -99,7 +99,7 @@ class TranscriptionService {
 
       return result
 
-    } catch (error) {
+    } catch (error: any) {
       await this.auditLogger.log({
         action: 'transcription_failed',
         userId,
@@ -164,7 +164,7 @@ class TranscriptionService {
 
             options.onTranscript?.(result.transcript)
 
-          } catch (error) {
+          } catch (error: any) {
           }
 
           // Keep some overlap for context
@@ -190,7 +190,7 @@ class TranscriptionService {
         options.onComplete?.(finalResult)
       }
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Stream transcription failed',
         'STREAM_TRANSCRIPTION_ERROR',
@@ -215,7 +215,7 @@ class TranscriptionService {
 
       return result
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'AI transcription service failed',
         'AI_SERVICE_ERROR',
@@ -312,8 +312,8 @@ class TranscriptionService {
 
     // Adjust based on word quality
     const words = transcript.split(' ')
-    const shortWords = words.filter(w => w.length < 3).length
-    const longWords = words.filter(w => w.length > 8).length
+    const shortWords = words.filter((w: any) => w.length < 3).length
+    const longWords = words.filter((w: any) => w.length > 8).length
 
     confidence -= (shortWords / words.length) * 0.1
     confidence += (longWords / words.length) * 0.05
@@ -374,7 +374,7 @@ class TranscriptionService {
       }
 
       return buffer
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError('Invalid base64 audio data', 'INVALID_AUDIO_DATA')
     }
   }

@@ -1,6 +1,10 @@
 // Minimal Cloudflare Worker Entry Point
 import { Router } from 'itty-router';
 
+// Cloudflare types
+type DurableObjectState = any; // Using any for simplicity in minimal setup
+type ExecutionContext = any;
+
 export interface Env {
   DB: D1Database;
   CACHE: KVNamespace;
@@ -138,12 +142,47 @@ router.all('*', () => {
   });
 });
 
+// Export Durable Object class
+export class AdvancedRateLimiterDO {
+  state: DurableObjectState;
+
+  constructor(state: DurableObjectState) {
+    this.state = state;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    // Simple rate limiter implementation
+    const key = request.headers.get('CF-Connecting-IP') || 'unknown';
+    const now = Date.now();
+    const windowMs = 60000; // 1 minute window
+
+    const requests = await this.state.storage.get(key) as number[] || [];
+    const recentRequests = requests.filter((time: number) => now - time < windowMs);
+
+    if (recentRequests.length >= 60) { // 60 requests per minute
+      return new Response(JSON.stringify({
+        allowed: false,
+        resetTime: Math.ceil((recentRequests[0] + windowMs - now) / 1000)
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    recentRequests.push(now);
+    await this.state.storage.put(key, recentRequests);
+
+    return new Response(JSON.stringify({ allowed: true }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
       const response = await router.handle(request, env, ctx);
       return response || new Response('Not Found', { status: 404 });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Worker error:', error);
       return new Response(JSON.stringify({
         error: 'Internal Server Error',

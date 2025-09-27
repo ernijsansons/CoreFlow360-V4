@@ -147,7 +147,7 @@ export class AutomatedPerformanceFixer {
 
       return session;
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Automated performance fix session failed', error);
       throw new ValidationError('Failed to execute automated performance fixes', {
         code: 'AUTOFIX_EXECUTION_FAILED',
@@ -306,7 +306,7 @@ export class AutomatedPerformanceFixer {
         severity: 'info',
         requirement: 'required'
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'Database Health',
         passed: false,
@@ -347,7 +347,7 @@ export class AutomatedPerformanceFixer {
         severity: canBackup ? 'info' : 'error',
         requirement: this.config.backupBeforeFix ? 'required' : 'optional'
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'Backup Capabilities',
         passed: false,
@@ -402,7 +402,7 @@ export class AutomatedPerformanceFixer {
 
       return backup;
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to create backup', error);
       throw new ValidationError('Backup creation failed', {
         code: 'BACKUP_FAILED',
@@ -437,7 +437,7 @@ export class AutomatedPerformanceFixer {
       }
 
       return schema;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to backup database schema', error);
       return null;
     }
@@ -544,7 +544,7 @@ export class AutomatedPerformanceFixer {
         rollbackAvailable: Boolean(issue.rollback)
       };
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Fix execution failed', { issueId: issue.id, error });
 
       // Attempt rollback if available and enabled
@@ -594,7 +594,7 @@ export class AutomatedPerformanceFixer {
         return 250; // milliseconds
       }
       return undefined;
-    } catch (error) {
+    } catch (error: any) {
       logger.debug('Failed to measure before metric', { issueId: issue.id, error });
       return undefined;
     }
@@ -608,7 +608,7 @@ export class AutomatedPerformanceFixer {
         return 45; // milliseconds - should be faster
       }
       return undefined;
-    } catch (error) {
+    } catch (error: any) {
       logger.debug('Failed to measure after metric', { issueId: issue.id, error });
       return undefined;
     }
@@ -633,8 +633,8 @@ export class AutomatedPerformanceFixer {
 
   private calculateOverallImprovement(results: AutoFixResult[]): number {
     const successfulImprovements = results
-      .filter(r => r.status === 'success' && r.metrics.improvement)
-      .map(r => r.metrics.improvement!);
+      .filter((r: any) => r.status === 'success' && r.metrics.improvement)
+      .map((r: any) => r.metrics.improvement!);
 
     if (successfulImprovements.length === 0) return 0;
 
@@ -694,7 +694,7 @@ export class AutomatedPerformanceFixer {
         backupTimestamp: backup.timestamp
       });
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Manual rollback failed', error);
       throw new ValidationError('Rollback operation failed', {
         code: 'ROLLBACK_FAILED',
@@ -748,15 +748,15 @@ Duration: ${((session.endTime?.getTime() || Date.now()) - session.startTime.getT
 
 ✅ **Successful Fixes:**
 ${session.results
-  .filter(r => r.status === 'success')
-  .map(r => `- ${r.description} (${r.metrics.improvement?.toFixed(1) || 'N/A'}% improvement)`)
+  .filter((r: any) => r.status === 'success')
+  .map((r: any) => `- ${r.description} (${r.metrics.improvement?.toFixed(1) || 'N/A'}% improvement)`)
   .join('\n')}
 
-${session.results.filter(r => r.status === 'failed').length > 0 ? `
+${session.results.filter((r: any) => r.status === 'failed').length > 0 ? `
 ❌ **Failed Fixes:**
 ${session.results
-  .filter(r => r.status === 'failed')
-  .map(r => `- ${r.description}: ${r.error}`)
+  .filter((r: any) => r.status === 'failed')
+  .map((r: any) => `- ${r.description}: ${r.error}`)
   .join('\n')}
 ` : ''}
 

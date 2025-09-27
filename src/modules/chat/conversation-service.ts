@@ -123,7 +123,7 @@ class ConversationService {
 
       return conversation
 
-    } catch (error) {
+    } catch (error: any) {
       await this.auditLogger.log({
         action: 'conversation_creation_failed',
         userId,
@@ -167,7 +167,7 @@ class ConversationService {
 
       return this.mapDbToConversation(result)
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve conversation',
         'DATABASE_ERROR',
@@ -230,7 +230,7 @@ class ConversationService {
         LIMIT ? OFFSET ?
       `).bind(...params, limit, offset).all()
 
-      const conversations = results.results.map(result => this.mapDbToConversation(result))
+      const conversations = results.results.map((result: any) => this.mapDbToConversation(result))
 
       return {
         conversations,
@@ -242,7 +242,7 @@ class ConversationService {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve conversations',
         'DATABASE_ERROR',
@@ -293,7 +293,7 @@ class ConversationService {
 
       return updatedConversation
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error
       }
@@ -339,7 +339,7 @@ class ConversationService {
         }
       })
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error
       }
@@ -415,7 +415,7 @@ class ConversationService {
 
       return fullMessage
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to add message',
         'MESSAGE_ADD_FAILED',
@@ -487,7 +487,7 @@ class ConversationService {
         LIMIT ? OFFSET ?
       `).bind(...params, limit, offset).all()
 
-      const messages = results.results.map(result => this.mapDbToMessage(result))
+      const messages = results.results.map((result: any) => this.mapDbToMessage(result))
 
       return {
         messages,
@@ -499,7 +499,7 @@ class ConversationService {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error
       }
@@ -571,7 +571,7 @@ class ConversationService {
       `).bind(...params, limit, offset).all()
 
       const conversations = await Promise.all(
-        results.results.map(async (result) => {
+        results.results.map(async (result: any) => {
           const conversation = this.mapDbToConversation(result)
 
           if (options.includeMessages) {
@@ -584,7 +584,7 @@ class ConversationService {
               LIMIT 3
             `).bind(conversation.id, searchQuery, businessId).all()
 
-            conversation.relevantMessages = messageResults.results.map(msg => this.mapDbToMessage(msg))
+            conversation.relevantMessages = messageResults.results.map((msg: any) => this.mapDbToMessage(msg))
           }
 
           return conversation
@@ -601,7 +601,7 @@ class ConversationService {
         }
       }
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to search conversations',
         'SEARCH_FAILED',
@@ -640,7 +640,7 @@ class ConversationService {
         `).bind(title, conversationId).run()
       }
 
-    } catch (error) {
+    } catch (error: any) {
       // Use logger instead of console for proper monitoring
       this.logger.warn('Failed to auto-generate title', {
         conversationId,

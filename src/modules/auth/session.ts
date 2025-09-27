@@ -183,7 +183,7 @@ class SessionManager {
 
     // Delete each session
     await Promise.all(
-      sessions.map(sessionId => this.kv.delete(`${SESSION_PREFIX}${sessionId}`))
+      sessions.map((sessionId: any) => this.kv.delete(`${SESSION_PREFIX}${sessionId}`))
     );
 
     // Clear user's session list
@@ -219,7 +219,7 @@ class SessionManager {
    */
   private async removeFromUserSessions(userId: string, sessionId: string): Promise<void> {
     const sessions = await this.getUserSessions(userId);
-    const filtered = sessions.filter(id => id !== sessionId);
+    const filtered = sessions.filter((id: any) => id !== sessionId);
 
     if (filtered.length > 0) {
       await this.kv.put(
@@ -263,7 +263,7 @@ class SessionManager {
         mfaRequired: session.mfaEnabled && !session.mfaVerified,
         mfaVerified: session.mfaVerified,
       };
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -319,7 +319,7 @@ class SessionManager {
         refreshToken: tokens.refreshToken,
         expiresIn: 900, // 15 minutes
       };
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }

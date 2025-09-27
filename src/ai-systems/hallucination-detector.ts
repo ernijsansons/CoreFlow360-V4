@@ -99,7 +99,7 @@ export class HallucinationDetector {
       factChecks.push(...factCheckResults);
 
       // Convert failed fact checks to hallucination instances
-      for (const factCheck of factCheckResults.filter(fc => !fc.isFactual)) {
+      for (const factCheck of factCheckResults.filter((fc: any) => !fc.isFactual)) {
         instances.push({
           id: `fact_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           timestamp: new Date(),
@@ -239,12 +239,12 @@ export class HallucinationDetector {
     for (const pattern of patterns) {
       const matches = text.match(pattern);
       if (matches) {
-        claims.push(...matches.map(match => match.trim()));
+        claims.push(...matches.map((match: any) => match.trim()));
       }
     }
 
     // Extract sentences with high factual claim probability
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10);
+    const sentences = text.split(/[.!?]+/).filter((s: any) => s.trim().length > 10);
     for (const sentence of sentences) {
       if (this.hasHighFactualClaimProbability(sentence)) {
         claims.push(sentence.trim());
@@ -461,7 +461,7 @@ export class HallucinationDetector {
     const contradictions: string[] = [];
 
     // Look for contradictory statements within the text
-    const sentences = text.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 0);
+    const sentences = text.split(/[.!?]+/).map((s: any) => s.trim()).filter((s: any) => s.length > 0);
 
     for (let i = 0; i < sentences.length; i++) {
       for (let j = i + 1; j < sentences.length; j++) {
@@ -575,7 +575,7 @@ export class HallucinationDetector {
     const outputTerms = this.extractKeyTerms(output);
 
     // Check overlap
-    const overlap = inputTerms.filter(term => outputTerms.includes(term));
+    const overlap = inputTerms.filter((term: any) => outputTerms.includes(term));
     const overlapRatio = overlap.length / Math.max(inputTerms.length, 1);
 
     return overlapRatio >= 0.3; // At least 30% term overlap
@@ -589,20 +589,20 @@ export class HallucinationDetector {
       .toLowerCase()
       .replace(/[^\w\s]/g, ' ')
       .split(/\s+/)
-      .filter(word => word.length > 2 && !stopWords.has(word));
+      .filter((word: any) => word.length > 2 && !stopWords.has(word));
   }
 
   private detectContextSwitching(input: string, output: string): string[] {
     const switches: string[] = [];
 
     // Look for sudden topic changes in output
-    const outputSentences = output.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 0);
+    const outputSentences = output.split(/[.!?]+/).map((s: any) => s.trim()).filter((s: any) => s.length > 0);
 
     for (let i = 1; i < outputSentences.length; i++) {
       const prevTerms = this.extractKeyTerms(outputSentences[i - 1]);
       const currTerms = this.extractKeyTerms(outputSentences[i]);
 
-      const overlap = prevTerms.filter(term => currTerms.includes(term));
+      const overlap = prevTerms.filter((term: any) => currTerms.includes(term));
       if (overlap.length === 0 && prevTerms.length > 2 && currTerms.length > 2) {
         switches.push(`Abrupt context change between sentences: "${outputSentences[i - 1]}" → "${outputSentences[i]}"`);
       }
@@ -771,8 +771,8 @@ export class HallucinationDetector {
     const frequency = instances.length;
     const confidence = instances.reduce((sum, inst) => sum + inst.confidence, 0) / frequency;
 
-    const contexts = Array.from(new Set(instances.map(inst => inst.category)));
-    const triggerWords = this.extractCommonWords(instances.map(inst => inst.input));
+    const contexts = Array.from(new Set(instances.map((inst: any) => inst.category)));
+    const triggerWords = this.extractCommonWords(instances.map((inst: any) => inst.input));
 
     const avgSeverity = this.calculateAverageSeverity(instances);
     const risk = this.severityToRisk(avgSeverity);
@@ -785,7 +785,7 @@ export class HallucinationDetector {
       triggerWords,
       risk,
       prevention: this.generatePreventionStrategy(patternKey, instances),
-      examples: instances.slice(0, 3).map(inst => inst.evidence)
+      examples: instances.slice(0, 3).map((inst: any) => inst.evidence)
     };
   }
 

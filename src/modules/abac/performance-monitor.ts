@@ -163,7 +163,7 @@ export class ABACPerformanceMonitor {
   }
 
   getAlerts(): PerformanceAlert[] {
-    return Array.from(this.alerts.values()).filter(alert => !alert.resolved);
+    return Array.from(this.alerts.values()).filter((alert: any) => !alert.resolved);
   }
 
   getAllAlerts(): PerformanceAlert[] {
@@ -191,8 +191,7 @@ export class ABACPerformanceMonitor {
     }
 
     const now = Date.now();
-    const recentRequests = this.requestHistory.filter(
-      req => now - req.endTime < 60000 // Last minute
+    const recentRequests = this.requestHistory.filter((req: any) => now - req.endTime < 60000 // Last minute
     );
 
     if (recentRequests.length === 0) {
@@ -200,7 +199,7 @@ export class ABACPerformanceMonitor {
     }
 
     // Calculate response times
-    const responseTimes = recentRequests.map(req => req.duration);
+    const responseTimes = recentRequests.map((req: any) => req.duration);
     responseTimes.sort((a, b) => a - b);
 
     this.metrics.totalRequests = this.requestHistory.length;
@@ -209,11 +208,11 @@ export class ABACPerformanceMonitor {
     this.metrics.p99ResponseTime = this.percentile(responseTimes, 99);
 
     // Calculate error rate
-    const errorCount = recentRequests.filter(req => !req.success).length;
+    const errorCount = recentRequests.filter((req: any) => !req.success).length;
     this.metrics.errorRate = errorCount / recentRequests.length;
 
     // Calculate cache hit rate
-    const cacheHits = recentRequests.filter(req => req.cacheHit).length;
+    const cacheHits = recentRequests.filter((req: any) => req.cacheHit).length;
     this.metrics.cacheHitRate = cacheHits / recentRequests.length;
 
     // Calculate memory usage
@@ -397,11 +396,11 @@ export class ABACPerformanceMonitor {
     const recentAvgResponseTime = recent.reduce((sum, req) => sum + req.duration, 0) / recent.length;
     const olderAvgResponseTime = older.reduce((sum, req) => sum + req.duration, 0) / older.length;
 
-    const recentErrorRate = recent.filter(req => !req.success).length / recent.length;
-    const olderErrorRate = older.filter(req => !req.success).length / older.length;
+    const recentErrorRate = recent.filter((req: any) => !req.success).length / recent.length;
+    const olderErrorRate = older.filter((req: any) => !req.success).length / older.length;
 
-    const recentCacheHitRate = recent.filter(req => req.cacheHit).length / recent.length;
-    const olderCacheHitRate = older.filter(req => req.cacheHit).length / older.length;
+    const recentCacheHitRate = recent.filter((req: any) => req.cacheHit).length / recent.length;
+    const olderCacheHitRate = older.filter((req: any) => req.cacheHit).length / older.length;
 
     const recentThroughput = recent.length / 60;
     const olderThroughput = older.length / 60;

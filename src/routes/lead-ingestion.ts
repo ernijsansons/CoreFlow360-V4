@@ -143,7 +143,7 @@ app.use('*', async (c, next) => {
 });
 
 // Meta (Facebook/Instagram) Webhook
-app.get('/webhooks/meta', async (c) => {
+app.get('/webhooks/meta', async (c: any) => {
   const mode = c.req.query('hub.mode');
   const token = c.req.query('hub.verify_token');
   const challenge = c.req.query('hub.challenge');
@@ -162,7 +162,7 @@ app.get('/webhooks/meta', async (c) => {
   return c.text('Forbidden', 403);
 });
 
-app.post('/webhooks/meta', zValidator('json', MetaWebhookSchema), async (c) => {
+app.post('/webhooks/meta', zValidator('json', MetaWebhookSchema), async (c: any) => {
   const leadIngestionService = c.get('leadIngestionService') as LeadIngestionService;
   const businessId = c.get('businessId') as string;
   const payload = c.req.valid('json') as MetaLeadPayload;
@@ -180,13 +180,13 @@ app.post('/webhooks/meta', zValidator('json', MetaWebhookSchema), async (c) => {
       lead_id: result.lead_id,
       qualified: result.qualification_result?.qualified
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ status: 'error' });
   }
 });
 
 // Real-time Website Chat
-app.post('/chat/message', zValidator('json', ChatMessageSchema), async (c) => {
+app.post('/chat/message', zValidator('json', ChatMessageSchema), async (c: any) => {
   const leadIngestionService = c.get('leadIngestionService') as LeadIngestionService;
   const businessId = c.get('businessId') as string;
   const message = c.req.valid('json') as ChatMessage;
@@ -205,7 +205,7 @@ app.post('/chat/message', zValidator('json', ChatMessageSchema), async (c) => {
       transfer_to_human: response.transfer_to_human,
       context: response.context
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       response: "I'm sorry, I'm experiencing technical difficulties. Please try again.",
@@ -214,7 +214,7 @@ app.post('/chat/message', zValidator('json', ChatMessageSchema), async (c) => {
   }
 });
 
-app.get('/chat/session/:sessionId', async (c) => {
+app.get('/chat/session/:sessionId', async (c: any) => {
   const sessionId = c.req.param('sessionId');
 
   try {
@@ -240,7 +240,7 @@ app.get('/chat/session/:sessionId', async (c) => {
         messages: session.messages.slice(-20) // Return last 20 messages
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to retrieve session'
@@ -249,7 +249,7 @@ app.get('/chat/session/:sessionId', async (c) => {
 });
 
 // Email Processing
-app.post('/email/inbound', zValidator('json', EmailSchema), async (c) => {
+app.post('/email/inbound', zValidator('json', EmailSchema), async (c: any) => {
   const leadIngestionService = c.get('leadIngestionService') as LeadIngestionService;
   const businessId = c.get('businessId') as string;
   const email = c.req.valid('json') as ParsedEmail;
@@ -265,7 +265,7 @@ app.post('/email/inbound', zValidator('json', EmailSchema), async (c) => {
       ai_tasks_created: result.ai_tasks_created,
       error: result.error
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Email processing failed'
@@ -274,7 +274,7 @@ app.post('/email/inbound', zValidator('json', EmailSchema), async (c) => {
 });
 
 // Form Submissions
-app.post('/forms/submit', zValidator('json', FormSubmissionSchema), async (c) => {
+app.post('/forms/submit', zValidator('json', FormSubmissionSchema), async (c: any) => {
   const leadIngestionService = c.get('leadIngestionService') as LeadIngestionService;
   const businessId = c.get('businessId') as string;
   const submission = c.req.valid('json') as FormSubmission;
@@ -292,7 +292,7 @@ app.post('/forms/submit', zValidator('json', FormSubmissionSchema), async (c) =>
       processing_time_ms: result.processing_time_ms,
       error: result.error
     }, result.success ? 201 : 400);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Form processing failed'
@@ -301,7 +301,7 @@ app.post('/forms/submit', zValidator('json', FormSubmissionSchema), async (c) =>
 });
 
 // Direct Lead Creation API
-app.post('/leads', zValidator('json', LeadInputSchema), async (c) => {
+app.post('/leads', zValidator('json', LeadInputSchema), async (c: any) => {
   const leadIngestionService = c.get('leadIngestionService') as LeadIngestionService;
   const businessId = c.get('businessId') as string;
   const leadData = c.req.valid('json') as LeadInput;
@@ -320,7 +320,7 @@ app.post('/leads', zValidator('json', LeadInputSchema), async (c) => {
       ai_tasks_created: result.ai_tasks_created,
       error: result.error
     }, result.success ? 201 : 400);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Lead creation failed'
@@ -329,7 +329,7 @@ app.post('/leads', zValidator('json', LeadInputSchema), async (c) => {
 });
 
 // Bulk Lead Import
-app.post('/leads/bulk', async (c) => {
+app.post('/leads/bulk', async (c: any) => {
   const leadIngestionService = c.get('leadIngestionService') as LeadIngestionService;
   const businessId = c.get('businessId') as string;
 
@@ -361,7 +361,7 @@ app.post('/leads/bulk', async (c) => {
         results.push(result);
         if (result.success) successful++;
         else failed++;
-      } catch (error) {
+      } catch (error: any) {
         results.push({
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -379,7 +379,7 @@ app.post('/leads/bulk', async (c) => {
       failed,
       results
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Bulk import failed'
@@ -388,7 +388,7 @@ app.post('/leads/bulk', async (c) => {
 });
 
 // Integration Webhooks (Generic)
-app.post('/webhooks/:integration', async (c) => {
+app.post('/webhooks/:integration', async (c: any) => {
   const integration = c.req.param('integration');
   const leadIngestionService = c.get('leadIngestionService') as LeadIngestionService;
   const businessId = c.get('businessId') as string;
@@ -465,7 +465,7 @@ app.post('/webhooks/:integration', async (c) => {
       lead_id: result.lead_id,
       qualified: result.qualification_result?.qualified
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: `Failed to process ${integration} webhook`
@@ -474,7 +474,7 @@ app.post('/webhooks/:integration', async (c) => {
 });
 
 // Health check
-app.get('/health', async (c) => {
+app.get('/health', async (c: any) => {
   return c.json({
     status: 'healthy',
     service: 'Lead Ingestion Service',
@@ -491,7 +491,7 @@ app.get('/health', async (c) => {
 });
 
 // Analytics endpoint
-app.get('/analytics/ingestion', async (c) => {
+app.get('/analytics/ingestion', async (c: any) => {
   const businessId = c.get('businessId') as string;
   const period = c.req.query('period') || '24h';
 

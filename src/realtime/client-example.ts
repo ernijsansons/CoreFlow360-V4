@@ -44,7 +44,7 @@ export class CoreFlowRealtimeClient {
           reject(error);
         };
 
-      } catch (error) {
+      } catch (error: any) {
         reject(error);
       }
     });

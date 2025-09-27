@@ -54,7 +54,7 @@ export class SupernovaDeadCodeDetector {
 
     // Sort by line number in descending order to avoid offset issues
     const sortedDeadCode = deadCode
-      .filter(item => item.canRemove)
+      .filter((item: any) => item.canRemove)
       .sort((a, b) => b.line - a.line);
 
     for (const item of sortedDeadCode) {
@@ -234,8 +234,8 @@ export class SupernovaTechDebtDetector {
    */
   static generateDebtReport(debtItems: TechnicalDebtItem[]): TechnicalDebtReport {
     const totalDebt = debtItems.length;
-    const criticalDebt = debtItems.filter(item => item.priority === 'CRITICAL').length;
-    const highDebt = debtItems.filter(item => item.priority === 'HIGH').length;
+    const criticalDebt = debtItems.filter((item: any) => item.priority === 'CRITICAL').length;
+    const highDebt = debtItems.filter((item: any) => item.priority === 'HIGH').length;
     const totalEffort = debtItems.reduce((sum, item) => sum + item.effort, 0);
 
     const debtByType = debtItems.reduce((acc, item) => {
@@ -343,12 +343,12 @@ export class SupernovaTechDebtDetector {
   private static generateRecommendations(debtItems: TechnicalDebtItem[]): string[] {
     const recommendations: string[] = [];
 
-    const criticalItems = debtItems.filter(item => item.priority === 'CRITICAL');
+    const criticalItems = debtItems.filter((item: any) => item.priority === 'CRITICAL');
     if (criticalItems.length > 0) {
       recommendations.push(`Address ${criticalItems.length} critical technical debt items immediately`);
     }
 
-    const highItems = debtItems.filter(item => item.priority === 'HIGH');
+    const highItems = debtItems.filter((item: any) => item.priority === 'HIGH');
     if (highItems.length > 0) {
       recommendations.push(`Plan to address ${highItems.length} high-priority items in next sprint`);
     }
@@ -359,7 +359,7 @@ export class SupernovaTechDebtDetector {
   dedicated time for technical debt reduction (${totalEffort} hours total)`);
     }
 
-    const deprecatedItems = debtItems.filter(item => item.type === 'DEPRECATED');
+    const deprecatedItems = debtItems.filter((item: any) => item.type === 'DEPRECATED');
     if (deprecatedItems.length > 0) {
       recommendations.push(`Remove ${deprecatedItems.length} deprecated code items`);
     }
@@ -506,7 +506,7 @@ export class SupernovaComplexityAnalyzer {
     const functionMatch = code.match(/function\s+\w+\s*\(([^)]*)\)/);
     if (!functionMatch) return 0;
 
-    const parameters = functionMatch[1].split(',').filter(param => param.trim());
+    const parameters = functionMatch[1].split(',').filter((param: any) => param.trim());
     return parameters.length;
   }
 
@@ -571,7 +571,7 @@ export class SupernovaCodeFormatter {
     const indentChar = useTabs ? '\t' : ' '.repeat(indentSize);
     let currentIndent = 0;
 
-    return lines.map(line => {
+    return lines.map((line: any) => {
       const trimmed = line.trim();
       if (!trimmed) return '';
 
@@ -594,7 +594,7 @@ export class SupernovaCodeFormatter {
   private static fixLineLength(code: string, maxLength: number): string {
     const lines = code.split('\n');
     
-    return lines.map(line => {
+    return lines.map((line: any) => {
       if (line.length <= maxLength) return line;
       
       // Simple line breaking - in real implementation, this would be more sophisticated
@@ -668,7 +668,7 @@ export class SupernovaCodeQualityUtils {
 
     // Analyze functions for complexity
     const functions = this.extractFunctions(content);
-    const complexityMetrics = functions.map(func => 
+    const complexityMetrics = functions.map((func: any) => 
       SupernovaComplexityAnalyzer.analyzeFunction(func)
     );
 
@@ -714,7 +714,7 @@ export class SupernovaCodeQualityUtils {
       recommendations.push(`Address ${technicalDebt.length} technical debt items`);
     }
 
-    const highComplexityFunctions = complexityMetrics.filter(m => m.cyclomaticComplexity > 10);
+    const highComplexityFunctions = complexityMetrics.filter((m: any) => m.cyclomaticComplexity > 10);
     if (highComplexityFunctions.length > 0) {
       recommendations.push(`Refactor ${highComplexityFunctions.length} high-complexity functions`);
     }

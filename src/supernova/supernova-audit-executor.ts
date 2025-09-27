@@ -51,7 +51,7 @@ export class SupernovaAuditExecutor {
       
       logger.info('✅ SUPERNOVA Comprehensive Audit completed successfully');
       
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ SUPERNOVA Comprehensive Audit failed:', error);
       throw error;
     }
@@ -113,7 +113,7 @@ export class SupernovaAuditExecutor {
 
     // File-by-File Analysis
     report += `## 📁 FILE-BY-FILE ANALYSIS\n\n`;
-    auditReport.files.forEach(file => {
+    auditReport.files.forEach((file: any) => {
       if (file.issues.length > 0) {
         report += `### \`${file.filePath}\`\n`;
         report += `- **Total Lines:** ${file.totalLines}\n`;
@@ -123,7 +123,7 @@ export class SupernovaAuditExecutor {
         report += `- **Security Score:** ${file.metrics.security}/100\n`;
         report += `- **Performance Score:** ${file.metrics.performance}/100\n\n`;
         
-        file.issues.forEach(issue => {
+        file.issues.forEach((issue: any) => {
           report += `#### Line ${issue.line}: ${issue.message}\n`;
           report += `- **Severity:** ${issue.severity}\n`;
           report += `- **Type:** ${issue.type}\n`;
@@ -456,7 +456,7 @@ export class SupernovaAuditExecutor {
 
   private groupByVulnerabilityType(issues: any[]): Record<string, any[]> {
     const groups: Record<string, any[]> = {};
-    issues.forEach(issue => {
+    issues.forEach((issue: any) => {
       const type = issue.impact || 'UNKNOWN';
       if (!groups[type]) {
         groups[type] = [];
@@ -480,7 +480,7 @@ export class SupernovaAuditExecutor {
     if (issues.length === 0) return 100;
     
     let score = 100;
-    issues.forEach(issue => {
+    issues.forEach((issue: any) => {
       switch (issue.severity) {
         case 'CRITICAL': score -= 20; break;
         case 'HIGH': score -= 10; break;
@@ -496,7 +496,7 @@ export class SupernovaAuditExecutor {
     if (issues.length === 0) return 100;
     
     let score = 100;
-    issues.forEach(issue => {
+    issues.forEach((issue: any) => {
       switch (issue.severity) {
         case 'CRITICAL': score -= 15; break;
         case 'HIGH': score -= 8; break;
@@ -512,7 +512,7 @@ export class SupernovaAuditExecutor {
     if (issues.length === 0) return 100;
     
     let score = 100;
-    issues.forEach(issue => {
+    issues.forEach((issue: any) => {
       switch (issue.severity) {
         case 'CRITICAL': score -= 12; break;
         case 'HIGH': score -= 6; break;
@@ -528,7 +528,7 @@ export class SupernovaAuditExecutor {
     if (issues.length === 0) return 100;
     
     let score = 100;
-    issues.forEach(issue => {
+    issues.forEach((issue: any) => {
       switch (issue.severity) {
         case 'CRITICAL': score -= 10; break;
         case 'HIGH': score -= 5; break;

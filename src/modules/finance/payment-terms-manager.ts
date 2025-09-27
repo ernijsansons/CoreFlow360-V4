@@ -231,7 +231,7 @@ class PaymentTermsManager {
       }
 
       // Convert to aging report format
-      const agingReport: AgingReport[] = Array.from(customerMap.values()).map(detail => ({
+      const agingReport: AgingReport[] = Array.from(customerMap.values()).map((detail: any) => ({
         customerId: detail.customerId,
         customerName: detail.customerName,
         current: roundToCurrency(detail.totals.current),
@@ -251,7 +251,7 @@ class PaymentTermsManager {
 
       return agingReport;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate aging report', error, {
         businessId: validBusinessId
       });
@@ -357,7 +357,7 @@ class PaymentTermsManager {
 
       return detail;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get customer aging detail', error, {
         customerId,
         businessId: validBusinessId
@@ -419,7 +419,7 @@ class PaymentTermsManager {
         overdueTotal: roundToCurrency(overdueTotal)
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to update overdue statuses', error, {
         businessId: validBusinessId
       });
@@ -536,7 +536,7 @@ class PaymentTermsManager {
         totalInvoices: payments.length
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get payment terms suggestions', error, {
         customerId,
         businessId: validBusinessId

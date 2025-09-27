@@ -310,7 +310,7 @@ class PrefetchManager {
     const batchSize = 3;
     for (let i = 0; i < businessIds.length; i += batchSize) {
       const batch = businessIds.slice(i, i + batchSize);
-      const promises = batch.map(async (businessId) => {
+      const promises = batch.map(async (businessId: any) => {
         try {
           const { context } = await this.prefetchBusinessContext(
             businessId,
@@ -318,7 +318,7 @@ class PrefetchManager {
             'employee' // Default role, would be fetched from membership
           );
           contexts.set(businessId, context);
-        } catch (error) {
+        } catch (error: any) {
         }
       });
 

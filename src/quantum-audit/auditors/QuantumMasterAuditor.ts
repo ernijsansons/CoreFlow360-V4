@@ -59,13 +59,13 @@ export class QuantumMasterAuditor {
         ]
       });
 
-      const autoFixed = await this.autoFix(prioritizedFixes.filter(f => f.autoFixable));
+      const autoFixed = await this.autoFix(prioritizedFixes.filter((f: any) => f.autoFixable));
 
       const report: MasterAuditReport = {
         summary: {
           duration: Date.now() - startTime,
           totalIssues: this.issues.length,
-          critical: this.issues.filter(i => i.severity === 'CRITICAL').length,
+          critical: this.issues.filter((i: any) => i.severity === 'CRITICAL').length,
           autoFixed: autoFixed.length,
           score: this.calculateOverallScore(aiAnalysis)
         },
@@ -80,10 +80,10 @@ export class QuantumMasterAuditor {
         },
 
         recommendations: {
-          immediate: prioritizedFixes.filter(f => f.severity === 'CRITICAL'),
-          high: prioritizedFixes.filter(f => f.severity === 'HIGH'),
-          medium: prioritizedFixes.filter(f => f.severity === 'MEDIUM'),
-          low: prioritizedFixes.filter(f => f.severity === 'LOW')
+          immediate: prioritizedFixes.filter((f: any) => f.severity === 'CRITICAL'),
+          high: prioritizedFixes.filter((f: any) => f.severity === 'HIGH'),
+          medium: prioritizedFixes.filter((f: any) => f.severity === 'MEDIUM'),
+          low: prioritizedFixes.filter((f: any) => f.severity === 'LOW')
         },
 
         autoFixes: autoFixed,
@@ -102,7 +102,7 @@ export class QuantumMasterAuditor {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -114,7 +114,7 @@ export class QuantumMasterAuditor {
       try {
         const fix = await this.applyFix(issue);
         fixes.push(fix);
-      } catch (error) {
+      } catch (error: any) {
       }
     }
 

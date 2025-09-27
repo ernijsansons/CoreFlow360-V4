@@ -115,7 +115,7 @@ export class SafeExecutor {
           retries: attempt
         };
 
-      } catch (error) {
+      } catch (error: any) {
         lastError = this.normalizeError(error, captureStackTrace);
 
         // Log the error
@@ -188,7 +188,7 @@ export class SafeExecutor {
     if (concurrency === Infinity) {
       // Execute all in parallel
       return Promise.all(
-        tasks.map(task => this.execute(task, executorConfig))
+        tasks.map((task: any) => this.execute(task, executorConfig))
       );
     }
 
@@ -260,7 +260,7 @@ export class SafeExecutor {
           throw result.error || new Error('Execution failed');
         }
 
-      } catch (error) {
+      } catch (error: any) {
         failures++;
         lastFailureTime = Date.now();
 
@@ -286,7 +286,7 @@ export class SafeExecutor {
   ): T {
     try {
       return fn();
-    } catch (error) {
+    } catch (error: any) {
       const normalizedError = this.normalizeError(error, true);
       this.logger.error('Error boundary caught error', normalizedError);
 
@@ -483,7 +483,7 @@ export class PromiseUtils {
     for (let i = 0; i <= retries; i++) {
       try {
         return await fn();
-      } catch (error) {
+      } catch (error: any) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
         if (i < retries) {
@@ -503,8 +503,8 @@ export class PromiseUtils {
     promises: Array<Promise<T>>,
     timeout: number
   ): Promise<Array<PromiseSettledResult<T>>> {
-    const wrappedPromises = promises.map(p =>
-      this.withTimeout(p, timeout).catch(error => Promise.reject(error))
+    const wrappedPromises = promises.map((p: any) =>
+      this.withTimeout(p, timeout).catch((error: any) => Promise.reject(error))
     );
 
     return Promise.allSettled(wrappedPromises);

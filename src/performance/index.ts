@@ -171,9 +171,9 @@ export class QuantumPerformanceSystem {
 
     return {
       p95Latency: analysis.current.business.apiLatency.p95,
-      optimizations: analysis.recommendations.map(r => r.description),
-      bottlenecks: bottleneckAnalysis.bottlenecks.map(b => b.component),
-      recommendations: analysis.recommendations.map(r => r.description)
+      optimizations: analysis.recommendations.map((r: any) => r.description),
+      bottlenecks: bottleneckAnalysis.bottlenecks.map((b: any) => b.component),
+      recommendations: analysis.recommendations.map((r: any) => r.description)
     };
   }
 
@@ -196,7 +196,7 @@ export class QuantumPerformanceSystem {
             await this.autoRemediate(analysis);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
       }
     }, 30000); // Monitor every 30 seconds
   }
@@ -241,7 +241,7 @@ export class QuantumPerformanceSystem {
             await this.connectionManager.optimizePool(tenant);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
       }
     }, 300000); // Every 5 minutes
   }

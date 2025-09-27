@@ -246,7 +246,7 @@ export class TypeSafetyAuditor {
       // Simulate type issue detection
       const issues = this.simulateTypeIssues(filePath);
       this.typeIssues.set(filePath, issues);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error analyzing file for type safety', { filePath, error });
     }
   }
@@ -293,9 +293,9 @@ export class TypeSafetyAuditor {
     let anyCount = 0;
 
     for (const [file, issues] of this.typeIssues) {
-      const anyIssues = issues.filter(i => i.type === 'any_usage');
+      const anyIssues = issues.filter((i: any) => i.type === 'any_usage');
       anyCount += anyIssues.length;
-      anyIssues.forEach(issue => {
+      anyIssues.forEach((issue: any) => {
         anyLocations.push(issue.location);
       });
     }
@@ -463,9 +463,9 @@ export class TypeSafetyAuditor {
     const missingChecks: MissingNullCheck[] = [];
 
     for (const [file, issues] of this.typeIssues) {
-      const nullIssues = issues.filter(i => i.type === 'missing_null_check');
+      const nullIssues = issues.filter((i: any) => i.type === 'missing_null_check');
 
-      nullIssues.forEach(issue => {
+      nullIssues.forEach((issue: any) => {
         missingChecks.push({
           location: `${issue.location.file}:${issue.location.line}`,
           variable: issue.variable || 'unknown',
@@ -546,7 +546,7 @@ export class TypeSafetyAuditor {
     // Check any usage
     const anyCount = Array.from(this.typeIssues.values())
       .flat()
-      .filter(i => i.type === 'any_usage').length;
+      .filter((i: any) => i.type === 'any_usage').length;
 
     if (anyCount > 5) {
       recommendations.push({
@@ -561,7 +561,7 @@ export class TypeSafetyAuditor {
     // Check null safety
     const nullIssues = Array.from(this.typeIssues.values())
       .flat()
-      .filter(i => i.type === 'missing_null_check').length;
+      .filter((i: any) => i.type === 'missing_null_check').length;
 
     if (nullIssues > 3) {
       recommendations.push({
@@ -576,7 +576,7 @@ export class TypeSafetyAuditor {
     // Runtime validation
     const validationIssues = Array.from(this.typeIssues.values())
       .flat()
-      .filter(i => i.type === 'missing_validation').length;
+      .filter((i: any) => i.type === 'missing_validation').length;
 
     if (validationIssues > 0) {
       recommendations.push({
@@ -620,9 +620,9 @@ export class TypeSafetyAuditor {
     score -= Math.max(0, 100 - analysis.runtimeAnalysis.validation.coverage) * 0.3;
 
     // Deduct for violations
-    const criticalViolations = analysis.violations.filter(v => v.severity === 'critical').length;
-    const highViolations = analysis.violations.filter(v => v.severity === 'high').length;
-    const mediumViolations = analysis.violations.filter(v => v.severity === 'medium').length;
+    const criticalViolations = analysis.violations.filter((v: any) => v.severity === 'critical').length;
+    const highViolations = analysis.violations.filter((v: any) => v.severity === 'high').length;
+    const mediumViolations = analysis.violations.filter((v: any) => v.severity === 'medium').length;
 
     score -= criticalViolations * 10;
     score -= highViolations * 5;

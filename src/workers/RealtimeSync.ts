@@ -55,8 +55,7 @@ export class RealtimeSync extends DurableObject {
       const since = url.searchParams.get('since');
       const sinceTimestamp = since ? parseInt(since) : 0;
 
-      const relevantMessages = this.messageHistory.filter(
-        msg => msg.timestamp > sinceTimestamp
+      const relevantMessages = this.messageHistory.filter((msg: any) => msg.timestamp > sinceTimestamp
       );
 
       return new Response(JSON.stringify(relevantMessages), {
@@ -107,7 +106,7 @@ export class RealtimeSync extends DurableObject {
         }
 
         this.broadcast(message, clientId);
-      } catch (error) {
+      } catch (error: any) {
         ws.send(JSON.stringify({
           type: 'error',
           message: 'Invalid message format',
@@ -138,7 +137,7 @@ export class RealtimeSync extends DurableObject {
       if (clientId !== excludeClientId) {
         try {
           ws.send(messageString);
-        } catch (error) {
+        } catch (error: any) {
           this.connections.delete(clientId);
         }
       }

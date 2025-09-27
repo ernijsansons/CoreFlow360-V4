@@ -151,7 +151,7 @@ export class RetryHandler {
           });
         }
 
-      } catch (error) {
+      } catch (error: any) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
         this.logger.warn('Task execution threw exception', lastError, {
@@ -422,14 +422,14 @@ export class RetryHandler {
       const candidateAgents = this.registry.getAgentsForCapability(task.capability);
 
       // Filter out current agent and find best alternative
-      const alternatives = candidateAgents.filter(agent => agent.id !== currentAgent.id);
+      const alternatives = candidateAgents.filter((agent: any) => agent.id !== currentAgent.id);
 
       if (alternatives.length === 0) {
         return null;
       }
 
       // Prefer agents with lower cost and higher availability
-      const scoredAgents = alternatives.map(agent => {
+      const scoredAgents = alternatives.map((agent: any) => {
         const agentEntry = this.registry.getAgentEntry(agent.id);
         let score = 0;
 
@@ -451,7 +451,7 @@ export class RetryHandler {
       scoredAgents.sort((a, b) => b.score - a.score);
       return scoredAgents[0]?.agent || null;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to select fallback agent', error, {
         currentAgent: currentAgent.id,
         capability: task.capability,

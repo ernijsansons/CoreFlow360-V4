@@ -131,7 +131,7 @@ class ReportExportManager {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to export report', error, {
         reportId: report.id,
         format,
@@ -176,7 +176,7 @@ class ReportExportManager {
 
       return await response.arrayBuffer();
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate Excel file', error);
 
       // Fallback: Generate CSV and convert to Excel format
@@ -264,7 +264,7 @@ class ReportExportManager {
 
       return await response.arrayBuffer();
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate PDF', error);
 
       // Fallback: Return a simple text-based "PDF"
@@ -532,12 +532,12 @@ class ReportExportManager {
     const rows: string[] = [];
 
     if (configuration.includeHeaders !== false) {
-      const headers = data.columns.map(col => `"${col.name}"`);
+      const headers = data.columns.map((col: any) => `"${col.name}"`);
       rows.push(headers.join(','));
     }
 
     for (const row of data.rows) {
-      const values = data.columns.map(col => {
+      const values = data.columns.map((col: any) => {
         const value = row[col.id];
         if (value === null || value === undefined) {
           return '""';
@@ -630,7 +630,7 @@ class ReportExportManager {
         businessId: validBusinessId
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to delete export from R2', error, {
         reportId,
         filename,

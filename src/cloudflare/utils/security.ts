@@ -159,7 +159,7 @@ export class SecurityMiddleware {
       this.detectSuspiciousPatterns(request)
     ]);
 
-    const failed = validations.filter(v => !v.passed);
+    const failed = validations.filter((v: any) => !v.passed);
 
     return {
       passed: failed.length === 0,

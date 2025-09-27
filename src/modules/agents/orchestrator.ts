@@ -233,7 +233,7 @@ export class AgentOrchestrator {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       const executionTime = Date.now() - startTime;
 
       // Create error result
@@ -313,13 +313,13 @@ export class AgentOrchestrator {
       // Filter by preferences
       let filtered = candidates;
       if (preferences?.excludedAgents) {
-        filtered = candidates.filter(entry =>
+        filtered = candidates.filter((entry: any) =>
           !preferences.excludedAgents!.includes(entry.config.id)
         );
       }
 
       if (preferences?.preferredAgents) {
-        const preferred = filtered.filter(entry =>
+        const preferred = filtered.filter((entry: any) =>
           preferences.preferredAgents!.includes(entry.config.id)
         );
         if (preferred.length > 0) {
@@ -365,7 +365,7 @@ export class AgentOrchestrator {
         estimatedLatency,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Task routing failed', error, {
         taskId: task.id,
         capability: task.capability,
@@ -399,7 +399,7 @@ export class AgentOrchestrator {
 
       // Filter by relevance and recency
       records = records
-        .filter(record => {
+        .filter((record: any) => {
           const ageMs = Date.now() - record.lifecycle.createdAt;
           const ageDays = ageMs / (24 * 60 * 60 * 1000);
 
@@ -419,7 +419,7 @@ export class AgentOrchestrator {
 
       return records;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get memory context', error, {
         userId,
         businessId,
@@ -480,7 +480,7 @@ export class AgentOrchestrator {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to cancel task', error, { taskId, reason });
       return false;
     }
@@ -494,7 +494,7 @@ export class AgentOrchestrator {
       // Cancel all active tasks
       const taskIds = Array.from(this.activeTasks.keys());
       await Promise.allSettled(
-        taskIds.map(taskId => this.cancelTask(taskId, 'System shutdown'))
+        taskIds.map((taskId: any) => this.cancelTask(taskId, 'System shutdown'))
       );
 
       // Stop periodic tasks
@@ -507,7 +507,7 @@ export class AgentOrchestrator {
 
       this.logger.info('Agent orchestrator shutdown completed');
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to shutdown orchestrator', error);
       throw error;
     }
@@ -589,7 +589,7 @@ export class AgentOrchestrator {
           agentId: qualificationConfig.id,
           capabilities: qualificationConfig.capabilities
         });
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to register QualificationAgent', error);
         // Continue initialization even if qualification agent fails
       }
@@ -602,7 +602,7 @@ export class AgentOrchestrator {
         configuredCapabilities: this.config,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to initialize orchestrator', error);
       throw error;
     }
@@ -611,7 +611,7 @@ export class AgentOrchestrator {
   private async checkConcurrencyLimits(userId: string): Promise<void> {
     // Check user-specific limit
     const userTasks = Array.from(this.activeTasks.values())
-      .filter(task => task.task.context.userId === userId);
+      .filter((task: any) => task.task.context.userId === userId);
 
     if (userTasks.length >= this.config.performance.concurrent.maxPerUser) {
       throw new AgentError(
@@ -726,7 +726,7 @@ export class AgentOrchestrator {
 
         return result;
 
-      } catch (error) {
+      } catch (error: any) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
         // Check if error is retryable
@@ -832,7 +832,7 @@ export class AgentOrchestrator {
 
     try {
       return await agent.estimateCost(task);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn('Failed to estimate task cost', error, { taskId: task.id, agentId });
       return 0;
     }
@@ -937,7 +937,7 @@ export class AgentOrchestrator {
           costRecord.timestamp
         ).run();
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to store cost record', error, {
           taskId: result.taskId,
           cost,
@@ -1031,7 +1031,7 @@ export class AgentOrchestrator {
         ).run();
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to store memory', error, {
         taskId: task.id,
         userId: context.userId,
@@ -1088,7 +1088,7 @@ export class AgentOrchestrator {
         },
       }));
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get long-term memory', error, {
         userId,
         businessId,
@@ -1103,21 +1103,21 @@ export class AgentOrchestrator {
     const words = text.toLowerCase()
       .replace(/[^\w\s]/g, '')
       .split(/\s+/)
-      .filter(word => word.length > 3);
+      .filter((word: any) => word.length > 3);
 
     // Remove common stop words
     const stopWords = new Set(['this', 'that', 'with', 'have', 'will', 'from', 'they', 'been', 'said', 'each', 'which', 'their', 'time', 'would', 'there', 'about', 'could', 'other', 'after', 'first', 'more', 'very', 'what', 'know', 'just', 'also', 'into', 'over', 'think', 'only', 'new', 'good', 'much', 'work', 'life', 'way', 'well', 'year', 'come', 'make', 'take', 'see', 'how', 'people', 'day', 'man', 'get', 'old', 'want', 'here', 'say', 'right', 'look', 'still', 'back',
   'call', 'give', 'hand', 'last', 'long', 'place', 'great', 'small', 'every', 'own', 'under', 'might', 'never', 'house', 'head', 'high', 'same', 'both', 'those', 'does', 'part', 'while', 'where', 'turn', 'again', 'keep', 'though', 'little', 'world', 'seem', 'many', 'different', 'between', 'important', 'being', 'system', 'group', 'number', 'against', 'should', 'without', 'another', 'large', 'company', 'business', 'financial', 'invoice', 'analysis', 'report', 'data', 'information', 'process', 'management', 'service', 'customer', 'market', 'sales', 'product', 'project', 'team', 'employee', 'department', 'organization']);
 
     return words
-      .filter(word => !stopWords.has(word))
+      .filter((word: any) => !stopWords.has(word))
       .slice(0, 10); // Keep top 10 keywords
   }
 
   private startPeriodicTasks(): void {
     // Memory cleanup every 5 minutes
     this.memoryCleanupInterval = setInterval(() => {
-      this.cleanupMemory().catch(error => {
+      this.cleanupMemory().catch((error: any) => {
         this.logger.error('Memory cleanup failed', error);
       });
     }, 300000) as any;
@@ -1128,7 +1128,7 @@ export class AgentOrchestrator {
 
     // Cleanup short-term memory
     for (const [userId, records] of this.shortTermMemory.entries()) {
-      const filtered = records.filter(record => {
+      const filtered = records.filter((record: any) => {
         const ageMs = now - record.lifecycle.createdAt;
         const ageDays = ageMs / (24 * 60 * 60 * 1000);
         return ageDays <= this.config.memory.retentionPolicy.conversationDays;
@@ -1160,7 +1160,7 @@ export class AgentOrchestrator {
           WHERE type = 'preference' AND created_at < ?
         `).bind(preferencesCutoff).run();
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to cleanup long-term memory', error);
       }
     }

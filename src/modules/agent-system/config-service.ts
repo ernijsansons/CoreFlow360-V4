@@ -124,7 +124,7 @@ class ConfigService {
     let config = this.configCache.get(key);
 
     if (!config || this.isCacheExpired()) {
-      config = await this.loadConfigValue(key);
+      config = await this.loadConfigValue(key) || undefined;
       if (config) {
         this.configCache.set(key, config);
       }
@@ -581,7 +581,7 @@ class ConfigService {
         flags: this.flagCache.size
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to load configuration', error);
     }
   }
@@ -802,7 +802,7 @@ class ConfigService {
       for (const listener of listeners) {
         try {
           listener(value, config);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error('Config change listener failed', error, { key });
         }
       }

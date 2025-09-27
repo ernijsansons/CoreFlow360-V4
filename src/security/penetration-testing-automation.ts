@@ -258,7 +258,7 @@ export class PenetrationTestingAutomation {
 
       return results;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Penetration testing failed', error, {
         correlationId: requestId,
         businessId,
@@ -303,11 +303,11 @@ export class PenetrationTestingAutomation {
             correlationId,
             testId: test.id,
             findingsCount: result.findings.length,
-            criticalCount: result.findings.filter(f => f.severity === 'critical').length
+            criticalCount: result.findings.filter((f: any) => f.severity === 'critical').length
           });
         }
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Individual test failed', error, {
           correlationId,
           testId: test.id
@@ -441,7 +441,7 @@ export class PenetrationTestingAutomation {
         if (result.evidence) {
           evidence.push(result.evidence);
         }
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Automated scan check failed', error, {
           testId: test.id,
           check: check.name
@@ -477,7 +477,7 @@ export class PenetrationTestingAutomation {
           evidence.push(analysis.evidence);
         }
 
-      } catch (error) {
+      } catch (error: any) {
         // Errors might indicate vulnerabilities (e.g., crashes)
         if (this.isSignificantError(error)) {
           findings.push(this.createErrorFinding(error, payload));
@@ -1008,11 +1008,11 @@ export class PenetrationTestingAutomation {
     return {
       testsRun: 1,
       vulnerabilitiesFound: findings.length,
-      criticalFindings: findings.filter(f => f.severity === 'critical').length,
-      highFindings: findings.filter(f => f.severity === 'high').length,
-      mediumFindings: findings.filter(f => f.severity === 'medium').length,
-      lowFindings: findings.filter(f => f.severity === 'low').length,
-      falsePositives: findings.filter(f => f.falsePositive).length,
+      criticalFindings: findings.filter((f: any) => f.severity === 'critical').length,
+      highFindings: findings.filter((f: any) => f.severity === 'high').length,
+      mediumFindings: findings.filter((f: any) => f.severity === 'medium').length,
+      lowFindings: findings.filter((f: any) => f.severity === 'low').length,
+      falsePositives: findings.filter((f: any) => f.falsePositive).length,
       coveragePercentage: 85 // Would be calculated based on actual coverage
     };
   }
@@ -1027,14 +1027,14 @@ export class PenetrationTestingAutomation {
   private generateTestSummary(results: TestResult[]): any {
     const totalTests = results.length;
     const totalFindings = results.reduce((sum, r) => sum + r.findings.length, 0);
-    const criticalFindings = results.reduce((sum, r) => sum + r.findings.filter(f => f.severity === 'critical').length, 0);
+    const criticalFindings = results.reduce((sum, r) => sum + r.findings.filter((f: any) => f.severity === 'critical').length, 0);
 
     return {
       totalTests,
       totalFindings,
       criticalFindings,
-      passedTests: results.filter(r => r.status === 'passed').length,
-      failedTests: results.filter(r => r.status === 'failed').length
+      passedTests: results.filter((r: any) => r.status === 'passed').length,
+      failedTests: results.filter((r: any) => r.status === 'failed').length
     };
   }
 
@@ -1052,7 +1052,7 @@ export class PenetrationTestingAutomation {
     this.logger.info('Automated remediation triggered', {
       correlationId,
       businessId,
-      criticalFindings: results.reduce((sum, r) => sum + r.findings.filter(f => f.severity === 'critical').length, 0)
+      criticalFindings: results.reduce((sum, r) => sum + r.findings.filter((f: any) => f.severity === 'critical').length, 0)
     });
   }
 

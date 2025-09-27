@@ -97,7 +97,7 @@ export function formatAmount(
       style: 'currency',
       currency: currencyCode
     }).format(amount);
-  } catch (error) {
+  } catch (error: any) {
     // Fallback formatting
     return `${amount.toFixed(2)} ${currencyCode}`;
   }

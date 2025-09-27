@@ -66,7 +66,7 @@ export class ProgressTracker {
     }
 
     // Update overall progress
-    const completedSteps = tracking.stepProgress.filter(sp => sp.status === 'COMPLETED').length;
+    const completedSteps = tracking.stepProgress.filter((sp: any) => sp.status === 'COMPLETED').length;
     tracking.overallProgress = Math.round((completedSteps / tracking.stepProgress.length) * 100);
     tracking.completionRate = completedSteps / tracking.stepProgress.length;
 

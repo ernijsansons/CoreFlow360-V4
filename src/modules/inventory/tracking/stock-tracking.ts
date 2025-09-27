@@ -308,7 +308,7 @@ class StockTrackingService {
 
       return newLocation
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stock_location_creation_failed',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -348,7 +348,7 @@ class StockTrackingService {
 
       return stockItems
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve stock level',
         'STOCK_LEVEL_ERROR',
@@ -487,7 +487,7 @@ class StockTrackingService {
 
       return stockItem
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stock_update_failed',
         productId,
@@ -564,7 +564,7 @@ class StockTrackingService {
 
       return stockTransfer
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stock_transfer_failed',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -598,7 +598,7 @@ class StockTrackingService {
       }
 
       // Process received items
-      const itemsToProcess = receivedItems || transfer.items.map(item => ({
+      const itemsToProcess = receivedItems || transfer.items.map((item: any) => ({
         productId: item.productId,
         variantId: item.variantId,
         quantityReceived: item.quantity,
@@ -676,7 +676,7 @@ class StockTrackingService {
 
       return transfer
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'stock_transfer_completion_failed',
         transferId,
@@ -718,7 +718,7 @@ class StockTrackingService {
 
       return cycleCount
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Cycle count creation failed',
         'CYCLE_COUNT_ERROR',
@@ -774,7 +774,7 @@ class StockTrackingService {
 
       return cycleCount
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Cycle count item update failed',
         'CYCLE_COUNT_UPDATE_ERROR',
@@ -794,16 +794,16 @@ class StockTrackingService {
 
     if (filters) {
       if (filters.locationId) {
-        alerts = alerts.filter(a => a.locationId === filters.locationId)
+        alerts = alerts.filter((a: any) => a.locationId === filters.locationId)
       }
       if (filters.type) {
-        alerts = alerts.filter(a => a.type === filters.type)
+        alerts = alerts.filter((a: any) => a.type === filters.type)
       }
       if (filters.severity) {
-        alerts = alerts.filter(a => a.severity === filters.severity)
+        alerts = alerts.filter((a: any) => a.severity === filters.severity)
       }
       if (filters.isActive !== undefined) {
-        alerts = alerts.filter(a => a.isActive === filters.isActive)
+        alerts = alerts.filter((a: any) => a.isActive === filters.isActive)
       }
     }
 
@@ -838,7 +838,7 @@ class StockTrackingService {
 
       return forecast
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Stock forecast generation failed',
         'FORECAST_ERROR',
@@ -1002,8 +1002,8 @@ class StockTrackingService {
 
     // Calculate summary
     const totalItems = cycleCount.items.length
-    const countedItems = cycleCount.items.filter(i => i.countedQuantity !== undefined).length
-    const varianceItems = cycleCount.items.filter(i => i.variance !== 0).length
+    const countedItems = cycleCount.items.filter((i: any) => i.countedQuantity !== undefined).length
+    const varianceItems = cycleCount.items.filter((i: any) => i.variance !== 0).length
     const totalVarianceValue = cycleCount.items.reduce((sum, item) => {
       return sum + (item.variance || 0) * (item.expectedQuantity || 0) // Simplified value calculation
     }, 0)

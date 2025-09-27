@@ -78,7 +78,7 @@ class ExportIntegrationService {
         destination: job.config.destination
       });
 
-    } catch (error) {
+    } catch (error: any) {
       job.status = 'failed';
       job.error = (error as Error).message;
       job.endTime = Date.now();
@@ -179,7 +179,7 @@ class ExportIntegrationService {
     const csvRows = [headers.join(',')];
 
     for (const row of data) {
-      const values = headers.map(header => {
+      const values = headers.map((header: any) => {
         const value = row[header];
         if (typeof value === 'string' && value.includes(',')) {
           return `"${value.replace(/"/g, '""')}"`;
@@ -220,7 +220,7 @@ class ExportIntegrationService {
     // Group metrics by name and labels
     const metricGroups = new Map<string, any[]>();
 
-    data.forEach(row => {
+    data.forEach((row: any) => {
       const metricName = this.extractMetricName(row);
       if (!metricGroups.has(metricName)) {
         metricGroups.set(metricName, []);
@@ -232,7 +232,7 @@ class ExportIntegrationService {
     for (const [metricName, rows] of metricGroups) {
       lines.push(`# TYPE ${metricName} gauge`);
 
-      rows.forEach(row => {
+      rows.forEach((row: any) => {
         const labels = this.extractPrometheusLabels(row);
         const value = this.extractMetricValue(row);
         const timestamp = new Date(row.event_time).getTime();
@@ -245,7 +245,7 @@ class ExportIntegrationService {
   }
 
   private formatAsOpenTelemetry(data: any[]): string {
-    const traces = data.map(row => ({
+    const traces = data.map((row: any) => ({
       traceId: row.trace_id,
       spanId: row.span_id,
       parentSpanId: row.parent_span_id,
@@ -465,11 +465,11 @@ class ExportIntegrationService {
         </div>
         <table>
           <thead>
-            <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
+            <tr>${headers.map((h: any) => `<th>${h}</th>`).join('')}</tr>
           </thead>
           <tbody>
-            ${data.slice(0, 1000).map(row =>
-              `<tr>${headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`
+            ${data.slice(0, 1000).map((row: any) =>
+              `<tr>${headers.map((h: any) => `<td>${row[h] || ''}</td>`).join('')}</tr>`
             ).join('')}
           </tbody>
         </table>
@@ -583,8 +583,8 @@ class ExportIntegrationService {
       period,
       metrics: {
         total_access_events: results.reduce((sum, r) => sum + r.access_count, 0),
-        unique_users: new Set(results.map(r => r.user_id)).size,
-        unique_modules: new Set(results.map(r => r.module)).size
+        unique_users: new Set(results.map((r: any) => r.user_id)).size,
+        unique_modules: new Set(results.map((r: any) => r.module)).size
       },
       violations: [],
       summary: {
@@ -672,7 +672,7 @@ class ExportIntegrationService {
       }
     ];
 
-    defaultIntegrations.forEach(integration => {
+    defaultIntegrations.forEach((integration: any) => {
       this.integrations.set(integration.id, integration);
     });
   }
@@ -722,7 +722,7 @@ class ExportIntegrationService {
         default:
           return true;
       }
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }

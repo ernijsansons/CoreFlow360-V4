@@ -88,7 +88,7 @@ export class RealtimeCoordinator implements DurableObject {
         timestamp: Date.now()
       });
 
-      ws.addEventListener('message', async (event) => {
+      ws.addEventListener('message', async (event: any) => {
         try {
           const message: RealtimeMessage = JSON.parse(event.data as string);
           message.sessionId = sessionId;
@@ -101,7 +101,7 @@ export class RealtimeCoordinator implements DurableObject {
           }
 
           await this.handleMessage(sessionId, message);
-        } catch (error) {
+        } catch (error: any) {
           await this.sendToSession(sessionId, {
             type: 'broadcast',
             data: { error: 'Invalid message format' }
@@ -113,14 +113,14 @@ export class RealtimeCoordinator implements DurableObject {
         await this.cleanupSession(sessionId);
       });
 
-      ws.addEventListener('error', async (event) => {
+      ws.addEventListener('error', async (event: any) => {
         await this.cleanupSession(sessionId);
       });
 
       // Persist session info
       await this.persistSessionInfo();
 
-    } catch (error) {
+    } catch (error: any) {
       ws.close(1011, 'Session initialization failed');
     }
   }
@@ -216,7 +216,7 @@ export class RealtimeCoordinator implements DurableObject {
       const channelSessions = this.channels.get(channel);
       if (channelSessions) {
         await Promise.allSettled(
-          Array.from(channelSessions).map(sessionId => {
+          Array.from(channelSessions).map((sessionId: any) => {
             const ws = this.sessions.get(sessionId);
             return ws ? this.safeWebSocketSend(ws, data) : Promise.resolve();
           })
@@ -225,7 +225,7 @@ export class RealtimeCoordinator implements DurableObject {
     } else {
       // Broadcast to all sessions
       await Promise.allSettled(
-        Array.from(this.sessions.values()).map(ws =>
+        Array.from(this.sessions.values()).map((ws: any) =>
           this.safeWebSocketSend(ws, data)
         )
       );
@@ -270,7 +270,7 @@ export class RealtimeCoordinator implements DurableObject {
       if (ws.readyState === ws.OPEN) {
         ws.send(data);
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -310,7 +310,7 @@ export class RealtimeCoordinator implements DurableObject {
     });
 
     await Promise.allSettled(
-      businessSessions.map(sessionId => {
+      businessSessions.map((sessionId: any) => {
         const ws = this.sessions.get(sessionId);
         return ws ? this.safeWebSocketSend(ws, data) : Promise.resolve();
       })
@@ -329,7 +329,7 @@ export class RealtimeCoordinator implements DurableObject {
     });
 
     await Promise.allSettled(
-      userSessions.map(sessionId => {
+      userSessions.map((sessionId: any) => {
         const ws = this.sessions.get(sessionId);
         return ws ? this.safeWebSocketSend(ws, data) : Promise.resolve();
       })
@@ -371,7 +371,7 @@ export class RealtimeCoordinator implements DurableObject {
       if (storedChannels) {
         this.channels = new Map(storedChannels as any);
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -385,7 +385,7 @@ export class RealtimeCoordinator implements DurableObject {
         }
       ]);
       await this.state.storage.put('sessions', sessionData);
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -396,7 +396,7 @@ export class RealtimeCoordinator implements DurableObject {
         Array.from(sessions)
       ]);
       await this.state.storage.put('channels', channelData);
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 

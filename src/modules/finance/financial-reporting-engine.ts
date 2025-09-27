@@ -269,7 +269,7 @@ export class FinancialReportingEngine {
 
         return report;
 
-      } catch (error) {
+      } catch (error: any) {
         // Update report status to failed
         if (report) {
           report.status = ReportStatus.FAILED;
@@ -384,7 +384,7 @@ export class FinancialReportingEngine {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate custom report', error, {
         definitionId: request.definitionId,
         businessId: validBusinessId
@@ -473,7 +473,7 @@ export class FinancialReportingEngine {
         filename: exportResult.filename
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to export report', error, {
         reportId: request.reportId,
         format: request.format,
@@ -501,7 +501,7 @@ export class FinancialReportingEngine {
 
       return this.mapToFinancialReport(result);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get report', error, {
         reportId,
         businessId: validBusinessId
@@ -577,11 +577,11 @@ export class FinancialReportingEngine {
 
       const result = await this.db.prepare(query).bind(...params).all();
 
-      const reports = (result.results || []).map(row => this.mapToFinancialReport(row));
+      const reports = (result.results || []).map((row: any) => this.mapToFinancialReport(row));
 
       return { reports, total };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to list reports', error, {
         businessId: validBusinessId
       });
@@ -645,7 +645,7 @@ export class FinancialReportingEngine {
         businessId: validBusinessId
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to delete report', error, {
         reportId,
         businessId: validBusinessId
@@ -673,7 +673,7 @@ export class FinancialReportingEngine {
       // This would typically query a businesses table
       // For now, return a placeholder
       return `Business ${businessId.substring(0, 8)}`;
-    } catch (error) {
+    } catch (error: any) {
       return 'Business';
     }
   }

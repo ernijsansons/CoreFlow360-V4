@@ -151,7 +151,7 @@ class ChartOfAccountsManager {
         { message: 'Standard chart of accounts created' }
       );
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create standard chart of accounts', error, { businessId });
       throw error;
     }
@@ -405,7 +405,7 @@ class ChartOfAccountsManager {
 
     const result = await this.db.prepare(query).bind(...params).all();
 
-    return (result.results || []).map(row => this.mapToAccount(row));
+    return (result.results || []).map((row: any) => this.mapToAccount(row));
   }
 
   /**

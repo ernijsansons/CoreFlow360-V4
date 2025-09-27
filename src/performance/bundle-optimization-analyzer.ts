@@ -382,7 +382,7 @@ export class BundleOptimizationAnalyzer {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Bundle optimization analysis failed', error);
       throw new ValidationError('Failed to analyze bundle optimization', {
         code: 'BUNDLE_ANALYSIS_FAILED',
@@ -414,7 +414,7 @@ export class BundleOptimizationAnalyzer {
   }
 
   private async analyzeChunks(chunkData: any[]): Promise<ChunkAnalysis[]> {
-    return chunkData.map(chunk => ({
+    return chunkData.map((chunk: any) => ({
       name: chunk.name,
       size: chunk.size,
       gzippedSize: Math.floor(chunk.size * 0.3),
@@ -438,8 +438,8 @@ export class BundleOptimizationAnalyzer {
     const codePatterns = new Map<string, string[]>();
 
     // Simulate finding duplicated code patterns
-    chunks.forEach(chunk => {
-      chunk.modules.forEach(module => {
+    chunks.forEach((chunk: any) => {
+      chunk.modules.forEach((module: any) => {
         // Mock pattern detection
         if (module.path.includes('utils') || module.path.includes('helpers')) {
           const pattern = `common-utility-${Math.floor(Math.random() * 5)}`;
@@ -469,8 +469,8 @@ export class BundleOptimizationAnalyzer {
   private findUnusedCode(chunks: ChunkAnalysis[]): UnusedCodeReport[] {
     const unusedCode: UnusedCodeReport[] = [];
 
-    chunks.forEach(chunk => {
-      chunk.modules.forEach(module => {
+    chunks.forEach((chunk: any) => {
+      chunk.modules.forEach((module: any) => {
         if (module.unusedExports.length > 0) {
           unusedCode.push({
             file: module.path,
@@ -496,7 +496,7 @@ export class BundleOptimizationAnalyzer {
       { name: 'rxjs', size: 156 * 1024, usage: 'full' as const }
     ];
 
-    commonHeavyDeps.forEach(dep => {
+    commonHeavyDeps.forEach((dep: any) => {
       if (dep.size > sizeThreshold) {
         heavyDeps.push({
           ...dep,
@@ -512,8 +512,8 @@ export class BundleOptimizationAnalyzer {
   private findTreeShakingOpportunities(chunks: ChunkAnalysis[]): TreeShakingOpportunity[] {
     const opportunities: TreeShakingOpportunity[] = [];
 
-    chunks.forEach(chunk => {
-      chunk.modules.forEach(module => {
+    chunks.forEach((chunk: any) => {
+      chunk.modules.forEach((module: any) => {
         if (module.unusedExports.length > 0 && !module.path.includes('node_modules')) {
           opportunities.push({
             module: module.path,
@@ -553,8 +553,8 @@ export class BundleOptimizationAnalyzer {
     ];
 
     const unoptimizedImages: UnoptimizedImage[] = mockImages
-      .filter(img => img.size > 100 * 1024)
-      .map(img => ({
+      .filter((img: any) => img.size > 100 * 1024)
+      .map((img: any) => ({
         path: img.path,
         currentSize: img.size,
         currentFormat: img.format,
@@ -566,7 +566,7 @@ export class BundleOptimizationAnalyzer {
     return {
       totalImages: mockImages.length,
       unoptimizedImages,
-      formatRecommendations: unoptimizedImages.map(img => ({
+      formatRecommendations: unoptimizedImages.map((img: any) => ({
         path: img.path,
         currentFormat: img.currentFormat,
         recommendedFormat: 'webp' as const,
@@ -574,8 +574,8 @@ export class BundleOptimizationAnalyzer {
         estimatedSavings: img.potentialSavings
       })),
       sizeRecommendations: [],
-      lazyLoadingOpportunities: mockImages.map(img => img.path),
-      responsiveImageOpportunities: mockImages.map(img => img.path)
+      lazyLoadingOpportunities: mockImages.map((img: any) => img.path),
+      responsiveImageOpportunities: mockImages.map((img: any) => img.path)
     };
   }
 
@@ -612,7 +612,7 @@ export class BundleOptimizationAnalyzer {
       { path: '/assets/vendor.js', size: 512000, type: 'js' }
     ];
 
-    return mockAssets.map(asset => ({
+    return mockAssets.map((asset: any) => ({
       ...asset,
       cacheable: true,
       compressionRatio: 0.7,
@@ -630,8 +630,8 @@ export class BundleOptimizationAnalyzer {
     ];
 
     return mockFiles
-      .filter(file => file.size > 10 * 1024)
-      .map(file => ({
+      .filter((file: any) => file.size > 10 * 1024)
+      .map((file: any) => ({
         file: file.file,
         currentSize: file.size,
         algorithm: 'brotli' as const,
@@ -678,7 +678,7 @@ export class BundleOptimizationAnalyzer {
       { file: '/src/styles/main.css', size: 8192, type: 'css' as const }
     ];
 
-    return mockFiles.map(file => ({
+    return mockFiles.map((file: any) => ({
       ...file,
       estimatedMinifiedSize: Math.floor(file.size * 0.7),
       techniques: ['whitespace removal', 'variable name shortening', 'dead code elimination']
@@ -893,7 +893,7 @@ export class BundleOptimizationAnalyzer {
     const autoFixable: AutoFixableBundleIssue[] = [];
 
     // Compression auto-fixes
-    assetOptimization.compressionOpportunities.forEach(comp => {
+    assetOptimization.compressionOpportunities.forEach((comp: any) => {
       autoFixable.push({
         type: 'compression',
         description: `Enable ${comp.algorithm} compression for ${comp.file}`,
@@ -910,7 +910,7 @@ export class BundleOptimizationAnalyzer {
     });
 
     // Minification auto-fixes
-    codeOptimization.minificationOpportunities.forEach(min => {
+    codeOptimization.minificationOpportunities.forEach((min: any) => {
       autoFixable.push({
         type: 'minification',
         description: `Minify ${min.file}`,
@@ -924,7 +924,7 @@ export class BundleOptimizationAnalyzer {
     });
 
     // Unused exports removal
-    bundleSize.treeShakingOpportunities.forEach(tree => {
+    bundleSize.treeShakingOpportunities.forEach((tree: any) => {
       if (tree.complexity === 'easy') {
         autoFixable.push({
           type: 'unused-exports',

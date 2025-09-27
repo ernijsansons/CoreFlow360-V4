@@ -173,7 +173,7 @@ export class WorkflowOrchestrationEngine {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
 
       const result: WorkflowExecutionResult = {
         executionId,
@@ -317,7 +317,7 @@ export class WorkflowOrchestrationEngine {
       await this.saveOptimizationSuggestions(workflow.id, optimization);
 
       return optimization;
-    } catch (error) {
+    } catch (error: any) {
       return {
         type: 'performance',
         suggestions: [],
@@ -359,7 +359,7 @@ export class WorkflowOrchestrationEngine {
       await this.createOptimizedWorkflowVersion(workflow, suggestion);
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -459,7 +459,7 @@ export class WorkflowOrchestrationEngine {
           complexity: this.calculateWorkflowComplexity(workflowDef)
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       throw new Error('Workflow generation failed');
     }
   }
@@ -480,7 +480,7 @@ export class WorkflowOrchestrationEngine {
       Workflow Purpose: ${workflow.description}
       Business Context: ${JSON.stringify(context)}
 
-      Existing Nodes: ${workflow.nodes.map(n => `${n.type}:${n.label}`).join(', ')}
+      Existing Nodes: ${workflow.nodes.map((n: any) => `${n.type}:${n.label}`).join(', ')}
 
       Consider:
       1. Logical flow progression
@@ -508,7 +508,7 @@ export class WorkflowOrchestrationEngine {
     try {
       const suggestions = await aiClient.parseJSONResponse(suggestionPrompt);
       return suggestions.slice(0, 5); // Limit to top 5 suggestions
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -530,7 +530,7 @@ export class WorkflowOrchestrationEngine {
     // Check for circular dependencies
     try {
       this.detectCircularDependencies(workflow);
-    } catch (error) {
+    } catch (error: any) {
       errors.push(`Circular dependency detected: ${error instanceof Error ? error.message : String(error)}`);
     }
 
@@ -602,7 +602,7 @@ export class WorkflowOrchestrationEngine {
       errors.push(...aiValidation.errors);
       warnings.push(...aiValidation.warnings);
       suggestions.push(...aiValidation.suggestions);
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -647,7 +647,7 @@ export class WorkflowOrchestrationEngine {
 
   private findUnreachableNodes(workflow: any): string[] {
     const reachable = new Set<string>();
-    const startNodes = workflow.nodes.filter(n => !n.dependsOn || n.dependsOn.length === 0);
+    const startNodes = workflow.nodes.filter((n: any) => !n.dependsOn || n.dependsOn.length === 0);
 
     const visit = (nodeId: string) => {
       if (reachable.has(nodeId)) return;
@@ -720,8 +720,8 @@ export class WorkflowOrchestrationEngine {
 
     return {
       ...workflow,
-      nodes: JSON.parse(workflow.nodes),
-      edges: JSON.parse(workflow.edges)
+      nodes: JSON.parse(workflow.nodes as string),
+      edges: JSON.parse(workflow.edges as string)
     };
   }
 
@@ -869,7 +869,7 @@ class WorkflowExecution {
       result.metrics.totalDuration = Date.now() - startTime;
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       result.status = 'failed';
       result.completedAt = new Date().toISOString();
       result.metrics.totalDuration = Date.now() - startTime;
@@ -903,42 +903,42 @@ class WorkflowExecution {
   // MISSING METHODS
   // =====================================================
 
-  private async validateExecutionPermissions(request: WorkflowExecutionRequest): Promise<void> {
+  async validateExecutionPermissions(request: WorkflowExecutionRequest): Promise<void> {
     // TODO: Implement permission validation
     return Promise.resolve();
   }
 
-  private async learnFromExecution(result: WorkflowExecutionResult): Promise<void> {
+  async learnFromExecution(result: WorkflowExecutionResult): Promise<void> {
     // TODO: Implement learning from execution results
     return Promise.resolve();
   }
 
-  private async applyAIOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
+  async applyAIOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
     // TODO: Implement AI optimization
     return Promise.resolve();
   }
 
-  private async applyParallelOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
+  async applyParallelOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
     // TODO: Implement parallel optimization
     return Promise.resolve();
   }
 
-  private async applyCachingOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
+  async applyCachingOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
     // TODO: Implement caching optimization
     return Promise.resolve();
   }
 
-  private async applyModelOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
+  async applyModelOptimization(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
     // TODO: Implement model optimization
     return Promise.resolve();
   }
 
-  private async createOptimizedWorkflowVersion(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
+  async createOptimizedWorkflowVersion(workflow: WorkflowDefinition, suggestion: any): Promise<void> {
     // TODO: Implement optimized workflow version creation
     return Promise.resolve();
   }
 
-  private async validateGeneratedWorkflow(workflowDef: any): Promise<void> {
+  async validateGeneratedWorkflow(workflowDef: any): Promise<void> {
     // TODO: Implement workflow validation
     return Promise.resolve();
   }

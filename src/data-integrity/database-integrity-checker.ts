@@ -83,7 +83,7 @@ export class DatabaseIntegrityChecker {
           duration: check.duration
         });
 
-      } catch (error) {
+      } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         this.logger.error(`Check failed: ${check.name}`, { error: errorMessage });
         check.status = 'failed';

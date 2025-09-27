@@ -67,7 +67,7 @@ export class ClaudeNativeAgent implements IAgent {
     }
 
     // Validate API key format
-    if (!validateApiKeyFormat(key, 'sk-ant-')) {
+    if (!validateApiKeyFormat(key) || !key.startsWith('sk-ant-')) {
       throw new Error('Invalid Anthropic API key format');
     }
 
@@ -117,7 +117,7 @@ export class ClaudeNativeAgent implements IAgent {
         if (!validation.valid) {
           throw ErrorFactories.validation(
             `Invalid task input: ${validation.errors?.join(', ')}`,
-            { operation: 'claude_execute', taskId, businessId: context.businessId }
+            { operation: 'claude_execute', businessId: context.businessId }
           );
         }
 
@@ -139,7 +139,7 @@ export class ClaudeNativeAgent implements IAgent {
           model,
           hasTools: tools.length > 0,
           department: context.department,
-        }));
+        }) as Record<string, unknown>);
 
         // Validate system prompt for security
         if (!validateAIPrompt(systemPrompt)) {
@@ -170,11 +170,11 @@ export class ClaudeNativeAgent implements IAgent {
           latency: result.metrics.latency,
           cost: result.metrics.cost,
           tokensUsed: result.metrics.tokensUsed,
-        }));
+        }) as Record<string, unknown>);
 
         return result;
       },
-      { operation: 'claude_execute', taskId, businessId: context.businessId },
+      { operation: 'claude_execute', businessId: context.businessId },
       // Fallback: return error result
       async () => {
         return this.createErrorResult(
@@ -310,7 +310,7 @@ export class ClaudeNativeAgent implements IAgent {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       const latency = Date.now() - startTime;
 
       return {
@@ -356,12 +356,12 @@ export class ClaudeNativeAgent implements IAgent {
       });
 
       for await (const chunk of stream) {
-        if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text') {
+        if (chunk.type === 'content_block_delta' && (chunk.delta as any).type === 'text') {
           yield {
             type: 'data',
             agentId: this.id,
             taskId: task.id,
-            data: chunk.delta.text,
+            data: (chunk.delta as any).text,
             timestamp: Date.now(),
           };
         }
@@ -375,7 +375,7 @@ export class ClaudeNativeAgent implements IAgent {
         metadata: { totalTime: Date.now() - startTime },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       yield {
         type: 'error',
         agentId: this.id,
@@ -446,10 +446,10 @@ export class ClaudeNativeAgent implements IAgent {
 - Available Permissions: ${context.permissions.join(', ')}`;
 
     // Add memory context if available (sanitized)
-    if (context.memory?.shortTerm?.messages?.length) {
-      const sanitizedMessages = context.memory.shortTerm.messages
+    if (context.memory?.shortTerm && Array.isArray(context.memory.shortTerm) && context.memory.shortTerm.length > 0) {
+      const sanitizedMessages = context.memory.shortTerm
         .slice(-3)
-        .map(m => `${m.role}: ${redactPII(m.content)}`);
+        .map((m: any) => `${m.role}: ${redactPII(m.content)}`);
       basePrompt += `\n\nRecent Conversation Context:
 ${sanitizedMessages.join('\n')}`;
     }
@@ -467,7 +467,7 @@ ${JSON.stringify(sanitizedData, null, 2)}`;
   private getDepartmentFromCapability(capability: string): string {
     // Map capabilities to departments
     for (const [dept, capabilities] of Object.entries(DEPARTMENT_CAPABILITIES)) {
-      if (capabilities.includes(capability)) {
+      if ((capabilities as readonly string[]).includes(capability)) {
         return dept;
       }
     }
@@ -615,7 +615,7 @@ ${JSON.stringify(sanitizedData, null, 2)}`;
     const latency = endTime - startTime;
 
     // Extract content
-    const content = response.content.map(block => {
+    const content = response.content.map((block: any) => {
       if (block.type === 'text') {
         return block.text;
       }
@@ -672,14 +672,14 @@ ${JSON.stringify(sanitizedData, null, 2)}`;
 
     // Check for uncertainty indicators
     const uncertaintyIndicators = ['might', 'possibly', 'unclear', 'unsure', 'maybe'];
-    const uncertaintyCount = uncertaintyIndicators.filter(word =>
+    const uncertaintyCount = uncertaintyIndicators.filter((word: any) =>
       content.toLowerCase().includes(word)
     ).length;
     confidence -= uncertaintyCount * 0.05;
 
     // Check for confidence indicators
     const confidenceIndicators = ['definitely', 'certain', 'confirmed', 'established'];
-    const confidenceCount = confidenceIndicators.filter(word =>
+    const confidenceCount = confidenceIndicators.filter((word: any) =>
       content.toLowerCase().includes(word)
     ).length;
     confidence += confidenceCount * 0.05;

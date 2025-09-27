@@ -183,7 +183,7 @@ export class AgentSystemFactory {
         this.streamingHandler
       );
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to initialize Agent System', error);
       throw error;
     }
@@ -203,7 +203,7 @@ export class AgentSystemFactory {
         departments: claudeAgent.department?.length || 0,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to register Claude agent', error);
       throw error;
     }
@@ -258,7 +258,7 @@ export class AgentSystem {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Task execution failed', error, {
         taskId: task.id,
         capability: task.capability,
@@ -280,7 +280,7 @@ export class AgentSystem {
         workflowId: workflow.id,
         success: result.success,
         totalSteps: workflow.steps.length,
-        successfulSteps: result.steps.filter(s => s.success).length,
+        successfulSteps: result.steps.filter((s: any) => s.success).length,
         totalCost: result.totalCost,
         totalLatency: result.totalLatency,
         executionTime: Date.now() - startTime,
@@ -288,7 +288,7 @@ export class AgentSystem {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Workflow execution failed', error, {
         workflowId: workflow.id,
       });
@@ -459,7 +459,7 @@ export class AgentSystem {
     }
 
     const results = await Promise.allSettled(checks);
-    const healthyComponents = results.filter(r => r.status === 'fulfilled').length;
+    const healthyComponents = results.filter((r: any) => r.status === 'fulfilled').length;
     const totalComponents = results.length;
 
     let systemStatus: 'healthy' | 'degraded' | 'unhealthy';
@@ -494,7 +494,7 @@ export class AgentSystem {
 
     if (this.orchestrator) {
       shutdownTasks.push(
-        this.orchestrator.getActiveExecutions().map(exec =>
+        this.orchestrator.getActiveExecutions().map((exec: any) =>
           this.orchestrator.cancelExecution(exec.executionId, 'System shutdown')
         )
       );

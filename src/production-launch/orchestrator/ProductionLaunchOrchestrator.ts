@@ -87,7 +87,7 @@ export class ProductionLaunchOrchestrator {
 
       return this.currentLaunch;
 
-    } catch (error) {
+    } catch (error: any) {
 
       if (this.currentLaunch) {
         this.currentLaunch.status = 'FAILED';
@@ -323,7 +323,7 @@ export class ProductionLaunchOrchestrator {
 
   private async handlePreFlightFailure(checks: PreFlightChecks): Promise<void> {
 
-    const criticalIssues = checks.failures.filter(f => f.includes('critical') || f.includes('failed'));
+    const criticalIssues = checks.failures.filter((f: any) => f.includes('critical') || f.includes('failed'));
 
     if (criticalIssues.length > 0) {
       criticalIssues.forEach((issue, index) => {

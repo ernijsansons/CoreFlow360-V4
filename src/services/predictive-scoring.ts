@@ -1,4 +1,4 @@
-import type { Lead, Company, Contact } from '../types/crm';
+import type { Lead, LeadExtended, Company, Contact } from '../types/crm';
 import type { Env } from '../types/env';
 
 export interface LeadScore {
@@ -217,7 +217,7 @@ export class PredictiveScoring {
     this.patternCache = new Map();
   }
 
-  async scoreLeadPropensity(lead: Lead): Promise<LeadScore> {
+  async scoreLeadPropensity(lead: LeadExtended): Promise<LeadScore> {
     // Check cache first
     const cacheKey = `${lead.id}_${Date.now()}`;
     const cached = this.scoreCache.get(lead.id);
@@ -265,7 +265,7 @@ export class PredictiveScoring {
     return score;
   }
 
-  private async gatherSignals(lead: Lead): Promise<Signals> {
+  private async gatherSignals(lead: LeadExtended): Promise<Signals> {
     const [
       engagement,
       webActivity,
@@ -302,7 +302,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async getEngagementMetrics(lead: Lead): Promise<EngagementSignals> {
+  private async getEngagementMetrics(lead: LeadExtended): Promise<EngagementSignals> {
     const db = this.env.DB_CRM;
 
     // Get interaction data
@@ -354,7 +354,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async getWebsiteActivity(lead: Lead): Promise<WebActivitySignals> {
+  private async getWebsiteActivity(lead: LeadExtended): Promise<WebActivitySignals> {
     const db = this.env.DB_CRM;
 
     // In production, this would integrate with web analytics
@@ -372,7 +372,7 @@ export class PredictiveScoring {
     // Identify high-value pages
     const highValuePages = ['pricing', 'demo', 'features', 'case-studies', 'contact'];
     const visitedPages = (result?.pages as string || '').split(',');
-    const highValuePageViews = visitedPages.filter(page =>
+    const highValuePageViews = visitedPages.filter((page: any) =>
       highValuePages.some(hvp => page.includes(hvp))
     );
 
@@ -388,7 +388,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async getEmailMetrics(lead: Lead): Promise<EmailSignals> {
+  private async getEmailMetrics(lead: LeadExtended): Promise<EmailSignals> {
     const db = this.env.DB_CRM;
 
     const result = await db.prepare(`
@@ -414,7 +414,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async getContentEngagement(lead: Lead): Promise<ContentSignals> {
+  private async getContentEngagement(lead: LeadExtended): Promise<ContentSignals> {
     // In production, track content consumption
     return {
       downloadsCount: Math.floor(Math.random() * 5),
@@ -426,7 +426,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async detectCompetitorActivity(lead: Lead): Promise<CompetitorSignals> {
+  private async detectCompetitorActivity(lead: LeadExtended): Promise<CompetitorSignals> {
     // Analyze conversations and activities for competitor mentions
     const competitorKeywords = ['competitor', 'alternative', 'compare', 'vs', 'switching from'];
 
@@ -439,7 +439,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async analyzeMarketTiming(lead: Lead): Promise<MarketSignals> {
+  private async analyzeMarketTiming(lead: LeadExtended): Promise<MarketSignals> {
     // Market analysis would integrate with external data sources
     return {
       industryGrowthRate: 0.15, // 15% growth
@@ -450,7 +450,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async getSocialSignals(lead: Lead): Promise<SocialSignals> {
+  private async getSocialSignals(lead: LeadExtended): Promise<SocialSignals> {
     // Would integrate with social media APIs
     return {
       linkedInActivity: 5,
@@ -461,7 +461,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async getTechnographicData(lead: Lead): Promise<TechnographicSignals> {
+  private async getTechnographicData(lead: LeadExtended): Promise<TechnographicSignals> {
     // Would integrate with technographic data providers
     return {
       currentTechStack: ['Salesforce', 'Slack', 'Zoom'],
@@ -472,7 +472,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async calculateFitScore(lead: Lead): Promise<number> {
+  private async calculateFitScore(lead: LeadExtended): Promise<number> {
     let score = 50; // Base score
 
     // Company size fit
@@ -497,7 +497,7 @@ export class PredictiveScoring {
     return Math.min(score, 100);
   }
 
-  private async analyzeBehavior(lead: Lead): Promise<BehaviorAnalysis> {
+  private async analyzeBehavior(lead: LeadExtended): Promise<BehaviorAnalysis> {
     // Analyze lead behavior patterns
     const engagement = await this.getEngagementMetrics(lead);
 
@@ -524,7 +524,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async detectTimingSignals(lead: Lead): Promise<TimingIndicators> {
+  private async detectTimingSignals(lead: LeadExtended): Promise<TimingIndicators> {
     const urgencySignals: string[] = [];
 
     // Check for urgency keywords in recent interactions
@@ -546,7 +546,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async detectTriggerEvents(lead: Lead): Promise<string[]> {
+  private async detectTriggerEvents(lead: LeadExtended): Promise<string[]> {
     const events: string[] = [];
 
     // New lead is a trigger
@@ -565,7 +565,7 @@ export class PredictiveScoring {
     return events;
   }
 
-  private async getHistoricalPatterns(lead: Lead): Promise<HistoricalPattern[]> {
+  private async getHistoricalPatterns(lead: LeadExtended): Promise<HistoricalPattern[]> {
     // Check cache
     const cacheKey = `${lead.industry}_${lead.company_size}`;
     if (this.patternCache.has(cacheKey)) {
@@ -602,7 +602,7 @@ export class PredictiveScoring {
     return historicalPatterns;
   }
 
-  private async generatePrediction(lead: Lead, signals: Signals): Promise<any> {
+  private async generatePrediction(lead: LeadExtended, signals: Signals): Promise<any> {
     const prompt = `
       Analyze this lead and predict their likelihood to purchase.
 
@@ -646,8 +646,7 @@ export class PredictiveScoring {
       - Market Maturity: ${signals.marketTiming.marketMaturity}
 
       Historical Patterns:
-      ${signals.historicalPatterns.map(p
-  => `- ${p.pattern}: ${(p.successRate * 100).toFixed(1)}% success rate`).join('\n')}
+      ${signals.historicalPatterns.map((p: any) => `- ${p.pattern}: ${(p.successRate * 100).toFixed(1)}% success rate`).join('\n')}
 
       Based on all these signals, predict:
       1. Overall lead score (0-100)
@@ -673,7 +672,7 @@ export class PredictiveScoring {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': this.env.ANTHROPIC_API_KEY,
+          'x-api-key': this.env.ANTHROPIC_API_KEY || '',
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
@@ -693,7 +692,7 @@ export class PredictiveScoring {
       if (jsonMatch) {
         return JSON.parse(jsonMatch[0]);
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     // Fallback prediction
@@ -804,7 +803,7 @@ export class PredictiveScoring {
     return Math.min(score, 100);
   }
 
-  private async identifyRisks(lead: Lead, signals: Signals): Promise<RiskFactor[]> {
+  private async identifyRisks(lead: LeadExtended, signals: Signals): Promise<RiskFactor[]> {
     const risks: RiskFactor[] = [];
 
     // Low engagement risk
@@ -866,7 +865,7 @@ export class PredictiveScoring {
   }
 
   private async generateRecommendations(
-    lead: Lead,
+    lead: LeadExtended,
     signals: Signals,
     prediction: any
   ): Promise<string[]> {
@@ -920,7 +919,7 @@ export class PredictiveScoring {
     return recommendations;
   }
 
-  private async storePrediction(lead: Lead, score: LeadScore): Promise<void> {
+  private async storePrediction(lead: LeadExtended, score: LeadScore): Promise<void> {
     const db = this.env.DB_CRM;
 
     await db.prepare(`
@@ -953,7 +952,7 @@ export class PredictiveScoring {
   }
 
   // Helper methods
-  private async getPreferredChannel(lead: Lead): Promise<string> {
+  private async getPreferredChannel(lead: LeadExtended): Promise<string> {
     // Analyze which channel has best engagement
     const db = this.env.DB_CRM;
 
@@ -969,7 +968,7 @@ export class PredictiveScoring {
     return result?.channel as string || 'email';
   }
 
-  private async getPeakEngagementTime(lead: Lead): Promise<string> {
+  private async getPeakEngagementTime(lead: LeadExtended): Promise<string> {
     // Analyze when lead is most active
     const db = this.env.DB_CRM;
 
@@ -986,7 +985,7 @@ export class PredictiveScoring {
     return `${hour}:00`;
   }
 
-  private async getConversionEvents(lead: Lead): Promise<string[]> {
+  private async getConversionEvents(lead: LeadExtended): Promise<string[]> {
     // Track conversion events
     const events: string[] = [];
 

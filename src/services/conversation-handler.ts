@@ -112,7 +112,7 @@ export class ConversationHandler {
       // Process the speech
       await this.processTurn('speech', transcript);
 
-    } catch (error) {
+    } catch (error: any) {
       this.callState.error_count++;
       this.emit('error', error instanceof Error ? error : new Error('Speech processing failed'));
     }
@@ -248,8 +248,8 @@ export class ConversationHandler {
     const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'dislike', 'not interested', 'no'];
 
     const lowerText = text.toLowerCase();
-    const positiveCount = positiveWords.filter(word => lowerText.includes(word)).length;
-    const negativeCount = negativeWords.filter(word => lowerText.includes(word)).length;
+    const positiveCount = positiveWords.filter((word: any) => lowerText.includes(word)).length;
+    const negativeCount = negativeWords.filter((word: any) => lowerText.includes(word)).length;
 
     if (positiveCount > negativeCount) return 'positive';
     if (negativeCount > positiveCount) return 'negative';
@@ -495,7 +495,7 @@ export class ConversationHandler {
       summary += 'Meeting requested. ';
     }
     
-    const qualifiedAreas = Object.values(qualification).filter(status => status !== 'unknown').length;
+    const qualifiedAreas = Object.values(qualification).filter((status: any) => status !== 'unknown').length;
     summary += `${qualifiedAreas}/4 qualification areas discussed.`;
 
     return summary;

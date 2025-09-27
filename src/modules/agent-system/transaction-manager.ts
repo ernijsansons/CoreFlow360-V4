@@ -74,7 +74,7 @@ class TransactionManager {
     try {
       await this.db.prepare(`SAVEPOINT ${savepointName}`).run();
       this.savepoints.set(transactionId, savepointName);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn('Failed to create savepoint (D1 limitation)', { transactionId });
     }
 
@@ -148,7 +148,7 @@ class TransactionManager {
           break;
       }
       operation.executed = true;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Failed to execute operation ${operation.id}: ${error}`);
     }
   }
@@ -448,7 +448,7 @@ class TransactionManager {
 
       operation.compensated = true;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to compensate operation', error, {
         operationId: operation.id,
         type: operation.type,
@@ -482,7 +482,7 @@ class TransactionManager {
       if (savepointName) {
         try {
           await this.db.prepare(`RELEASE SAVEPOINT ${savepointName}`).run();
-        } catch (error) {
+        } catch (error: any) {
           // Ignore if savepoints not supported
         }
         this.savepoints.delete(transactionId);
@@ -506,7 +506,7 @@ class TransactionManager {
         operations: transaction.operations.length
       };
 
-    } catch (error) {
+    } catch (error: any) {
       // Rollback on error
       return await this.rollbackTransaction(
         transactionId,
@@ -551,7 +551,7 @@ class TransactionManager {
             rollback: true,
             error: reason
           };
-        } catch (error) {
+        } catch (error: any) {
           // Savepoint rollback failed, use compensation
           this.logger.warn('Savepoint rollback failed, using compensation', {
             transactionId,
@@ -561,7 +561,7 @@ class TransactionManager {
       }
 
       // Compensate executed operations in reverse order
-      const executedOps = transaction.operations.filter(op => op.executed);
+      const executedOps = transaction.operations.filter((op: any) => op.executed);
       for (let i = executedOps.length - 1; i >= 0; i--) {
         await this.compensateOperation(executedOps[i], transaction.businessId);
       }
@@ -587,7 +587,7 @@ class TransactionManager {
         error: reason
       };
 
-    } catch (error) {
+    } catch (error: any) {
       transaction.status = 'failed';
       transaction.endTime = Date.now();
       transaction.error = `Rollback failed: ${error}`;
@@ -643,13 +643,13 @@ class TransactionManager {
     if (table && originalData[idColumn]) {
       // Build update statement from original data
       const updates = Object.keys(originalData)
-        .filter(k => k !== idColumn && k !== 'business_id')
-        .map(k => `${k} = ?`)
+        .filter((k: any) => k !== idColumn && k !== 'business_id')
+        .map((k: any) => `${k} = ?`)
         .join(', ');
 
       const values = Object.keys(originalData)
-        .filter(k => k !== idColumn && k !== 'business_id')
-        .map(k => originalData[k]);
+        .filter((k: any) => k !== idColumn && k !== 'business_id')
+        .map((k: any) => originalData[k]);
 
       await this.db.prepare(`
         UPDATE ${table}
@@ -669,7 +669,7 @@ class TransactionManager {
     if (table && deletedData) {
       const columns = Object.keys(deletedData);
       const placeholders = columns.map(() => '?').join(', ');
-      const values = columns.map(k => deletedData[k]);
+      const values = columns.map((k: any) => deletedData[k]);
 
       await this.db.prepare(`
         INSERT INTO ${table} (${columns.join(', ')})
@@ -698,7 +698,7 @@ class TransactionManager {
         try {
           await this.rollbackTransaction(id, 'Transaction timeout');
           cleaned++;
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error('Failed to cleanup stale transaction', error, {
             transactionId: id
           });

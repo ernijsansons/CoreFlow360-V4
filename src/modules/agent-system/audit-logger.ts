@@ -151,7 +151,7 @@ export class AuditLogger {
         agent_id: metadata?.agentId,
         task_id: metadata?.taskId,
         session_id: metadata?.sessionId,
-        event_data: sanitizeForLogging(details),
+        event_data: sanitizeForLogging(details) as Record<string, any>,
         message: this.createAuditMessage(eventType, details),
         correlation_id: metadata?.correlationId,
         ip_address: metadata?.ipAddress,
@@ -182,10 +182,10 @@ export class AuditLogger {
           businessId: safeBusinessId,
           userId: safeUserId,
           details
-        }));
+        }) as Record<string, unknown>);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create audit log entry', error, {
         eventType,
         businessId,
@@ -283,7 +283,7 @@ export class AuditLogger {
         previous_hash: row.previous_hash
       }));
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to query audit logs', error, {
         businessId,
         filters
@@ -320,20 +320,20 @@ export class AuditLogger {
         if (previousHash && entry.previous_hash !== previousHash) {
           return {
             valid: false,
-            brokenAt: entry.id
+            brokenAt: String(entry.id)
           };
         }
 
         // Verify individual entry hash
         const calculatedHash = await this.generateEntryHash({
           ...entry,
-          event_data: JSON.parse(entry.event_data || '{}')
-        });
+          event_data: JSON.parse(String(entry.event_data || '{}'))
+        } as AuditEntry);
 
         if (calculatedHash !== entry.hash) {
           return {
             valid: false,
-            brokenAt: entry.id
+            brokenAt: entry.id as string
           };
         }
 
@@ -342,7 +342,7 @@ export class AuditLogger {
 
       return { valid: true };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to verify audit integrity', error, {
         businessId,
         startTime,
@@ -363,7 +363,7 @@ export class AuditLogger {
 
     try {
       // Batch insert
-      const insertPromises = entriesToFlush.map(entry =>
+      const insertPromises = entriesToFlush.map((entry: any) =>
         this.db.prepare(`
           INSERT INTO agent_system_events (
             id, event_type, severity, business_id, user_id,
@@ -397,7 +397,7 @@ export class AuditLogger {
         entriesCount: entriesToFlush.length
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to flush audit buffer', error, {
         entriesCount: entriesToFlush.length
       });

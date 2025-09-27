@@ -70,7 +70,7 @@ export class MeetingBooker {
 
       return meeting;
 
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -112,7 +112,7 @@ export class MeetingBooker {
 
       return meeting;
 
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -148,7 +148,7 @@ export class MeetingBooker {
 
       return slots;
 
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -180,7 +180,7 @@ export class MeetingBooker {
       end: slot.end,
       timezone: slot.timezone,
       location: template?.default_location,
-      attendees: attendees.map(a => ({
+      attendees: attendees.map((a: any) => ({
         email: a.email,
         name: a.name,
         required: !a.optional
@@ -263,7 +263,7 @@ export class MeetingBooker {
 
       return success;
 
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -299,7 +299,7 @@ export class MeetingBooker {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -339,7 +339,7 @@ export class MeetingBooker {
 
       return newMeeting;
 
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -488,14 +488,14 @@ export class MeetingBooker {
       // - Meeting type requirements
       // - Lead's industry patterns
 
-      const scoredSlots = allSlots.map(slot => ({
+      const scoredSlots = allSlots.map((slot: any) => ({
         slot,
         score: this.calculateOptimalTimeScore(slot, lead, meetingType)
       })).sort((a, b) => b.score - a.score);
 
-      return scoredSlots.slice(0, 5).map(item => item.slot);
+      return scoredSlots.slice(0, 5).map((item: any) => item.slot);
 
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }

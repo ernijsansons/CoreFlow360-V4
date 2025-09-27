@@ -325,7 +325,7 @@ Continuous monitoring with:
 
     // Content safety recommendations
     if (contentSafety.safetyScore < 90 || contentSafety.violations.length > 0) {
-      const highSeverityViolations = contentSafety.violations.filter(v =>
+      const highSeverityViolations = contentSafety.violations.filter((v: any) =>
         v.severity === 'high' || v.severity === 'critical'
       );
 
@@ -341,7 +341,7 @@ Continuous monitoring with:
 
     // Ethical compliance recommendations
     if (ethicalCompliance.complianceScore < 85 || ethicalCompliance.violations.length > 0) {
-      const highSeverityEthicalViolations = ethicalCompliance.violations.filter(v =>
+      const highSeverityEthicalViolations = ethicalCompliance.violations.filter((v: any) =>
         v.severity === 'high'
       );
 

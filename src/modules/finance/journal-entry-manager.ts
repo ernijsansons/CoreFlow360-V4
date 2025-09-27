@@ -228,7 +228,7 @@ class JournalEntryManager {
     }
 
     const result = await this.db.prepare(query).bind(...params).all();
-    return result.results.map(row => this.mapRowToEntry(row));
+    return result.results.map((row: any) => this.mapRowToEntry(row));
   }
 
   /**

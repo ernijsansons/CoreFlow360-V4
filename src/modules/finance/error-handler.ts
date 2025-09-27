@@ -276,7 +276,7 @@ export class ErrorHandler {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       // Rollback transaction if started
       if (transactionStarted && transactionDb) {
         try {
@@ -345,7 +345,7 @@ export class ErrorHandler {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await operation();
-      } catch (error) {
+      } catch (error: any) {
         lastError = error as Error;
 
         const errorDetails = await this.handleError(lastError, {

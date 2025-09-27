@@ -123,7 +123,7 @@ export class ObservabilityExportIntegration {
             name: 'CoreFlow360',
             version: '4.0.0'
           },
-          spans: serviceTraces.map(trace => ({
+          spans: serviceTraces.map((trace: any) => ({
             traceId: trace.trace_id,
             spanId: this.generateSpanId(),
             parentSpanId: undefined,
@@ -175,7 +175,7 @@ export class ObservabilityExportIntegration {
           description: this.getMetricDescription(metricName),
           unit: this.getMetricUnit(metricName),
           gauge: {
-            dataPoints: metricData.map(metric => ({
+            dataPoints: metricData.map((metric: any) => ({
               attributes: Object.entries(this.parseLabels(metric.labels)).map(([key, value]) => ({
                 key,
                 value: { stringValue: String(value) }
@@ -203,7 +203,7 @@ export class ObservabilityExportIntegration {
           name: 'CoreFlow360',
           version: '4.0.0'
         },
-        logRecords: logs.map(log => ({
+        logRecords: logs.map((log: any) => ({
           timeUnixNano: new Date(log.timestamp).getTime() * 1000000,
           severityNumber: this.getSeverityNumber(log.level),
           severityText: log.level,
@@ -239,7 +239,7 @@ export class ObservabilityExportIntegration {
   }
 
   private async sendDatadogMetrics(metrics: any[]): Promise<void> {
-    const datadogMetrics = metrics.map(metric => ({
+    const datadogMetrics = metrics.map((metric: any) => ({
       metric: metric.metric_name,
       points: [[new Date(metric.timestamp).getTime() / 1000, metric.value]],
       tags: Object.entries(this.parseLabels(metric.labels)).map(([k, v]) => `${k}:${v}`),
@@ -260,7 +260,7 @@ export class ObservabilityExportIntegration {
   }
 
   private async sendDatadogLogs(logs: any[]): Promise<void> {
-    const datadogLogs = logs.map(log => ({
+    const datadogLogs = logs.map((log: any) => ({
       timestamp: new Date(log.timestamp).getTime(),
       status: log.level.toLowerCase(),
       message: log.error_message || 'Log entry',
@@ -354,7 +354,7 @@ export class ObservabilityExportIntegration {
   private async streamMetricsToBigQuery(metrics: any[]): Promise<void> {
     if (metrics.length === 0) return;
 
-    const rows = metrics.map(metric => ({
+    const rows = metrics.map((metric: any) => ({
       json: {
         timestamp: metric.timestamp,
         business_id: metric.business_id,
@@ -371,7 +371,7 @@ export class ObservabilityExportIntegration {
   private async streamLogsToBigQuery(logs: any[]): Promise<void> {
     if (logs.length === 0) return;
 
-    const rows = logs.map(log => ({
+    const rows = logs.map((log: any) => ({
       json: {
         timestamp: log.timestamp,
         business_id: log.business_id,
@@ -391,7 +391,7 @@ export class ObservabilityExportIntegration {
   private async streamTracesToBigQuery(traces: any[]): Promise<void> {
     if (traces.length === 0) return;
 
-    const rows = traces.map(trace => ({
+    const rows = traces.map((trace: any) => ({
       json: {
         trace_id: trace.trace_id,
         business_id: trace.business_id,
@@ -707,8 +707,8 @@ export class ObservabilityExportIntegration {
     if (data.length === 0) return '';
 
     const headers = Object.keys(data[0]);
-    const rows = data.map(row =>
-      headers.map(header => {
+    const rows = data.map((row: any) =>
+      headers.map((header: any) => {
         const value = row[header];
         return typeof value === 'object' ? JSON.stringify(value) : String(value);
       }).join(',')

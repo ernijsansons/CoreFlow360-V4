@@ -310,7 +310,7 @@ describe('Performance Monitoring Tests', () => {
       try {
         await testInstance.errorMethod();
         expect(false).toBe(true); // Should not reach here
-      } catch (error) {
+      } catch (error: any) {
         expect(error instanceof Error).toBe(true);
         expect(error.message).toBe('Test error');
       }
@@ -495,7 +495,7 @@ describe('Performance Monitoring Tests', () => {
         }
       );
 
-      const results = await Promise.all(concurrentOperations.map(op => op()));
+      const results = await Promise.all(concurrentOperations.map((op: any) => op()));
 
       // All operations should complete successfully
       expect(results.length).toBe(50);
@@ -519,7 +519,7 @@ describe('Performance Monitoring Tests', () => {
         }
       );
 
-      const results = await Promise.all(concurrentMetrics.map(op => op()));
+      const results = await Promise.all(concurrentMetrics.map((op: any) => op()));
 
       expect(results.length).toBe(100);
 

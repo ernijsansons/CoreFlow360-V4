@@ -12,6 +12,9 @@ export interface Env {
   KV_CACHE: KVNamespace;
   KV_SESSION: KVNamespace;
   KV_CONFIG: KVNamespace;
+  KV_AUTH: KVNamespace;
+  KV_RATE_LIMIT: KVNamespace;
+  KV_RATE_LIMIT_METRICS: KVNamespace;
   WORKFLOW_STORAGE: KVNamespace;
   SSE_METRICS: KVNamespace;
 

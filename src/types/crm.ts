@@ -1311,3 +1311,369 @@ export type FollowUpOutcome =
   | 'meeting_scheduled'
   | 'unsubscribe';
 
+// Create/Update interfaces for CRM entities
+export interface CreateCompany {
+  name: string;
+  domain?: string;
+  industry?: string;
+  size?: string;
+  revenue?: number;
+  description?: string;
+  website?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  technologies?: CompanyTechnologies;
+  social_profiles?: SocialProfiles;
+  metadata?: Record<string, any>;
+}
+
+export interface CreateContact {
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  title?: string;
+  company_id?: string;
+  phone?: string;
+  linkedin?: string;
+  interests?: ContactInterests;
+  social_profiles?: SocialProfiles;
+  metadata?: Record<string, any>;
+}
+
+export interface CreateLead {
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  company_name?: string;
+  title?: string;
+  phone?: string;
+  source?: string;
+  status?: LeadStatus;
+  score?: number;
+  assigned_to?: string;
+  tags?: string[];
+  metadata?: Record<string, any>;
+}
+
+export interface CreateAITask {
+  lead_id?: string;
+  contact_id?: string;
+  company_id?: string;
+  type: string;
+  description: string;
+  priority?: 'low' | 'medium' | 'high' | 'critical';
+  due_date?: string;
+  assigned_to?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface VoicemailRequest {
+  lead_id: string;
+  campaign_id?: string;
+  script_template?: string;
+  voice_settings?: {
+    voice_id?: string;
+    emotion?: VoiceEmotion;
+    pace?: VoicePace;
+  };
+  scheduling?: {
+    send_at?: string;
+    timezone?: string;
+  };
+  personalization?: Record<string, any>;
+}
+
+export interface VoicemailStats {
+  total_sent: number;
+  total_delivered: number;
+  total_listened: number;
+  avg_listen_duration: number;
+  callbacks_received: number;
+  conversion_rate: number;
+  by_campaign?: Record<string, {
+    sent: number;
+    delivered: number;
+    listened: number;
+    callbacks: number;
+  }>;
+}
+
+export interface VoicemailCampaignRequest {
+  name: string;
+  description?: string;
+  lead_ids: string[];
+  script_template: string;
+  voice_settings?: {
+    voice_id?: string;
+    emotion?: VoiceEmotion;
+    pace?: VoicePace;
+  };
+  scheduling?: {
+    start_date?: string;
+    end_date?: string;
+    send_times?: string[];
+    timezone?: string;
+  };
+  follow_up?: {
+    enabled: boolean;
+    delay_hours?: number;
+    type?: FollowUpType;
+  };
+}
+
+// Database interface for CRM operations
+export interface CRMDatabase {
+  companies: {
+    create: (company: CreateCompany) => Promise<Company>;
+    update: (id: string, company: Partial<Company>) => Promise<Company>;
+    delete: (id: string) => Promise<void>;
+    get: (id: string) => Promise<Company | null>;
+    list: (filters?: any) => Promise<Company[]>;
+  };
+  contacts: {
+    create: (contact: CreateContact) => Promise<Contact>;
+    update: (id: string, contact: Partial<Contact>) => Promise<Contact>;
+    delete: (id: string) => Promise<void>;
+    get: (id: string) => Promise<Contact | null>;
+    list: (filters?: any) => Promise<Contact[]>;
+    search: (query: string) => Promise<Contact[]>;
+  };
+  leads: {
+    create: (lead: CreateLead) => Promise<Lead>;
+    update: (id: string, lead: Partial<Lead>) => Promise<Lead>;
+    delete: (id: string) => Promise<void>;
+    get: (id: string) => Promise<Lead | null>;
+    list: (filters?: any) => Promise<Lead[]>;
+    convert: (id: string, data: any) => Promise<Contact>;
+  };
+  conversations: {
+    create: (conversation: any) => Promise<Conversation>;
+    update: (id: string, conversation: Partial<Conversation>) => Promise<Conversation>;
+    get: (id: string) => Promise<Conversation | null>;
+    list: (filters?: any) => Promise<Conversation[]>;
+  };
+  voicemails: {
+    create: (voicemail: any) => Promise<Voicemail>;
+    update: (id: string, voicemail: Partial<Voicemail>) => Promise<Voicemail>;
+    get: (id: string) => Promise<Voicemail | null>;
+    list: (filters?: any) => Promise<Voicemail[]>;
+  };
+  activities: {
+    create: (activity: any) => Promise<LeadActivity>;
+    list: (filters?: any) => Promise<LeadActivity[]>;
+  };
+}
+
+// Missing types that are being imported by other services
+export interface Playbook {
+  id: string;
+  business_id: string;
+  name: string;
+  description?: string;
+  sections: PlaybookSection[];
+  performance: {
+    winRate: number;
+    adoptionRate: number;
+    avgDealSize: number;
+    conversionRate: number;
+    averageDealSize?: number;
+    salesCycle?: number;
+    userFeedback?: number;
+  };
+  segment?: string;
+  version?: number;
+  active?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlaybookSection {
+  id: string;
+  playbook_id: string;
+  title: string;
+  content: string;
+  order: number;
+  category: string;
+  is_active: boolean;
+  created_at: string;
+  type?: string;
+  lastUpdated?: string;
+}
+
+export interface CustomerSegment {
+  id: string;
+  business_id: string;
+  name: string;
+  description?: string;
+  criteria: Record<string, any>;
+  lead_count: number;
+  performance_metrics: {
+    conversion_rate: number;
+    avg_deal_size: number;
+    sales_cycle_days: number;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Pattern {
+  id: string;
+  business_id: string;
+  name: string;
+  description?: string;
+  pattern_type: string;
+  type?: string;
+  data: Record<string, any>;
+  confidence_score: number;
+  frequency: number;
+  last_seen: string;
+  created_at: string;
+}
+
+export interface Feedback {
+  id: string;
+  business_id: string;
+  source: string;
+  type: 'positive' | 'negative' | 'neutral' | 'usability';
+  content: string;
+  context?: Record<string, any>;
+  rating?: number;
+  created_at: string;
+  playbookId?: string;
+  comment?: string;
+  category?: string;
+  userId?: string;
+  timestamp?: string;
+}
+
+export interface Strategy {
+  id: string;
+  business_id: string;
+  name: string;
+  description?: string;
+  strategy_type: string;
+  parameters: Record<string, any>;
+  effectiveness_score: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Real-time sales coaching types
+export interface CallStream {
+  id: string;
+  call_id: string;
+  stream_type: 'audio' | 'transcript' | 'metadata';
+  data: any;
+  timestamp: string;
+  coachingChannel?: string;
+  on?: (event: string, callback: (data: any) => void) => void;
+}
+
+export interface TranscriptChunk {
+  id: string;
+  call_id: string;
+  speaker: 'agent' | 'customer';
+  text: string;
+  timestamp: string;
+  confidence: number;
+  sentiment?: Sentiment;
+}
+
+export interface Situation {
+  id: string;
+  call_id: string;
+  situation_type: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  detected_at: string;
+  resolved: boolean;
+  type?: string;
+  objection?: string;
+  competitor?: string;
+  context?: string;
+  buyingSignal?: string;
+  painPoint?: string;
+}
+
+export interface Guidance {
+  id: string;
+  situation_id: string;
+  guidance_type: string;
+  content: string;
+  priority: 'low' | 'medium' | 'high';
+  provided_at: string;
+}
+
+export interface Battlecard {
+  id: string;
+  business_id: string;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PricingGuidance {
+  id: string;
+  business_id: string;
+  product_id?: string;
+  pricing_tier: string;
+  guidance: string;
+  conditions: Record<string, any>;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoachingTip {
+  id: string;
+  call_id: string;
+  tip_type: string;
+  content: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  provided_at: string;
+  acknowledged: boolean;
+  type?: string;
+}
+
+export interface LiveCoachingMessage {
+  id: string;
+  call_id: string;
+  message_type: 'tip' | 'warning' | 'suggestion' | 'battlecard';
+  content: string | CoachingTip | Guidance | Battlecard | PricingGuidance;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  timestamp: string | number;
+  delivered: boolean;
+}
+
+export interface Participant {
+  id: string;
+  call_id: string;
+  name: string;
+  role: 'agent' | 'customer' | 'observer';
+  email?: string;
+  phone?: string;
+  joined_at: string;
+  left_at?: string;
+}
+
+// Add missing properties to Lead interface
+export interface LeadExtended extends Lead {
+  company_size?: string;
+  industry?: string;
+  title?: string;
+  ai_intent_summary?: string;
+  ai_engagement_score?: number;
+}
+

@@ -201,7 +201,7 @@ export class CapabilityExecutor {
 
       return executionResult;
 
-    } catch (error) {
+    } catch (error: any) {
       const executionTime = Date.now() - fullContext.startTime;
       const errorCode = this.getErrorCode(error);
       const isRetryable = this.isRetryableError(error);
@@ -596,7 +596,7 @@ export class CapabilityExecutor {
           operation: `capability_execution:${spec.id}`,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to emit audit event', error, {
         eventType,
         capabilityId: spec.id,

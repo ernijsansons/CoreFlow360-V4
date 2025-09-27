@@ -77,7 +77,7 @@ export class AlertSystem {
   }
 
   private async deliverAlert(alert: Alert, channelIds: string[]): Promise<void> {
-    const deliveryPromises = channelIds.map(async (channelId) => {
+    const deliveryPromises = channelIds.map(async (channelId: any) => {
       const channel = this.channels.get(channelId);
       if (!channel || !channel.enabled) {
         return;
@@ -85,7 +85,7 @@ export class AlertSystem {
 
       try {
         await this.sendToChannel(alert, channel);
-      } catch (error) {
+      } catch (error: any) {
       }
     });
 
@@ -419,7 +419,7 @@ export class AlertSystem {
   }
 
   private scheduleEscalation(alert: Alert, rules: EscalationRule[]): void {
-    rules.forEach(rule => {
+    rules.forEach((rule: any) => {
       setTimeout(async () => {
         if (this.shouldEscalate(alert, rule)) {
           await this.escalateAlert(alert, rule);
@@ -561,13 +561,13 @@ export class AlertSystem {
       }
     ];
 
-    emailTemplates.forEach(template => {
+    emailTemplates.forEach((template: any) => {
       this.templates.set(template.id, template);
     });
   }
 
   getActiveAlerts(): Alert[] {
-    return Array.from(this.alertHistory.values()).filter(alert => alert.status === 'firing');
+    return Array.from(this.alertHistory.values()).filter((alert: any) => alert.status === 'firing');
   }
 
   getAlertHistory(limit: number = 100): Alert[] {

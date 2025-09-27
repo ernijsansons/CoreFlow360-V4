@@ -93,7 +93,7 @@ export class AgentOrchestrator {
       }
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       // Invalidate cache on error
       await this.idempotencyManager.invalidate(task);
       throw error;
@@ -272,7 +272,7 @@ export class AgentOrchestrator {
           { taskId: task.id, agentId: selectedAgentId }
         );
 
-      } catch (error) {
+      } catch (error: any) {
         // Release reservation on execution failure
         await this.costReservationManager.release(reservationId, 'Task execution failed');
 
@@ -338,7 +338,7 @@ export class AgentOrchestrator {
         totalLatency,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.activeExecutions.delete(executionId);
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -392,7 +392,7 @@ export class AgentOrchestrator {
           );
 
           if (!dependenciesMet) {
-            const missingDeps = step.dependencies.filter(depId =>
+            const missingDeps = step.dependencies.filter((depId: any) =>
               !results.some(r => r.stepId === depId && r.success)
             );
 
@@ -467,7 +467,7 @@ export class AgentOrchestrator {
             };
           }
 
-        } catch (error) {
+        } catch (error: any) {
           const stepError = error instanceof Error ? error.message : 'Unknown error';
 
           results.push({
@@ -499,7 +499,7 @@ export class AgentOrchestrator {
         workflowId: workflow.id,
         success,
         totalSteps: workflow.steps.length,
-        successfulSteps: results.filter(r => r.success).length,
+        successfulSteps: results.filter((r: any) => r.success).length,
         totalCost,
         totalLatency,
       });
@@ -512,7 +512,7 @@ export class AgentOrchestrator {
         totalLatency,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
       this.logger.error('Workflow execution failed', error, {
@@ -649,7 +649,7 @@ export class AgentOrchestrator {
         userId: task.context.userId,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to update metrics and costs', error, {
         taskId: task.id,
         agentId,
@@ -660,9 +660,9 @@ export class AgentOrchestrator {
   private getAlternativeAgents(task: AgentTask, excludeAgentId: string): string[] {
     const allAgents = this.registry.getAgentsForCapability(task.capability);
     return allAgents
-      .filter(agent => agent.id !== excludeAgentId)
+      .filter((agent: any) => agent.id !== excludeAgentId)
       .slice(0, 3) // Return top 3 alternatives
-      .map(agent => agent.id);
+      .map((agent: any) => agent.id);
   }
 
   private workflowStepToTask(step: WorkflowStep, workflow: Workflow): AgentTask {

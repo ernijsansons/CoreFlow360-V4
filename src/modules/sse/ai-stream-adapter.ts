@@ -185,7 +185,7 @@ export class AIStreamAdapter {
         controller
       };
 
-    } catch (error) {
+    } catch (error: any) {
       abortController.abort();
       await controller.sendError(error instanceof Error ? error : new Error(String(error)));
       throw error;
@@ -236,7 +236,7 @@ export class AIStreamAdapter {
         const { onToken, onComplete, onError, signal } = params;
 
         return new ReadableStream<Uint8Array>({
-          start: async (controller) => {
+          start: async (controller: any) => {
             try {
               // Simulate AI response streaming
               const response = `This is a mock AI response to: "${params.prompt}". `;
@@ -261,7 +261,7 @@ export class AIStreamAdapter {
               });
 
               controller.close();
-            } catch (error) {
+            } catch (error: any) {
               await onError?.({
                 code: 'MOCK_ERROR',
                 message: error instanceof Error ? error.message : String(error),
@@ -323,7 +323,7 @@ export class AnthropicProvider implements AIProvider {
     }
 
     return new ReadableStream<Uint8Array>({
-      start: async (controller) => {
+      start: async (controller: any) => {
         try {
           const reader = response.body?.getReader();
           if (!reader) throw new Error('No response body');
@@ -365,7 +365,7 @@ export class AnthropicProvider implements AIProvider {
 
             controller.enqueue(value);
           }
-        } catch (error) {
+        } catch (error: any) {
           await onError?.({
             code: 'ANTHROPIC_ERROR',
             message: error instanceof Error ? error.message : String(error),
@@ -414,7 +414,7 @@ export class OpenAIProvider implements AIProvider {
     }
 
     return new ReadableStream<Uint8Array>({
-      start: async (controller) => {
+      start: async (controller: any) => {
         try {
           const reader = response.body?.getReader();
           if (!reader) throw new Error('No response body');
@@ -457,7 +457,7 @@ export class OpenAIProvider implements AIProvider {
 
             controller.enqueue(value);
           }
-        } catch (error) {
+        } catch (error: any) {
           await onError?.({
             code: 'OPENAI_ERROR',
             message: error instanceof Error ? error.message : String(error),

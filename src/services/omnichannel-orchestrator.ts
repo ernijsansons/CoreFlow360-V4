@@ -128,7 +128,7 @@ export class OmnichannelOrchestrator {
       name: `Personalized Campaign for ${leads.length} leads`,
       strategy,
       content,
-      leads: leads.map(lead => ({ leadId: lead.id, status: 'pending' })),
+      leads: leads.map((lead: any) => ({ leadId: lead.id, status: 'pending' })),
       status: 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -189,7 +189,7 @@ export class OmnichannelOrchestrator {
       }
 
       step.status = 'completed';
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to execute step ${step.id}:`, error);
       step.status = 'failed';
     }
@@ -209,7 +209,7 @@ export class OmnichannelOrchestrator {
       await new Promise(resolve => setTimeout(resolve, 100));
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to send ${channel} message to lead ${leadId}:`, error);
       return false;
     }
@@ -221,7 +221,7 @@ export class OmnichannelOrchestrator {
       name: request.name,
       strategy: request.strategy,
       content: request.content,
-      leads: request.leadIds.map(leadId => ({ leadId, status: 'pending' })),
+      leads: request.leadIds.map((leadId: any) => ({ leadId, status: 'pending' })),
       status: 'draft',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -265,7 +265,7 @@ export class OmnichannelOrchestrator {
       // Mock campaign start - would update status and schedule in production
       console.log(`Starting campaign ${campaignId}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to start campaign ${campaignId}:`, error);
       return false;
     }
@@ -276,7 +276,7 @@ export class OmnichannelOrchestrator {
       // Mock campaign pause - would update status in production
       console.log(`Pausing campaign ${campaignId}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to pause campaign ${campaignId}:`, error);
       return false;
     }
@@ -287,7 +287,7 @@ export class OmnichannelOrchestrator {
       // Mock campaign stop - would update status and cancel scheduled tasks in production
       console.log(`Stopping campaign ${campaignId}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to stop campaign ${campaignId}:`, error);
       return false;
     }
@@ -327,7 +327,7 @@ export class OmnichannelOrchestrator {
           responseTime: Math.floor(Math.random() * 1000),
           error: isHealthy ? null : 'Connection timeout'
         });
-      } catch (error) {
+      } catch (error: any) {
         healthChecks.push({
           channel: channelType as ChannelType,
           status: 'unhealthy',
@@ -389,7 +389,7 @@ export class OmnichannelOrchestrator {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Channel test failed for ${channel}:`, error);
       return false;
     }
@@ -440,7 +440,7 @@ export class OmnichannelOrchestrator {
     try {
       // Mock cleanup - would close connections and clean up resources in production
       console.log('Omnichannel Orchestrator cleanup completed');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Omnichannel Orchestrator cleanup failed:', error);
     }
   }

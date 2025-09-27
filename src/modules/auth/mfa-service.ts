@@ -94,7 +94,7 @@ class MFAService {
         backupCodes
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('MFA setup failed', error, { userId, businessId });
       throw new SecurityError('Failed to setup MFA', {
         code: 'MFA_SETUP_FAILED',
@@ -160,7 +160,7 @@ class MFAService {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('MFA setup verification failed', error, { userId });
       throw new SecurityError('Failed to verify MFA setup', {
         code: 'MFA_SETUP_VERIFICATION_FAILED',
@@ -237,7 +237,7 @@ class MFAService {
         reason: 'Unsupported MFA method'
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('MFA verification error', error, { userId });
       throw new SecurityError('MFA verification failed', {
         code: 'MFA_VERIFICATION_FAILED',
@@ -256,7 +256,7 @@ class MFAService {
     clientInfo?: { ipAddress: string; userAgent: string }
   ): Promise<MFAVerificationResult> {
     // Remove the used backup code
-    mfaConfig.backupCodes = mfaConfig.backupCodes.filter(bc => bc !== code);
+    mfaConfig.backupCodes = mfaConfig.backupCodes.filter((bc: any) => bc !== code);
     mfaConfig.lastUsedAt = Date.now();
 
     // Update configuration
@@ -307,7 +307,7 @@ class MFAService {
 
       return newBackupCodes;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to regenerate backup codes', error, { userId });
       throw new SecurityError('Failed to regenerate backup codes', {
         code: 'BACKUP_CODE_GENERATION_FAILED',
@@ -341,7 +341,7 @@ class MFAService {
 
       this.logger.warn('MFA disabled for user', { userId });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to disable MFA', error, { userId });
       throw error;
     }
@@ -370,7 +370,7 @@ class MFAService {
         lastUsedAt: mfaConfig.lastUsedAt
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get MFA status', error, { userId });
       return { enabled: false };
     }
@@ -421,7 +421,7 @@ class MFAService {
         JSON.stringify({ action, timestamp: Date.now() })
       ).run();
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to log MFA usage', error, { userId, action });
     }
   }
@@ -471,7 +471,7 @@ class MFAService {
         shouldBlock
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to check suspicious MFA activity', error, { userId });
       return {
         suspicious: false,

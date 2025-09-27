@@ -145,7 +145,7 @@ export class CallSummarizer {
       
       return summary;
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Failed to generate call summary:', errorMessage);
       throw new Error('Call summary generation failed');
@@ -355,7 +355,7 @@ export class CallSummarizer {
       // Mock quick summary - would use real AI in production
       return `Call with ${call.participants.length} participants discussing ${call.duration} minutes. Key topics included pricing and features. Next steps: schedule demo.`;
       
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Failed to generate quick summary:', errorMessage);
       return 'Summary generation failed';
@@ -376,7 +376,7 @@ export class CallSummarizer {
         ...item,
         status: 'pending' as const
       }));
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Failed to generate action items:', errorMessage);
       return [];
@@ -407,7 +407,7 @@ Best regards,
       `;
 
       return email.trim();
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Failed to generate follow-up email:', errorMessage);
       return 'Follow-up email generation failed';
@@ -458,7 +458,7 @@ Best regards,
     const sentimentCounts: Record<string, number> = {};
     const totalActionItems = summaries.reduce((sum, s) => sum + s.actionItems.length, 0);
 
-    summaries.forEach(summary => {
+    summaries.forEach((summary: any) => {
       const sentiment = summary.sentiment.overall;
       sentimentCounts[sentiment] = (sentimentCounts[sentiment] || 0) + 1;
     });
@@ -484,7 +484,7 @@ Best regards,
         status: 'healthy',
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'unhealthy',
         timestamp: new Date().toISOString()

@@ -123,7 +123,7 @@ class ChatFileService {
 
       return metadata
 
-    } catch (error) {
+    } catch (error: any) {
       await this.auditLogger.log({
         action: 'chat_file_upload_failed',
         userId,
@@ -162,7 +162,7 @@ class ChatFileService {
 
       return FileMetadataSchema.parse(result)
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve file metadata',
         'DATABASE_ERROR',
@@ -183,9 +183,9 @@ class ChatFileService {
         ORDER BY uploaded_at DESC
       `).bind(conversationId).all()
 
-      return results.results.map(result => FileMetadataSchema.parse(result))
+      return results.results.map((result: any) => FileMetadataSchema.parse(result))
 
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError(
         'Failed to retrieve conversation files',
         'DATABASE_ERROR',
@@ -241,7 +241,7 @@ class ChatFileService {
         }
       })
 
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof AppError) {
         throw error
       }
@@ -318,7 +318,7 @@ class ChatFileService {
 
       return `${this.env.CHAT_FILES_BASE_URL}/${thumbnailKey}`
 
-    } catch (error) {
+    } catch (error: any) {
       return ''
     }
   }
@@ -385,7 +385,7 @@ class ChatFileService {
       }
 
       return buffer
-    } catch (error) {
+    } catch (error: any) {
       throw new AppError('Invalid base64 data', 'INVALID_FILE_DATA')
     }
   }
@@ -406,7 +406,7 @@ class ChatFileService {
 
     const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data))
     return Array.from(new Uint8Array(signature))
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b: any) => b.toString(16).padStart(2, '0'))
       .join('')
   }
 }

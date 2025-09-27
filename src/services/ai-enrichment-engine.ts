@@ -95,7 +95,7 @@ export class AIEnrichmentEngine {
           timeline: '6-12 months'
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultInsights();
     }
   }
@@ -121,7 +121,7 @@ Title: ${data.contact?.title || 'Unknown'}
 Seniority: ${data.contact?.seniority_level || 'Unknown'}
 Department: ${data.contact?.department || 'Unknown'}
 
-Recent News: ${data.news?.recent_news?.slice(0, 3).map(n => n.title).join('; ') || 'None'}
+Recent News: ${data.news?.recent_news?.slice(0, 3).map((n: any) => n.title).join('; ') || 'None'}
 Tech Stack: ${data.company?.tech_stack?.tools?.slice(0, 5).join(', ') || 'Unknown'}
 
 Based on this data, provide scores for:
@@ -149,7 +149,7 @@ Respond with just the four numbers.
         engagement_propensity: scores[2] || 60,
         conversion_probability: (scores[3] || 25) / 100
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         icp_fit_score: 50,
         buying_intent_score: 30,
@@ -177,8 +177,8 @@ Contact: ${data.contact?.full_name || 'Unknown'}
 Title: ${data.contact?.title || 'Unknown'}
 Seniority: ${data.contact?.seniority_level || 'Unknown'}
 
-Recent News: ${data.news?.recent_news?.map(n => n.title).join('; ') || 'None'}
-Job Openings: ${data.company?.job_openings?.map(j => j.title).join(', ') || 'None'}
+Recent News: ${data.news?.recent_news?.map((n: any) => n.title).join('; ') || 'None'}
+Job Openings: ${data.company?.job_openings?.map((j: any) => j.title).join(', ') || 'None'}
 
 Identify:
 1. Budget indicators (funding, revenue, growth signals)
@@ -197,7 +197,7 @@ Be specific about evidence found in the data.
       });
 
       return this.parseQualificationInsights(response.response, data);
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultQualificationInsights(data);
     }
   }
@@ -219,7 +219,7 @@ Contact: ${data.contact?.full_name || 'Unknown'}
 Title: ${data.contact?.title || 'Unknown'}
 Location: ${data.contact?.location?.city || 'Unknown'}, ${data.contact?.location?.country || 'Unknown'}
 
-Recent News: ${data.news?.recent_news?.slice(0, 2).map(n => n.title).join('; ') || 'None'}
+Recent News: ${data.news?.recent_news?.slice(0, 2).map((n: any) => n.title).join('; ') || 'None'}
 Technologies: ${data.company?.tech_stack?.tools?.slice(0, 5).join(', ') || 'Unknown'}
 
 Based on their industry, role, and company situation:
@@ -239,7 +239,7 @@ Provide specific, actionable insights.
       });
 
       return this.parsePersonalizationInsights(response.response, data);
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultPersonalizationInsights(data);
     }
   }
@@ -253,7 +253,7 @@ Provide specific, actionable insights.
     const competitors = this.identifyCompetitors(techStack, data.company?.industry);
 
     return {
-      current_solutions: competitors.map(comp => ({
+      current_solutions: competitors.map((comp: any) => ({
         vendor: comp,
         product: 'Unknown',
         satisfaction_level: 6,
@@ -295,7 +295,7 @@ Be specific and actionable.
       });
 
       return this.parseRecommendations(response.response, data);
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultRecommendations(data);
     }
   }
@@ -359,7 +359,7 @@ Be specific and actionable.
   // Helper methods for parsing AI responses
   private parseScores(response: string): number[] {
     const numbers = response.match(/\d+/g);
-    return numbers ? numbers.map(n => parseInt(n)).slice(0, 4) : [];
+    return numbers ? numbers.map((n: any) => parseInt(n)).slice(0, 4) : [];
   }
 
   private parseQualificationInsights(response: string, data: EnrichmentData): any {
@@ -469,7 +469,7 @@ Be specific and actionable.
         category: 'growth',
         pain_point: 'Company growth and scaling challenges',
         urgency: 'medium',
-        evidence: data.news.recent_news.map(n => n.title),
+        evidence: data.news.recent_news.map((n: any) => n.title),
         confidence: 0.6
       });
     }

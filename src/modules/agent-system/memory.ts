@@ -60,7 +60,7 @@ export class AgentMemory {
         longTerm,
         conversationHistory
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to load memory context', {
         businessId: sanitizeForLogging(businessId),
         sessionId: sanitizeForLogging(sessionId),
@@ -94,7 +94,7 @@ export class AgentMemory {
         longTermCount: longTerm.length,
         conversationCount: conversationHistory.length
       }) as Record<string, unknown>);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to save memory context', {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -147,7 +147,7 @@ export class AgentMemory {
         memoryId: message.id,
         type: message.role
       }) as Record<string, unknown>);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to add memory', {
         businessId: sanitizeForLogging(businessId),
         sessionId: sanitizeForLogging(sessionId),
@@ -194,7 +194,7 @@ export class AgentMemory {
         topic: knowledge.topic,
         source: knowledge.source
       }) as Record<string, unknown>);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to add knowledge', {
         businessId: sanitizeForLogging(businessId),
         knowledgeId: knowledge.id,
@@ -238,7 +238,7 @@ export class AgentMemory {
       const result = await this.db.prepare(sql).bind(...params).all();
       
       return result.results as Knowledge[];
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to search knowledge', {
         businessId: sanitizeForLogging(businessId),
         query: sanitizeForLogging(query),
@@ -283,7 +283,7 @@ export class AgentMemory {
         entryId: entry.id,
         agentId: entry.agentId
       }) as Record<string, unknown>);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to add conversation entry', {
         businessId: sanitizeForLogging(businessId),
         sessionId: sanitizeForLogging(sessionId),
@@ -308,7 +308,7 @@ export class AgentMemory {
         businessId: safeBusinessId,
         sessionId: safeSessionId
       }));
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to clear short-term memory', {
         businessId: sanitizeForLogging(businessId),
         sessionId: sanitizeForLogging(sessionId),
@@ -327,7 +327,7 @@ export class AgentMemory {
       
       // Clear short-term memory (KV)
       const keys = await this.kv.list({ prefix: `agent_memory:${safeBusinessId}:` });
-      const deletePromises = keys.keys.map(key => this.kv.delete(key.name));
+      const deletePromises = keys.keys.map((key: any) => this.kv.delete(key.name));
       await Promise.all(deletePromises);
       
       // Clear long-term memory (D1)
@@ -343,7 +343,7 @@ export class AgentMemory {
       this.logger.debug('All memory cleared', sanitizeForLogging({
         businessId: safeBusinessId
       }));
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to clear all memory', {
         businessId: sanitizeForLogging(businessId),
         error: error instanceof Error ? error.message : 'Unknown error'

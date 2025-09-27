@@ -215,7 +215,7 @@ export class WorkflowAutomation {
       await this.runWorkflowSteps(workflow, execution);
       execution.status = 'completed';
       execution.completedAt = new Date();
-    } catch (error) {
+    } catch (error: any) {
       execution.status = 'failed';
       execution.completedAt = new Date();
       execution.error = error instanceof Error ? error.message : 'Unknown error';
@@ -246,7 +246,7 @@ export class WorkflowAutomation {
         await this.executeStep(step, stepExecution, execution);
         stepExecution.status = 'completed';
         stepExecution.completedAt = new Date();
-      } catch (error) {
+      } catch (error: any) {
         stepExecution.status = 'failed';
         stepExecution.completedAt = new Date();
         stepExecution.error = error instanceof Error ? error.message : 'Unknown error';
@@ -378,7 +378,7 @@ export class WorkflowAutomation {
         if (this.workflows.get(workflow.id)?.status === 'active') {
           await this.scheduleWorkflow(workflow);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Scheduled workflow ${workflow.id} failed:`, error);
       }
     }, intervalMs);
@@ -431,7 +431,7 @@ export class WorkflowAutomation {
 
   async getWorkflows(businessId: string): Promise<Workflow[]> {
     return Array.from(this.workflows.values())
-      .filter(w => w.businessId === businessId);
+      .filter((w: any) => w.businessId === businessId);
   }
 
   async getExecution(id: string): Promise<WorkflowExecution | null> {
@@ -440,7 +440,7 @@ export class WorkflowAutomation {
 
   async getExecutions(workflowId: string): Promise<WorkflowExecution[]> {
     return Array.from(this.executions.values())
-      .filter(e => e.workflowId === workflowId);
+      .filter((e: any) => e.workflowId === workflowId);
   }
 
   async handleWebhook(url: string, data: any): Promise<WorkflowExecution | null> {
@@ -491,13 +491,13 @@ export class WorkflowAutomation {
   }> {
     const workflows = await this.getWorkflows(businessId);
     const executions = Array.from(this.executions.values())
-      .filter(e => workflows.some(w => w.id === e.workflowId));
+      .filter((e: any) => workflows.some(w => w.id === e.workflowId));
 
     const totalExecutions = executions.length;
-    const successfulExecutions = executions.filter(e => e.status === 'completed').length;
-    const failedExecutions = executions.filter(e => e.status === 'failed').length;
+    const successfulExecutions = executions.filter((e: any) => e.status === 'completed').length;
+    const failedExecutions = executions.filter((e: any) => e.status === 'failed').length;
     
-    const completedExecutions = executions.filter(e => e.status === 'completed' && e.completedAt);
+    const completedExecutions = executions.filter((e: any) => e.status === 'completed' && e.completedAt);
     const averageExecutionTime = completedExecutions.length > 0
       ? completedExecutions.reduce((sum, e) => {
           const duration = e.completedAt!.getTime() - e.startedAt.getTime();
@@ -507,7 +507,7 @@ export class WorkflowAutomation {
 
     return {
       totalWorkflows: workflows.length,
-      activeWorkflows: workflows.filter(w => w.status === 'active').length,
+      activeWorkflows: workflows.filter((w: any) => w.status === 'active').length,
       totalExecutions,
       successfulExecutions,
       failedExecutions,
@@ -521,7 +521,7 @@ export class WorkflowAutomation {
         status: 'healthy',
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'unhealthy',
         timestamp: new Date().toISOString()

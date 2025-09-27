@@ -82,7 +82,7 @@ export class WhatsAppChannel extends BaseChannel {
       message.sent_at = new Date().toISOString();
       await this.updateMessageStatus(message.id, 'sent', { sent_at: message.sent_at });
 
-    } catch (error) {
+    } catch (error: any) {
       message.status = 'failed';
       message.error_message = error instanceof Error ? error.message : 'Unknown error';
       await this.updateMessageStatus(message.id, 'failed', {

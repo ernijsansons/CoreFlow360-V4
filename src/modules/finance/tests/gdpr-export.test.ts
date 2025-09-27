@@ -422,7 +422,7 @@ describe('GDPR Data Export Tests', () => {
       const queries = mockDb.getQueries();
 
       // Verify date range is applied in queries
-      const queriesWithDateRange = queries.filter(q =>
+      const queriesWithDateRange = queries.filter((q: any) =>
         q.sql.includes('BETWEEN') && q.params && q.params.includes(startDate) && q.params.includes(endDate)
       );
 
@@ -708,7 +708,7 @@ describe('GDPR Data Export Tests', () => {
       const queries = mockDb.getQueries();
 
       // Verify all data collection queries include business_id filter
-      const dataQueries = queries.filter(q =>
+      const dataQueries = queries.filter((q: any) =>
         (q.sql.includes('customers') || q.sql.includes('invoices') || q.sql.includes('audit_logs')) &&
         q.sql.includes('SELECT')
       );
@@ -843,7 +843,7 @@ describe('GDPR Data Export Tests', () => {
       expect(selectQuery).toBeDefined();
 
       // Should have updated export status to expired
-      const updateQueries = queries.filter(q =>
+      const updateQueries = queries.filter((q: any) =>
         q.sql.includes('UPDATE') && q.sql.includes('expired')
       );
       expect(updateQueries.length).toBeGreaterThan(0);

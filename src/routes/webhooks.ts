@@ -30,7 +30,7 @@ webhooks.use('*', async (c, next) => {
 });
 
 // === Webhook Receiver - Handle incoming webhooks from Agent System ===
-webhooks.post('/agents', async (c) => {
+webhooks.post('/agents', async (c: any) => {
   try {
     const receiver = c.get('webhookReceiver');
     const body = await c.req.json();
@@ -50,7 +50,7 @@ webhooks.post('/agents', async (c) => {
     });
 
     return c.json(result);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Processing failed'
@@ -61,7 +61,7 @@ webhooks.post('/agents', async (c) => {
 // === Webhook Management ===
 
 // Subscribe to webhook events
-webhooks.post('/subscribe', async (c) => {
+webhooks.post('/subscribe', async (c: any) => {
   try {
     const { event, url } = await c.req.json();
     const integration = c.get('webhookIntegration');
@@ -72,7 +72,7 @@ webhooks.post('/subscribe', async (c) => {
       success: true,
       subscription
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Subscription failed'
@@ -81,7 +81,7 @@ webhooks.post('/subscribe', async (c) => {
 });
 
 // Unsubscribe from webhook events
-webhooks.delete('/subscribe/:id', async (c) => {
+webhooks.delete('/subscribe/:id', async (c: any) => {
   try {
     const subscriptionId = c.req.param('id');
     const integration = c.get('webhookIntegration');
@@ -93,7 +93,7 @@ webhooks.delete('/subscribe/:id', async (c) => {
     }
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unsubscribe failed'
@@ -102,7 +102,7 @@ webhooks.delete('/subscribe/:id', async (c) => {
 });
 
 // List webhook subscriptions
-webhooks.get('/subscriptions', async (c) => {
+webhooks.get('/subscriptions', async (c: any) => {
   try {
     const integration = c.get('webhookIntegration');
     const event = c.req.query('event');
@@ -110,7 +110,7 @@ webhooks.get('/subscriptions', async (c) => {
     const subscriptions = await integration.getSubscriptions(event);
 
     return c.json({ subscriptions });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Failed to get subscriptions'
     }, 500);
@@ -120,7 +120,7 @@ webhooks.get('/subscriptions', async (c) => {
 // === Webhook Triggers - Send webhooks to Agent System ===
 
 // Notify customer signup
-webhooks.post('/notify/customer-signup', async (c) => {
+webhooks.post('/notify/customer-signup', async (c: any) => {
   try {
     const customer = await c.req.json();
     const integration = c.get('webhookIntegration');
@@ -128,7 +128,7 @@ webhooks.post('/notify/customer-signup', async (c) => {
     await integration.notifyCustomerSignup(customer);
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Notification failed'
@@ -137,7 +137,7 @@ webhooks.post('/notify/customer-signup', async (c) => {
 });
 
 // Notify deal created
-webhooks.post('/notify/deal-created', async (c) => {
+webhooks.post('/notify/deal-created', async (c: any) => {
   try {
     const deal = await c.req.json();
     const integration = c.get('webhookIntegration');
@@ -145,7 +145,7 @@ webhooks.post('/notify/deal-created', async (c) => {
     await integration.notifyDealCreated(deal);
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Notification failed'
@@ -154,7 +154,7 @@ webhooks.post('/notify/deal-created', async (c) => {
 });
 
 // Notify support ticket
-webhooks.post('/notify/support-ticket', async (c) => {
+webhooks.post('/notify/support-ticket', async (c: any) => {
   try {
     const ticket = await c.req.json();
     const integration = c.get('webhookIntegration');
@@ -162,7 +162,7 @@ webhooks.post('/notify/support-ticket', async (c) => {
     await integration.notifySupportTicket(ticket);
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Notification failed'
@@ -171,7 +171,7 @@ webhooks.post('/notify/support-ticket', async (c) => {
 });
 
 // Notify workflow started
-webhooks.post('/notify/workflow-started', async (c) => {
+webhooks.post('/notify/workflow-started', async (c: any) => {
   try {
     const workflow = await c.req.json();
     const integration = c.get('webhookIntegration');
@@ -179,7 +179,7 @@ webhooks.post('/notify/workflow-started', async (c) => {
     await integration.notifyWorkflowStarted(workflow);
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Notification failed'
@@ -188,7 +188,7 @@ webhooks.post('/notify/workflow-started', async (c) => {
 });
 
 // Notify metrics update
-webhooks.post('/notify/metrics-update', async (c) => {
+webhooks.post('/notify/metrics-update', async (c: any) => {
   try {
     const metrics = await c.req.json();
     const integration = c.get('webhookIntegration');
@@ -196,7 +196,7 @@ webhooks.post('/notify/metrics-update', async (c) => {
     await integration.notifyMetricsUpdate(metrics);
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Notification failed'
@@ -205,7 +205,7 @@ webhooks.post('/notify/metrics-update', async (c) => {
 });
 
 // Generic webhook notification
-webhooks.post('/notify/:event', async (c) => {
+webhooks.post('/notify/:event', async (c: any) => {
   try {
     const event = c.req.param('event');
     const data = await c.req.json();
@@ -214,7 +214,7 @@ webhooks.post('/notify/:event', async (c) => {
     await integration.notifyAgents(event, data);
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Notification failed'
@@ -225,7 +225,7 @@ webhooks.post('/notify/:event', async (c) => {
 // === Webhook Status and Management ===
 
 // Get webhook queue status
-webhooks.get('/status', async (c) => {
+webhooks.get('/status', async (c: any) => {
   try {
     const integration = c.get('webhookIntegration');
 
@@ -234,7 +234,7 @@ webhooks.get('/status', async (c) => {
       processing: integration.isProcessing(),
       timestamp: new Date()
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Status check failed'
     }, 500);
@@ -242,7 +242,7 @@ webhooks.get('/status', async (c) => {
 });
 
 // Get failed webhooks
-webhooks.get('/failed', async (c) => {
+webhooks.get('/failed', async (c: any) => {
   try {
     const integration = c.get('webhookIntegration');
     const limit = parseInt(c.req.query('limit') || '100');
@@ -250,7 +250,7 @@ webhooks.get('/failed', async (c) => {
     const failed = await integration.getFailedWebhooks(limit);
 
     return c.json({ failed });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       error: error instanceof Error ? error.message : 'Failed to get failed webhooks'
     }, 500);
@@ -258,7 +258,7 @@ webhooks.get('/failed', async (c) => {
 });
 
 // Retry failed webhook
-webhooks.post('/retry/:id', async (c) => {
+webhooks.post('/retry/:id', async (c: any) => {
   try {
     const webhookId = c.req.param('id');
     const integration = c.get('webhookIntegration');
@@ -270,7 +270,7 @@ webhooks.post('/retry/:id', async (c) => {
     }
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Retry failed'
@@ -281,7 +281,7 @@ webhooks.post('/retry/:id', async (c) => {
 // === Custom Webhook Handlers ===
 
 // Register custom handler for specific events
-webhooks.post('/handlers/register', async (c) => {
+webhooks.post('/handlers/register', async (c: any) => {
   try {
     const { event, handlerCode } = await c.req.json();
     const receiver = c.get('webhookReceiver');
@@ -293,7 +293,7 @@ webhooks.post('/handlers/register', async (c) => {
     receiver.registerHandler(event, handler as any);
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Handler registration failed'

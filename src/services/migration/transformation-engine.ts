@@ -196,14 +196,14 @@ export class TransformationEngine {
 
     // Sort stages by order
     const sortedStages = pipeline.stages
-      .filter(stage => stage.enabled)
+      .filter((stage: any) => stage.enabled)
       .sort((a, b) => a.order - b.order);
 
     // Process through each stage
     for (const stage of sortedStages) {
       try {
         processedRecord = await this.processStage(stage, processedRecord, context);
-      } catch (error) {
+      } catch (error: any) {
         processedRecord = await this.handleStageError(stage, error as Error, processedRecord, pipeline.errorHandling);
       }
     }
@@ -355,7 +355,7 @@ export class TransformationEngine {
       try {
         const apiData = await this.enrichFromExternalAPI(record, apiName, apiUrl);
         Object.assign(enriched, apiData);
-      } catch (error) {
+      } catch (error: any) {
       }
     }
 
@@ -372,7 +372,7 @@ export class TransformationEngine {
       try {
         const func = new Function('record', 'context', config.code);
         return func(record, context) || record;
-      } catch (error) {
+      } catch (error: any) {
         return record;
       }
     }
@@ -471,7 +471,7 @@ export class TransformationEngine {
         try {
           const func = new Function('value', 'record', rule.parameters.code);
           return func(value, record);
-        } catch (error) {
+        } catch (error: any) {
           return false;
         }
 
@@ -497,7 +497,7 @@ export class TransformationEngine {
           timezone: this.getTimezoneFromCoordinates(feature.center[1], feature.center[0])
         };
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return null;
@@ -514,7 +514,7 @@ export class TransformationEngine {
       if (data.rates && data.rates[toCurrency]) {
         return amount * data.rates[toCurrency];
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return amount; // Return original amount if conversion fails
@@ -565,7 +565,7 @@ export class TransformationEngine {
           enrichment[`${apiName}_${key}`] = value;
         }
       }
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return enrichment;
@@ -691,7 +691,7 @@ export class TransformationEngine {
         // Parse according to specific format
         return new Date(value);
       }
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -705,7 +705,7 @@ export class TransformationEngine {
       } else {
         return Number(value);
       }
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -780,7 +780,7 @@ export class TransformationEngine {
       try {
         const transformed = await this.processRecord(records[i], pipeline, context);
         results.push(transformed);
-      } catch (error) {
+      } catch (error: any) {
         // Handle individual record errors based on pipeline error handling
         if (pipeline.errorHandling.onError === 'SKIP') {
           continue;

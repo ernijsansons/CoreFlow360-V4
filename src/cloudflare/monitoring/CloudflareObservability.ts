@@ -63,7 +63,7 @@ export class CloudflareObservability {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -99,7 +99,7 @@ export class CloudflareObservability {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -149,7 +149,7 @@ export class CloudflareObservability {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -173,7 +173,7 @@ export class CloudflareObservability {
         indexes: ['user_interaction', interaction.action]
       });
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -211,7 +211,7 @@ export class CloudflareObservability {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -258,7 +258,7 @@ export class CloudflareObservability {
         }
       };
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -280,7 +280,7 @@ export class CloudflareObservability {
         cpuUsage: 0
       };
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -326,7 +326,7 @@ export class CloudflareObservability {
       // - Trigger automated responses
 
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -382,7 +382,7 @@ export class CloudflareObservability {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }

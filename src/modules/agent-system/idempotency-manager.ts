@@ -99,7 +99,7 @@ class IdempotencyManager {
             exists: true,
             result
           };
-        } catch (error) {
+        } catch (error: any) {
           // If pending execution failed, allow retry
           this.logger.warn('Pending execution failed, allowing retry', {
             taskId: task.id,
@@ -163,7 +163,7 @@ class IdempotencyManager {
       // Allow retry for failed tasks
       return { exists: false, record: cached };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to check idempotency', error, {
         taskId: task.id
       });
@@ -228,7 +228,7 @@ class IdempotencyManager {
         executionCount: record.executionCount
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to register execution', error, {
         taskId: task.id
       });
@@ -289,7 +289,7 @@ class IdempotencyManager {
         ttl: this.config.ttlSeconds
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to store result', error, {
         taskId: task.id
       });
@@ -316,7 +316,7 @@ class IdempotencyManager {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to invalidate cache', error, {
         taskId: task.id
       });
@@ -350,7 +350,7 @@ class IdempotencyManager {
 
       return cleaned;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to cleanup expired records', error);
       return 0;
     }
@@ -391,7 +391,7 @@ class IdempotencyManager {
         averageExecutionCount: keys.length > 0 ? totalExecutionCount / keys.length : 0
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get statistics', error);
       return {
         totalRecords: 0,

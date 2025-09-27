@@ -255,29 +255,29 @@ export class FastPathEvaluator {
 
     // Add org role capabilities
     const orgCaps = DEFAULT_CAPABILITIES[subject.orgRole] || [];
-    orgCaps.forEach(cap => {
+    orgCaps.forEach((cap: any) => {
       if (cap === '*.*.*') {
         // Add all registered capabilities
-        capabilityRegistry.exportAll().forEach(def => {
+        capabilityRegistry.exportAll().forEach((def: any) => {
           capabilities.add(def.capability);
         });
       } else {
         // Expand wildcard patterns
         const expanded = this.expandWildcardPattern(cap);
-        expanded.forEach(c => capabilities.add(c));
+        expanded.forEach((c: any) => capabilities.add(c));
       }
     });
 
     // Add department capabilities
-    subject.deptRoles.forEach(deptRole => {
-      const deptCaps = DEPARTMENT_CAPABILITIES[deptRole.departmentType] || [];
-      deptCaps.forEach(cap => {
+    subject.deptRoles.forEach((deptRole: any) => {
+      const deptCaps = DEPARTMENT_CAPABILITIES[deptRole.departmentType as keyof typeof DEPARTMENT_CAPABILITIES] || [];
+      deptCaps.forEach((cap: any) => {
         const expanded = this.expandWildcardPattern(cap);
-        expanded.forEach(c => capabilities.add(c));
+        expanded.forEach((c: any) => capabilities.add(c));
       });
 
       // Add specific permissions
-      deptRole.permissions?.forEach(p => capabilities.add(p));
+      deptRole.permissions?.forEach((p: any) => capabilities.add(p));
     });
 
     return capabilities;
@@ -313,7 +313,7 @@ export class FastPathEvaluator {
           ['manager', 'supervisor'].includes(r.role)
         ),
       capabilities: this.getAllCapabilities(subject),
-      departments: new Set(subject.deptRoles.map(r => r.departmentId)),
+      departments: new Set(subject.deptRoles.map((r: any) => r.departmentId)),
     };
   }
 }

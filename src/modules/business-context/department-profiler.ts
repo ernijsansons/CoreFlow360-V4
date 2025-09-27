@@ -235,7 +235,7 @@ export class DepartmentProfiler {
 
       return profile;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Department analysis failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
         businessId,
@@ -370,7 +370,7 @@ export class DepartmentProfiler {
           (metrics.total_successes / metrics.total_operations) * 100 : 0
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get performance metrics', {
         error: error instanceof Error ? error.message : 'Unknown error',
         businessId,
@@ -412,7 +412,7 @@ export class DepartmentProfiler {
         activeProjects: data?.active_projects || 0
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get collaboration data', {
         error: error instanceof Error ? error.message : 'Unknown error',
         businessId,
@@ -431,7 +431,7 @@ export class DepartmentProfiler {
 
       return data || {};
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get department data', {
         error: error instanceof Error ? error.message : 'Unknown error',
         businessId,

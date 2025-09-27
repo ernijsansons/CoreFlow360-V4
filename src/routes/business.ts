@@ -18,7 +18,7 @@ business.onError(errorHandler);
  * Get user's businesses list
  * GET /business/list
  */
-business.get('/list', authenticate(), asyncHandler(async (c) => {
+business.get('/list', authenticate(), asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const query = c.req.query();
@@ -52,7 +52,7 @@ business.get('/list', authenticate(), asyncHandler(async (c) => {
  * Switch to a different business
  * POST /business/switch
  */
-business.post('/switch', authenticate(), rateLimiters.businessSwitch, asyncHandler(async (c) => {
+business.post('/switch', authenticate(), rateLimiters.businessSwitch, asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const body = await c.req.json();
@@ -83,7 +83,7 @@ business.post('/switch', authenticate(), rateLimiters.businessSwitch, asyncHandl
  * Get current business context
  * GET /business/current
  */
-business.get('/current', authenticate(), asyncHandler(async (c) => {
+business.get('/current', authenticate(), asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
 
@@ -110,7 +110,7 @@ business.get('/current', authenticate(), asyncHandler(async (c) => {
  * Get business details
  * GET /business/:id
  */
-business.get('/:id', authenticate(), asyncHandler(async (c) => {
+business.get('/:id', authenticate(), asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');
@@ -135,7 +135,7 @@ business.get('/:id', authenticate(), asyncHandler(async (c) => {
  * Update business settings
  * PUT /business/:id
  */
-business.put('/:id', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c) => {
+business.put('/:id', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');
@@ -160,7 +160,7 @@ business.put('/:id', authenticate(), rateLimiters.businessUpdate, asyncHandler(a
  * Get business statistics
  * GET /business/:id/stats
  */
-business.get('/:id/stats', authenticate(), asyncHandler(async (c) => {
+business.get('/:id/stats', authenticate(), asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');
@@ -187,7 +187,7 @@ business.get('/:id/stats', authenticate(), asyncHandler(async (c) => {
  * Get business users
  * GET /business/:id/users
  */
-business.get('/:id/users', authenticate(), asyncHandler(async (c) => {
+business.get('/:id/users', authenticate(), asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');
@@ -221,7 +221,7 @@ business.get('/:id/users', authenticate(), asyncHandler(async (c) => {
  * Add user to business
  * POST /business/:id/users
  */
-business.post('/:id/users', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c) => {
+business.post('/:id/users', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');
@@ -246,7 +246,7 @@ business.post('/:id/users', authenticate(), rateLimiters.businessUpdate, asyncHa
  * Remove user from business
  * DELETE /business/:id/users/:userId
  */
-business.delete('/:id/users/:userId', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c) => {
+business.delete('/:id/users/:userId', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');
@@ -271,7 +271,7 @@ business.delete('/:id/users/:userId', authenticate(), rateLimiters.businessUpdat
  * Get business permissions
  * GET /business/:id/permissions
  */
-business.get('/:id/permissions', authenticate(), asyncHandler(async (c) => {
+business.get('/:id/permissions', authenticate(), asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');
@@ -295,7 +295,7 @@ business.get('/:id/permissions', authenticate(), asyncHandler(async (c) => {
  * Update user permissions
  * PUT /business/:id/users/:userId/permissions
  */
-business.put('/:id/users/:userId/permissions', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c) => {
+business.put('/:id/users/:userId/permissions', authenticate(), rateLimiters.businessUpdate, asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');
@@ -322,7 +322,7 @@ business.put('/:id/users/:userId/permissions', authenticate(), rateLimiters.busi
  * Get business audit log
  * GET /business/:id/audit
  */
-business.get('/:id/audit', authenticate(), asyncHandler(async (c) => {
+business.get('/:id/audit', authenticate(), asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');
@@ -360,7 +360,7 @@ business.get('/:id/audit', authenticate(), asyncHandler(async (c) => {
  * Get business health status
  * GET /business/:id/health
  */
-business.get('/:id/health', authenticate(), asyncHandler(async (c) => {
+business.get('/:id/health', authenticate(), asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');
@@ -384,7 +384,7 @@ business.get('/:id/health', authenticate(), asyncHandler(async (c) => {
  * Get business performance metrics
  * GET /business/:id/performance
  */
-business.get('/:id/performance', authenticate(), asyncHandler(async (c) => {
+business.get('/:id/performance', authenticate(), asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.req.param('id');

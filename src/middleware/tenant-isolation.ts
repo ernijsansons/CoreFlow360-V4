@@ -119,13 +119,13 @@ export class TenantIsolationMiddleware {
           businessId: context.businessId,
           userId: context.userId,
           violations: violations.length,
-          types: violations.map(v => v.type)
+          types: violations.map((v: any) => v.type)
         });
       }
 
       return { allowed, violations };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Tenant isolation validation error', {
         error: error instanceof Error ? error.message : String(error),
         businessId: context.businessId,
@@ -202,7 +202,7 @@ export class TenantIsolationMiddleware {
 
       return { valid: violations.length === 0, violations };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Query validation error', { error: error instanceof Error ? error.message : String(error), query });
       
       violations.push({
@@ -261,7 +261,7 @@ export class TenantIsolationMiddleware {
 
       return { valid: violations.length === 0, violations };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Data validation error', { error: error instanceof Error ? error.message : String(error), table });
       
       violations.push({
@@ -382,7 +382,7 @@ export class TenantIsolationMiddleware {
 
       return isValid;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Business ID validation error', { 
         businessId, 
         error: error instanceof Error ? error.message : String(error)
@@ -522,7 +522,7 @@ export class TenantIsolationMiddleware {
       }
 
       // Update last access timestamp (fire and forget)
-      this.updateLastAccess(userId, businessId, env).catch(error => {
+      this.updateLastAccess(userId, businessId, env).catch((error: any) => {
         this.logger.error('Failed to update last access', { userId, businessId, error });
       });
 
@@ -536,7 +536,7 @@ export class TenantIsolationMiddleware {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('User business access validation error', {
         userId,
         businessId,
@@ -559,7 +559,7 @@ export class TenantIsolationMiddleware {
         WHERE user_id = ? AND business_id = ?
       `);
       await stmt.bind(userId, businessId).run();
-    } catch (error) {
+    } catch (error: any) {
       // Silent fail for audit logging
     }
   }
@@ -593,7 +593,7 @@ export class TenantIsolationMiddleware {
 
       return { violations };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Response leakage check error', { error: error instanceof Error ? error.message : String(error) });
       return { violations: [] };
     }

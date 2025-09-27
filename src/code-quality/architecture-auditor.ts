@@ -483,7 +483,7 @@ export class ArchitectureAuditor {
     // Check for pattern violations
     if (this.config.patterns.validateSingleton) {
       // Simulate singleton violations
-      const singletons = implementedPatterns.filter(p => p.name === 'Singleton');
+      const singletons = implementedPatterns.filter((p: any) => p.name === 'Singleton');
       if (singletons.some(s => s.quality < 70)) {
         violations.push({
           pattern: 'Singleton',
@@ -495,11 +495,11 @@ export class ArchitectureAuditor {
     }
 
     // Generate pattern recommendations
-    if (implementedPatterns.filter(p => p.type === 'creational').length < 2) {
+    if (implementedPatterns.filter((p: any) => p.type === 'creational').length < 2) {
       recommendations.push('Consider using Factory pattern for object creation');
     }
 
-    if (implementedPatterns.filter(p => p.name === 'Observer').length === 0) {
+    if (implementedPatterns.filter((p: any) => p.name === 'Observer').length === 0) {
       recommendations.push('Implement Observer pattern for event handling');
     }
 
@@ -642,7 +642,7 @@ export class ArchitectureAuditor {
     const recommendations: ArchitectureRecommendation[] = [];
 
     // Critical violations
-    const criticalCount = violations.filter(v => v.severity === 'critical').length;
+    const criticalCount = violations.filter((v: any) => v.severity === 'critical').length;
     if (criticalCount > 0) {
       recommendations.push({
         area: 'Dependencies',
@@ -698,9 +698,9 @@ export class ArchitectureAuditor {
     let score = 100;
 
     // Deduct for violations
-    const criticalViolations = violations.filter(v => v.severity === 'critical').length;
-    const highViolations = violations.filter(v => v.severity === 'high').length;
-    const mediumViolations = violations.filter(v => v.severity === 'medium').length;
+    const criticalViolations = violations.filter((v: any) => v.severity === 'critical').length;
+    const highViolations = violations.filter((v: any) => v.severity === 'high').length;
+    const mediumViolations = violations.filter((v: any) => v.severity === 'medium').length;
 
     score -= criticalViolations * 15;
     score -= highViolations * 8;

@@ -111,7 +111,7 @@ class PDFGeneratorService {
 
       return pdfBuffer
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'invoice_pdf_generation_failed',
         invoiceId: invoice.id,
@@ -215,7 +215,7 @@ class PDFGeneratorService {
     const formatAmount = (amount: number) => formatter.format(amount)
 
     // Generate line items HTML
-    const lineItemsHTML = invoice.lineItems.map(item => `
+    const lineItemsHTML = invoice.lineItems.map((item: any) => `
       <tr class="line-item">
         <td class="description">${this.escapeHTML(item.description)}</td>
         <td class="quantity">${item.quantity}</td>

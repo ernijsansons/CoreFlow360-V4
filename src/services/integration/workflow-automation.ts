@@ -116,7 +116,7 @@ export class WorkflowAgentIntegration extends EventEmitter {
       { stepType: 'report_generation', agentId: 'operations', priority: 4 }
     ];
 
-    defaultMappings.forEach(mapping => {
+    defaultMappings.forEach((mapping: any) => {
       this.agentMappings.set(mapping.stepType, mapping);
     });
   }
@@ -209,7 +209,7 @@ export class WorkflowAgentIntegration extends EventEmitter {
       this.emit('workflowCompleted', executionResult);
 
       return executionResult;
-    } catch (error) {
+    } catch (error: any) {
       workflow.status = 'failed';
       workflow.completedAt = new Date();
 
@@ -258,7 +258,7 @@ export class WorkflowAgentIntegration extends EventEmitter {
 
       try {
         decision = await this.requestAgentDecision(mapping.agentId, agentContext, step.timeout);
-      } catch (error) {
+      } catch (error: any) {
         // Try fallback agent if available
         if (mapping.fallbackAgent) {
           agentUsed = mapping.fallbackAgent;
@@ -279,7 +279,7 @@ export class WorkflowAgentIntegration extends EventEmitter {
         output,
         duration: Date.now() - startTime
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         stepId: step.id,
         success: false,
@@ -407,7 +407,7 @@ export class WorkflowAgentIntegration extends EventEmitter {
 
           default:
         }
-      } catch (error) {
+      } catch (error: any) {
         // Continue with other actions
       }
     }
@@ -421,7 +421,7 @@ export class WorkflowAgentIntegration extends EventEmitter {
   private aggregateOutputs(results: StepResult[]): any {
     const outputs: any = {};
 
-    results.forEach(result => {
+    results.forEach((result: any) => {
       if (result.output) {
         outputs[result.stepId] = result.output;
       }

@@ -205,7 +205,7 @@ export class AnalyticsDashboard {
         growth_rate: Math.round(growth_rate * 100) / 100,
         monthly_recurring: Number(current.total_revenue) * 0.8 // Estimate
       };
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultRevenue();
     }
   }
@@ -224,7 +224,7 @@ export class AnalyticsDashboard {
         error_rate: Math.round(errorRate * 100) / 100,
         uptime: Math.round(uptime * 100) / 100
       };
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultPerformance();
     }
   }
@@ -261,7 +261,7 @@ export class AnalyticsDashboard {
         retention_rate: Math.round(retention_rate * 100) / 100,
         engagement_score: Math.round(engagement_score * 100) / 100
       };
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultActivity();
     }
   }
@@ -274,7 +274,7 @@ export class AnalyticsDashboard {
         auth_failures: Math.floor(Math.random() * 10),
         rate_limit_violations: Math.floor(Math.random() * 25)
       };
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultSecurity();
     }
   }
@@ -298,7 +298,7 @@ export class AnalyticsDashboard {
         cost_savings: requests * 0.05, // $0.05 savings per request
         accuracy_score: 94 + Math.random() * 5 // 94-99%
       };
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultAI();
     }
   }
@@ -311,7 +311,7 @@ export class AnalyticsDashboard {
         messages_sent: Math.floor(Math.random() * 1000) + 100,
         avg_response_time: 50 + Math.random() * 30 // 50-80ms
       };
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultRealtime();
     }
   }
@@ -337,7 +337,7 @@ export class AnalyticsDashboard {
         avg_processing_time: 5000 + Math.random() * 3000, // 5-8s
         queue_depth: Math.floor(Math.random() * 20) // 0-20 jobs
       };
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultJobs();
     }
   }
@@ -358,7 +358,7 @@ export class AnalyticsDashboard {
       trends.push(this.calculateTrend('activity', activityNow, activityPrev));
 
       return trends;
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -383,7 +383,7 @@ export class AnalyticsDashboard {
       // Parse AI response into structured insights
       const insights = this.parseInsights(aiResult.content);
       return insights;
-    } catch (error) {
+    } catch (error: any) {
       return this.getDefaultInsights();
     }
   }
@@ -416,10 +416,10 @@ export class AnalyticsDashboard {
   async getCustomMetrics(businessId: string, queries: any[]): Promise<any> {
     // Execute custom analytics queries
     const results = await Promise.allSettled(
-      queries.map(query => this.executeCustomQuery(businessId, query))
+      queries.map((query: any) => this.executeCustomQuery(businessId, query))
     );
 
-    return results.map(result => this.getSettledValue(result));
+    return results.map((result: any) => this.getSettledValue(result));
   }
 
   // Helper methods
@@ -487,7 +487,7 @@ export class AnalyticsDashboard {
 
   private parseInsights(aiContent: string): any[] {
     // Parse AI-generated insights into structured format
-    const insights = aiContent.split('\n').filter(line => line.trim()).slice(0, 3);
+    const insights = aiContent.split('\n').filter((line: any) => line.trim()).slice(0, 3);
     return insights.map((insight, index) => ({
       id: index + 1,
       text: insight.replace(/^\d+\.?\s*/, ''),

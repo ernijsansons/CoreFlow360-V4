@@ -43,7 +43,7 @@ export class SupernovaDIContainer {
     }
 
     // Resolve dependencies
-    const dependencies = definition.dependencies.map(dep => this.resolve(dep));
+    const dependencies = definition.dependencies.map((dep: any) => this.resolve(dep));
     
     // Create instance
     const instance = new definition.implementation(...dependencies);
@@ -111,7 +111,7 @@ export class SupernovaEventBus<T = any> implements Subject<T> {
     for (const observer of this.observers) {
       try {
         observer.update(data);
-      } catch (error) {
+      } catch (error: any) {
         logger.error('Observer notification failed:', error);
       }
     }
@@ -190,7 +190,7 @@ export class SupernovaSingleton<T> {
       this.locks.delete(key);
 
       return instance;
-    } catch (error) {
+    } catch (error: any) {
       this.locks.delete(key);
       throw error;
     }
@@ -267,7 +267,7 @@ export class SupernovaRepository<T, ID = string> implements Repository<T, ID> {
     const entities = await this.dataSource.findAll();
     
     // Update cache
-    entities.forEach(entity => {
+    entities.forEach((entity: any) => {
       const id = (entity as any).id;
       if (id) {
         this.cache.set(id, entity);
@@ -372,7 +372,7 @@ class SupernovaCommandManager {
         this.currentIndex--;
       }
       
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Command execution failed:', error);
       throw error;
     }
@@ -390,7 +390,7 @@ class SupernovaCommandManager {
       await this.history[this.currentIndex].undo();
       this.currentIndex--;
       return true;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Command undo failed:', error);
       return false;
     }
@@ -408,7 +408,7 @@ class SupernovaCommandManager {
       this.currentIndex++;
       await this.history[this.currentIndex].execute();
       return true;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Command redo failed:', error);
       this.currentIndex--; // Rollback index
       return false;
@@ -525,7 +525,7 @@ export class SupernovaServiceAdapter<T extends ExternalService> {
       await this.service.connect();
       this.isConnected = true;
       this.connectionRetries = 0;
-    } catch (error) {
+    } catch (error: any) {
       this.connectionRetries++;
       
       if (this.connectionRetries < this.maxRetries) {
@@ -545,7 +545,7 @@ export class SupernovaServiceAdapter<T extends ExternalService> {
     try {
       await this.service.disconnect();
       this.isConnected = false;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Disconnect failed:', error);
     }
   }
@@ -560,7 +560,7 @@ export class SupernovaServiceAdapter<T extends ExternalService> {
 
     try {
       return await operation(this.service);
-    } catch (error) {
+    } catch (error: any) {
       // If connection lost, try to reconnect
       if (!this.service.isConnected()) {
         this.isConnected = false;

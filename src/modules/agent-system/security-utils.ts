@@ -142,7 +142,7 @@ const SessionIdSchema = z.string()
 export function validateBusinessId(businessId: unknown): string {
   try {
     return BusinessIdSchema.parse(businessId);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Business ID validation failed', {
       businessId: sanitizeForLogging(businessId),
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -157,7 +157,7 @@ export function validateBusinessId(businessId: unknown): string {
 export function validateUserId(userId: unknown): string {
   try {
     return UserIdSchema.parse(userId);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('User ID validation failed', {
       userId: sanitizeForLogging(userId),
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -172,7 +172,7 @@ export function validateUserId(userId: unknown): string {
 export function validateSqlIdentifier(identifier: unknown): string {
   try {
     return SqlIdentifierSchema.parse(identifier);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('SQL identifier validation failed', {
       identifier: sanitizeForLogging(identifier),
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -187,7 +187,7 @@ export function validateSqlIdentifier(identifier: unknown): string {
 export function validateSessionId(sessionId: unknown): string {
   try {
     return SessionIdSchema.parse(sessionId);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Session ID validation failed', {
       sessionId: sanitizeForLogging(sessionId),
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -283,7 +283,7 @@ export function sanitizeForLogging(data: unknown): unknown {
   }
   
   if (Array.isArray(data)) {
-    return data.map(item => sanitizeForLogging(item));
+    return data.map((item: any) => sanitizeForLogging(item));
   }
   
   if (typeof data === 'object') {
@@ -426,7 +426,7 @@ export function securityScan(text: string): {
   
   const risks = [promptInjection.severity, sqlInjection.severity, xss.severity];
   const riskLevels = { low: 1, medium: 2, high: 3, critical: 4 };
-  const maxRisk = Math.max(...risks.map(risk => riskLevels[risk]));
+  const maxRisk = Math.max(...risks.map((risk: any) => riskLevels[risk]));
   
   let overallRisk: 'low' | 'medium' | 'high' | 'critical' = 'low';
   if (maxRisk >= 4) overallRisk = 'critical';
@@ -506,5 +506,111 @@ export function unescapeHtml(input: string): string {
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'");
+}
+
+// ============================================================================
+// ADDITIONAL SECURITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Validate API key format
+ */
+export function validateApiKeyFormat(apiKey: string): boolean {
+  // Basic validation - adjust based on your API key format
+  const apiKeyPattern = /^sk-[a-zA-Z0-9]{48}$/;
+  return apiKeyPattern.test(apiKey);
+}
+
+/**
+ * Mask API key for logging
+ */
+export function maskApiKey(apiKey: string): string {
+  if (!apiKey || apiKey.length < 8) return '[REDACTED]';
+  return `${apiKey.substring(0, 4)}...${apiKey.substring(apiKey.length - 4)}`;
+}
+
+/**
+ * Sanitize error for user display
+ */
+export function sanitizeErrorForUser(error: unknown): string {
+  if (error instanceof Error) {
+    // Remove stack traces and sensitive info
+    return error.message
+      .replace(/at\s+.*\(.*\)/g, '')
+      .replace(/\\[\w/]+/g, '')
+      .replace(/[a-zA-Z]:[\\\/].*/g, '[PATH]')
+      .substring(0, 500);
+  }
+  return 'An error occurred';
+}
+
+/**
+ * Redact PII from text
+ */
+export function redactPII(text: string): string {
+  // Email addresses
+  text = text.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL]');
+
+  // Phone numbers (various formats)
+  text = text.replace(/(\+?\d{1,3}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}/g, '[PHONE]');
+
+  // SSN
+  text = text.replace(/\d{3}-\d{2}-\d{4}/g, '[SSN]');
+
+  // Credit card numbers
+  text = text.replace(/\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}/g, '[CREDIT_CARD]');
+
+  // IP addresses
+  text = text.replace(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/g, '[IP_ADDRESS]');
+
+  return text;
+}
+
+/**
+ * Generate secure token
+ */
+export function generateSecureToken(length: number = 32): string {
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Hash sensitive data
+ */
+export async function hashSensitiveData(data: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const dataBuffer = encoder.encode(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b: any) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Check rate limit
+ */
+export async function checkRateLimit(
+  identifier: string,
+  limit: number,
+  windowMs: number,
+  storage: Map<string, { count: number; resetTime: number }>
+): Promise<boolean> {
+  const now = Date.now();
+  const record = storage.get(identifier);
+
+  if (!record || now > record.resetTime) {
+    storage.set(identifier, {
+      count: 1,
+      resetTime: now + windowMs
+    });
+    return true;
+  }
+
+  if (record.count >= limit) {
+    return false;
+  }
+
+  record.count++;
+  return true;
 }
 

@@ -27,7 +27,7 @@ export class DB {
   }
 
   async batch(statements: { sql: string; params: any[] }[]): Promise<void> {
-    const prepared = statements.map(stmt =>
+    const prepared = statements.map((stmt: any) =>
       this.d1.prepare(stmt.sql).bind(...stmt.params)
     );
     await this.d1.batch(prepared);
@@ -157,7 +157,7 @@ export class DB {
     description?: string;
     metadata?: any;
   }>): Promise<void> {
-    const statements = entries.map(entry => ({
+    const statements = entries.map((entry: any) => ({
       sql: `
         INSERT INTO ledger_entries (id, business_id, account_id, amount, type, description, metadata, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))

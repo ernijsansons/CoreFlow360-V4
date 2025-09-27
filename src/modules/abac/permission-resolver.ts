@@ -73,7 +73,7 @@ export class PermissionResolver {
         await this.cacheResult(subject, capability, resource, policyResult as any);
       return this.createResult(policyResult as any, startTime, 'policy');
 
-    } catch (error) {
+    } catch (error: any) {
       return this.createErrorResult(error, startTime);
     }
   }
@@ -100,7 +100,7 @@ export class PermissionResolver {
     }
 
     // Check remaining capabilities individually
-    const remainingCapabilities = capabilities.filter(cap => !results.has(cap));
+    const remainingCapabilities = capabilities.filter((cap: any) => !results.has(cap));
     for (const capability of remainingCapabilities) {
       const result = await this.checkPermission(subject, capability, resource);
       results.set(capability, result);

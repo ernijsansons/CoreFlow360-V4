@@ -227,7 +227,7 @@ class CostReservationManager {
         limits
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create cost reservation', error, {
         businessId,
         taskId,
@@ -319,7 +319,7 @@ class CostReservationManager {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to commit reservation', error, { reservationId });
       return false;
     }
@@ -393,7 +393,7 @@ class CostReservationManager {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to release reservation', error, { reservationId });
       return false;
     }
@@ -426,7 +426,7 @@ class CostReservationManager {
         reserved: reserved.amount
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get spend with reservations', error, { businessId });
       return { daily: 0, monthly: 0, reserved: 0 };
     }
@@ -461,7 +461,7 @@ class CostReservationManager {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to cleanup expired reservations', error);
     }
   }

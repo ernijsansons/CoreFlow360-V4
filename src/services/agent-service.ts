@@ -60,14 +60,14 @@ class AgentService {
       await this.dataSync.startSync();
 
       this.initialized = true;
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
 
   private setupRoutes(): void {
     // Health check
-    this.app.get('/health', async (c) => {
+    this.app.get('/health', async (c: any) => {
       const isHealthy = await this.checkHealth();
       return c.json({
         status: isHealthy ? 'healthy' : 'unhealthy',
@@ -78,7 +78,7 @@ class AgentService {
     });
 
     // Agent status
-    this.app.get('/status', async (c) => {
+    this.app.get('/status', async (c: any) => {
       if (!this.initialized) {
         return c.json({ error: 'Service not initialized' }, 503);
       }
@@ -90,7 +90,7 @@ class AgentService {
           agents: Object.fromEntries(status),
           syncStatus: this.dataSync.getSyncStatistics()
         });
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           connected: false,
           error: error instanceof Error ? error.message : 'Unknown error'
@@ -99,7 +99,7 @@ class AgentService {
     });
 
     // List available agents
-    this.app.get('/list', async (c) => {
+    this.app.get('/list', async (c: any) => {
       if (!this.initialized) {
         return c.json({ error: 'Service not initialized' }, 503);
       }
@@ -109,7 +109,7 @@ class AgentService {
     });
 
     // Request decision from agents
-    this.app.post('/decide', async (c) => {
+    this.app.post('/decide', async (c: any) => {
       if (!this.initialized) {
         return c.json({ error: 'Service not initialized' }, 503);
       }
@@ -125,7 +125,7 @@ class AgentService {
         });
 
         return c.json({ success: true, decision });
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           success: false,
           error: error instanceof Error ? error.message : 'Decision failed'
@@ -134,7 +134,7 @@ class AgentService {
     });
 
     // Execute multi-agent task
-    this.app.post('/collaborate', async (c) => {
+    this.app.post('/collaborate', async (c: any) => {
       if (!this.initialized) {
         return c.json({ error: 'Service not initialized' }, 503);
       }
@@ -152,7 +152,7 @@ class AgentService {
           results: Object.fromEntries(result.results),
           consensus: result.consensus
         });
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           success: false,
           error: error instanceof Error ? error.message : 'Collaboration failed'
@@ -161,7 +161,7 @@ class AgentService {
     });
 
     // Connect workflow to agents
-    this.app.post('/workflow/:id/connect', async (c) => {
+    this.app.post('/workflow/:id/connect', async (c: any) => {
       if (!this.initialized) {
         return c.json({ error: 'Service not initialized' }, 503);
       }
@@ -175,7 +175,7 @@ class AgentService {
           success: true,
           message: `Workflow ${workflowId} connected to agent system`
         });
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           success: false,
           error: error instanceof Error ? error.message : 'Connection failed'
@@ -184,7 +184,7 @@ class AgentService {
     });
 
     // Sync control
-    this.app.post('/sync/:action', async (c) => {
+    this.app.post('/sync/:action', async (c: any) => {
       if (!this.initialized) {
         return c.json({ error: 'Service not initialized' }, 503);
       }
@@ -213,7 +213,7 @@ class AgentService {
           action,
           status: this.dataSync.getSyncStatistics()
         });
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           success: false,
           error: error instanceof Error ? error.message : 'Sync action failed'
@@ -222,7 +222,7 @@ class AgentService {
     });
 
     // Agent metrics
-    this.app.get('/metrics/:agentId?', async (c) => {
+    this.app.get('/metrics/:agentId?', async (c: any) => {
       if (!this.initialized) {
         return c.json({ error: 'Service not initialized' }, 503);
       }
@@ -231,7 +231,7 @@ class AgentService {
         const agentId = c.req.param('agentId');
         const metrics = await this.connector.getAgentMetrics(agentId);
         return c.json({ metrics });
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           error: error instanceof Error ? error.message : 'Failed to get metrics'
         }, 500);
@@ -239,7 +239,7 @@ class AgentService {
     });
 
     // Stream events
-    this.app.get('/stream', async (c) => {
+    this.app.get('/stream', async (c: any) => {
       if (!this.initialized) {
         return c.json({ error: 'Service not initialized' }, 503);
       }
@@ -329,7 +329,7 @@ class AgentService {
       this.connector.cleanup();
 
       this.initialized = false;
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 }

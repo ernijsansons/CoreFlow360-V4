@@ -99,7 +99,7 @@ class RollbackManager {
       // Send completion notifications
       await this.sendRollbackNotifications('SUCCESS', reason);
       
-    } catch (error) {
+    } catch (error: any) {
       await this.sendRollbackNotifications('FAILED', reason, error as Error);
       throw error;
     } finally {
@@ -110,7 +110,7 @@ class RollbackManager {
   async initiateEmergencyRollback(reason: string): Promise<void> {
     
     // For emergency rollback, execute critical steps only
-    const emergencySteps = this.rollbackPlan?.steps.filter(step => step.rollbackRequired) || [];
+    const emergencySteps = this.rollbackPlan?.steps.filter((step: any) => step.rollbackRequired) || [];
     
     
     for (const step of emergencySteps) {
@@ -145,7 +145,7 @@ class RollbackManager {
         await this.delay(1000); // Simulate verification
       }
       
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Rollback step ${step.order} failed: ${error}`);
     }
   }
@@ -205,7 +205,7 @@ class RollbackManager {
     const ready = issues.length === 0;
     
     if (issues.length > 0) {
-      issues.forEach(issue => console.log(`   - ${issue}`));
+      issues.forEach((issue: any) => console.log(`   - ${issue}`));
     }
     
     return { ready, issues };
@@ -261,7 +261,7 @@ class RollbackManager {
       
       return { success, duration, issues };
       
-    } catch (error) {
+    } catch (error: any) {
       const duration = (Date.now() - startTime) / 1000;
       issues.push(`Test execution error: ${error}`);
       return { success: false, duration, issues };

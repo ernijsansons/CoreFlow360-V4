@@ -101,7 +101,7 @@ export class HttpRequestStepHandler implements StepHandler {
         clearTimeout(timeoutId);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('HTTP request failed', error, {
         stepId: step.id,
         url: step.parameters.url,
@@ -149,7 +149,7 @@ export class HttpRequestStepHandler implements StepHandler {
         throw new Error(`Rollback failed: HTTP ${response.status}`);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('HTTP rollback failed', error, { stepId: step.id });
       return {
         success: false,
@@ -210,7 +210,7 @@ export class DatabaseStepHandler implements StepHandler {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Database operation failed', error, {
         stepId: step.id,
         correlationId: context.correlationId,
@@ -257,7 +257,7 @@ export class DatabaseStepHandler implements StepHandler {
 
       return { success: true };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Database rollback failed', error, { stepId: step.id });
       return {
         success: false,
@@ -349,7 +349,7 @@ export class EmailStepHandler implements StepHandler {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Email sending failed', error, {
         stepId: step.id,
         correlationId: context.correlationId,
@@ -391,7 +391,7 @@ export class EmailStepHandler implements StepHandler {
 
       return { success: true };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Email rollback failed', error, { stepId: step.id });
       return {
         success: false,
@@ -484,7 +484,7 @@ export class FileProcessingStepHandler implements StepHandler {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('File processing failed', error, {
         stepId: step.id,
         correlationId: context.correlationId,
@@ -536,7 +536,7 @@ export class FileProcessingStepHandler implements StepHandler {
 
       return { success: true };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('File processing rollback failed', error, { stepId: step.id });
       return {
         success: false,
@@ -656,7 +656,7 @@ export class DelayStepHandler implements StepHandler {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Delay step failed', error, {
         stepId: step.id,
         correlationId: context.correlationId,

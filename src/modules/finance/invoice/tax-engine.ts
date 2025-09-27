@@ -109,7 +109,7 @@ export class TaxCalculationEngine {
         lineItems: calculatedLineItems,
         totalTax,
         taxSummary,
-        exemptionsApplied: exemptionsApplied.map(e => e.exemptionType)
+        exemptionsApplied: exemptionsApplied.map((e: any) => e.exemptionType)
       }
 
       auditLogger.log({
@@ -123,7 +123,7 @@ export class TaxCalculationEngine {
 
       return result
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'tax_calculation_failed',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -509,7 +509,7 @@ export class TaxCalculationEngine {
 
     if (filters) {
       if (filters.country) {
-        configs = configs.filter(config =>
+        configs = configs.filter((config: any) =>
           config.applicableCountries?.includes(filters.country!)
         )
       }
@@ -517,7 +517,7 @@ export class TaxCalculationEngine {
       if (filters.isActive !== undefined) {
         // Filter based on validity dates
         const now = new Date()
-        configs = configs.filter(config => {
+        configs = configs.filter((config: any) => {
           const validFrom = new Date(config.validFrom)
           const validTo = config.validTo ? new Date(config.validTo) : null
           return now >= validFrom && (!validTo || now <= validTo)

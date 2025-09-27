@@ -1037,7 +1037,7 @@ export class CRMAnalytics {
       ORDER BY revenue DESC
     `).bind(this.businessId).all();
 
-    return result.results.map(row => ({
+    return result.results.map((row: any) => ({
       name: row.name,
       revenue: row.revenue || 0,
       deals: row.deals || 0,
@@ -1066,7 +1066,7 @@ export class CRMAnalytics {
       LIMIT 10
     `).bind(this.businessId).all();
 
-    return result.results.map(row => ({
+    return result.results.map((row: any) => ({
       name: row.name,
       value: row.value,
       stage: row.stage,
@@ -1248,7 +1248,7 @@ export class CRMAnalytics {
       WHERE business_id = ? AND status != 'archived'
     `).bind(this.businessId).all();
 
-    return result.results.map(row => ({
+    return result.results.map((row: any) => ({
       name: row.name,
       status: row.status,
       lastSync: row.last_sync,

@@ -101,7 +101,7 @@ export class ProfitLossGenerator {
 
       return statement;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate Profit & Loss statement', error, {
         businessId: validBusinessId
       });
@@ -594,7 +594,7 @@ export class ProfitLossGenerator {
         }
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate P&L comparison', error, { businessId });
       throw error;
     }

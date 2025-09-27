@@ -161,7 +161,7 @@ export class AutomatedDataFixer {
       }
 
       // Filter strategies based on config
-      const filteredStrategies = strategies.filter(strategy => {
+      const filteredStrategies = strategies.filter((strategy: any) => {
         const riskLevels = ['low', 'medium', 'high', 'critical'];
         const configRiskIndex = riskLevels.indexOf(this.config.maxRiskLevel);
         const strategyRiskIndex = riskLevels.indexOf(strategy.riskLevel);
@@ -175,7 +175,7 @@ export class AutomatedDataFixer {
       });
 
       return filteredStrategies;
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to analyze issue for fix strategies', errorMessage, { issueId: issue.id });
       throw error;
@@ -208,7 +208,7 @@ export class AutomatedDataFixer {
       };
 
       return fixPreview;
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to generate fix preview', errorMessage, { issueId: issue.id, strategyId: strategy.id });
       throw error;
@@ -281,7 +281,7 @@ export class AutomatedDataFixer {
       });
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to validate fix strategy', errorMessage, { issueId: issue.id, strategyId: strategy.id });
       throw error;
@@ -365,7 +365,7 @@ export class AutomatedDataFixer {
       });
 
       return backup;
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to create data backup', errorMessage, { issueId: issue.id, strategyId: strategy.id });
       throw error;
@@ -444,7 +444,7 @@ export class AutomatedDataFixer {
           recordsAffected: execution.results.recordsAffected
         });
 
-      } catch (error) {
+      } catch (error: any) {
         execution.status = 'failed';
         execution.results.errors.push(error instanceof Error ? error.message : 'Unknown error');
         execution.completedAt = new Date().toISOString();
@@ -456,7 +456,7 @@ export class AutomatedDataFixer {
       await this.saveExecutionState(execution);
       return execution;
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to execute data fix', errorMessage, { issueId: issue.id, strategyId: strategy.id });
       throw error;
@@ -494,7 +494,7 @@ export class AutomatedDataFixer {
         throw new Error('Backup data not found in storage');
       }
 
-      const compressedData = await backupObject.arrayBuffer();
+      const compressedData = await new Response(backupObject.body).arrayBuffer();
       const backupContent = await this.decompressData(compressedData);
       const backupData = JSON.parse(backupContent);
 
@@ -511,7 +511,7 @@ export class AutomatedDataFixer {
       this.logger.info('Data fix rolled back successfully', { executionId });
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Failed to rollback data fix', errorMessage, { executionId });
       return false;
@@ -972,7 +972,7 @@ export class AutomatedDataFixer {
       `).bind(issue.businessId, issue.recordId).all();
 
       return (result.results as any[]) || [];
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.warn('Failed to backup table data', { table, error: errorMessage });
       return [];
@@ -1006,7 +1006,7 @@ export class AutomatedDataFixer {
       }
 
       return { recordsAffected, warnings };
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Transaction execution failed', errorMessage);
       throw error;
@@ -1038,7 +1038,7 @@ export class AutomatedDataFixer {
       // For other operations, record should exist
       return { passed: recordExists, warnings };
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       warnings.push(`Verification failed: ${errorMessage}`);
       return { passed: false, warnings };
@@ -1102,7 +1102,7 @@ export class AutomatedDataFixer {
     for (const record of records) {
       const columns = Object.keys(record);
       const placeholders = columns.map(() => '?').join(', ');
-      const values = columns.map(col => record[col]);
+      const values = columns.map((col: any) => record[col]);
 
       await this.db.prepare(`
         INSERT INTO ${table} (${columns.join(', ')})

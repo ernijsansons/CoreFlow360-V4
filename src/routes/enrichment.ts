@@ -124,7 +124,7 @@ app.use('*', async (c, next) => {
 });
 
 // Single lead enrichment
-app.post('/enrich', zValidator('json', EnrichmentRequestSchema), async (c) => {
+app.post('/enrich', zValidator('json', EnrichmentRequestSchema), async (c: any) => {
   const pipeline = c.get('enrichmentPipeline') as EnrichmentPipeline;
   const request = c.req.valid('json') as EnrichmentRequest;
 
@@ -171,7 +171,7 @@ app.post('/enrich', zValidator('json', EnrichmentRequestSchema), async (c) => {
         metadata: result.enrichment_metadata
       }, 500);
     }
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Enrichment pipeline failed',
@@ -181,7 +181,7 @@ app.post('/enrich', zValidator('json', EnrichmentRequestSchema), async (c) => {
 });
 
 // Bulk lead enrichment
-app.post('/enrich/bulk', zValidator('json', BulkEnrichmentSchema), async (c) => {
+app.post('/enrich/bulk', zValidator('json', BulkEnrichmentSchema), async (c: any) => {
   const pipeline = c.get('enrichmentPipeline') as EnrichmentPipeline;
   const { requests } = c.req.valid('json');
 
@@ -216,7 +216,7 @@ app.post('/enrich/bulk', zValidator('json', BulkEnrichmentSchema), async (c) => 
       estimated_cost: totalEstimatedCost,
       processing_time_ms: result.processing_time_ms
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Bulk enrichment failed',
@@ -226,7 +226,7 @@ app.post('/enrich/bulk', zValidator('json', BulkEnrichmentSchema), async (c) => 
 });
 
 // Get enrichment cost estimate
-app.post('/cost-estimate', zValidator('json', EnrichmentRequestSchema), async (c) => {
+app.post('/cost-estimate', zValidator('json', EnrichmentRequestSchema), async (c: any) => {
   const pipeline = c.get('enrichmentPipeline') as EnrichmentPipeline;
   const request = c.req.valid('json') as EnrichmentRequest;
 
@@ -241,7 +241,7 @@ app.post('/cost-estimate', zValidator('json', EnrichmentRequestSchema), async (c
       available_sources: sourceValidation.available_sources,
       unavailable_sources: sourceValidation.unavailable_sources
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to calculate cost estimate'
@@ -250,7 +250,7 @@ app.post('/cost-estimate', zValidator('json', EnrichmentRequestSchema), async (c
 });
 
 // Validate enrichment sources
-app.post('/validate-sources', zValidator('json', EnrichmentSourcesSchema), async (c) => {
+app.post('/validate-sources', zValidator('json', EnrichmentSourcesSchema), async (c: any) => {
   const pipeline = c.get('enrichmentPipeline') as EnrichmentPipeline;
   const { sources } = c.req.valid('json');
 
@@ -263,7 +263,7 @@ app.post('/validate-sources', zValidator('json', EnrichmentSourcesSchema), async
       unavailable_sources: validation.unavailable_sources,
       errors: validation.errors
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Source validation failed'
@@ -272,7 +272,7 @@ app.post('/validate-sources', zValidator('json', EnrichmentSourcesSchema), async
 });
 
 // Get enrichment status (for async operations)
-app.get('/status/:requestId', async (c) => {
+app.get('/status/:requestId', async (c: any) => {
   const requestId = c.req.param('requestId');
 
   try {
@@ -290,7 +290,7 @@ app.get('/status/:requestId', async (c) => {
       success: true,
       status: JSON.parse(status)
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to get enrichment status'
@@ -304,7 +304,7 @@ app.post('/leads/:leadId/enrich', zValidator('json', z.object({
   'zoominfo', 'news', 'social', 'github', 'crunchbase'])).default(['clearbit', 'apollo', 'news']),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   force_refresh: z.boolean().default(false)
-})), async (c) => {
+})), async (c: any) => {
   const pipeline = c.get('enrichmentPipeline') as EnrichmentPipeline;
   const leadId = c.req.param('leadId');
   const { sources, priority, force_refresh } = c.req.valid('json');
@@ -332,7 +332,7 @@ app.post('/leads/:leadId/enrich', zValidator('json', z.object({
         metadata: result.enrichment_metadata
       }, 500);
     }
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Lead enrichment failed'
@@ -345,7 +345,7 @@ app.post('/companies/:domain/enrich', zValidator('json', z.object({
   sources: z.array(z.enum(['clearbit', 'apollo', 'news', 'crunchbase'])).default(['clearbit', 'apollo', 'news']),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   force_refresh: z.boolean().default(false)
-})), async (c) => {
+})), async (c: any) => {
   const pipeline = c.get('enrichmentPipeline') as EnrichmentPipeline;
   const domain = c.req.param('domain');
   const { sources, priority, force_refresh } = c.req.valid('json');
@@ -368,7 +368,7 @@ app.post('/companies/:domain/enrich', zValidator('json', z.object({
       metadata: result.enrichment_metadata,
       error: result.error
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Company enrichment failed'
@@ -381,7 +381,7 @@ app.post('/contacts/:email/enrich', zValidator('json', z.object({
   sources: z.array(z.enum(['clearbit', 'apollo', 'linkedin', 'hunter'])).default(['clearbit', 'apollo']),
   priority: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   force_refresh: z.boolean().default(false)
-})), async (c) => {
+})), async (c: any) => {
   const pipeline = c.get('enrichmentPipeline') as EnrichmentPipeline;
   const email = c.req.param('email');
   const { sources, priority, force_refresh } = c.req.valid('json');
@@ -404,7 +404,7 @@ app.post('/contacts/:email/enrich', zValidator('json', z.object({
       metadata: result.enrichment_metadata,
       error: result.error
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Contact enrichment failed'
@@ -413,7 +413,7 @@ app.post('/contacts/:email/enrich', zValidator('json', z.object({
 });
 
 // Analytics endpoint
-app.get('/analytics', async (c) => {
+app.get('/analytics', async (c: any) => {
   const period = c.req.query('period') || '24h';
 
   try {
@@ -441,7 +441,7 @@ app.get('/analytics', async (c) => {
         ]
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: 'Failed to get analytics'
@@ -450,7 +450,7 @@ app.get('/analytics', async (c) => {
 });
 
 // Health check
-app.get('/health', async (c) => {
+app.get('/health', async (c: any) => {
   const pipeline = c.get('enrichmentPipeline') as EnrichmentPipeline;
 
   try {
@@ -466,7 +466,7 @@ app.get('/health', async (c) => {
         unavailable: validation.unavailable_sources
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       status: 'unhealthy',
       error: error instanceof Error ? error.message : 'Unknown error'

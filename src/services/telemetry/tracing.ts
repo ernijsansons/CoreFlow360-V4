@@ -129,7 +129,7 @@ export class DistributedTracing {
     const baggage: Record<string, string> = {};
     const tracestate = headers['tracestate'] || headers['Tracestate'];
     if (tracestate) {
-      tracestate.split(',').forEach(pair => {
+      tracestate.split(',').forEach((pair: any) => {
         const [key, value] = pair.split('=');
         if (key && value) {
           baggage[key.trim()] = value.trim();
@@ -155,7 +155,7 @@ export class DistributedTracing {
       const result = await operation(span);
       this.finishSpan(span);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this.finishSpan(span, error as Error);
       throw error;
     }
@@ -172,7 +172,7 @@ export class DistributedTracing {
       const result = operation(span);
       this.finishSpan(span);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this.finishSpan(span, error as Error);
       throw error;
     }
@@ -206,7 +206,7 @@ export class DistributedTracing {
     const spanMap = new Map<string, any>();
     const rootSpans: any[] = [];
 
-    spans.forEach(span => {
+    spans.forEach((span: any) => {
       const spanData = {
         ...span,
         children: []
@@ -219,7 +219,7 @@ export class DistributedTracing {
     });
 
     // Link children to parents
-    spans.forEach(span => {
+    spans.forEach((span: any) => {
       if (span.parent_span_id) {
         const parent = spanMap.get(span.parent_span_id);
         if (parent) {
@@ -256,7 +256,7 @@ export class DistributedTracing {
     if (rootSpans.length === 0) return [];
 
     const criticalPath = findCriticalPath(rootSpans[0]);
-    return criticalPath.map(span => this.convertToSpan(span));
+    return criticalPath.map((span: any) => this.convertToSpan(span));
   }
 
   private convertToSpan(dbSpan: any): Span {
@@ -305,11 +305,11 @@ export class DistributedTracing {
       GROUP BY operation_name
     `);
 
-    historicalSpans.forEach(row => {
+    historicalSpans.forEach((row: any) => {
       avgDurations.set(row.operation_name, row.avg_duration);
     });
 
-    spans.forEach(span => {
+    spans.forEach((span: any) => {
       const avgDuration = avgDurations.get(span.operation_name);
       if (avgDuration && span.duration > avgDuration * 3) {
         anomalies.push({
@@ -337,7 +337,7 @@ export class DistributedTracing {
     // Clean up old decisions
     if (this.samplingDecisions.size > 10000) {
       const keys = Array.from(this.samplingDecisions.keys());
-      keys.slice(0, 5000).forEach(key => this.samplingDecisions.delete(key));
+      keys.slice(0, 5000).forEach((key: any) => this.samplingDecisions.delete(key));
     }
 
     return decision;
@@ -387,7 +387,7 @@ export class DistributedTracing {
     }
 
     await Promise.all(
-      expiredSpans.map(span => this.collector.collectSpan(span))
+      expiredSpans.map((span: any) => this.collector.collectSpan(span))
     );
   }
 
@@ -447,7 +447,7 @@ export function withTracing<T extends any[], R>(
   fn: (...args: T) => Promise<R>
 ): (...args: T) => Promise<R> {
   return async (...args: T): Promise<R> => {
-    return tracer.instrument(operationName, async (span) => {
+    return tracer.instrument(operationName, async (span: any) => {
       return fn(...args);
     });
   };
@@ -458,7 +458,7 @@ export function tracingMiddleware(tracer: DistributedTracing) {
     const context = tracer.extractContext(Object.fromEntries(request.headers.entries()));
     const operationName = `${request.method} ${new URL(request.url).pathname}`;
 
-    return tracer.instrument(operationName, async (span) => {
+    return tracer.instrument(operationName, async (span: any) => {
       tracer.setTag(span, 'http.method', request.method);
       tracer.setTag(span, 'http.url', request.url);
       tracer.setTag(span, 'component', 'http-server');
@@ -481,7 +481,7 @@ export function tracingMiddleware(tracer: DistributedTracing) {
         });
 
         return response;
-      } catch (error) {
+      } catch (error: any) {
         span.status = 'error';
         tracer.setTag(span, 'error', true);
         tracer.setTag(span, 'error.message', (error as Error).message);

@@ -63,8 +63,8 @@ export class SecurityTestSuite {
     // Cross-tenant isolation tests
     await this.testCrossTenantIsolation();
 
-    const passed = this.results.filter(r => r.passed).length;
-    const failed = this.results.filter(r => !r.passed).length;
+    const passed = this.results.filter((r: any) => r.passed).length;
+    const failed = this.results.filter((r: any) => !r.passed).length;
 
 
     return {

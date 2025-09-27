@@ -583,7 +583,7 @@ export class ErrorSystem {
 
       await this.db.batch(batch);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to persist errors', error);
       // Re-add to buffer
       this.errorBuffer.push(...errors);

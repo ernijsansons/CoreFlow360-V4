@@ -306,7 +306,7 @@ export class SentryIntegration {
 
       return event;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error in Sentry beforeSend hook', error);
       return event; // Return original event on processing failure
     }
@@ -336,7 +336,7 @@ export class SentryIntegration {
 
       return transaction;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error in Sentry beforeSendTransaction hook', error);
       return transaction;
     }
@@ -458,7 +458,7 @@ export class SentryIntegration {
         ticketTitle: ticket.title
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create automatic ticket', error);
     }
   }
@@ -493,7 +493,7 @@ export class SentryIntegration {
           });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Auto-fix attempt failed', error);
     }
   }

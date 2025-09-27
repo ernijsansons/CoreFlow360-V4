@@ -103,7 +103,7 @@ export class SecurityMiddleware {
           threatScore: securityResult.threatAnalysis?.score
         });
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Security middleware error', error, {
           correlationId
         });

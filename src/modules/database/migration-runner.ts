@@ -113,7 +113,7 @@ export class MigrationRunner {
         status: 'success',
         executionTimeMs: executionTime,
       };
-    } catch (error) {
+    } catch (error: any) {
       const executionTime = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -227,7 +227,7 @@ export class MigrationRunner {
         status: 'success',
         executionTimeMs: executionTime,
       };
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
 
       return {
@@ -262,7 +262,7 @@ export class MigrationRunner {
     // Remove comments and split by semicolons
     const cleaned = sql
       .split('\n')
-      .map(line => {
+      .map((line: any) => {
         // Remove comments
         const commentIndex = line.indexOf('--');
         if (commentIndex >= 0) {

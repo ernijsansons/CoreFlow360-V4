@@ -156,7 +156,7 @@ export function createVoiceAgentRoutes(
           }, 400);
         }
 
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           success: false,
           error: 'Internal server error'
@@ -206,7 +206,7 @@ export function createVoiceAgentRoutes(
           });
         }
 
-        const successCount = results.filter(r => r.success).length;
+        const successCount = results.filter((r: any) => r.success).length;
 
         return c.json({
           success: true,
@@ -214,7 +214,7 @@ export function createVoiceAgentRoutes(
           results
         });
 
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           success: false,
           error: 'Internal server error'
@@ -241,7 +241,7 @@ export function createVoiceAgentRoutes(
         data: result
       });
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json({
         success: false,
         error: 'Internal server error'
@@ -267,7 +267,7 @@ export function createVoiceAgentRoutes(
         data: state
       });
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json({
         success: false,
         error: 'Internal server error'
@@ -295,7 +295,7 @@ export function createVoiceAgentRoutes(
         }, 400);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json({
         success: false,
         error: 'Internal server error'
@@ -328,7 +328,7 @@ export function createVoiceAgentRoutes(
         'Content-Type': 'application/xml'
       });
 
-    } catch (error) {
+    } catch (error: any) {
       return c.text('Internal Server Error', 500);
     }
   });
@@ -349,7 +349,7 @@ export function createVoiceAgentRoutes(
 
       return c.text('OK', 200);
 
-    } catch (error) {
+    } catch (error: any) {
       return c.text('Internal Server Error', 500);
     }
   });
@@ -373,7 +373,7 @@ export function createVoiceAgentRoutes(
 
       return c.text('OK', 200);
 
-    } catch (error) {
+    } catch (error: any) {
       return c.text('Internal Server Error', 500);
     }
   });
@@ -388,7 +388,7 @@ export function createVoiceAgentRoutes(
         data: stats
       });
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json({
         success: false,
         error: 'Internal server error'
@@ -413,7 +413,7 @@ export function createVoiceAgentRoutes(
         }, 404);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json({
         success: false,
         error: 'Internal server error'
@@ -440,7 +440,7 @@ export function createVoiceAgentRoutes(
         }, 404);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json({
         success: false,
         error: 'Internal server error'
@@ -461,7 +461,7 @@ export function createVoiceAgentRoutes(
           data: performance
         });
 
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           success: false,
           error: 'Internal server error'
@@ -494,7 +494,7 @@ export function createVoiceAgentRoutes(
         }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json({
         success: false,
         error: 'Internal server error'
@@ -514,7 +514,7 @@ export function createVoiceAgentRoutes(
           data: costAnalysis
         });
 
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           success: false,
           error: 'Internal server error'
@@ -532,7 +532,7 @@ export function createVoiceAgentRoutes(
         data: benchmarks
       });
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json({
         success: false,
         error: 'Internal server error'
@@ -552,7 +552,7 @@ export function createVoiceAgentRoutes(
           data: metrics
         });
 
-      } catch (error) {
+      } catch (error: any) {
         return c.json({
           success: false,
           error: 'Internal server error'
@@ -589,7 +589,7 @@ export function createVoiceAgentRoutes(
         }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       return c.json({
         success: false,
         error: 'Internal server error'

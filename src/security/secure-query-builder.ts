@@ -139,7 +139,7 @@ export class SecureQueryBuilder {
     // Build query
     const columnList = columns.join(', ');
     const placeholders = columns.map(() => '?').join(', ');
-    const params = columns.map(col => insertData[col]);
+    const params = columns.map((col: any) => insertData[col]);
 
     const query = `INSERT INTO ${table} (${columnList}) VALUES (${placeholders})`;
 
@@ -179,8 +179,8 @@ export class SecureQueryBuilder {
     this.validateColumns(columns);
 
     // Build SET clause
-    const setClause = columns.map(col => `${col} = ?`).join(', ');
-    const params = columns.map(col => updateData[col]);
+    const setClause = columns.map((col: any) => `${col} = ?`).join(', ');
+    const params = columns.map((col: any) => updateData[col]);
 
     // Build WHERE clause
     const whereKeys = Object.keys(whereConditions);
@@ -195,7 +195,7 @@ export class SecureQueryBuilder {
     }
 
     // Add additional WHERE conditions
-    whereKeys.forEach(key => {
+    whereKeys.forEach((key: any) => {
       whereClauseParts.push(`${key} = ?`);
       params.push(whereConditions[key]);
     });
@@ -235,7 +235,7 @@ export class SecureQueryBuilder {
     }
 
     // Add WHERE conditions
-    whereKeys.forEach(key => {
+    whereKeys.forEach((key: any) => {
       whereClauseParts.push(`${key} = ?`);
       params.push(whereConditions[key]);
     });

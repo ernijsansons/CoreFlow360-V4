@@ -709,7 +709,7 @@ class ZeroTrustSecretsManager {
    * Get audit trail for a secret
    */
   async getAuditTrail(secretId: string, businessId: string): Promise<AuditEvent[]> {
-    return this.auditLog.filter(event =>
+    return this.auditLog.filter((event: any) =>
       event.secretId === secretId && event.businessId === businessId
     );
   }
@@ -739,10 +739,10 @@ class ZeroTrustSecretsManager {
   async healthCheck(): Promise<SecretsHealthCheck> {
     const totalSecrets = this.secretStore.size;
     const expiredGrants = Array.from(this.accessGrants.values())
-      .filter(grant => grant.expiresAt < Date.now()).length;
+      .filter((grant: any) => grant.expiresAt < Date.now()).length;
 
     const secretsNeedingRotation = Array.from(this.secretStore.values())
-      .filter(secret => secret.metadata.nextRotation < Date.now()).length;
+      .filter((secret: any) => secret.metadata.nextRotation < Date.now()).length;
 
     return {
       healthy: true,

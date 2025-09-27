@@ -107,7 +107,7 @@ async function initializeServices(env: Env) {
 // INVOICE CRUD ENDPOINTS
 // ============================================================================
 
-app.post('/', zValidator('json', CreateInvoiceSchema), async (c) => {
+app.post('/', zValidator('json', CreateInvoiceSchema), async (c: any) => {
   try {
     const { invoiceService, auditLogger } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -135,7 +135,7 @@ app.post('/', zValidator('json', CreateInvoiceSchema), async (c) => {
       success: true,
       data: invoice
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create invoice'
@@ -143,7 +143,7 @@ app.post('/', zValidator('json', CreateInvoiceSchema), async (c) => {
   }
 });
 
-app.get('/', zValidator('query', InvoiceFiltersSchema), async (c) => {
+app.get('/', zValidator('query', InvoiceFiltersSchema), async (c: any) => {
   try {
     const { invoiceService } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -161,7 +161,7 @@ app.get('/', zValidator('query', InvoiceFiltersSchema), async (c) => {
         totalPages: Math.ceil(result.total / filters.limit)
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch invoices'
@@ -169,7 +169,7 @@ app.get('/', zValidator('query', InvoiceFiltersSchema), async (c) => {
   }
 });
 
-app.get('/:id', async (c) => {
+app.get('/:id', async (c: any) => {
   try {
     const { invoiceService } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -188,7 +188,7 @@ app.get('/:id', async (c) => {
       success: true,
       data: invoice
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch invoice'
@@ -196,7 +196,7 @@ app.get('/:id', async (c) => {
   }
 });
 
-app.put('/:id', zValidator('json', UpdateInvoiceSchema), async (c) => {
+app.put('/:id', zValidator('json', UpdateInvoiceSchema), async (c: any) => {
   try {
     const { invoiceService, auditLogger } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -220,7 +220,7 @@ app.put('/:id', zValidator('json', UpdateInvoiceSchema), async (c) => {
       success: true,
       data: invoice
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to update invoice'
@@ -228,7 +228,7 @@ app.put('/:id', zValidator('json', UpdateInvoiceSchema), async (c) => {
   }
 });
 
-app.delete('/:id', async (c) => {
+app.delete('/:id', async (c: any) => {
   try {
     const { invoiceService, auditLogger } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -251,7 +251,7 @@ app.delete('/:id', async (c) => {
       success: true,
       message: 'Invoice deleted successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to delete invoice'
@@ -263,7 +263,7 @@ app.delete('/:id', async (c) => {
 // INVOICE ACTIONS ENDPOINTS
 // ============================================================================
 
-app.post('/:id/send', zValidator('json', SendInvoiceSchema), async (c) => {
+app.post('/:id/send', zValidator('json', SendInvoiceSchema), async (c: any) => {
   try {
     const { invoiceService, auditLogger } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -290,7 +290,7 @@ app.post('/:id/send', zValidator('json', SendInvoiceSchema), async (c) => {
       success: true,
       data: result
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to send invoice'
@@ -298,7 +298,7 @@ app.post('/:id/send', zValidator('json', SendInvoiceSchema), async (c) => {
   }
 });
 
-app.post('/:id/payments', zValidator('json', RecordPaymentSchema), async (c) => {
+app.post('/:id/payments', zValidator('json', RecordPaymentSchema), async (c: any) => {
   try {
     const { invoiceService, auditLogger } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -326,7 +326,7 @@ app.post('/:id/payments', zValidator('json', RecordPaymentSchema), async (c) => 
       success: true,
       data: result
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to record payment'
@@ -334,7 +334,7 @@ app.post('/:id/payments', zValidator('json', RecordPaymentSchema), async (c) => 
   }
 });
 
-app.get('/:id/pdf', async (c) => {
+app.get('/:id/pdf', async (c: any) => {
   try {
     const { invoiceService, pdfGenerator } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -357,7 +357,7 @@ app.get('/:id/pdf', async (c) => {
         'Content-Disposition': `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to generate PDF'
@@ -365,7 +365,7 @@ app.get('/:id/pdf', async (c) => {
   }
 });
 
-app.post('/:id/approve', async (c) => {
+app.post('/:id/approve', async (c: any) => {
   try {
     const { approvalWorkflow, auditLogger } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -388,7 +388,7 @@ app.post('/:id/approve', async (c) => {
       success: true,
       data: result
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to approve invoice'
@@ -396,7 +396,7 @@ app.post('/:id/approve', async (c) => {
   }
 });
 
-app.post('/:id/void', async (c) => {
+app.post('/:id/void', async (c: any) => {
   try {
     const { invoiceService, auditLogger } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -420,7 +420,7 @@ app.post('/:id/void', async (c) => {
       success: true,
       data: result
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to void invoice'
@@ -432,7 +432,7 @@ app.post('/:id/void', async (c) => {
 // ANALYTICS ENDPOINTS
 // ============================================================================
 
-app.get('/analytics/summary', async (c) => {
+app.get('/analytics/summary', async (c: any) => {
   try {
     const { invoiceService } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -448,7 +448,7 @@ app.get('/analytics/summary', async (c) => {
       success: true,
       data: summary
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch invoice summary'
@@ -456,7 +456,7 @@ app.get('/analytics/summary', async (c) => {
   }
 });
 
-app.get('/analytics/aging', async (c) => {
+app.get('/analytics/aging', async (c: any) => {
   try {
     const { invoiceService } = await initializeServices(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -467,7 +467,7 @@ app.get('/analytics/aging', async (c) => {
       success: true,
       data: aging
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch aging report'
@@ -479,7 +479,7 @@ app.get('/analytics/aging', async (c) => {
 // HEALTH CHECK
 // ============================================================================
 
-app.get('/health', async (c) => {
+app.get('/health', async (c: any) => {
   return c.json({
     success: true,
     service: 'invoices',

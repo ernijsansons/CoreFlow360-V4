@@ -48,7 +48,7 @@ const LogEntrySchema = z.object({
   metadata: z.record(z.any()).default({}),
 });
 
-app.post('/telemetry/collect', async (c) => {
+app.post('/telemetry/collect', async (c: any) => {
   try {
     const body = await c.req.json();
     const logEntries = z.array(LogEntrySchema).parse(body);
@@ -57,7 +57,7 @@ app.post('/telemetry/collect', async (c) => {
     await telemetryCollector.collectLogs(logEntries);
 
     return c.json({ success: true, processed: logEntries.length });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -78,7 +78,7 @@ const MetricEntrySchema = z.object({
   spanId: z.string().optional(),
 });
 
-app.post('/metrics/collect', async (c) => {
+app.post('/metrics/collect', async (c: any) => {
   try {
     const body = await c.req.json();
     const metricEntries = z.array(MetricEntrySchema).parse(body);
@@ -87,7 +87,7 @@ app.post('/metrics/collect', async (c) => {
     await telemetryCollector.collectMetrics(metricEntries);
 
     return c.json({ success: true, processed: metricEntries.length });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -114,7 +114,7 @@ const TraceEntrySchema = z.object({
   sessionId: z.string().optional(),
 });
 
-app.post('/traces/collect', async (c) => {
+app.post('/traces/collect', async (c: any) => {
   try {
     const body = await c.req.json();
     const traceEntries = z.array(TraceEntrySchema).parse(body);
@@ -123,7 +123,7 @@ app.post('/traces/collect', async (c) => {
     await distributedTracing.collectTraces(traceEntries);
 
     return c.json({ success: true, processed: traceEntries.length });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -132,7 +132,7 @@ app.post('/traces/collect', async (c) => {
 });
 
 // AI Analytics endpoint
-app.get('/ai-analytics/summary', async (c) => {
+app.get('/ai-analytics/summary', async (c: any) => {
   try {
     const query = c.req.query();
     const businessId = query.businessId;
@@ -153,7 +153,7 @@ app.get('/ai-analytics/summary', async (c) => {
     });
 
     return c.json({ success: true, summary });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -162,7 +162,7 @@ app.get('/ai-analytics/summary', async (c) => {
 });
 
 // AI Analytics detailed metrics
-app.get('/ai-analytics/metrics', async (c) => {
+app.get('/ai-analytics/metrics', async (c: any) => {
   try {
     const query = c.req.query();
     const businessId = query.businessId;
@@ -183,7 +183,7 @@ app.get('/ai-analytics/metrics', async (c) => {
     });
 
     return c.json({ success: true, metrics });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -192,7 +192,7 @@ app.get('/ai-analytics/metrics', async (c) => {
 });
 
 // AI Analytics cost analysis
-app.get('/ai-analytics/costs', async (c) => {
+app.get('/ai-analytics/costs', async (c: any) => {
   try {
     const query = c.req.query();
     const businessId = query.businessId;
@@ -213,7 +213,7 @@ app.get('/ai-analytics/costs', async (c) => {
     });
 
     return c.json({ success: true, costs });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -222,7 +222,7 @@ app.get('/ai-analytics/costs', async (c) => {
 });
 
 // Alert management endpoints
-app.get('/alerts', async (c) => {
+app.get('/alerts', async (c: any) => {
   try {
     const query = c.req.query();
     const businessId = query.businessId;
@@ -245,7 +245,7 @@ app.get('/alerts', async (c) => {
     });
 
     return c.json({ success: true, alerts });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -253,7 +253,7 @@ app.get('/alerts', async (c) => {
   }
 });
 
-app.post('/alerts/:id/acknowledge', async (c) => {
+app.post('/alerts/:id/acknowledge', async (c: any) => {
   try {
     const alertId = c.req.param('id');
     const body = await c.req.json();
@@ -268,7 +268,7 @@ app.post('/alerts/:id/acknowledge', async (c) => {
     await alertNotificationSystem.acknowledgeAlert(alertId, userId, comment);
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -276,7 +276,7 @@ app.post('/alerts/:id/acknowledge', async (c) => {
   }
 });
 
-app.post('/alerts/:id/resolve', async (c) => {
+app.post('/alerts/:id/resolve', async (c: any) => {
   try {
     const alertId = c.req.param('id');
     const body = await c.req.json();
@@ -291,7 +291,7 @@ app.post('/alerts/:id/resolve', async (c) => {
     await alertNotificationSystem.resolveAlert(alertId, userId, comment);
 
     return c.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -300,7 +300,7 @@ app.post('/alerts/:id/resolve', async (c) => {
 });
 
 // Self-healing endpoints
-app.get('/self-healing/status', async (c) => {
+app.get('/self-healing/status', async (c: any) => {
   try {
     const query = c.req.query();
     const businessId = query.businessId;
@@ -313,7 +313,7 @@ app.get('/self-healing/status', async (c) => {
     const status = await selfHealingEngine.getStatus(businessId);
 
     return c.json({ success: true, status });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -321,7 +321,7 @@ app.get('/self-healing/status', async (c) => {
   }
 });
 
-app.post('/self-healing/trigger', async (c) => {
+app.post('/self-healing/trigger', async (c: any) => {
   try {
     const body = await c.req.json();
     const businessId = body.businessId;
@@ -345,7 +345,7 @@ app.post('/self-healing/trigger', async (c) => {
     });
 
     return c.json({ success: true, result });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -354,13 +354,13 @@ app.post('/self-healing/trigger', async (c) => {
 });
 
 // Export integration endpoints
-app.get('/export/formats', async (c) => {
+app.get('/export/formats', async (c: any) => {
   try {
     const observabilityExportIntegration = new ObservabilityExportIntegration(c.env);
     const formats = await observabilityExportIntegration.getSupportedFormats();
 
     return c.json({ success: true, formats });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -368,7 +368,7 @@ app.get('/export/formats', async (c) => {
   }
 });
 
-app.post('/export/generate', async (c) => {
+app.post('/export/generate', async (c: any) => {
   try {
     const body = await c.req.json();
     const businessId = body.businessId;
@@ -398,7 +398,7 @@ app.post('/export/generate', async (c) => {
     });
 
     return c.json({ success: true, export: exportResult });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -407,7 +407,7 @@ app.post('/export/generate', async (c) => {
 });
 
 // Health check endpoint
-app.get('/health', async (c) => {
+app.get('/health', async (c: any) => {
   try {
     const telemetryCollector = new TelemetryCollector(c.env);
     const distributedTracing = new DistributedTracing(c.env);
@@ -430,7 +430,7 @@ app.get('/health', async (c) => {
     };
 
     return c.json({ success: true, health });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({ 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 

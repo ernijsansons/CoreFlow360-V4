@@ -112,7 +112,7 @@ export class SupernovaDeepAuditor {
       this.auditResults.set(filePath, result);
       this.updateIssueCounts(issues);
       
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`Failed to audit file ${filePath}:`, error);
     }
   }
@@ -173,7 +173,7 @@ export class SupernovaDeepAuditor {
     // Simple maintainability score (0-100)
     const lines = content.split('\n');
     const totalLines = lines.length;
-    const commentLines = lines.filter(line => line.trim().startsWith('//') || line.trim().startsWith('/*')).length;
+    const commentLines = lines.filter((line: any) => line.trim().startsWith('//') || line.trim().startsWith('/*')).length;
     const commentRatio = commentLines / totalLines;
     
     return Math.min(100, Math.max(0, commentRatio * 100));

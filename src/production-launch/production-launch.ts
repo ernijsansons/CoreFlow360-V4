@@ -38,7 +38,7 @@ async function main() {
         break;
     }
 
-  } catch (error) {
+  } catch (error: any) {
     process.exit(1);
   }
 }
@@ -85,7 +85,7 @@ async function executeLaunch(orchestrator: ProductionLaunchOrchestrator): Promis
 
     process.exit(0);
 
-  } catch (error) {
+  } catch (error: any) {
     const duration = (Date.now() - startTime) / 1000;
 
 
@@ -132,14 +132,14 @@ async function testRollback(orchestrator: ProductionLaunchOrchestrator): Promise
   const readiness = await rollbackManager.validateRollbackReadiness();
 
   if (!readiness.ready) {
-    readiness.issues.forEach(issue => console.log(`  - ${issue}`));
+    readiness.issues.forEach((issue: any) => console.log(`  - ${issue}`));
   }
 
   // Test rollback procedure
   const testResult = await rollbackManager.testRollbackProcedure();
 
   if (testResult.issues.length > 0) {
-    testResult.issues.forEach(issue => console.log(`  - ${issue}`));
+    testResult.issues.forEach((issue: any) => console.log(`  - ${issue}`));
   }
 }
 

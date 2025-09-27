@@ -44,7 +44,7 @@ export default {
 
       return finalResponse;
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.error('Edge handler error:', error as Error);
 
@@ -70,7 +70,7 @@ export default {
       for (const message of batch.messages) {
         await handleQueueMessage(message, env, logger);
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Queue processing error:', error);
       throw error; // This will retry the batch
     }
@@ -90,7 +90,7 @@ export default {
         default:
           logger.warn('Unknown cron trigger', { cronExpression: event.cron });
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Scheduled task error:', error);
     }
   }
@@ -201,7 +201,7 @@ async function handleAPIRequest(
 
     return result;
 
-  } catch (error) {
+  } catch (error: any) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`API error in ${module}/${action}:`, error as Error);
 
@@ -268,7 +268,7 @@ async function handleHealthCheck(
         headers: { 'Content-Type': 'application/json' }
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Health check failed:', error);
     return new Response('Health Check Failed', { status: 500 });
   }
@@ -359,7 +359,7 @@ async function handleStaticAssets(
     // Fallback to origin
     return fetch(request);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Static asset error:', error);
     return new Response('Asset not found', { status: 404 });
   }
@@ -400,7 +400,7 @@ async function handleApplicationRequest(
     // Fallback to origin
     return fetch(request);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Application request error:', error);
     return new Response('Application error', { status: 500 });
   }
@@ -433,7 +433,7 @@ async function handleQueueMessage(
 
     logger.info(`Processed queue message ${id}`);
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error(`Failed to process queue message ${id}:`, error);
     throw error; // This will retry the message
   }
@@ -457,7 +457,7 @@ async function runDailyCleanup(
 
     logger.info('Daily cleanup completed');
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Daily cleanup failed:', error);
   }
 }
@@ -479,7 +479,7 @@ async function runHealthCheck(
       // Send alerts
     }
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Health check error:', error);
   }
 }

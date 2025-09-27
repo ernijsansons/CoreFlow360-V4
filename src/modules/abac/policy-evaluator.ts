@@ -42,7 +42,7 @@ export class PolicyEvaluator {
 
     // Sort by priority (lower number = higher priority)
     const sortedPolicies = Array.from(applicablePolicies)
-      .map(id => this.policies.get(id)!)
+      .map((id: any) => this.policies.get(id)!)
       .sort((a, b) => a.priority - b.priority);
 
     const matched: PolicyRule[] = [];
@@ -98,7 +98,7 @@ export class PolicyEvaluator {
     this.policies.clear();
     this.clearIndexes();
 
-    policies.forEach(policy => {
+    policies.forEach((policy: any) => {
       this.policies.set(policy.id, policy);
       this.indexPolicy(policy);
     });
@@ -137,20 +137,20 @@ export class PolicyEvaluator {
 
     // Get policies by capability
     const capabilityPolicies = this.policyIndex.byCapability.get(capability) || new Set();
-    capabilityPolicies.forEach(id => applicable.add(id));
+    capabilityPolicies.forEach((id: any) => applicable.add(id));
 
     // Get wildcard capability policies
     const wildcardPolicies = this.policyIndex.byCapability.get('*.*.*') || new Set();
-    wildcardPolicies.forEach(id => applicable.add(id));
+    wildcardPolicies.forEach((id: any) => applicable.add(id));
 
     // Get policies by subject role
     const rolePolicies = this.policyIndex.bySubjectRole.get(subject.orgRole) || new Set();
-    rolePolicies.forEach(id => applicable.add(id));
+    rolePolicies.forEach((id: any) => applicable.add(id));
 
     // Get policies by resource type
     if (resource) {
       const resourcePolicies = this.policyIndex.byResourceType.get(resource.type) || new Set();
-      resourcePolicies.forEach(id => applicable.add(id));
+      resourcePolicies.forEach((id: any) => applicable.add(id));
     }
 
     // If no specific matches, get all policies (fallback)
@@ -475,7 +475,7 @@ export class PolicyEvaluator {
     }
 
     if (matched.length > 0) {
-      return `Allowed by policy: ${matched.map(p => p.name).join(', ')}`;
+      return `Allowed by policy: ${matched.map((p: any) => p.name).join(', ')}`;
     }
 
     return allowed ? 'Allowed by default' : 'No matching policy found';
@@ -486,7 +486,7 @@ export class PolicyEvaluator {
    */
   private indexPolicy(policy: PolicyRule): void {
     // Index by capabilities
-    policy.capabilities.forEach(capability => {
+    policy.capabilities.forEach((capability: any) => {
       if (!this.policyIndex.byCapability.has(capability)) {
         this.policyIndex.byCapability.set(capability, new Set());
       }
@@ -499,7 +499,7 @@ export class PolicyEvaluator {
         ? policy.conditions.subject.orgRole
         : [policy.conditions.subject.orgRole];
 
-      roles.forEach(role => {
+      roles.forEach((role: any) => {
         if (!this.policyIndex.bySubjectRole.has(role)) {
           this.policyIndex.bySubjectRole.set(role, new Set());
         }
@@ -513,7 +513,7 @@ export class PolicyEvaluator {
         ? policy.conditions.resource.type
         : [policy.conditions.resource.type];
 
-      types.forEach(type => {
+      types.forEach((type: any) => {
         if (!this.policyIndex.byResourceType.has(type)) {
           this.policyIndex.byResourceType.set(type, new Set());
         }
@@ -527,7 +527,7 @@ export class PolicyEvaluator {
    */
   private removeFromIndexes(policy: PolicyRule): void {
     // Remove from capability index
-    policy.capabilities.forEach(capability => {
+    policy.capabilities.forEach((capability: any) => {
       this.policyIndex.byCapability.get(capability)?.delete(policy.id);
     });
 
@@ -537,7 +537,7 @@ export class PolicyEvaluator {
         ? policy.conditions.subject.orgRole
         : [policy.conditions.subject.orgRole];
 
-      roles.forEach(role => {
+      roles.forEach((role: any) => {
         this.policyIndex.bySubjectRole.get(role)?.delete(policy.id);
       });
     }
@@ -548,7 +548,7 @@ export class PolicyEvaluator {
         ? policy.conditions.resource.type
         : [policy.conditions.resource.type];
 
-      types.forEach(type => {
+      types.forEach((type: any) => {
         this.policyIndex.byResourceType.get(type)?.delete(policy.id);
       });
     }
@@ -577,7 +577,7 @@ export class PolicyEvaluator {
     let allowCount = 0;
     let denyCount = 0;
 
-    this.policies.forEach(policy => {
+    this.policies.forEach((policy: any) => {
       if (policy.effect === 'allow') allowCount++;
       else denyCount++;
     });

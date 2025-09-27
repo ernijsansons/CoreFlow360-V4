@@ -61,7 +61,7 @@ export class ABACService {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
 
       // Record error in monitoring
       (this.monitor as any).recordEvaluation(
@@ -128,11 +128,11 @@ export class ABACService {
 
       return results;
 
-    } catch (error) {
+    } catch (error: any) {
 
       // Return error results for all capabilities
       const errorResults = new Map<Capability, EvaluationResult>();
-      capabilities.forEach(capability => {
+      capabilities.forEach((capability: any) => {
         errorResults.set(capability, {
           allowed: false,
           matched: [],
@@ -331,12 +331,12 @@ export class ABACService {
     // For now, return a basic set based on resource type
 
     const baseActions = ['create', 'read', 'update', 'delete'];
-    const available = baseActions.map(action =>
+    const available = baseActions.map((action: any) =>
       `${this.getModuleForResource(resourceType)}.${resourceType}.${action}` as Capability
     );
 
     const descriptions: Record<Capability, string> = {};
-    available.forEach(cap => {
+    available.forEach((cap: any) => {
       const [module, resource, action] = cap.split('.');
       descriptions[cap] = `${action.charAt(0).toUpperCase() + action.slice(1)} ${resource} in ${module} module`;
     });

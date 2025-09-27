@@ -119,7 +119,7 @@ class InvoiceEmailManager {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to send invoice email', {
         error: error instanceof Error ? error.message : 'Unknown error',
         invoiceId: request.invoiceId,
@@ -188,7 +188,7 @@ class InvoiceEmailManager {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to send invoice reminder', {
         error: error instanceof Error ? error.message : 'Unknown error',
         invoiceId
@@ -260,7 +260,7 @@ class InvoiceEmailManager {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to send payment confirmation', {
         error: error instanceof Error ? error.message : 'Unknown error',
         invoiceId
@@ -289,7 +289,7 @@ class InvoiceEmailManager {
         status: 'delivered',
         deliveredAt: Date.now()
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get delivery status', {
         error: error instanceof Error ? error.message : 'Unknown error',
         messageId
@@ -327,7 +327,7 @@ class InvoiceEmailManager {
           isDefault: false
         }
       ];
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to get email templates', {
         error: error instanceof Error ? error.message : 'Unknown error',
         businessId
@@ -351,7 +351,7 @@ class InvoiceEmailManager {
         businessId
       });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to update email template', {
         error: error instanceof Error ? error.message : 'Unknown error',
         templateId,
@@ -573,7 +573,7 @@ class InvoiceEmailManager {
         status: 'sent',
         deliveredAt: Date.now()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         messageId: '',
         status: 'failed',

@@ -124,7 +124,7 @@ export class DataSynchronizationService extends EventEmitter {
     this.syncTimer = setInterval(async () => {
       try {
         await this.performIncrementalSync();
-      } catch (error) {
+      } catch (error: any) {
         this.emit('syncError', error);
       }
     }, this.config.syncInterval);
@@ -154,7 +154,7 @@ export class DataSynchronizationService extends EventEmitter {
       job.status = 'completed';
       job.endTime = new Date();
       this.emit('syncJobCompleted', job);
-    } catch (error) {
+    } catch (error: any) {
       job.status = 'failed';
       job.endTime = new Date();
       job.errors.push({
@@ -190,7 +190,7 @@ export class DataSynchronizationService extends EventEmitter {
       job.status = 'completed';
       job.endTime = new Date();
       this.emit('syncJobCompleted', job);
-    } catch (error) {
+    } catch (error: any) {
       job.status = 'failed';
       job.endTime = new Date();
       job.errors.push({
@@ -243,7 +243,7 @@ export class DataSynchronizationService extends EventEmitter {
           const mappedData = this.applyMapping(decision, mapping!);
           await this.pushToCoreFlow('workflow_decisions', mappedData);
           job.recordsProcessed++;
-        } catch (error) {
+        } catch (error: any) {
           job.recordsFailed++;
           job.errors.push({
             timestamp: new Date(),
@@ -253,7 +253,7 @@ export class DataSynchronizationService extends EventEmitter {
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -272,7 +272,7 @@ export class DataSynchronizationService extends EventEmitter {
           const mappedData = this.applyMapping(workflow, mapping!);
           await this.pushToAgentSystem('workflow_feedback', mappedData);
           job.recordsProcessed++;
-        } catch (error) {
+        } catch (error: any) {
           job.recordsFailed++;
           job.errors.push({
             timestamp: new Date(),
@@ -282,7 +282,7 @@ export class DataSynchronizationService extends EventEmitter {
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -296,7 +296,7 @@ export class DataSynchronizationService extends EventEmitter {
       // Send aggregated metrics to agent system for learning
       await this.pushToAgentSystem('business_metrics', aggregated);
       job.recordsProcessed += metrics.length;
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -313,7 +313,7 @@ export class DataSynchronizationService extends EventEmitter {
       });
 
       job.recordsProcessed += agentStatus.size;
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -328,14 +328,14 @@ export class DataSynchronizationService extends EventEmitter {
 
       for (const batch of batchedData) {
         try {
-          const mappedBatch = batch.map(data => this.applyMapping(data, mapping!));
+          const mappedBatch = batch.map((data: any) => this.applyMapping(data, mapping!));
           await this.pushToAgentSystem('business_context', mappedBatch);
           job.recordsProcessed += batch.length;
-        } catch (error) {
+        } catch (error: any) {
           job.recordsFailed += batch.length;
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -374,7 +374,7 @@ export class DataSynchronizationService extends EventEmitter {
           this.conflictQueue.delete(id);
           this.emit('conflictResolved', { id, resolution });
         }
-      } catch (error) {
+      } catch (error: any) {
       }
     }
   }
@@ -549,8 +549,8 @@ export class DataSynchronizationService extends EventEmitter {
   // Get sync statistics
   getSyncStatistics(): any {
     const jobs = Array.from(this.syncJobs.values());
-    const completed = jobs.filter(j => j.status === 'completed');
-    const failed = jobs.filter(j => j.status === 'failed');
+    const completed = jobs.filter((j: any) => j.status === 'completed');
+    const failed = jobs.filter((j: any) => j.status === 'failed');
 
     return {
       totalJobs: jobs.length,

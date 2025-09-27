@@ -74,7 +74,7 @@ export class RealtimeSync extends DurableObject {
         return new Response(JSON.stringify({ success: true, messageId: message.id }), {
           headers: { 'Content-Type': 'application/json' },
         });
-      } catch (error) {
+      } catch (error: any) {
         return new Response(JSON.stringify({ error: 'Invalid message format' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json' },
@@ -88,7 +88,7 @@ export class RealtimeSync extends DurableObject {
       const sinceTimestamp = since ? parseInt(since) : 0;
 
       const relevantMessages = this.messageHistory
-        .filter(msg => msg.timestamp > sinceTimestamp)
+        .filter((msg: any) => msg.timestamp > sinceTimestamp)
         .slice(-limit);
 
       return new Response(JSON.stringify(relevantMessages), {
@@ -125,7 +125,7 @@ export class RealtimeSync extends DurableObject {
         history: this.messageHistory.slice(-10),
       }));
 
-      ws.addEventListener('message', async (event) => {
+      ws.addEventListener('message', async (event: any) => {
         try {
           // Update activity timestamp
           this.connectionTimestamps.set(clientId, Date.now());
@@ -159,7 +159,7 @@ export class RealtimeSync extends DurableObject {
 
           this.broadcast(message, clientId);
           this.messageCount++;
-        } catch (error) {
+        } catch (error: any) {
           ws.send(JSON.stringify({
             type: 'error',
             message: 'Invalid message format',
@@ -183,7 +183,7 @@ export class RealtimeSync extends DurableObject {
         this.connections.delete(clientId);
         this.connectionTimestamps.delete(clientId);
       });
-    } catch (error) {
+    } catch (error: any) {
       ws.close(1011, 'Internal server error');
     }
   }
@@ -196,14 +196,14 @@ export class RealtimeSync extends DurableObject {
       if (clientId !== excludeClientId) {
         try {
           ws.send(messageString);
-        } catch (error) {
+        } catch (error: any) {
           deadConnections.push(clientId);
         }
       }
     });
 
     // Clean up dead connections
-    deadConnections.forEach(clientId => {
+    deadConnections.forEach((clientId: any) => {
       this.connections.delete(clientId);
       this.connectionTimestamps.delete(clientId);
     });
@@ -219,7 +219,7 @@ export class RealtimeSync extends DurableObject {
       }
     });
 
-    staleConnections.forEach(clientId => {
+    staleConnections.forEach((clientId: any) => {
       const ws = this.connections.get(clientId);
       if (ws) {
         try {

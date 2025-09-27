@@ -129,7 +129,7 @@ export class WorkflowCollaboration {
         default:
           return new Response('Not found', { status: 404 });
       }
-    } catch (error) {
+    } catch (error: any) {
       return new Response('Internal error', { status: 500 });
     }
   }
@@ -158,11 +158,11 @@ export class WorkflowCollaboration {
     // Load participant data
     await this.loadParticipantData(userId);
 
-    server.addEventListener('message', async (event) => {
+    server.addEventListener('message', async (event: any) => {
       try {
         const message: CollaborationMessage = JSON.parse(event.data);
         await this.handleCollaborationMessage(message);
-      } catch (error) {
+      } catch (error: any) {
       }
     });
 
@@ -783,7 +783,7 @@ export class WorkflowCollaboration {
       if (userId !== excludeUserId) {
         try {
           ws.send(messageStr);
-        } catch (error) {
+        } catch (error: any) {
         }
       }
     });
@@ -794,7 +794,7 @@ export class WorkflowCollaboration {
     if (ws) {
       try {
         ws.send(JSON.stringify(message));
-      } catch (error) {
+      } catch (error: any) {
       }
     }
   }

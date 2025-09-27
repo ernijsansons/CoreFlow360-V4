@@ -156,7 +156,7 @@ export class AgentSystemBenchmarks {
         } else {
           this.addError(errors, result.error || 'Unknown error');
         }
-      } catch (error) {
+      } catch (error: any) {
         this.addError(errors, error instanceof Error ? error.message : String(error));
       }
     }
@@ -309,7 +309,7 @@ export class AgentSystemBenchmarks {
           } else {
             this.addError(errors, result.error || 'Unknown error');
           }
-        } catch (error) {
+        } catch (error: any) {
           this.addError(errors, error instanceof Error ? error.message : String(error));
         }
       }
@@ -389,7 +389,7 @@ export class AgentSystemBenchmarks {
           }
 
           return { latency, cost: result.totalCost };
-        } catch (error) {
+        } catch (error: any) {
           this.addError(errors, error instanceof Error ? error.message : String(error));
           return { latency: 0, cost: 0 };
         }
@@ -467,7 +467,7 @@ export class AgentSystemBenchmarks {
         } else {
           this.addError(errors, result.error || 'Unknown error');
         }
-      } catch (error) {
+      } catch (error: any) {
         this.addError(errors, error instanceof Error ? error.message : String(error));
       }
     });
@@ -498,7 +498,7 @@ export class AgentSystemBenchmarks {
         } else {
           this.addError(errors, result.error || 'Unknown error');
         }
-      } catch (error) {
+      } catch (error: any) {
         this.addError(errors, error instanceof Error ? error.message : String(error));
       }
     });
@@ -617,7 +617,7 @@ export class AgentSystemBenchmarks {
         } else {
           this.addError(errors, result.error || 'Unknown error');
         }
-      } catch (error) {
+      } catch (error: any) {
         this.addError(errors, error instanceof Error ? error.message : String(error));
       }
     }
@@ -723,7 +723,7 @@ export class AgentSystemBenchmarks {
         } else {
           this.addError(errors, result.error || 'Unknown error');
         }
-      } catch (error) {
+      } catch (error: any) {
         this.addError(errors, error instanceof Error ? error.message : String(error));
       }
     }
@@ -827,7 +827,7 @@ export class AgentSystemBenchmarks {
           }
 
           return { latency, cost: result.totalCost };
-        } catch (error) {
+        } catch (error: any) {
           this.addError(errors, error instanceof Error ? error.message : String(error));
           return { latency: 0, cost: 0 };
         }
@@ -900,7 +900,7 @@ export class AgentSystemBenchmarks {
         } else {
           this.addError(errors, result.error || 'Unknown error');
         }
-      } catch (error) {
+      } catch (error: any) {
         this.addError(errors, error instanceof Error ? error.message : String(error));
       }
     }
@@ -959,7 +959,7 @@ export class AgentSystemBenchmarks {
     const totalCost = results.reduce((sum, r) => sum + r.totalCost, 0);
     const avgSuccessRate = results.reduce((sum, r) => sum + r.successRate, 0) / results.length;
     const avgLatency = results.reduce((sum, r) => sum + r.avgLatencyMs, 0) / results.length;
-    const highestThroughput = Math.max(...results.map(r => r.throughputPerSecond));
+    const highestThroughput = Math.max(...results.map((r: any) => r.throughputPerSecond));
 
     return {
       totalBenchmarks: results.length,
@@ -991,7 +991,7 @@ export class AgentSystemBenchmarks {
 
     try {
       // In a real implementation, this would save to the file system
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -1006,7 +1006,7 @@ export class AgentSystemBenchmarks {
     const improvements: string[] = [];
     const regressions: string[] = [];
 
-    current.results.forEach(currentResult => {
+    current.results.forEach((currentResult: any) => {
       const previousResult = previous.results.find(r => r.name === currentResult.name);
       if (!previousResult) return;
 

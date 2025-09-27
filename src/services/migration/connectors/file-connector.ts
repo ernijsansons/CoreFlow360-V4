@@ -84,7 +84,7 @@ export class FileConnector extends BaseConnector {
       }
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logError('testConnection', error as Error);
       return false;
     }
@@ -123,7 +123,7 @@ export class FileConnector extends BaseConnector {
       const path = this.resolvePath(table);
       await this.writeFile(path, data, options);
       return { success: data.length, errors: 0 };
-    } catch (error) {
+    } catch (error: any) {
       this.logError('write', error as Error);
       return { success: 0, errors: data.length };
     }
@@ -354,7 +354,7 @@ export class FileConnector extends BaseConnector {
     const quote = options.quote || '"';
     const hasHeader = options.header !== false;
 
-    const lines = content.split('\n').filter(line => line.trim());
+    const lines = content.split('\n').filter((line: any) => line.trim());
     if (lines.length === 0) return [];
 
     const data: any[] = [];
@@ -375,9 +375,9 @@ export class FileConnector extends BaseConnector {
           });
           data.push(record);
         } else {
-          data.push(values.map(value => this.parseValue(value)));
+          data.push(values.map((value: any) => this.parseValue(value)));
         }
-      } catch (error) {
+      } catch (error: any) {
         if (!options.skipLinesWithError) {
           throw new Error(`Error parsing CSV line ${i + 1}: ${error}`);
         }
@@ -436,16 +436,16 @@ export class FileConnector extends BaseConnector {
 
     // Add header if needed
     if (includeHeader && headers) {
-      lines.push(headers.map(h => this.escapeCSVValue(h, delimiter, quote)).join(delimiter));
+      lines.push(headers.map((h: any) => this.escapeCSVValue(h, delimiter, quote)).join(delimiter));
     }
 
     // Add data rows
     for (const row of data) {
       const values = isObjectArray
-        ? headers!.map(h => row[h])
+        ? headers!.map((h: any) => row[h])
         : Array.isArray(row) ? row : [row];
 
-      const escapedValues = values.map(v =>
+      const escapedValues = values.map((v: any) =>
         this.escapeCSVValue(String(v ?? ''), delimiter, quote)
       );
 
@@ -474,9 +474,9 @@ export class FileConnector extends BaseConnector {
       } else {
         throw new Error('JSON content must be an array or object');
       }
-    } catch (error) {
+    } catch (error: any) {
       // Try parsing as JSONL (JSON Lines)
-      const lines = content.split('\n').filter(line => line.trim());
+      const lines = content.split('\n').filter((line: any) => line.trim());
       const data: any[] = [];
 
       for (const line of lines) {
@@ -605,7 +605,7 @@ export class FileConnector extends BaseConnector {
       for (const [key, value] of Object.entries(sample)) {
         columns.push({
           name: key,
-          type: this.inferDataType(value, data.map(row => row[key])),
+          type: this.inferDataType(value, data.map((row: any) => row[key])),
           nullable: data.some(row => row[key] === null || row[key] === undefined),
           metadata: { inferred: true }
         });
@@ -613,7 +613,7 @@ export class FileConnector extends BaseConnector {
     } else if (Array.isArray(sample)) {
       // Array of arrays
       sample.forEach((_, index) => {
-        const columnValues = data.map(row => Array.isArray(row) ? row[index] : undefined);
+        const columnValues = data.map((row: any) => Array.isArray(row) ? row[index] : undefined);
         columns.push({
           name: `column_${index}`,
           type: this.inferDataType(sample[index], columnValues),
@@ -637,7 +637,7 @@ export class FileConnector extends BaseConnector {
   private inferDataType(sample: any, values: any[]): string {
     const types = new Set<string>();
 
-    values.forEach(value => {
+    values.forEach((value: any) => {
       if (value === null || value === undefined) {
         types.add('null');
       } else if (typeof value === 'boolean') {
@@ -679,7 +679,7 @@ export class FileConnector extends BaseConnector {
   }
 
   private applyFilters(data: any[], filters: Record<string, any>): any[] {
-    return data.filter(row => {
+    return data.filter((row: any) => {
       return Object.entries(filters).every(([key, value]) => {
         const rowValue = row[key];
 

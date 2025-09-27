@@ -111,7 +111,7 @@ export class AdvancedRateLimiter {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Rate limit check failed', error, {
         identifier,
         algorithm: config.algorithm
@@ -204,7 +204,7 @@ export class AdvancedRateLimiter {
     const requests = current?.requests || [];
 
     // Remove requests outside the window
-    const validRequests = requests.filter(timestamp => timestamp > windowStart);
+    const validRequests = requests.filter((timestamp: any) => timestamp > windowStart);
 
     if (validRequests.length >= config.maxRequests) {
       const oldestRequest = Math.min(...validRequests);

@@ -308,7 +308,7 @@ export class BreakpointCalculator {
 
     const commonBreakpoints = [320, 480, 768, 1024, 1366, 1920];
     const analyticsBreakpoints = analytics.viewportSizes
-      .map(size => size.width)
+      .map((size: any) => size.width)
       .filter((width, index, arr) => arr.indexOf(width) === index)
       .sort((a, b) => a - b);
 
@@ -557,12 +557,12 @@ export class QuantumImageOptimizer {
 
   private generateSrcset(variants: ImageVariant[]): string {
     return variants
-      .map(variant => `${variant.url} ${variant.width}w`)
+      .map((variant: any) => `${variant.url} ${variant.width}w`)
       .join(', ');
   }
 
   private generateSizes(variants: ImageVariant[]): string {
-    const breakpoints = [...new Set(variants.map(v => v.width))].sort((a, b) => a - b);
+    const breakpoints = [...new Set(variants.map((v: any) => v.width))].sort((a, b) => a - b);
 
     const sizesRules = breakpoints.map((breakpoint, index) => {
       if (index === breakpoints.length - 1) {

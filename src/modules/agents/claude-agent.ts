@@ -232,7 +232,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
       const validation = await this.validateInput(task.input, task.capability);
       if (!validation.valid) {
         throw new AgentError(
-          `Input validation failed: ${validation.errors?.map(e => e.message).join(', ')}`,
+          `Input validation failed: ${validation.errors?.map((e: any) => e.message).join(', ')}`,
           'VALIDATION_FAILED',
           'validation',
           false,
@@ -303,7 +303,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
 
       return agentResult;
 
-    } catch (error) {
+    } catch (error: any) {
       const executionTime = Date.now() - startTime;
       const isRetryable = this.isRetryableError(error);
 
@@ -453,7 +453,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
         sanitizedInput,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Input validation error', error, { capability });
       return {
         valid: false,
@@ -507,7 +507,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
 
       return Math.round((totalCost + processingCost) * 100) / 100; // Round to cents
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Cost estimation failed', error, {
         taskId: task.id,
         capability: task.capability,
@@ -580,7 +580,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
         };
       }
 
-    } catch (error) {
+    } catch (error: any) {
       const latency = Date.now() - startTime;
 
       return {
@@ -826,8 +826,8 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
 
     // Extract content
     const content = result.content
-      .filter(block => block.type === 'text')
-      .map(block => block.text)
+      .filter((block: any) => block.type === 'text')
+      .map((block: any) => block.text)
       .join('\n');
 
     return {
@@ -1101,7 +1101,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
     }
 
     // Fallback: return first sentence if no explicit reasoning found
-    const sentences = content.split('.').filter(s => s.trim().length > 20);
+    const sentences = content.split('.').filter((s: any) => s.trim().length > 20);
     return sentences[0]?.trim() + '.' || '';
   }
 

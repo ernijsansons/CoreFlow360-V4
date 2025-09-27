@@ -17,7 +17,7 @@ export class TelemetryCollector {
         this.streamToClickhouse(entry),
         this.checkAlertRules(entry)
       ]);
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -154,7 +154,7 @@ export class TelemetryCollector {
     const batchSize = 1000;
     for (let i = 0; i < entries.length; i += batchSize) {
       const batch = entries.slice(i, i + batchSize);
-      await Promise.all(batch.map(entry => this.collect(entry)));
+      await Promise.all(batch.map((entry: any) => this.collect(entry)));
     }
   }
 
@@ -194,7 +194,7 @@ export class TelemetryCollector {
         default:
           return false;
       }
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -214,7 +214,7 @@ export class TelemetryCollector {
 
       const func = new Function('context', `with(context) { return ${expression}; }`);
       return func(context);
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -265,7 +265,7 @@ export class TelemetryCollector {
     `;
 
     const results = await this.query(sql);
-    return results.map(row => ({
+    return results.map((row: any) => ({
       timestamp: row.timestamp,
       businessId: row.business_id,
       metrics: {

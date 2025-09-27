@@ -14,6 +14,16 @@ export class AIClient {
     this.env = env;
   }
 
+  // Static method to get a singleton instance
+  private static instance: AIClient | null = null;
+  
+  static getInstance(env: Env): AIClient {
+    if (!AIClient.instance) {
+      AIClient.instance = new AIClient(env);
+    }
+    return AIClient.instance;
+  }
+
   private async processQueue(): Promise<void> {
     if (this.isProcessing || this.requestQueue.length === 0) {
       return;
@@ -23,7 +33,7 @@ export class AIClient {
     
     try {
       const batch = this.requestQueue.splice(0, this.MAX_CONCURRENT_REQUESTS);
-      await Promise.allSettled(batch.map(request => request()));
+      await Promise.allSettled(batch.map((request: any) => request()));
     } finally {
       this.isProcessing = false;
       
@@ -45,7 +55,7 @@ export class AIClient {
           const result = await requestFn();
           clearTimeout(timeoutId);
           resolve(result);
-        } catch (error) {
+        } catch (error: any) {
           clearTimeout(timeoutId);
           reject(error);
         }
@@ -82,7 +92,7 @@ export class AIClient {
 
         return String(response.response || '');
 
-      } catch (error) {
+      } catch (error: any) {
         throw new Error(`AI generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     });
@@ -113,7 +123,7 @@ export class AIClient {
       // Try to parse the JSON
       return JSON.parse(jsonStr);
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`JSON parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -140,7 +150,7 @@ Return only valid JSON without any explanation or markdown formatting.`;
       
       return parsed as T;
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Structured response generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -179,7 +189,7 @@ Return only the code without any explanation or markdown formatting.`;
 
       return code.trim();
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Code generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -211,7 +221,7 @@ Format the documentation in Markdown.`;
 
       return await this.generateText(docPrompt, options);
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Documentation generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -244,7 +254,7 @@ Format the tests in ${language} using ${testFramework}.`;
 
       return await this.generateText(testPrompt, options);
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Test generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -286,7 +296,7 @@ Format as valid JSON.`;
       const response = await this.generateText(analysisPrompt, options);
       return await this.parseJSONResponse(analysisPrompt);
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Code analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -309,7 +319,7 @@ Return only the summary without any introduction or explanation.`;
 
       return await this.generateText(summaryPrompt, options);
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Summary generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -333,7 +343,7 @@ Return only the translation without any explanation or formatting.`;
 
       return await this.generateText(translatePrompt, options);
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -363,7 +373,7 @@ Return only a JSON array of numbers representing the embedding.`;
       const parsed = await this.parseJSONResponse(embeddingPrompt);
       return Array.isArray(parsed) ? parsed : [];
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Embedding generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -382,7 +392,7 @@ Return only a JSON array of numbers representing the embedding.`;
   ): Promise<string> {
     try {
       // Convert messages to a single prompt
-      const prompt = messages.map(msg => {
+      const prompt = messages.map((msg: any) => {
         switch (msg.role) {
           case 'system':
             return `System: ${msg.content}`;
@@ -397,7 +407,7 @@ Return only a JSON array of numbers representing the embedding.`;
 
       return await this.generateText(prompt, options);
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Chat response generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -416,7 +426,7 @@ Return only a JSON array of numbers representing the embedding.`;
       // For now, we'll return a placeholder
       throw new Error('Image generation not implemented in this AI client');
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Image generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -454,7 +464,7 @@ Format as valid JSON.`;
 
       return await this.parseJSONResponse(moderationPrompt);
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Content moderation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -477,7 +487,7 @@ Format as valid JSON.`;
         supportedLanguages: ['en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'zh', 'ja', 'ko'],
       };
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Model info retrieval failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -500,9 +510,14 @@ Format as valid JSON.`;
         errorRate: 0,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Usage stats retrieval failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+}
+
+// Export the getAIClient function for backward compatibility
+export function getAIClient(env: Env): AIClient {
+  return AIClient.getInstance(env);
 }
 

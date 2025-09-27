@@ -76,7 +76,7 @@ export class PlaybookGenerator {
       - Communication Style: ${segment.characteristics.communicationStyle}
 
       Successful Deals Data:
-      ${JSON.stringify(deals.slice(0, 20).map(deal => ({
+      ${JSON.stringify(deals.slice(0, 20).map((deal: any) => ({
         value: deal.value,
         salesCycle: deal.sales_cycle,
         industry: deal.industry,
@@ -105,7 +105,7 @@ export class PlaybookGenerator {
     try {
       const response = await this.callAI(prompt);
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: any) {
       return this.getFallbackAnalysis(segment);
     }
   }
@@ -236,7 +236,7 @@ export class PlaybookGenerator {
       };
 
       return playbook;
-    } catch (error) {
+    } catch (error: any) {
       return this.createFallbackPlaybook(segment);
     }
   }
@@ -258,12 +258,15 @@ export class PlaybookGenerator {
     }
 
     return {
+      id: `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      playbook_id: '',
       title,
       content: formattedContent,
+      order: 0,
+      category: type,
+      is_active: true,
+      created_at: new Date().toISOString(),
       type,
-      priority,
-      tags: [title.toLowerCase().replace(/\s+/g, '_')],
-      effectiveness: 0, // Will be updated based on usage
       lastUpdated: new Date().toISOString()
     };
   }
@@ -294,10 +297,10 @@ export class PlaybookGenerator {
       Performance:
       - Win Rate: ${playbook.performance.winRate}%
       - Adoption Rate: ${playbook.performance.adoptionRate}%
-      - User Feedback: ${playbook.performance.userFeedback}/5
+      - User Feedback: ${playbook.performance.userFeedback || 0}/5
 
       Feedback Analysis:
-      ${JSON.stringify(feedback.map(f => ({
+      ${JSON.stringify(feedback.map((f: any) => ({
         type: f.type,
         rating: f.rating,
         comment: f.comment,
@@ -319,29 +322,31 @@ export class PlaybookGenerator {
     try {
       const response = await this.callAI(prompt);
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: any) {
       return { contentUpdates: [], newAdditions: [], improvements: [] };
     }
   }
 
   private async applyImprovements(playbook: Playbook, improvements: any): Promise<Playbook> {
     const updatedPlaybook = { ...playbook };
-    updatedPlaybook.version += 1;
+    updatedPlaybook.version = (updatedPlaybook.version || 0) + 1;
     updatedPlaybook.updatedAt = new Date().toISOString();
 
     // Apply content updates
     for (const update of improvements.contentUpdates || []) {
-      if (update.section && updatedPlaybook.sections[update.section as keyof typeof updatedPlaybook.sections]) {
-        const section = updatedPlaybook.sections[update.section as keyof typeof updatedPlaybook.sections];
-        section.content = update.newContent;
-        section.lastUpdated = new Date().toISOString();
+      if (update.section) {
+        const section = updatedPlaybook.sections.find(s => s.id === update.section);
+        if (section) {
+          section.content = update.newContent;
+          section.lastUpdated = new Date().toISOString();
+        }
       }
     }
 
     // Add new sections or content
     for (const addition of improvements.newAdditions || []) {
       if (addition.section && addition.content) {
-        const section = updatedPlaybook.sections[addition.section as keyof typeof updatedPlaybook.sections];
+        const section = updatedPlaybook.sections.find(s => s.id === addition.section);
         if (section) {
           section.content += '\n\n' + addition.content;
           section.lastUpdated = new Date().toISOString();
@@ -355,7 +360,7 @@ export class PlaybookGenerator {
   private async testPlaybook(playbook: Playbook): Promise<void> {
 
     // Get test leads for this segment
-    const testLeads = await this.getTestLeads(playbook.segment, 10);
+    const testLeads = await this.getTestLeads(playbook.segment || 'default', 10);
 
     // Apply playbook to test leads
     const results = await this.applyPlaybookToLeads(playbook, testLeads);
@@ -367,7 +372,7 @@ export class PlaybookGenerator {
     playbook.performance = {
       ...playbook.performance,
       winRate: testResults.winRate,
-      averageDealSize: testResults.averageDealSize,
+      avgDealSize: testResults.averageDealSize,
       salesCycle: testResults.salesCycle,
       adoptionRate: testResults.adoptionRate
     };
@@ -414,7 +419,7 @@ export class PlaybookGenerator {
   }
 
   private async analyzeTestResults(results: any[]): Promise<any> {
-    const positiveOutcomes = results.filter(r => r.outcome === 'positive').length;
+    const positiveOutcomes = results.filter((r: any) => r.outcome === 'positive').length;
     const totalResults = results.length;
 
     return {
@@ -445,10 +450,10 @@ export class PlaybookGenerator {
     `).bind(playbook.id, playbook.segment).first();
 
     if (performanceData) {
-      playbook.performance.winRate = performanceData.win_rate || 0;
-      playbook.performance.averageDealSize = performanceData.avg_deal_size || 0;
+      playbook.performance.winRate = Number(performanceData.win_rate) || 0;
+      playbook.performance.avgDealSize = Number(performanceData.avg_deal_size) || 0;
       playbook.performance.salesCycle = performanceData.avg_sales_cycle || 0;
-      playbook.performance.adoptionRate = (performanceData.adoption_rate || 0) * 100;
+      playbook.performance.adoptionRate = (Number(performanceData.adoption_rate) || 0) * 100;
     }
 
     // Get user feedback
@@ -473,7 +478,7 @@ export class PlaybookGenerator {
       try {
         const playbook = await this.generatePlaybook(segment);
         playbooks.push(playbook);
-      } catch (error) {
+      } catch (error: any) {
       }
     }
 
@@ -494,9 +499,9 @@ export class PlaybookGenerator {
       .find(p => p.segment === segmentId);
 
     const recommendations = {
-      recommended: [],
-      improvements: [],
-      newSections: []
+      recommended: [] as Playbook[],
+      improvements: [] as string[],
+      newSections: [] as string[]
     };
 
     if (!currentPlaybook) {
@@ -518,7 +523,7 @@ export class PlaybookGenerator {
   }> {
     // Analyze playbook against latest patterns and best practices
     const patterns = Array.from(this.patterns.values())
-      .filter(p => p.applicability.includes(playbook.segment));
+      .filter((p: any) => p.applicability?.includes(playbook.segment || 'default'));
 
     const improvements = [];
     const newSections = [];
@@ -526,7 +531,7 @@ export class PlaybookGenerator {
     // Check if playbook incorporates latest successful patterns
     for (const pattern of patterns) {
       if (!this.playbookIncludesPattern(playbook, pattern)) {
-        improvements.push(`Incorporate ${pattern.name} pattern for better ${pattern.type} performance`);
+        improvements.push(`Incorporate ${pattern.name} pattern for better ${pattern.type || pattern.pattern_type} performance`);
       }
     }
 
@@ -539,7 +544,7 @@ export class PlaybookGenerator {
     ];
 
     for (const section of essentialSections) {
-      const playbookSection = playbook.sections[section as keyof typeof playbook.sections];
+      const playbookSection = playbook.sections.find(s => s.category === section);
       if (!playbookSection || playbookSection.content.length < 100) {
         newSections.push(`Expand ${section} section with more detailed guidance`);
       }
@@ -550,13 +555,13 @@ export class PlaybookGenerator {
 
   private playbookIncludesPattern(playbook: Playbook, pattern: Pattern): boolean {
     // Check if playbook content includes pattern recommendations
-    const allContent = Object.values(playbook.sections)
-      .map(s => s.content)
+    const allContent = playbook.sections
+      .map((s: any) => s.content)
       .join(' ')
       .toLowerCase();
 
     return allContent.includes(pattern.name.toLowerCase()) ||
-           allContent.includes(pattern.description.toLowerCase());
+           (pattern.description && allContent.includes(pattern.description.toLowerCase()));
   }
 
   private async callAI(prompt: string): Promise<string> {
@@ -565,7 +570,7 @@ export class PlaybookGenerator {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': this.env.ANTHROPIC_API_KEY,
+          'x-api-key': this.env.ANTHROPIC_API_KEY || '',
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
@@ -585,7 +590,7 @@ export class PlaybookGenerator {
       // Extract JSON if present
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       return jsonMatch ? jsonMatch[0] : content;
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -621,24 +626,22 @@ export class PlaybookGenerator {
       name: `${segment.name} Sales Playbook`,
       segment: segment.id,
       version: 1,
-      sections: {
-      
-   idealCustomerProfile: this.createSection('Ideal Customer Profile', analysis.idealCustomerProfile, 'text', 'high'),
-        qualifyingQuestions: this.createSection('Qualifying Questions', analysis.qualifyingQuestions, 'list', 'high'),
-        discoveryStructure: this.createSection('Discovery Structure', analysis.discoveryStructure, 'script', 'high'),
-        commonObjections: this.createSection('Common Objections', analysis.commonObjections, 'list', 'high'),
-        proofPoints: this.createSection('Proof Points', analysis.proofPoints, 'list', 'medium'),
-        emailTemplates: this.createSection('Email Templates', analysis.emailTemplates, 'template', 'high'),
-        callScripts: this.createSection('Call Scripts', analysis.callScripts, 'script', 'high'),
-      
-   competitivePositioning: this.createSection('Competitive Positioning', analysis.competitivePositioning, 'text', 'medium'),
-        pricingGuidance: this.createSection('Pricing Guidance', analysis.pricingGuidance, 'text', 'medium'),
-        closeTechniques: this.createSection('Close Techniques', analysis.closeTechniques, 'list', 'high')
-      },
+      sections: [
+        this.createSection('Ideal Customer Profile', analysis.idealCustomerProfile, 'text', 'high'),
+        this.createSection('Qualifying Questions', analysis.qualifyingQuestions, 'list', 'high'),
+        this.createSection('Discovery Structure', analysis.discoveryStructure, 'script', 'high'),
+        this.createSection('Common Objections', analysis.commonObjections, 'list', 'high'),
+        this.createSection('Proof Points', analysis.proofPoints, 'list', 'medium'),
+        this.createSection('Email Templates', analysis.emailTemplates, 'template', 'high'),
+        this.createSection('Call Scripts', analysis.callScripts, 'script', 'high'),
+        this.createSection('Competitive Positioning', analysis.competitivePositioning, 'text', 'medium'),
+        this.createSection('Pricing Guidance', analysis.pricingGuidance, 'text', 'medium'),
+        this.createSection('Close Techniques', analysis.closeTechniques, 'list', 'high')
+      ],
       performance: {
         adoptionRate: 0,
         winRate: 0,
-        averageDealSize: 0,
+        avgDealSize: 0,
         salesCycle: 0,
         userFeedback: 0
       },
@@ -670,8 +673,8 @@ export class PlaybookGenerator {
       playbook.version,
       JSON.stringify(playbook),
       playbook.active ? 1 : 0,
-      playbook.createdAt,
-      playbook.updatedAt
+      playbook.created_at,
+      playbook.updated_at
     ).run();
   }
 
@@ -721,11 +724,11 @@ export class PlaybookGenerator {
   }
 
   async getActivePlaybooks(): Promise<Playbook[]> {
-    return Array.from(this.playbooks.values()).filter(p => p.active);
+    return Array.from(this.playbooks.values()).filter((p: any) => p.active);
   }
 
   async getPlaybooksBySegment(segmentId: string): Promise<Playbook[]> {
-    return Array.from(this.playbooks.values()).filter(p => p.segment === segmentId);
+    return Array.from(this.playbooks.values()).filter((p: any) => p.segment === segmentId);
   }
 
   async getPlaybookPerformance(): Promise<{
@@ -736,15 +739,13 @@ export class PlaybookGenerator {
     topPerforming: Playbook[];
   }> {
     const allPlaybooks = Array.from(this.playbooks.values());
-    const activePlaybooks = allPlaybooks.filter(p => p.active);
+    const activePlaybooks = allPlaybooks.filter((p: any) => p.active);
 
     const avgWinRate = activePlaybooks.reduce((sum, p) => sum + p.performance.winRate, 0) / activePlaybooks.length;
-    const avgAdoptionRate = activePlaybooks.reduce((sum,
-  p) => sum + p.performance.adoptionRate, 0) / activePlaybooks.length;
+    const avgAdoptionRate = activePlaybooks.reduce((sum, p) => sum + p.performance.adoptionRate, 0) / activePlaybooks.length;
 
     const topPerforming = activePlaybooks
-      .sort((a, b)
-  => (b.performance.winRate * b.performance.adoptionRate) - (a.performance.winRate * a.performance.adoptionRate))
+      .sort((a, b) => (b.performance.winRate * b.performance.adoptionRate) - (a.performance.winRate * a.performance.adoptionRate))
       .slice(0, 5);
 
     return {

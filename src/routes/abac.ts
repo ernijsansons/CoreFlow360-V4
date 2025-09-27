@@ -18,7 +18,7 @@ abac.onError(errorHandler);
  * Check single permission
  * POST /abac/check
  */
-abac.post('/check', authenticate(), rateLimiters.api, asyncHandler(async (c) => {
+abac.post('/check', authenticate(), rateLimiters.api, asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.get('businessId');
@@ -77,7 +77,7 @@ abac.post('/check', authenticate(), rateLimiters.api, asyncHandler(async (c) => 
  * Batch permission check
  * POST /abac/check-batch
  */
-abac.post('/check-batch', authenticate(), rateLimiters.api, asyncHandler(async (c) => {
+abac.post('/check-batch', authenticate(), rateLimiters.api, asyncHandler(async (c: any) => {
   const startTime = performance.now();
   const userId = c.get('userId');
   const businessId = c.get('businessId');
@@ -143,7 +143,7 @@ abac.post('/check-batch', authenticate(), rateLimiters.api, asyncHandler(async (
  * Get all permissions for current user
  * GET /abac/permissions
  */
-abac.get('/permissions', authenticate(), asyncHandler(async (c) => {
+abac.get('/permissions', authenticate(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const businessId = c.get('businessId');
 
@@ -187,7 +187,7 @@ abac.get('/permissions', authenticate(), asyncHandler(async (c) => {
  * Introspect capabilities for current user
  * GET /abac/introspect
  */
-abac.get('/introspect', authenticate(), asyncHandler(async (c) => {
+abac.get('/introspect', authenticate(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const businessId = c.get('businessId');
   const resourceType = c.req.query('resourceType');
@@ -225,7 +225,7 @@ abac.get('/introspect', authenticate(), asyncHandler(async (c) => {
  * Discover available capabilities for a resource type
  * GET /abac/capabilities/:resourceType
  */
-abac.get('/capabilities/:resourceType', authenticate(), asyncHandler(async (c) => {
+abac.get('/capabilities/:resourceType', authenticate(), asyncHandler(async (c: any) => {
   const resourceType = c.req.param('resourceType');
   const service = new ABACService(c.env.KV_ABAC);
 
@@ -246,7 +246,7 @@ abac.get('/capabilities/:resourceType', authenticate(), asyncHandler(async (c) =
  * Debug permission evaluation
  * POST /abac/debug
  */
-abac.post('/debug', authenticate(), asyncHandler(async (c) => {
+abac.post('/debug', authenticate(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const businessId = c.get('businessId');
   const body = await c.req.json();
@@ -293,7 +293,7 @@ abac.post('/debug', authenticate(), asyncHandler(async (c) => {
  * Invalidate permissions cache
  * POST /abac/invalidate
  */
-abac.post('/invalidate', authenticate(), asyncHandler(async (c) => {
+abac.post('/invalidate', authenticate(), asyncHandler(async (c: any) => {
   const userId = c.get('userId');
   const businessId = c.get('businessId');
 
@@ -324,7 +324,7 @@ abac.post('/invalidate', authenticate(), asyncHandler(async (c) => {
  * Get ABAC performance statistics
  * GET /abac/stats
  */
-abac.get('/stats', authenticate(), asyncHandler(async (c) => {
+abac.get('/stats', authenticate(), asyncHandler(async (c: any) => {
   const service = new ABACService(c.env.KV_ABAC);
   const stats = service.getPerformanceStatistics();
 
@@ -338,7 +338,7 @@ abac.get('/stats', authenticate(), asyncHandler(async (c) => {
  * Get ABAC health report
  * GET /abac/health
  */
-abac.get('/health', authenticate(), asyncHandler(async (c) => {
+abac.get('/health', authenticate(), asyncHandler(async (c: any) => {
   const service = new ABACService(c.env.KV_ABAC);
   const health = await service.healthCheck();
 
@@ -349,7 +349,7 @@ abac.get('/health', authenticate(), asyncHandler(async (c) => {
  * Export performance metrics
  * GET /abac/metrics
  */
-abac.get('/metrics', authenticate(), asyncHandler(async (c) => {
+abac.get('/metrics', authenticate(), asyncHandler(async (c: any) => {
   // Only allow metrics export for admins or monitoring systems
   if (c.get('orgRole') !== 'owner' && c.get('orgRole') !== 'director') {
     return c.json({
@@ -390,7 +390,7 @@ abac.get('/metrics', authenticate(), asyncHandler(async (c) => {
  * Get system statistics
  * GET /abac/admin/stats
  */
-abac.get('/admin/stats', authenticate(), asyncHandler(async (c) => {
+abac.get('/admin/stats', authenticate(), asyncHandler(async (c: any) => {
   if (c.get('orgRole') !== 'owner') {
     return c.json({
       success: false,
@@ -411,7 +411,7 @@ abac.get('/admin/stats', authenticate(), asyncHandler(async (c) => {
  * Clear ABAC cache
  * POST /abac/admin/clear-cache
  */
-abac.post('/admin/clear-cache', authenticate(), asyncHandler(async (c) => {
+abac.post('/admin/clear-cache', authenticate(), asyncHandler(async (c: any) => {
   if (c.get('orgRole') !== 'owner') {
     return c.json({
       success: false,

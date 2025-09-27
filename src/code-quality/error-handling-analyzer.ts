@@ -194,7 +194,7 @@ export class ErrorHandlingAnalyzer {
       // Simulate error handling analysis
       const errorInfo = this.simulateErrorHandling(filePath);
       this.errorHandlingData.set(filePath, errorInfo);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Error analyzing file for error handling', { filePath, error });
     }
   }
@@ -578,9 +578,9 @@ export class ErrorHandlingAnalyzer {
     score -= analysis.quality.recovery.issues.length * 1.5;
 
     // Deduct for violations
-    const criticalViolations = analysis.violations.filter(v => v.severity === 'critical').length;
-    const highViolations = analysis.violations.filter(v => v.severity === 'high').length;
-    const mediumViolations = analysis.violations.filter(v => v.severity === 'medium').length;
+    const criticalViolations = analysis.violations.filter((v: any) => v.severity === 'critical').length;
+    const highViolations = analysis.violations.filter((v: any) => v.severity === 'high').length;
+    const mediumViolations = analysis.violations.filter((v: any) => v.severity === 'medium').length;
 
     score -= criticalViolations * 10;
     score -= highViolations * 5;

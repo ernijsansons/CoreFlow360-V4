@@ -198,7 +198,7 @@ class TaskQueueManager {
         queueId
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to enqueue task', error, {
         taskId: task.id
       });
@@ -225,7 +225,7 @@ class TaskQueueManager {
     );
 
     for (const queuedTask of tasksToProcess) {
-      this.processTask(queuedTask).catch(error => {
+      this.processTask(queuedTask).catch((error: any) => {
         this.logger.error('Task processing failed', error, {
           queueId: queuedTask.id,
           taskId: queuedTask.task.id
@@ -281,7 +281,7 @@ class TaskQueueManager {
       // Update throughput
       this.throughputWindow.push(Date.now());
       const cutoff = Date.now() - 60000; // Last minute
-      this.throughputWindow = this.throughputWindow.filter(t => t > cutoff);
+      this.throughputWindow = this.throughputWindow.filter((t: any) => t > cutoff);
 
       this.logger.info('Task completed', {
         queueId: queuedTask.id,
@@ -290,7 +290,7 @@ class TaskQueueManager {
         processingTime
       });
 
-    } catch (error) {
+    } catch (error: any) {
       queuedTask.status = 'failed';
       queuedTask.error = error instanceof Error ? error.message : 'Unknown error';
       this.metrics.failedCount++;
@@ -349,7 +349,7 @@ class TaskQueueManager {
 
     // Convert queue to array and sort by priority
     const sortedTasks = Array.from(this.queue.values())
-      .filter(task => {
+      .filter((task: any) => {
         // Skip deferred tasks
         if (task.status === 'deferred' && task.deferredUntil && task.deferredUntil > now) {
           return false;
@@ -464,7 +464,7 @@ class TaskQueueManager {
         task.enqueuedAt,
         task.attempts
       ).run();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to persist queued task', error, {
         queueId: task.id
       });
@@ -490,7 +490,7 @@ class TaskQueueManager {
         task.status === 'completed' ? Date.now() : null,
         task.id
       ).run();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to update queued task', error, {
         queueId: task.id
       });
@@ -502,7 +502,7 @@ class TaskQueueManager {
    */
   private startProcessing(): void {
     this.processingInterval = setInterval(() => {
-      this.processTasks().catch(error => {
+      this.processTasks().catch((error: any) => {
         this.logger.error('Processing loop error', error);
       });
     }, 100) as any; // Process every 100ms
@@ -606,7 +606,7 @@ class TaskQueueManager {
         recoveredTasks: tasks.length
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to recover queue', error);
     }
   }

@@ -869,7 +869,7 @@ export class QuantumCodeAuditor {
     const recommendations = this.generateRecommendations(issues, data);
 
     // Filter critical issues
-    const criticalIssues = issues.filter(i => i.severity === 'critical');
+    const criticalIssues = issues.filter((i: any) => i.severity === 'critical');
 
     return {
       overallScore,
@@ -1103,7 +1103,7 @@ export class QuantumCodeAuditor {
     }
 
     // Old TODOs
-    const oldTodos = audit.debt.todos.filter(todo => todo.age > 90);
+    const oldTodos = audit.debt.todos.filter((todo: any) => todo.age > 90);
     for (const todo of oldTodos) {
       issues.push({
         id: `old_todo_${todo.location.file}_${todo.location.line}`,
@@ -1160,10 +1160,10 @@ export class QuantumCodeAuditor {
   ): CodeAuditSummary {
     return {
       totalIssues: issues.length,
-      criticalIssues: issues.filter(i => i.severity === 'critical').length,
-      highIssues: issues.filter(i => i.severity === 'high').length,
-      mediumIssues: issues.filter(i => i.severity === 'medium').length,
-      lowIssues: issues.filter(i => i.severity === 'low').length,
+      criticalIssues: issues.filter((i: any) => i.severity === 'critical').length,
+      highIssues: issues.filter((i: any) => i.severity === 'high').length,
+      mediumIssues: issues.filter((i: any) => i.severity === 'medium').length,
+      lowIssues: issues.filter((i: any) => i.severity === 'low').length,
       autoFixable: autoFixableIssues.length,
       estimatedDebt: data.debtAudit.estimatedCost.totalHours,
       maintainabilityIndex: data.complexityAudit.maintainability.index,
@@ -1195,7 +1195,7 @@ export class QuantumCodeAuditor {
     const recommendations: CodeRecommendation[] = [];
 
     // High-priority architecture fixes
-    const architectureIssues = issues.filter(i => i.category === 'Architecture' && i.severity === 'critical');
+    const architectureIssues = issues.filter((i: any) => i.category === 'Architecture' && i.severity === 'critical');
     if (architectureIssues.length > 0) {
       recommendations.push({
         priority: 'critical',
@@ -1210,7 +1210,7 @@ export class QuantumCodeAuditor {
     }
 
     // Complexity reduction
-    const complexityIssues = issues.filter(i => i.type === 'high_complexity');
+    const complexityIssues = issues.filter((i: any) => i.type === 'high_complexity');
     if (complexityIssues.length > 0) {
       recommendations.push({
         priority: 'high',
@@ -1225,7 +1225,7 @@ export class QuantumCodeAuditor {
     }
 
     // Type safety improvements
-    const typeSafetyIssues = issues.filter(i => i.category === 'Type Safety');
+    const typeSafetyIssues = issues.filter((i: any) => i.category === 'Type Safety');
     if (typeSafetyIssues.length > 10) {
       recommendations.push({
         priority: 'medium',
@@ -1301,23 +1301,23 @@ Overall Score: ${report.overallScore}/100
 `;
 
   const criticalActions = [
-    ...report.criticalIssues.slice(0, 5).map(issue =>
+    ...report.criticalIssues.slice(0, 5).map((issue: any) =>
       `🚨 ${issue.title}: ${issue.description} (${issue.location.file})`
     ),
     ...report.recommendations
-      .filter(rec => rec.priority === 'critical')
+      .filter((rec: any) => rec.priority === 'critical')
       .slice(0, 3)
-      .map(rec => `⚠️ ${rec.title}: ${rec.description}`)
+      .map((rec: any) => `⚠️ ${rec.title}: ${rec.description}`)
   ];
 
   const quickWins = [
-    ...report.autoFixableIssues.slice(0, 5).map(fix =>
+    ...report.autoFixableIssues.slice(0, 5).map((fix: any) =>
       `⚡ ${fix.description} (Risk: ${fix.risk})`
     ),
     ...report.recommendations
-      .filter(rec => rec.effort < 2 && rec.roi > 80)
+      .filter((rec: any) => rec.effort < 2 && rec.roi > 80)
       .slice(0, 3)
-      .map(rec => `💡 ${rec.title}: ${rec.impact}`)
+      .map((rec: any) => `💡 ${rec.title}: ${rec.impact}`)
   ];
 
   return { report, summary, criticalActions, quickWins };

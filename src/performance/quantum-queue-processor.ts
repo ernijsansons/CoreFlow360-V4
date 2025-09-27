@@ -198,7 +198,7 @@ export class JobScheduler {
       const batch = await this.createBatch(job, sortedJobs, analysis, processed);
       if (batch.jobs.length > 0) {
         batches.push(batch);
-        batch.jobs.forEach(j => processed.add(j.id));
+        batch.jobs.forEach((j: any) => processed.add(j.id));
       }
     }
 
@@ -214,7 +214,7 @@ export class JobScheduler {
     const batchJobs = [seedJob];
     const maxBatchSize = 50;
 
-    const compatibleJobs = allJobs.filter(job =>
+    const compatibleJobs = allJobs.filter((job: any) =>
       !processed.has(job.id) &&
       job.id !== seedJob.id &&
       this.areJobsCompatible(seedJob, job, analysis) &&
@@ -241,7 +241,7 @@ export class JobScheduler {
       optimalWorkers,
       strategy,
       estimatedDuration: this.estimateBatchDuration(batchJobs, optimalWorkers, strategy),
-      priority: Math.max(...batchJobs.map(j => j.priority))
+      priority: Math.max(...batchJobs.map((j: any) => j.priority))
     };
   }
 
@@ -329,7 +329,7 @@ export class JobScheduler {
 
   private checkDependencies(job: Job, batchJobs: Job[], dependencies: Map<string, string[]>): boolean {
     const jobDeps = dependencies.get(job.id) || [];
-    const batchJobIds = new Set(batchJobs.map(j => j.id));
+    const batchJobIds = new Set(batchJobs.map((j: any) => j.id));
 
     return jobDeps.every(dep => batchJobIds.has(dep));
   }
@@ -346,7 +346,7 @@ export class JobScheduler {
       sum + analysis.complexity.get(job.id), 0);
 
     const avgComplexity = totalComplexity / jobs.length;
-    const parallelizableJobs = jobs.filter(job =>
+    const parallelizableJobs = jobs.filter((job: any) =>
       analysis.complexity.get(job.id) <= avgComplexity * 1.2);
 
     return parallelizableJobs.length / jobs.length;
@@ -405,7 +405,7 @@ export class JobScheduler {
   }
 
   private estimateBatchDuration(jobs: Job[], workers: number, strategy: string): number {
-    const complexities = jobs.map(job => this.calculateJobComplexity(job));
+    const complexities = jobs.map((job: any) => this.calculateJobComplexity(job));
 
     if (strategy === 'sequential') {
       return complexities.reduce((sum, c) => sum + c * 1000, 0);
@@ -427,8 +427,8 @@ export class JobScheduler {
       const priorityDiff = b.priority - a.priority;
       if (priorityDiff !== 0) return priorityDiff;
 
-      const deadlineA = Math.min(...a.jobs.map(j => j.deadline || Infinity));
-      const deadlineB = Math.min(...b.jobs.map(j => j.deadline || Infinity));
+      const deadlineA = Math.min(...a.jobs.map((j: any) => j.deadline || Infinity));
+      const deadlineB = Math.min(...b.jobs.map((j: any) => j.deadline || Infinity));
 
       return deadlineA - deadlineB;
     });
@@ -515,9 +515,9 @@ export class JobScheduler {
 
   private async analyzeEvents(events: any[]): Promise<any> {
     return {
-      scheduledJobs: events.filter(e => e.type === 'scheduled').length,
-      businessEvents: events.filter(e => e.type === 'business').length,
-      systemEvents: events.filter(e => e.type === 'system').length,
+      scheduledJobs: events.filter((e: any) => e.type === 'scheduled').length,
+      businessEvents: events.filter((e: any) => e.type === 'business').length,
+      systemEvents: events.filter((e: any) => e.type === 'system').length,
       impact: 'moderate'
     };
   }
@@ -563,8 +563,8 @@ export class QuantumQueueProcessor {
   async processJobs(): Promise<void> {
     const jobs = await this.getQueuedJobs();
     const resources = await this.getAvailableResources();
-    const priorities = jobs.map(job => job.priority);
-    const deadlines = jobs.map(job => job.deadline || Date.now() + 3600000);
+    const priorities = jobs.map((job: any) => job.priority);
+    const deadlines = jobs.map((job: any) => job.deadline || Date.now() + 3600000);
 
     const schedule = await this.aiScheduler.optimize({
       jobs,
@@ -575,7 +575,7 @@ export class QuantumQueueProcessor {
 
 
     await Promise.all(
-      schedule.batches.map(batch =>
+      schedule.batches.map((batch: any) =>
         this.processBatch(batch, {
           workers: batch.optimalWorkers,
           strategy: batch.strategy,
@@ -658,7 +658,7 @@ export class QuantumQueueProcessor {
 
       const duration = Date.now() - startTime;
 
-    } catch (error) {
+    } catch (error: any) {
       await this.handleBatchFailure(batch, error);
     }
   }
@@ -667,8 +667,8 @@ export class QuantumQueueProcessor {
     const chunks = this.chunkJobs(jobs, maxWorkers);
 
     await Promise.all(
-      chunks.map(chunk =>
-        Promise.all(chunk.map(job => this.processJob(job)))
+      chunks.map((chunk: any) =>
+        Promise.all(chunk.map((job: any) => this.processJob(job)))
       )
     );
   }
@@ -714,7 +714,7 @@ export class QuantumQueueProcessor {
       this.workers.totalProcessed++;
       this.workers.avgProcessingTime = (this.workers.avgProcessingTime + processingTime) / 2;
 
-    } catch (error) {
+    } catch (error: any) {
       job.failedAt = Date.now();
       job.error = error instanceof Error ? error.message : String(error);
 
@@ -802,13 +802,13 @@ export class QuantumQueueProcessor {
     const sorted: Job[] = [];
 
     while (sorted.length < jobs.length) {
-      const ready = jobs.filter(job =>
+      const ready = jobs.filter((job: any) =>
         !sorted.includes(job) &&
         job.dependencies.every(dep => resolved.has(dep))
       );
 
       if (ready.length === 0) {
-        const remaining = jobs.filter(job => !sorted.includes(job));
+        const remaining = jobs.filter((job: any) => !sorted.includes(job));
         sorted.push(...remaining);
         break;
       }
@@ -941,7 +941,7 @@ export class QuantumQueueProcessor {
 
   private calculateAvgWaitTime(jobs: Job[]): number {
     const now = Date.now();
-    const waitTimes = jobs.map(job => now - job.createdAt);
+    const waitTimes = jobs.map((job: any) => now - job.createdAt);
     return waitTimes.reduce((sum, time) => sum + time, 0) / waitTimes.length;
   }
 

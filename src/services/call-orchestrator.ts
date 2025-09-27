@@ -113,7 +113,7 @@ export class CallOrchestrator {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         callId: '',
@@ -187,7 +187,7 @@ export class CallOrchestrator {
         timestamp: new Date(),
       };
 
-    } catch (error) {
+    } catch (error: any) {
       // Update call state with error
       const callState = this.activeCalls.get(callId);
       if (callState) {
@@ -245,7 +245,7 @@ export class CallOrchestrator {
         this.sortQueueByPriority();
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing queue item:', error);
     }
   }
@@ -428,7 +428,7 @@ export class CallOrchestrator {
 
       return false;
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error cancelling call:', error);
       return false;
     }

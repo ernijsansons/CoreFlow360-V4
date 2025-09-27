@@ -358,7 +358,7 @@ export class RealTimeSalesCoach {
     try {
       const response = await this.callAI(prompt);
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: any) {
       return this.getFallbackObjectionGuidance(objection);
     }
   }
@@ -394,7 +394,7 @@ export class RealTimeSalesCoach {
     try {
       const response = await this.callAI(prompt);
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: any) {
       return this.getFallbackBattlecard(competitor);
     }
   }
@@ -418,7 +418,7 @@ export class RealTimeSalesCoach {
     try {
       const response = await this.callAI(prompt);
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: any) {
       return this.getFallbackPricingGuidance(context);
     }
   }
@@ -440,7 +440,7 @@ export class RealTimeSalesCoach {
     try {
       const response = await this.callAI(prompt);
       return JSON.parse(response);
-    } catch (error) {
+    } catch (error: any) {
       return this.getFallbackPainPointGuidance(painPoint);
     }
   }
@@ -475,7 +475,7 @@ export class RealTimeSalesCoach {
 
     // Check for question frequency
     const situations = this.callSituations.get(callId) || [];
-    const recentQuestions = situations.filter(s =>
+    const recentQuestions = situations.filter((s: any) =>
       s.timestamp > Date.now() - 300000 && // Last 5 minutes
       s.context.includes('?')
     );
@@ -514,7 +514,7 @@ export class RealTimeSalesCoach {
 
   private async sendPeriodicTips(callId: string): Promise<void> {
     const situations = this.callSituations.get(callId) || [];
-    const recentSituations = situations.filter(s => s.timestamp > Date.now() - 180000); // Last 3 minutes
+    const recentSituations = situations.filter((s: any) => s.timestamp > Date.now() - 180000); // Last 3 minutes
 
     // If no recent activity, send engagement tip
     if (recentSituations.length === 0) {
@@ -548,7 +548,7 @@ export class RealTimeSalesCoach {
 
     try {
       coach.send(JSON.stringify(fullMessage));
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -628,7 +628,7 @@ export class RealTimeSalesCoach {
       // Extract JSON if present
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       return jsonMatch ? jsonMatch[0] : content;
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }

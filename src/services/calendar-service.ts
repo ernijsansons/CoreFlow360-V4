@@ -88,7 +88,7 @@ class CalendarService {
 
       return allSlots;
 
-    } catch (error) {
+    } catch (error: any) {
       // Return fallback slots if calendar integration fails
       return this.generateFallbackSlots(startDate, endDate, durationMinutes);
     }
@@ -111,7 +111,7 @@ class CalendarService {
 
       return eventId;
 
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -129,7 +129,7 @@ class CalendarService {
 
       return await integration.updateEvent(eventId, updates);
 
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -143,7 +143,7 @@ class CalendarService {
 
       return await integration.deleteEvent(eventId);
 
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -156,7 +156,7 @@ class CalendarService {
       // Send email with calendar invite
       const emailService = new EmailService(this.env);
       const success = await emailService.sendCalendarInvite({
-        to: meeting.attendees.map(a => a.email),
+        to: meeting.attendees.map((a: any) => a.email),
         subject: `Meeting Invitation: ${meeting.title}`,
         icsContent,
         meeting
@@ -164,7 +164,7 @@ class CalendarService {
 
       return success;
 
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -173,7 +173,7 @@ class CalendarService {
     slots: CalendarSlot[],
     businessHours: { start: string; end: string; days: number[] }
   ): CalendarSlot[] {
-    return slots.filter(slot => {
+    return slots.filter((slot: any) => {
       const startDate = new Date(slot.start);
       const dayOfWeek = startDate.getDay();
       const timeOfDay = startDate.toTimeString().substring(0, 5); // HH:MM format
@@ -247,7 +247,7 @@ class CalendarService {
       `LOCATION:${meeting.location || meeting.meeting_url || ''}`,
       `STATUS:CONFIRMED`,
       `SEQUENCE:0`,
-      ...meeting.attendees.map(attendee =>
+      ...meeting.attendees.map((attendee: any) =>
         `ATTENDEE;CN=${attendee.name || attendee.email};RSVP=TRUE:mailto:${attendee.email}`
       ),
       'END:VEVENT',
@@ -414,7 +414,7 @@ class EmailService {
       // In real implementation, use email service like SendGrid, AWS SES, etc.
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }

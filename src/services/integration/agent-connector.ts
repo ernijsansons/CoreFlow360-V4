@@ -144,7 +144,7 @@ class AgentServiceConnector {
       }
     ];
 
-    capabilities.forEach(cap => {
+    capabilities.forEach((cap: any) => {
       this.agentCapabilities.set(cap.id, cap);
     });
   }
@@ -206,7 +206,7 @@ class AgentServiceConnector {
           decisionId: decision.id
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         agentId: request.agentType,
@@ -227,7 +227,7 @@ class AgentServiceConnector {
     const results = new Map<string, AgentResponse>();
 
     // Request actions from all required agents in parallel
-    const promises = requiredAgents.map(agentType =>
+    const promises = requiredAgents.map((agentType: any) =>
       this.requestAgentAction({
         agentType,
         action: task,
@@ -277,7 +277,7 @@ class AgentServiceConnector {
         executionTime: Date.now() - startTime,
         finalOutput: this.aggregateWorkflowResults(executionResults)
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         executionId,
         success: false,
@@ -372,18 +372,18 @@ class AgentServiceConnector {
     results: Map<string, AgentResponse>,
     task: string
   ): Promise<any> {
-    const successfulResults = Array.from(results.values()).filter(r => r.success);
+    const successfulResults = Array.from(results.values()).filter((r: any) => r.success);
 
     if (successfulResults.length === 0) {
       return null;
     }
 
     // Simple consensus: majority vote or average
-    const decisions = successfulResults.map(r => r.result);
+    const decisions = successfulResults.map((r: any) => r.result);
 
     // If results are boolean, use majority vote
     if (typeof decisions[0] === 'boolean') {
-      const trueCount = decisions.filter(d => d === true).length;
+      const trueCount = decisions.filter((d: any) => d === true).length;
       return trueCount > decisions.length / 2;
     }
 
@@ -395,7 +395,7 @@ class AgentServiceConnector {
     // For complex objects, return all with confidence scores
     return {
       task,
-      decisions: successfulResults.map(r => ({
+      decisions: successfulResults.map((r: any) => ({
         agent: r.agentId,
         decision: r.result,
         confidence: r.metadata?.confidence || 0
@@ -441,7 +441,7 @@ class AgentServiceConnector {
   private aggregateWorkflowResults(results: any[]): any {
     // Aggregate all workflow stage results
     return {
-      stages: results.map(r => ({
+      stages: results.map((r: any) => ({
         name: r.stage || 'unknown',
         success: r.success,
         output: r.result || r.consensus
@@ -452,7 +452,7 @@ class AgentServiceConnector {
   }
 
   private generateWorkflowSummary(results: any[]): string {
-    const successful = results.filter(r => r.success).length;
+    const successful = results.filter((r: any) => r.success).length;
     const total = results.length;
     return `Workflow completed with ${successful}/${total} successful stages`;
   }
@@ -479,7 +479,7 @@ class AgentServiceConnector {
   // Cleanup
   cleanup(): void {
     // Cancel all active requests
-    this.activeRequests.forEach(controller => controller.abort());
+    this.activeRequests.forEach((controller: any) => controller.abort());
     this.activeRequests.clear();
   }
 }

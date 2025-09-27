@@ -201,7 +201,7 @@ class MonitoringService {
    */
   getActiveAlerts(): Alert[] {
     return Array.from(this.alerts.values())
-      .filter(alert => !alert.resolvedAt)
+      .filter((alert: any) => !alert.resolvedAt)
       .sort((a, b) => {
         const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
         return severityOrder[a.severity] - severityOrder[b.severity];
@@ -221,7 +221,7 @@ class MonitoringService {
    */
   getPerformanceMetrics(timeWindowMs: number = 5 * 60 * 1000): PerformanceMetrics {
     const cutoff = Date.now() - timeWindowMs;
-    const recentRequests = this.performanceBuffer.filter(r => r.timestamp >= cutoff);
+    const recentRequests = this.performanceBuffer.filter((r: any) => r.timestamp >= cutoff);
 
     if (recentRequests.length === 0) {
       return {
@@ -234,8 +234,8 @@ class MonitoringService {
       };
     }
 
-    const latencies = recentRequests.map(r => r.latency).sort((a, b) => a - b);
-    const errors = recentRequests.filter(r => !r.success).length;
+    const latencies = recentRequests.map((r: any) => r.latency).sort((a, b) => a - b);
+    const errors = recentRequests.filter((r: any) => !r.success).length;
     const timeSpanSeconds = timeWindowMs / 1000;
 
     return {
@@ -286,7 +286,7 @@ class MonitoringService {
           totalScore += 50;
         }
 
-      } catch (error) {
+      } catch (error: any) {
         const latency = Date.now() - startTime;
         checks.push({
           name,
@@ -324,8 +324,8 @@ class MonitoringService {
 
     // Check active alerts
     const activeAlerts = this.getActiveAlerts();
-    const criticalAlerts = activeAlerts.filter(a => a.severity === 'critical').length;
-    const highAlerts = activeAlerts.filter(a => a.severity === 'high').length;
+    const criticalAlerts = activeAlerts.filter((a: any) => a.severity === 'critical').length;
+    const highAlerts = activeAlerts.filter((a: any) => a.severity === 'high').length;
 
     maxScore += 100;
     if (criticalAlerts === 0 && highAlerts === 0) {
@@ -417,9 +417,9 @@ class MonitoringService {
           'medium',
           `Trace ${correlationId} has operations running longer than expected`,
           30000, // 30 seconds threshold
-          Date.now() - Math.min(...trace.spans.map(s => s.startTime)),
+          Date.now() - Math.min(...trace.spans.map((s: any) => s.startTime)),
           correlationId,
-          { spanCount: trace.spanCount, activeSpans: trace.spans.filter(s => s.status === 'pending').length }
+          { spanCount: trace.spanCount, activeSpans: trace.spans.filter((s: any) => s.status === 'pending').length }
         );
       }
     }, 30000); // Check after 30 seconds
@@ -482,7 +482,7 @@ class MonitoringService {
     let cleaned = 0;
 
     for (const [name, points] of this.metrics) {
-      const filtered = points.filter(p => p.timestamp >= cutoff);
+      const filtered = points.filter((p: any) => p.timestamp >= cutoff);
       if (filtered.length !== points.length) {
         this.metrics.set(name, filtered);
         cleaned += points.length - filtered.length;
@@ -503,8 +503,8 @@ class MonitoringService {
     const activeAlerts = this.getActiveAlerts();
     return {
       active: activeAlerts.length,
-      critical: activeAlerts.filter(a => a.severity === 'critical').length,
-      high: activeAlerts.filter(a => a.severity === 'high').length
+      critical: activeAlerts.filter((a: any) => a.severity === 'critical').length,
+      high: activeAlerts.filter((a: any) => a.severity === 'high').length
     };
   }
 }
@@ -527,15 +527,15 @@ export async function withMonitoring<T>(
     monitoringService.recordRequest(latency, true, { operation: operationName, ...tags });
     return result;
 
-  } catch (error) {
+  } catch (error: any) {
     const latency = Date.now() - startTime;
 
     monitoringService.recordRequest(latency, false, { operation: operationName, ...tags });
 
     // Create alert for repeated failures
     const recentFailures = monitoringService.getMetrics('request.count')
-      .filter(m => m.tags.operation === operationName && m.tags.status === 'error')
-      .filter(m => m.timestamp >= Date.now() - 5 * 60 * 1000) // Last 5 minutes
+      .filter((m: any) => m.tags.operation === operationName && m.tags.status === 'error')
+      .filter((m: any) => m.timestamp >= Date.now() - 5 * 60 * 1000) // Last 5 minutes
       .length;
 
     if (recentFailures >= 5) {

@@ -79,7 +79,7 @@ export class StreamingHandler {
         metadata: { status: 'completed' },
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Streaming failed', error, {
         agentId: agent.id,
         taskId: task.id,
@@ -118,7 +118,7 @@ export class StreamingHandler {
             await this.scheduleHeartbeat(writer, agent.id, task.id);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         throw new Error(`Native streaming failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     } else {
@@ -170,7 +170,7 @@ export class StreamingHandler {
       // Poll for streaming updates
       await this.pollExternalStream(task.id, agentConfig.webhookUrl, writer, agent.id);
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`External streaming failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -233,7 +233,7 @@ export class StreamingHandler {
         throw new Error('Polling timeout exceeded');
       }
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Polling streaming failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -275,7 +275,7 @@ export class StreamingHandler {
         await new Promise(resolve => setTimeout(resolve, this.config.flushInterval));
       }
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Fallback streaming failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -326,7 +326,7 @@ export class StreamingHandler {
         // Wait before next poll
         await new Promise(resolve => setTimeout(resolve, 1000));
 
-      } catch (error) {
+      } catch (error: any) {
         this.logger.warn('External stream poll failed', error, { taskId, pollAttempts });
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
@@ -360,7 +360,7 @@ export class StreamingHandler {
         dataSize: data.length,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to write streaming chunk', error, {
         chunkType: chunk.type,
         agentId: chunk.agentId,
@@ -388,7 +388,7 @@ export class StreamingHandler {
           timestamp: Date.now(),
           metadata: { heartbeat: true },
         });
-      } catch (error) {
+      } catch (error: any) {
         this.logger.warn('Heartbeat failed', error, { agentId, taskId });
       }
     }, this.config.heartbeatInterval);
@@ -423,7 +423,7 @@ export class StreamingHandler {
 
     // Start streaming in the background
     handler.streamResponse(agent, task, writer)
-      .catch(error => {
+      .catch((error: any) => {
       })
       .finally(() => {
         writer.close();

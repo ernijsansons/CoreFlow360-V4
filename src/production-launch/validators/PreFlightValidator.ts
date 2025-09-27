@@ -33,7 +33,7 @@ export class PreFlightValidator {
     const allChecks = [security, performance, compliance, infrastructure, backups, monitoring, rollback];
     const allPassed = allChecks.every(check => check.passed);
     const failures = allChecks
-      .filter(check => !check.passed)
+      .filter((check: any) => !check.passed)
       .flatMap(check => check.issues);
 
 

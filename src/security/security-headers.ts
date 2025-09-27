@@ -192,7 +192,7 @@ export class SecurityHeaders {
         if (allowlist.length === 0) {
           return `${directive}=()`;
         }
-        const sources = allowlist.map(source =>
+        const sources = allowlist.map((source: any) =>
           source === 'self' ? '"self"' : `"${source}"`
         ).join(' ');
         return `${directive}=(${sources})`;
@@ -324,7 +324,7 @@ export class SecurityHeaders {
     }
 
     return {
-      secure: issues.filter(i => i.severity === 'high' || i.severity === 'critical').length === 0,
+      secure: issues.filter((i: any) => i.severity === 'high' || i.severity === 'critical').length === 0,
       issues,
       warnings,
       score: this.calculateSecurityScore(issues, warnings)

@@ -237,7 +237,7 @@ export class MigrationExecutor {
         await new Promise(resolve => setTimeout(resolve, 10));
       }
 
-    } catch (error) {
+    } catch (error: any) {
       await this.handleMigrationError(error as Error);
     }
   }
@@ -316,7 +316,7 @@ export class MigrationExecutor {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       await this.handleBatchError(error as Error);
       return config.executionConfig.retryAttempts > 0;
     }
@@ -371,7 +371,7 @@ export class MigrationExecutor {
 
       const data = await response.json();
       return Array.isArray(data) ? data : (data as any).results || (data as any).items || [];
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }
@@ -418,7 +418,7 @@ export class MigrationExecutor {
         default:
           throw new Error(`Unsupported target type: ${config.targetConnection.type}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       errorCount = data.length;
     }
 
@@ -460,7 +460,7 @@ export class MigrationExecutor {
         } else {
           errorCount++;
         }
-      } catch (error) {
+      } catch (error: any) {
         errorCount++;
       }
     }
@@ -638,7 +638,7 @@ export class MigrationExecutor {
 
     for (const tableMapping of mappings.tableMappings) {
       complexity += tableMapping.transformations.length;
-      complexity += tableMapping.columnMappings.filter(cm => cm.transformation).length;
+      complexity += tableMapping.columnMappings.filter((cm: any) => cm.transformation).length;
     }
 
     return complexity;

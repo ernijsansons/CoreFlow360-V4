@@ -282,7 +282,7 @@ export class ThreatDetectionEngine {
     // API Abuse Detection
     predictions.push(await this.detectAPIAbuse(features));
 
-    return predictions.filter(p => p.probability > 0.1);
+    return predictions.filter((p: any) => p.probability > 0.1);
   }
 
   /**
@@ -718,7 +718,7 @@ export class ThreatDetectionEngine {
 
     // Check for missing browser headers
     const browserHeaders = ['accept-language', 'accept-encoding', 'accept'];
-    const missingHeaders = browserHeaders.filter(h => !features.headers[h]);
+    const missingHeaders = browserHeaders.filter((h: any) => !features.headers[h]);
 
     if (missingHeaders.length > 1) {
       probability += 0.2;
@@ -860,9 +860,9 @@ export class ThreatDetectionEngine {
    */
   private identifyThreats(predictions: MLModelPrediction[]): ThreatType[] {
     return predictions
-      .filter(p => p.probability > 0.5)
+      .filter((p: any) => p.probability > 0.5)
       .sort((a, b) => b.probability - a.probability)
-      .map(p => p.threat);
+      .map((p: any) => p.threat);
   }
 
   /**
@@ -975,7 +975,7 @@ export class ThreatDetectionEngine {
     const history = this.attackHistory.get(ip) || [];
     return {
       accountAge: Math.floor(Math.random() * 365),
-      previousViolations: history.filter(a => a.blocked).length,
+      previousViolations: history.filter((a: any) => a.blocked).length,
       reputationScore: this.ipReputation.get(ip) || 0.5
     };
   }

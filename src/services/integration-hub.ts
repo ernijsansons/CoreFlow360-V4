@@ -49,7 +49,7 @@ export class IntegrationHub {
       ORDER BY created_at DESC
     `).all();
 
-    return result.results.map(row => ({
+    return result.results.map((row: any) => ({
       id: row.id as string,
       name: row.name as string,
       type: row.type as IntegrationType,
@@ -77,7 +77,7 @@ export class IntegrationHub {
         default:
           return null;
       }
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -94,8 +94,8 @@ export class IntegrationHub {
 
       // Run all syncs in parallel
       const syncPromises = Array.from(this.integrations.values())
-        .filter(integration => integration.isActive())
-        .map(integration => integration.sync());
+        .filter((integration: any) => integration.isActive())
+        .map((integration: any) => integration.sync());
 
       const syncResults = await Promise.allSettled(syncPromises);
 
@@ -140,7 +140,7 @@ export class IntegrationHub {
       const result = await integration.sync();
       await this.processSyncResults([result]);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -168,7 +168,7 @@ export class IntegrationHub {
       results.outbound = await integration.syncOutbound();
 
       return results;
-    } catch (error) {
+    } catch (error: any) {
       return results;
     }
   }
@@ -220,7 +220,7 @@ export class IntegrationHub {
 
     // Trigger notifications if needed
     if (stats.failedIntegrations > 0) {
-      await this.notifyIntegrationFailures(results.filter(r => r.status === 'failed'));
+      await this.notifyIntegrationFailures(results.filter((r: any) => r.status === 'failed'));
     }
 
     // Update AI learning based on sync results
@@ -398,8 +398,8 @@ export class IntegrationHub {
 
   getActiveIntegrations(): Integration[] {
     return Array.from(this.integrations.values())
-      .filter(i => i.isActive())
-      .map(i => i.getIntegration());
+      .filter((i: any) => i.isActive())
+      .map((i: any) => i.getIntegration());
   }
 
   async getIntegrationDetails(integrationId: string): Promise<Integration | null> {
@@ -409,8 +409,8 @@ export class IntegrationHub {
 
   async getIntegrationsByType(type: IntegrationType): Promise<Integration[]> {
     return Array.from(this.integrations.values())
-      .filter(i => i.getIntegration().type === type)
-      .map(i => i.getIntegration());
+      .filter((i: any) => i.getIntegration().type === type)
+      .map((i: any) => i.getIntegration());
   }
 
   async getSyncHistory(integrationId?: string, limit: number = 10): Promise<any[]> {

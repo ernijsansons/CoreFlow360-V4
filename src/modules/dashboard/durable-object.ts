@@ -96,7 +96,7 @@ export class DashboardMetrics extends DurableObject {
         default:
           return new Response('Not Found', { status: 404 })
       }
-    } catch (error) {
+    } catch (error: any) {
       return new Response(
         JSON.stringify({ error: 'Internal server error' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -189,7 +189,7 @@ export class DashboardMetrics extends DurableObject {
       LIMIT ?
     `, from, to, limit).toArray()
 
-    const data = results.map(row => ({
+    const data = results.map((row: any) => ({
       timestamp: row.timestamp as number,
       value: row.value as number,
       metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined
@@ -240,7 +240,7 @@ export class DashboardMetrics extends DurableObject {
       ORDER BY period_start
     `, from, to).toArray()
 
-    const data = results.map(row => ({
+    const data = results.map((row: any) => ({
       period: row.period,
       value: row.value as number,
       count: row.count as number,
@@ -297,7 +297,7 @@ export class DashboardMetrics extends DurableObject {
         await this.startPeriodicCollection()
       }
 
-    } catch (error) {
+    } catch (error: any) {
 
       // Retry in case of error
       if (this.isCollecting) {
@@ -329,7 +329,7 @@ export class DashboardMetrics extends DurableObject {
         default:
           return null
       }
-    } catch (error) {
+    } catch (error: any) {
       return null
     }
   }
@@ -512,7 +512,7 @@ export class DashboardMetrics extends DurableObject {
           }
         })
       })
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 

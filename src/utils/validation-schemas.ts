@@ -327,9 +327,9 @@ export const metricQuerySchema = z.object({
 export function validateInput<T>(schema: z.ZodSchema<T>, data: unknown): T {
   try {
     return schema.parse(data);
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
-      const issues = error.issues.map(issue => ({
+      const issues = error.issues.map((issue: any) => ({
         field: issue.path.join('.'),
         message: issue.message
       }));
@@ -431,9 +431,9 @@ export const secureLoginSchema = z.object({
   email: secureEmail,
   password: z.string().min(1, 'Password is required').max(128, 'Password too long'),
   remember_me: z.boolean().optional().default(false),
-  mfa_token: z.string().optional().regex(/^[0-9]{6}$|^[A-Z0-9]{8}$/, 'Invalid MFA token format'),
+  mfa_token: z.string().optional().refine((val) => !val || /^[0-9]{6}$|^[A-Z0-9]{8}$/.test(val), 'Invalid MFA token format'),
   device_fingerprint: secureString(0, 500).optional()
-}).strict();
+});
 
 export const secureRegisterSchema = z.object({
   business_name: secureString(2, 100),
@@ -451,12 +451,12 @@ export const secureRegisterSchema = z.object({
   marketing_accepted: z.boolean().optional().default(false),
   company_size: z.enum(['1-10', '11-50', '51-200', '201-1000', '1000+']).optional(),
   industry: secureString(0, 100).optional()
-}).strict();
+});
 
 export const securePasswordResetRequestSchema = z.object({
   email: secureEmail,
   captcha_token: secureString(0, 1000).optional()
-}).strict();
+});
 
 export const securePasswordResetConfirmSchema = z.object({
   token: z.string()
@@ -468,7 +468,7 @@ export const securePasswordResetConfirmSchema = z.object({
 }).refine((data) => data.password === data.confirm_password, {
   message: "Passwords don't match",
   path: ["confirm_password"]
-}).strict();
+});
 
 export const secureChangePasswordSchema = z.object({
   current_password: z.string().min(1, 'Current password is required').max(128),
@@ -480,7 +480,7 @@ export const secureChangePasswordSchema = z.object({
 }).refine((data) => data.current_password !== data.new_password, {
   message: "New password must be different from current password",
   path: ["new_password"]
-}).strict();
+});
 
 // =====================================================
 // SECURITY VALIDATION HELPERS
@@ -548,7 +548,7 @@ export function validateWithSecurity<T>(
       success: true,
       data: result.data
     };
-  } catch (error) {
+  } catch (error: any) {
     securityIssues.push('Validation error occurred');
     return {
       success: false,

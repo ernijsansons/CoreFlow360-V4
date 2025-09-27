@@ -498,7 +498,7 @@ class AuditService {
         }
       );
 
-    } catch (error) {
+    } catch (error: any) {
       this.stats.errors++;
       auditLogger.error('Failed to write audit entry', error, { auditEntry: entry });
       throw new SecurityError('Audit logging failed', {
@@ -565,7 +565,7 @@ class AuditService {
       this.batchBuffer = [];
 
       // Use transaction for batch insert
-      const statements = batch.map(entry => {
+      const statements = batch.map((entry: any) => {
         const serializedDetails = JSON.stringify(entry.details);
         const serializedResource = entry.resource ? JSON.stringify(entry.resource) : null;
         const serializedSecurityImpact = entry.securityImpact ? JSON.stringify(entry.securityImpact) : null;
@@ -611,7 +611,7 @@ class AuditService {
       this.stats.batchesWritten++;
       this.stats.lastBatchWrite = Date.now();
 
-    } catch (error) {
+    } catch (error: any) {
       this.stats.errors++;
       auditLogger.error('Failed to flush audit batch', error, { batchSize: this.batchBuffer.length });
       throw error;
@@ -625,7 +625,7 @@ class AuditService {
     this.batchTimer = setInterval(async () => {
       try {
         await this.flushBatch();
-      } catch (error) {
+      } catch (error: any) {
         auditLogger.error('Batch timer flush failed', error);
       }
     }, this.config.batchInterval);
@@ -743,7 +743,7 @@ class AuditService {
       .bind(...bindValues, limit, offset)
       .all();
 
-    const logs = (logsResult.results || []).map(row => this.deserializeAuditEntry(row as any));
+    const logs = (logsResult.results || []).map((row: any) => this.deserializeAuditEntry(row as any));
 
     return { logs, total };
   }

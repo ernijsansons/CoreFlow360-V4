@@ -83,7 +83,7 @@ export class SupernovaAutoFixer {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('❌ SUPERNOVA Auto-Fixer failed:', error);
       throw error;
     }
@@ -104,7 +104,7 @@ export class SupernovaAutoFixer {
       try {
         await this.fixTypeScriptFile(filePath);
         this.successfulFixes++;
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to fix TypeScript errors in ${filePath}:`, error);
         this.failedFixes++;
       }
@@ -150,7 +150,7 @@ export class SupernovaAutoFixer {
 
       logger.info(`✅ Fixed TypeScript errors in ${filePath}`);
 
-    } catch (error) {
+    } catch (error: any) {
       this.fixResults.set(filePath, {
         filePath,
         type: 'TYPESCRIPT',
@@ -218,7 +218,7 @@ export class SupernovaAutoFixer {
 
     // Fix function parameter types
     fixed = fixed.replace(/function\s+(\w+)\s*\(([^)]*)\)\s*{/g, (match, funcName, params) => {
-      const typedParams = params.split(',').map(param => {
+      const typedParams = params.split(',').map((param: any) => {
         const trimmed = param.trim();
         if (trimmed.includes(':')) return trimmed;
         return `${trimmed}: any`;
@@ -270,7 +270,7 @@ export class SupernovaAutoFixer {
 
     // Fix function declarations
     fixed = fixed.replace(/function\s+(\w+)\s*\(([^)]*)\)\s*{/g, (match, funcName, params) => {
-      const typedParams = params.split(',').map(param => {
+      const typedParams = params.split(',').map((param: any) => {
         const trimmed = param.trim();
         if (trimmed.includes(':')) return trimmed;
         return `${trimmed}: any`;
@@ -340,7 +340,7 @@ export class SupernovaAutoFixer {
 
       logger.info('✅ Dependency vulnerabilities fixed');
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to fix dependency vulnerabilities:', error);
       this.failedFixes++;
       this.totalFixes++;
@@ -368,7 +368,7 @@ export class SupernovaAutoFixer {
 
       logger.info('✅ Code quality issues fixed');
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to fix code quality issues:', error);
       this.failedFixes++;
       this.totalFixes++;
@@ -386,7 +386,7 @@ export class SupernovaAutoFixer {
         const content = await fs.readFile(filePath, 'utf-8');
         const lines = content.split('\n');
         
-        const filteredLines = lines.filter(line => 
+        const filteredLines = lines.filter((line: any) => 
           !line.trim().startsWith('console.log') && 
           !line.trim().startsWith('console.warn') &&
           !line.trim().startsWith('console.error')
@@ -396,7 +396,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, filteredLines.join('\n'), 'utf-8');
           logger.info(`Removed console statements from ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -413,7 +413,7 @@ export class SupernovaAutoFixer {
         const content = await fs.readFile(filePath, 'utf-8');
         const lines = content.split('\n');
         
-        const fixedLines = lines.map(line => {
+        const fixedLines = lines.map((line: any) => {
           if (line.length > 120) {
             // Simple line breaking for long lines
             const words = line.split(' ');
@@ -431,7 +431,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedLines.join('\n'), 'utf-8');
           logger.info(`Fixed long lines in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -467,7 +467,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedContent, 'utf-8');
           logger.info(`Fixed technical debt in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -494,7 +494,7 @@ export class SupernovaAutoFixer {
 
       logger.info('✅ Security issues fixed');
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to fix security issues:', error);
       this.failedFixes++;
       this.totalFixes++;
@@ -524,7 +524,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedContent, 'utf-8');
           logger.info(`Fixed hardcoded secrets in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -557,7 +557,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedContent, 'utf-8');
           logger.info(`Fixed XSS vulnerabilities in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -584,7 +584,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedContent, 'utf-8');
           logger.info(`Fixed SQL injection vulnerabilities in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -611,7 +611,7 @@ export class SupernovaAutoFixer {
 
       logger.info('✅ Performance issues fixed');
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to fix performance issues:', error);
       this.failedFixes++;
       this.totalFixes++;
@@ -640,7 +640,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedContent, 'utf-8');
           logger.info(`Fixed O(n²) algorithms in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -667,7 +667,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedContent, 'utf-8');
           logger.info(`Fixed memory leaks in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -694,7 +694,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedContent, 'utf-8');
           logger.info(`Fixed string concatenation in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -721,7 +721,7 @@ export class SupernovaAutoFixer {
 
       logger.info('✅ Architecture issues fixed');
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to fix architecture issues:', error);
       this.failedFixes++;
       this.totalFixes++;
@@ -749,7 +749,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedContent, 'utf-8');
           logger.info(`Fixed tight coupling in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -781,7 +781,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedContent, 'utf-8');
           logger.info(`Fixed God objects in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -813,7 +813,7 @@ export class SupernovaAutoFixer {
           await fs.writeFile(filePath, fixedContent, 'utf-8');
           logger.info(`Fixed circular dependencies in ${filePath}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Failed to process ${filePath}:`, error);
       }
     }
@@ -837,7 +837,7 @@ export class SupernovaAutoFixer {
           files.push(fullPath);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error(`Failed to read directory ${dir}:`, error);
     }
     

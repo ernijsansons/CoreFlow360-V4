@@ -48,8 +48,8 @@ class MockKV implements KVNamespace {
   async list(options?: any): Promise<{ keys: Array<{ name: string }> }> {
     const prefix = options?.prefix || '';
     const keys = Array.from(this.store.keys())
-      .filter(key => key.startsWith(prefix))
-      .map(name => ({ name }));
+      .filter((key: any) => key.startsWith(prefix))
+      .map((name: any) => ({ name }));
     return { keys };
   }
 }
@@ -179,7 +179,7 @@ export class AgentSystemIntegrationTests {
           status: 'passed',
           duration: 0,
         });
-      } catch (error) {
+      } catch (error: any) {
         results.failed++;
         results.tests.push({
           name: test.name,
@@ -295,7 +295,7 @@ export class AgentSystemIntegrationTests {
         throw new Error(`Agent execution failed: ${result.result.error}`);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       // Mock execution for testing without real API
     }
   }
@@ -432,7 +432,7 @@ export class AgentSystemIntegrationTests {
         throw new Error('Retry logic not working correctly');
       }
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -484,11 +484,11 @@ export class AgentSystemIntegrationTests {
     try {
       const result = await this.orchestrator.executeWorkflow(workflow);
 
-      if (!result.success && result.steps.filter(s => s.success).length === 0) {
+      if (!result.success && result.steps.filter((s: any) => s.success).length === 0) {
         throw new Error('Workflow execution completely failed');
       }
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -522,7 +522,7 @@ export class AgentSystemIntegrationTests {
         throw new Error('No streaming chunks received');
       }
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -584,7 +584,7 @@ export class AgentSystemIntegrationTests {
         throw new Error('Expected error information in failed result');
       }
 
-    } catch (error) {
+    } catch (error: any) {
       // Expected behavior
     }
   }
@@ -743,8 +743,8 @@ export async function runIntegrationTests(): Promise<TestResults> {
 
   if (results.failed > 0) {
     results.tests
-      .filter(test => test.status === 'failed')
-      .forEach(test => {
+      .filter((test: any) => test.status === 'failed')
+      .forEach((test: any) => {
       });
   }
 

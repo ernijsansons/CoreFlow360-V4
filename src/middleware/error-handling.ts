@@ -246,7 +246,7 @@ export async function businessContextMiddleware(c: Context<{ Bindings: Env }>, n
 export async function errorHandlerMiddleware(c: Context<{ Bindings: Env }>, next: Next): Promise<Response | void> {
   try {
     await next();
-  } catch (error) {
+  } catch (error: any) {
     const traceId = (c as any).get('traceId') || 'unknown';
     const context: ErrorContext = {
       traceId,
@@ -308,7 +308,7 @@ async function handleValidationError(
   error: z.ZodError,
   context: ErrorContext
 ) {
-  const issues = error.issues.map(issue => ({
+  const issues = error.issues.map((issue: any) => ({
     field: issue.path.join('.'),
     message: issue.message
   }));
@@ -463,7 +463,7 @@ export class CircuitBreaker {
       const result = await fn();
       this.onSuccess();
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this.onFailure();
       throw error;
     }
@@ -498,7 +498,7 @@ export async function withRetry<T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error) {
+    } catch (error: any) {
       lastError = error as Error;
 
       if (attempt < maxRetries) {

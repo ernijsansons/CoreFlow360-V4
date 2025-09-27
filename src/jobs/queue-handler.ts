@@ -108,7 +108,7 @@ export class QueueHandler {
       // Acknowledge message
       message.ack();
 
-    } catch (error) {
+    } catch (error: any) {
 
       // Handle retries
       const retryCount = ((job as any)?.retryCount || 0) + 1;
@@ -257,7 +257,7 @@ export class QueueHandler {
         requestedBy
       });
 
-    } catch (error) {
+    } catch (error: any) {
       // Notify failure via WebSocket
       const ws = createWebSocketService((env as any).REALTIME, businessId);
       await ws.notifySystemEvent(businessId, 'report-generation-failed', {
@@ -321,7 +321,7 @@ export class QueueHandler {
         template
       });
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -370,7 +370,7 @@ export class QueueHandler {
         validateOnly
       });
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -419,7 +419,7 @@ export class QueueHandler {
         data: metrics
       });
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -447,7 +447,7 @@ export class QueueHandler {
       const ws = createWebSocketService((env as any).REALTIME, businessId);
       await ws.notifyAIResponse(businessId, data.userId, job.requestId!, result);
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -504,7 +504,7 @@ export class QueueHandler {
         status: response.status
       });
 
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }
@@ -555,7 +555,7 @@ export class QueueHandler {
     const headers = Object.keys(data[0]);
     const csvContent = [
       headers.join(','),
-      ...data.map(row => headers.map(h => row[h]).join(','))
+      ...data.map((row: any) => headers.map((h: any) => row[h]).join(','))
     ].join('\n');
 
     return new TextEncoder().encode(csvContent).buffer;
@@ -565,7 +565,7 @@ export class QueueHandler {
     const lines = content.split('\n');
     const headers = lines[0].split(',');
 
-    return lines.slice(1).map(line => {
+    return lines.slice(1).map((line: any) => {
       const values = line.split(',');
       return headers.reduce((obj, header, index) => {
         obj[header.trim()] = values[index]?.trim();
@@ -575,7 +575,7 @@ export class QueueHandler {
   }
 
   private mapDataFields(rows: any[], mapping: any): any[] {
-    return rows.map(row => {
+    return rows.map((row: any) => {
       const mapped: any = {};
       for (const [sourceField, targetField] of Object.entries(mapping.fields)) {
         mapped[targetField as string] = row[sourceField];
@@ -627,7 +627,7 @@ export class QueueHandler {
     const users = await this.db!.getBusinessUsers(businessId);
     return {
       total: users.length,
-      active: users.filter(u => u.settings?.active !== false).length,
+      active: users.filter((u: any) => u.settings?.active !== false).length,
       period,
       aggregation
     };
@@ -690,7 +690,7 @@ export class QueueHandler {
 
     const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
     return Array.from(new Uint8Array(signature))
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b: any) => b.toString(16).padStart(2, '0'))
       .join('');
   }
 

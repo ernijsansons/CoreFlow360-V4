@@ -187,7 +187,7 @@ export abstract class BaseConnector {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         return await operation();
-      } catch (error) {
+      } catch (error: any) {
         lastError = error as Error;
 
         if (attempt === maxRetries) {
@@ -247,7 +247,7 @@ export class ConnectorRegistry {
         try {
           const connector = this.createConnector(config, env);
           results[config.id] = await connector.testConnection();
-        } catch (error) {
+        } catch (error: any) {
           results[config.id] = false;
         }
       })

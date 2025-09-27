@@ -146,7 +146,7 @@ class SSEStreamManager {
         controller,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       const duration = performance.now() - startTime;
       this.handleError(error, 'createStream', duration);
       throw error;
@@ -166,7 +166,7 @@ class SSEStreamManager {
   getUserStreams(userId: string): StreamState[] {
     const streamIds = this.state.userStreams.get(userId) || new Set();
     return Array.from(streamIds)
-      .map(id => this.state.activeStreams.get(id))
+      .map((id: any) => this.state.activeStreams.get(id))
       .filter(Boolean) as StreamState[];
   }
 
@@ -196,7 +196,7 @@ class SSEStreamManager {
 
       return true;
 
-    } catch (error) {
+    } catch (error: any) {
       abacLogger.error('Failed to terminate stream', error, { streamId, reason });
       return false;
     }
@@ -345,7 +345,7 @@ class SSEStreamManager {
 
       const summary = {
         totalStreams: recentMetrics.length,
-        completedStreams: recentMetrics.filter(m => m.endTime).length,
+        completedStreams: recentMetrics.filter((m: any) => m.endTime).length,
         errorRate: recentMetrics.length > 0
           ? (recentMetrics.reduce((sum, m) => sum + m.errorRate, 0) / recentMetrics.length) * 100
           : 0,
@@ -362,7 +362,7 @@ class SSEStreamManager {
         detailedMetrics: recentMetrics,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       abacLogger.error('Failed to export stream analytics', error);
       throw new SecurityError('Analytics export failed', {
         code: 'ANALYTICS_EXPORT_FAILED',
@@ -421,7 +421,7 @@ class SSEStreamManager {
 
   private startCleanupTimer(): void {
     this.cleanupTimer = setInterval(() => {
-      this.cleanupInactiveStreams().catch(error => {
+      this.cleanupInactiveStreams().catch((error: any) => {
         abacLogger.error('Cleanup timer error', error);
       });
     }, this.CLEANUP_INTERVAL);
@@ -429,7 +429,7 @@ class SSEStreamManager {
 
   private startHeartbeatTimer(): void {
     this.heartbeatTimer = setInterval(() => {
-      this.sendHeartbeats().catch(error => {
+      this.sendHeartbeats().catch((error: any) => {
         abacLogger.error('Heartbeat timer error', error);
       });
     }, 15000); // Send heartbeats every 15 seconds
@@ -554,7 +554,7 @@ class SSEStreamManager {
         expirationTtl: 86400, // 24 hours
       });
 
-    } catch (error) {
+    } catch (error: any) {
       abacLogger.warn('Failed to persist stream metrics', error, {
         streamId: streamState.streamId,
       });
@@ -582,7 +582,7 @@ class SSEStreamManager {
     // Terminate all active streams
     const activeStreamIds = Array.from(this.state.activeStreams.keys());
     await Promise.allSettled(
-      activeStreamIds.map(id => this.terminateStream(id, 'server_shutdown'))
+      activeStreamIds.map((id: any) => this.terminateStream(id, 'server_shutdown'))
     );
 
     abacLogger.info('SSE Stream Manager destroyed', {

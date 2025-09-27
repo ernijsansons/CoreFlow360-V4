@@ -265,7 +265,7 @@ describe('Security Integration Tests', () => {
             // Should use parameterized queries
             expect(query.sql).toMatch(/\?/);
           }
-        } catch (error) {
+        } catch (error: any) {
           // Errors are acceptable as long as they're not SQL injection
           // Check that the error is validation-related, not SQL injection
           if (error instanceof Error) {
@@ -281,7 +281,7 @@ describe('Security Integration Tests', () => {
 
       try {
         await customReportBuilder.listReportDefinitions(maliciousBusinessId, true);
-      } catch (error) {
+      } catch (error: any) {
         // Should fail due to validation, not SQL injection
         expect(error instanceof Error).toBe(true);
       }
@@ -340,7 +340,7 @@ describe('Security Integration Tests', () => {
           // If it doesn't throw, verify it returns empty results (safe failure)
           expect(Array.isArray(result)).toBe(true);
           expect(result.length).toBe(0);
-        } catch (error) {
+        } catch (error: any) {
           // Should throw validation error, not SQL error
           expect(error instanceof Error).toBe(true);
           expect(error.message).toMatch(/business.*id/i);
@@ -406,7 +406,7 @@ describe('Security Integration Tests', () => {
 
           // Should not reach here - validation should fail
           expect(false).toBe(true);
-        } catch (error) {
+        } catch (error: any) {
           expect(error instanceof ValidationError || error instanceof Error).toBe(true);
         }
       }
@@ -459,7 +459,7 @@ describe('Security Integration Tests', () => {
             // Should have failed validation
             expect(false).toBe(true);
           }
-        } catch (error) {
+        } catch (error: any) {
           if (testCase.expectRejection) {
             expect(error instanceof ValidationError || error instanceof Error).toBe(true);
           } else {
@@ -485,7 +485,7 @@ describe('Security Integration Tests', () => {
 
         // Should throw an error
         expect(false).toBe(true);
-      } catch (error) {
+      } catch (error: any) {
         const errorMessage = error instanceof Error ? error.message : String(error);
 
         // Should not expose internal database details
@@ -517,7 +517,7 @@ describe('Security Integration Tests', () => {
       const queries = mockDb.getQueries();
 
       for (let i = 0; i < 10; i++) {
-        const businessSpecificQueries = queries.filter(q =>
+        const businessSpecificQueries = queries.filter((q: any) =>
           q.params.includes(`business_${i}`)
         );
 
@@ -601,7 +601,7 @@ describe('Security Integration Tests', () => {
       for (const operation of operations) {
         try {
           await operation();
-        } catch (error) {
+        } catch (error: any) {
           // Errors are acceptable as long as they maintain integrity
         }
       }
@@ -609,7 +609,7 @@ describe('Security Integration Tests', () => {
       const queries = mockDb.getQueries();
 
       // Verify all queries include the correct business_id
-      const businessIdQueries = queries.filter(q =>
+      const businessIdQueries = queries.filter((q: any) =>
         q.params.includes(businessId)
       );
 

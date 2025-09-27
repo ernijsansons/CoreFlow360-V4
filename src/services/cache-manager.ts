@@ -143,7 +143,7 @@ export class CacheManager extends DurableObject {
       if (savedStats) {
         this.stats = { ...this.stats, ...savedStats }
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -223,7 +223,7 @@ export class CacheManager extends DurableObject {
 
       return result
 
-    } catch (error) {
+    } catch (error: any) {
       this.stats.misses++
       return null
     }
@@ -293,7 +293,7 @@ export class CacheManager extends DurableObject {
       // Check for eviction
       await this.checkEviction()
 
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -310,7 +310,7 @@ export class CacheManager extends DurableObject {
 
       for (const pat of patterns) {
         // Memory cache invalidation
-        const keysToInvalidate = Array.from(this.cache.keys()).filter(key =>
+        const keysToInvalidate = Array.from(this.cache.keys()).filter((key: any) =>
           this.matchesPattern(key, pat)
         )
 
@@ -358,7 +358,7 @@ export class CacheManager extends DurableObject {
         global: options?.global || false
       })
 
-    } catch (error) {
+    } catch (error: any) {
     }
 
     return invalidatedCount
@@ -380,7 +380,7 @@ export class CacheManager extends DurableObject {
             break
         }
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -403,7 +403,7 @@ export class CacheManager extends DurableObject {
             refresh_frequency: prediction.frequency
           })
         }
-      } catch (error) {
+      } catch (error: any) {
       }
     }
   }
@@ -444,7 +444,7 @@ export class CacheManager extends DurableObject {
       }
 
       return jsonString
-    } catch (error) {
+    } catch (error: any) {
       return JSON.stringify(data)
     }
   }
@@ -488,7 +488,7 @@ export class CacheManager extends DurableObject {
       }
 
       return typeof data === 'string' ? JSON.parse(data) : data
-    } catch (error) {
+    } catch (error: any) {
       return data
     }
   }

@@ -363,7 +363,7 @@ export class MigrationTester {
       // Simple expression evaluation (replace ${value} with actual value)
       const code = expression.replace(/\$\{value\}/g, JSON.stringify(value));
       return eval(code);
-    } catch (error) {
+    } catch (error: any) {
       return value; // Return original value if expression fails
     }
   }
@@ -421,7 +421,7 @@ export class MigrationTester {
     }
 
     // Calculate field accuracies
-    fieldComparisons.forEach(fc => {
+    fieldComparisons.forEach((fc: any) => {
       const total = fc.matches + fc.mismatches;
       fc.accuracy = total > 0 ? fc.matches / total : 0;
     });
@@ -590,7 +590,7 @@ export class MigrationTester {
     const pipeline = await this.transformationEngine.buildPipeline({
       globalRules: config.mappingRules.globalTransformations,
       fieldRules: new Map(),
-      validationRules: config.validationConfig.dataQualityChecks.map(check => ({
+      validationRules: config.validationConfig.dataQualityChecks.map((check: any) => ({
         id: check.id,
         field: check.column || '',
         type: 'CUSTOM' as const,
@@ -604,7 +604,7 @@ export class MigrationTester {
     for (const [tableName, sampleData] of Object.entries(testEnv.sampleData)) {
       try {
         await this.transformationEngine.processBatch(sampleData, pipeline, `error_test_${tableName}`);
-      } catch (error) {
+      } catch (error: any) {
         const errorInfo = {
           table: tableName,
           type: 'TRANSFORMATION_ERROR',
@@ -619,7 +619,7 @@ export class MigrationTester {
     }
 
     // Analyze error patterns
-    const errorMessages = errors.map(e => e.message);
+    const errorMessages = errors.map((e: any) => e.message);
     const messageGroups = this.groupSimilarMessages(errorMessages);
 
     for (const [pattern, frequency] of Object.entries(messageGroups)) {
@@ -637,7 +637,7 @@ export class MigrationTester {
       totalErrors: errors.length,
       errorsByType,
       errorsByTable,
-      criticalErrors: errors.filter(e => e.type === 'CRITICAL_ERROR'),
+      criticalErrors: errors.filter((e: any) => e.type === 'CRITICAL_ERROR'),
       errorPatterns
     };
   }
@@ -731,7 +731,7 @@ export class MigrationTester {
 
     // Field-specific recommendations
     const problematicFields = dataIntegrity.fieldComparisons
-      .filter(fc => fc.accuracy < 0.9)
+      .filter((fc: any) => fc.accuracy < 0.9)
       .sort((a, b) => a.accuracy - b.accuracy);
 
     for (const field of problematicFields.slice(0, 3)) { // Top 3 problematic fields
@@ -772,9 +772,9 @@ export class MigrationTester {
       );
       const expected = testEnv.expectedResults[tableName]?.slice(0, sampleSize) || [];
 
-      sourceRecords.push(...tableSample.map(r => ({ table: tableName, ...r })));
-      transformedRecords.push(...transformed.map(r => ({ table: tableName, ...r })));
-      targetRecords.push(...expected.map(r => ({ table: tableName, ...r })));
+      sourceRecords.push(...tableSample.map((r: any) => ({ table: tableName, ...r })));
+      transformedRecords.push(...transformed.map((r: any) => ({ table: tableName, ...r })));
+      targetRecords.push(...expected.map((r: any) => ({ table: tableName, ...r })));
 
       // Create comparison results
       for (let i = 0; i < Math.min(transformed.length, expected.length); i++) {
@@ -859,7 +859,7 @@ export class MigrationTester {
       // Determine status
       execution.status = execution.assertions.every(a => a.passed) ? 'PASSED' : 'FAILED';
 
-    } catch (error) {
+    } catch (error: any) {
       execution.status = 'FAILED';
       execution.errors.push((error as Error).message);
     } finally {
@@ -963,7 +963,7 @@ export class MigrationTester {
             const func = new Function('actual', 'expected', assertion.customValidator);
             passed = func(actualValue, expectedValue);
             message = passed ? 'Custom validation passed' : 'Custom validation failed';
-          } catch (error) {
+          } catch (error: any) {
             passed = false;
             message = `Custom validation error: ${(error as Error).message}`;
           }

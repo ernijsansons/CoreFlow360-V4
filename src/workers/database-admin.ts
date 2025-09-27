@@ -22,7 +22,7 @@ app.use('*', async (c, next) => {
 });
 
 // Get migration status
-app.get('/migrations/status', async (c) => {
+app.get('/migrations/status', async (c: any) => {
   try {
     const runner = new MigrationRunner(c.env.DB_MAIN);
     const status = await runner.getMigrationStatus();
@@ -34,7 +34,7 @@ app.get('/migrations/status', async (c) => {
       completed: status.filter((m: any) => m.status === 'completed').length,
       failed: status.filter((m: any) => m.status === 'failed').length,
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -43,12 +43,12 @@ app.get('/migrations/status', async (c) => {
 });
 
 // Run migrations
-app.post('/migrations/run', async (c) => {
+app.post('/migrations/run', async (c: any) => {
   try {
     const loadedMigrations = await loadMigrations();
 
     // Add checksums to migrations
-    const migrations = await Promise.all(loadedMigrations.map(async (migration) => ({
+    const migrations = await Promise.all(loadedMigrations.map(async (migration: any) => ({
       ...migration,
       checksum: await MigrationRunner.calculateChecksum(migration.sql)
     })));
@@ -63,12 +63,12 @@ app.post('/migrations/run', async (c) => {
       results,
       summary: {
         total: results.length,
-        successful: results.filter(r => r.status === 'success').length,
-        skipped: results.filter(r => r.status === 'skipped').length,
-        failed: results.filter(r => r.status === 'failed').length,
+        successful: results.filter((r: any) => r.status === 'success').length,
+        skipped: results.filter((r: any) => r.status === 'skipped').length,
+        failed: results.filter((r: any) => r.status === 'failed').length,
       },
     }, hasFailures ? 500 : 200);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -77,7 +77,7 @@ app.post('/migrations/run', async (c) => {
 });
 
 // Rollback a specific migration
-app.post('/migrations/rollback/:version', async (c) => {
+app.post('/migrations/rollback/:version', async (c: any) => {
   try {
     const version = c.req.param('version');
     const rollbackFiles = await loadRollbacks();
@@ -98,7 +98,7 @@ app.post('/migrations/rollback/:version', async (c) => {
       success: result.status === 'success',
       result,
     }, result.status === 'success' ? 200 : 500);
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -107,7 +107,7 @@ app.post('/migrations/rollback/:version', async (c) => {
 });
 
 // Database statistics
-app.get('/database/stats', async (c) => {
+app.get('/database/stats', async (c: any) => {
   try {
     const stats = await c.env.DB_MAIN.prepare(`
       SELECT
@@ -155,7 +155,7 @@ app.get('/database/stats', async (c) => {
       tables: tables.results?.map((t: any) => t.name),
       tableCount: tables.results?.length || 0,
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',

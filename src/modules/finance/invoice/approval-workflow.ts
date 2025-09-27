@@ -216,13 +216,13 @@ class ApprovalWorkflowService {
         userId: requestedBy,
         metadata: {
           approvalRequestCount: approvalRequests.length,
-          ruleIds: applicableRules.map(r => r.id)
+          ruleIds: applicableRules.map((r: any) => r.id)
         }
       })
 
       return approvalRequests
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'approval_submission_failed',
         invoiceId: invoice.id,
@@ -309,7 +309,7 @@ class ApprovalWorkflowService {
 
       return approvalRequest
 
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'approval_action_failed',
         approvalRequestId: request.approvalRequestId,
@@ -514,7 +514,7 @@ class ApprovalWorkflowService {
       await this.sendApprovalNotifications(approvalRequest, 'approved')
     } else {
       // Move to next level if required
-      const nextLevel = Math.max(...approvalRequest.rule.approvers.map(a => a.level))
+      const nextLevel = Math.max(...approvalRequest.rule.approvers.map((a: any) => a.level))
       if (actionEntry.level < nextLevel) {
         approvalRequest.currentLevel = actionEntry.level + 1
       }
@@ -574,7 +574,7 @@ class ApprovalWorkflowService {
       approvalRequest.rule.approvers.push({
         userId: actionEntry.escalatedTo,
         role: escalationRule?.escalateToRole || 'manager',
-        level: Math.max(...approvalRequest.rule.approvers.map(a => a.level)) + 1,
+        level: Math.max(...approvalRequest.rule.approvers.map((a: any) => a.level)) + 1,
         isRequired: true,
         canDelegate: true
       })
@@ -585,8 +585,8 @@ class ApprovalWorkflowService {
   }
 
   private async isApprovalComplete(approvalRequest: ApprovalRequest): Promise<boolean> {
-    const requiredApprovers = approvalRequest.rule.approvers.filter(a => a.isRequired)
-    const approvedActions = approvalRequest.approvals.filter(a => a.action === ApprovalAction.APPROVE)
+    const requiredApprovers = approvalRequest.rule.approvers.filter((a: any) => a.isRequired)
+    const approvedActions = approvalRequest.approvals.filter((a: any) => a.action === ApprovalAction.APPROVE)
 
     // Check if all required approvers have approved
     for (const required of requiredApprovers) {
@@ -603,7 +603,7 @@ class ApprovalWorkflowService {
     approvalRequest: ApprovalRequest,
     trigger: 'created' | 'approved' | 'rejected' | 'escalated'
   ): Promise<void> {
-    const notifications = approvalRequest.rule.notifications.filter(n =>
+    const notifications = approvalRequest.rule.notifications.filter((n: any) =>
       n.triggerOn.includes(trigger)
     )
 
@@ -619,7 +619,7 @@ class ApprovalWorkflowService {
             invoiceId: approvalRequest.invoiceId
           }
         })
-      } catch (error) {
+      } catch (error: any) {
         auditLogger.log({
           action: 'notification_failed',
           approvalRequestId: approvalRequest.id,
@@ -756,17 +756,17 @@ class ApprovalWorkflowService {
 
     if (filters) {
       if (filters.invoiceId) {
-        requests = requests.filter(r => r.invoiceId === filters.invoiceId)
+        requests = requests.filter((r: any) => r.invoiceId === filters.invoiceId)
       }
       if (filters.userId) {
-        requests = requests.filter(r =>
+        requests = requests.filter((r: any) =>
           r.requestedBy === filters.userId ||
           r.approvals.some(a => a.userId === filters.userId) ||
           r.rule.approvers.some(a => a.userId === filters.userId)
         )
       }
       if (filters.status) {
-        requests = requests.filter(r => r.status === filters.status)
+        requests = requests.filter((r: any) => r.status === filters.status)
       }
     }
 

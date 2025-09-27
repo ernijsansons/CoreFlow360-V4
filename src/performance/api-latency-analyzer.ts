@@ -569,7 +569,7 @@ export class APILatencyAnalyzer {
 
       return report;
 
-    } catch (error) {
+    } catch (error: any) {
       logger.error('API latency analysis failed', error);
       throw new ValidationError('Failed to analyze API latency', {
         code: 'API_LATENCY_ANALYSIS_FAILED',
@@ -639,7 +639,7 @@ export class APILatencyAnalyzer {
       }
     ];
 
-    return mockEndpoints.map(endpoint => ({
+    return mockEndpoints.map((endpoint: any) => ({
       ...endpoint,
       p95Latency: endpoint.averageLatency * 2.5,
       p99Latency: endpoint.averageLatency * 4,
@@ -1341,9 +1341,9 @@ return { jobId, status: 'processing', estimatedTime: '2-5 minutes' };`
     const bottlenecks: PerformanceBottleneck[] = [];
 
     // Endpoint bottlenecks
-    endpoints.forEach(endpoint => {
+    endpoints.forEach((endpoint: any) => {
       if (endpoint.averageLatency > this.maxAcceptableLatency) {
-        endpoint.bottlenecks.forEach(bottleneck => {
+        endpoint.bottlenecks.forEach((bottleneck: any) => {
           bottlenecks.push({
             type: bottleneck.type as any,
             location: endpoint.endpoint,
@@ -1375,7 +1375,7 @@ return { jobId, status: 'processing', estimatedTime: '2-5 minutes' };`
     }
 
     // Third-party bottlenecks
-    thirdParty.services.forEach(service => {
+    thirdParty.services.forEach((service: any) => {
       if (service.impact === 'critical' || service.impact === 'high') {
         bottlenecks.push({
           type: 'external',
@@ -1405,7 +1405,7 @@ return { jobId, status: 'processing', estimatedTime: '2-5 minutes' };`
     const optimizations: AutoOptimization[] = [];
 
     // Auto-cache implementation
-    endpoints.forEach(endpoint => {
+    endpoints.forEach((endpoint: any) => {
       if (endpoint.method === 'GET' && endpoint.averageLatency > 100) {
         optimizations.push({
           type: 'cache',
@@ -1436,7 +1436,7 @@ return result;`,
     });
 
     // Auto-index creation
-    database.queryOptimization.missingIndexes.forEach(index => {
+    database.queryOptimization.missingIndexes.forEach((index: any) => {
       optimizations.push({
         type: 'index',
         description: `Create missing index on ${index.table}`,
@@ -1494,15 +1494,15 @@ app.use(compress({
     }
 
     // Penalize critical bottlenecks
-    const criticalBottlenecks = bottlenecks.filter(b => b.severity === 'critical').length;
+    const criticalBottlenecks = bottlenecks.filter((b: any) => b.severity === 'critical').length;
     score -= criticalBottlenecks * 15;
 
     // Penalize high bottlenecks
-    const highBottlenecks = bottlenecks.filter(b => b.severity === 'high').length;
+    const highBottlenecks = bottlenecks.filter((b: any) => b.severity === 'high').length;
     score -= highBottlenecks * 10;
 
     // Penalize slow endpoints
-    const slowEndpoints = endpoints.filter(e => e.averageLatency > this.maxAcceptableLatency).length;
+    const slowEndpoints = endpoints.filter((e: any) => e.averageLatency > this.maxAcceptableLatency).length;
     score -= slowEndpoints * 5;
 
     return Math.max(0, Math.round(score));

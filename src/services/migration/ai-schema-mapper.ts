@@ -168,7 +168,7 @@ export class AISchemaMapper {
 
       const result = await response.json();
       return JSON.parse(result.content || '{}');
-    } catch (error) {
+    } catch (error: any) {
       return { semanticType: null, businessConcept: null };
     }
   }
@@ -447,7 +447,7 @@ export class AISchemaMapper {
             required: !sourceField.field.includes('nullable'),
             metadata: {
               strategy: 'ai_generated',
-              scores: strategies.map(s => ({
+              scores: strategies.map((s: any) => ({
                 name: s.name,
                 score: s.algorithm(sourceField, targetField)
               }))
@@ -585,7 +585,7 @@ export class AISchemaMapper {
 
     // Test each table mapping
     for (const tableMapping of mapping.tableMappings) {
-      const tableSample = sampleData.filter(d => d.table === tableMapping.sourceTable);
+      const tableSample = sampleData.filter((d: any) => d.table === tableMapping.sourceTable);
 
       // Validate column mappings
       for (const columnMapping of tableMapping.columnMappings) {
@@ -607,7 +607,7 @@ export class AISchemaMapper {
 
     // Remove low-confidence mappings
     for (const tableMapping of optimized.tableMappings) {
-      tableMapping.columnMappings = tableMapping.columnMappings.filter(cm => cm.confidence >= 0.5);
+      tableMapping.columnMappings = tableMapping.columnMappings.filter((cm: any) => cm.confidence >= 0.5);
     }
 
     // Add suggested transformations based on validation issues
@@ -648,7 +648,7 @@ export class AISchemaMapper {
 
     try {
       // Fine-tune the model with corrections
-      const trainingData = corrections.map(c => ({
+      const trainingData = corrections.map((c: any) => ({
         input: {
           sourceField: c.sourceField,
           targetField: c.targetField,
@@ -661,7 +661,7 @@ export class AISchemaMapper {
       }));
 
       // This would integrate with your ML training pipeline
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -716,7 +716,7 @@ export class AISchemaMapper {
     const patterns: Pattern[] = [];
 
     // Analyze naming patterns
-    const fieldNames = Array.from(fieldSemantics.keys()).map(k => k.split('.')[1]);
+    const fieldNames = Array.from(fieldSemantics.keys()).map((k: any) => k.split('.')[1]);
     const namingPatterns = this.analyzePatternsInNames(fieldNames);
     patterns.push(...namingPatterns);
 
@@ -730,7 +730,7 @@ export class AISchemaMapper {
     const prefixes = new Map<string, number>();
     const suffixes = new Map<string, number>();
 
-    names.forEach(name => {
+    names.forEach((name: any) => {
       const parts = name.split('_');
       if (parts.length > 1) {
         const prefix = parts[0];
@@ -756,7 +756,7 @@ export class AISchemaMapper {
   }
 
   private calculateAnalysisConfidence(analysis: SemanticAnalysis): number {
-    const fieldConfidences = Array.from(analysis.fieldSemantics.values()).map(f => 0.8); // Default confidence
+    const fieldConfidences = Array.from(analysis.fieldSemantics.values()).map((f: any) => 0.8); // Default confidence
     const avgFieldConfidence = fieldConfidences.reduce((sum, c) => sum + c, 0) / fieldConfidences.length;
 
     const relationshipConfidence = analysis.relationships.length > 0
@@ -803,8 +803,8 @@ export class AISchemaMapper {
     let totalScore = 0;
     let comparisons = 0;
 
-    sourceFields.forEach(sourceField => {
-      targetFields.forEach(targetField => {
+    sourceFields.forEach((sourceField: any) => {
+      targetFields.forEach((targetField: any) => {
         const similarity = this.semanticSimilarityStrategy(sourceField, targetField);
         totalScore += similarity;
         comparisons++;
@@ -815,7 +815,7 @@ export class AISchemaMapper {
   }
 
   private calculateMappingConfidence(mapping: MappingRules): number {
-    const tableConfidences = mapping.tableMappings.map(tm => tm.confidence);
+    const tableConfidences = mapping.tableMappings.map((tm: any) => tm.confidence);
     return tableConfidences.length > 0
       ? tableConfidences.reduce((sum, c) => sum + c, 0) / tableConfidences.length
       : 0;
@@ -938,7 +938,7 @@ export class AISchemaMapper {
   }
 
   private calculateConsistency(issues: any[]): number {
-    const consistencyIssues = issues.filter(i => i.type === 'consistency');
+    const consistencyIssues = issues.filter((i: any) => i.type === 'consistency');
     return Math.max(0, 1 - (consistencyIssues.length * 0.2));
   }
 

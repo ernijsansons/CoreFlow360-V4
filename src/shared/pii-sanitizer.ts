@@ -69,7 +69,7 @@ export class PIISanitizer {
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.sanitizeObject(item));
+      return obj.map((item: any) => this.sanitizeObject(item));
     }
 
     const sanitized: any = {};
@@ -201,7 +201,7 @@ export class PIISanitizer {
    * Create a safe logging object from user data
    */
   static createSafeLogObject(data: any, additionalFields?: Record<string, any>): any {
-    const baseLog = {
+    const baseLog: any = {
       timestamp: Date.now(),
       ...additionalFields
     };

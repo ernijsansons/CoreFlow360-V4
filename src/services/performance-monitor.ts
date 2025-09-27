@@ -207,7 +207,7 @@ export class PerformanceMonitor extends DurableObject {
 
       return insights.slice(0, 20) // Return top 20 insights
 
-    } catch (error) {
+    } catch (error: any) {
       return []
     }
   }
@@ -236,10 +236,10 @@ export class PerformanceMonitor extends DurableObject {
 
   // Get active alerts
   async getActiveAlerts(dashboardId?: string): Promise<PerformanceAlert[]> {
-    let alerts = this.alerts.filter(alert => !alert.resolved)
+    let alerts = this.alerts.filter((alert: any) => !alert.resolved)
 
     if (dashboardId) {
-      alerts = alerts.filter(alert => alert.context.dashboard_id === dashboardId)
+      alerts = alerts.filter((alert: any) => alert.context.dashboard_id === dashboardId)
     }
 
     return alerts.sort((a, b) => {
@@ -320,7 +320,7 @@ export class PerformanceMonitor extends DurableObject {
         value: row.value
       }))
 
-    } catch (error) {
+    } catch (error: any) {
       return []
     }
   }
@@ -333,7 +333,7 @@ export class PerformanceMonitor extends DurableObject {
     const allMetrics: PerformanceMetric[] = []
 
     for (const metricsList of this.metrics.values()) {
-      const recentMetrics = metricsList.filter(metric => {
+      const recentMetrics = metricsList.filter((metric: any) => {
         if (metric.timestamp < cutoff) return false
         if (dashboardId && metric.context.dashboard_id !== dashboardId) return false
         return true
@@ -346,12 +346,12 @@ export class PerformanceMonitor extends DurableObject {
 
   private analyzeLoadTimes(metrics: PerformanceMetric[]): PerformanceInsight[] {
     const insights: PerformanceInsight[] = []
-    const loadTimeMetrics = metrics.filter(m => m.type === 'load_time')
+    const loadTimeMetrics = metrics.filter((m: any) => m.type === 'load_time')
 
     if (loadTimeMetrics.length === 0) return insights
 
     const avgLoadTime = loadTimeMetrics.reduce((sum, m) => sum + m.value, 0) / loadTimeMetrics.length
-    const slowWidgets = loadTimeMetrics.filter(m => m.value > 3000)
+    const slowWidgets = loadTimeMetrics.filter((m: any) => m.value > 3000)
 
     if (avgLoadTime > 2000) {
       insights.push({
@@ -385,11 +385,11 @@ export class PerformanceMonitor extends DurableObject {
 
   private analyzeMemoryUsage(metrics: PerformanceMetric[]): PerformanceInsight[] {
     const insights: PerformanceInsight[] = []
-    const memoryMetrics = metrics.filter(m => m.type === 'memory_usage')
+    const memoryMetrics = metrics.filter((m: any) => m.type === 'memory_usage')
 
     if (memoryMetrics.length === 0) return insights
 
-    const maxMemory = Math.max(...memoryMetrics.map(m => m.value))
+    const maxMemory = Math.max(...memoryMetrics.map((m: any) => m.value))
     const avgMemory = memoryMetrics.reduce((sum, m) => sum + m.value, 0) / memoryMetrics.length
 
     if (maxMemory > 200) {
@@ -411,7 +411,7 @@ export class PerformanceMonitor extends DurableObject {
 
   private analyzeCachePerformance(metrics: PerformanceMetric[]): PerformanceInsight[] {
     const insights: PerformanceInsight[] = []
-    const cacheMetrics = metrics.filter(m => m.type === 'cache_hit_rate')
+    const cacheMetrics = metrics.filter((m: any) => m.type === 'cache_hit_rate')
 
     if (cacheMetrics.length === 0) return insights
 
@@ -435,11 +435,11 @@ export class PerformanceMonitor extends DurableObject {
 
   private analyzeBundleSize(metrics: PerformanceMetric[]): PerformanceInsight[] {
     const insights: PerformanceInsight[] = []
-    const bundleMetrics = metrics.filter(m => m.type === 'bundle_size')
+    const bundleMetrics = metrics.filter((m: any) => m.type === 'bundle_size')
 
     if (bundleMetrics.length === 0) return insights
 
-    const maxBundle = Math.max(...bundleMetrics.map(m => m.value))
+    const maxBundle = Math.max(...bundleMetrics.map((m: any) => m.value))
 
     if (maxBundle > 2048) {
       insights.push({
@@ -459,7 +459,7 @@ export class PerformanceMonitor extends DurableObject {
 
   private analyzeUserInteractions(metrics: PerformanceMetric[]): PerformanceInsight[] {
     const insights: PerformanceInsight[] = []
-    const interactionMetrics = metrics.filter(m => m.type === 'user_interaction')
+    const interactionMetrics = metrics.filter((m: any) => m.type === 'user_interaction')
 
     if (interactionMetrics.length === 0) return insights
 
@@ -497,7 +497,7 @@ export class PerformanceMonitor extends DurableObject {
     if (deviceGroups.mobile?.length > 0) {
       const mobileMetrics = deviceGroups.mobile
       const avgLoadTime = mobileMetrics
-        .filter(m => m.type === 'load_time')
+        .filter((m: any) => m.type === 'load_time')
         .reduce((sum, m, _, arr) => sum + m.value / arr.length, 0)
 
       if (avgLoadTime > 3000) {
@@ -550,7 +550,7 @@ export class PerformanceMonitor extends DurableObject {
   private async getWidgetMetrics(widgetId: string): Promise<PerformanceMetric[]> {
     const allMetrics: PerformanceMetric[] = []
     for (const metricsList of this.metrics.values()) {
-      const widgetMetrics = metricsList.filter(m => m.context.widget_id === widgetId)
+      const widgetMetrics = metricsList.filter((m: any) => m.context.widget_id === widgetId)
       allMetrics.push(...widgetMetrics)
     }
     return allMetrics
@@ -559,7 +559,7 @@ export class PerformanceMonitor extends DurableObject {
   private async getDashboardMetrics(dashboardId: string): Promise<PerformanceMetric[]> {
     const allMetrics: PerformanceMetric[] = []
     for (const metricsList of this.metrics.values()) {
-      const dashboardMetrics = metricsList.filter(m => m.context.dashboard_id === dashboardId)
+      const dashboardMetrics = metricsList.filter((m: any) => m.context.dashboard_id === dashboardId)
       allMetrics.push(...dashboardMetrics)
     }
     return allMetrics
@@ -603,7 +603,7 @@ export class PerformanceMonitor extends DurableObject {
         doubles: [metric.value],
         indexes: [metric.context.user_id || '']
       })
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -639,4 +639,4 @@ export class PerformanceMonitor extends DurableObject {
   }
 }
 
-export { PerformanceMonitor }
+// PerformanceMonitor is already exported as a class above

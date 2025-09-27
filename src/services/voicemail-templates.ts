@@ -342,7 +342,7 @@ class VoicemailTemplateManager {
 
     // Score and sort templates based on criteria
     if (criteria) {
-      const scoredTemplates = matchingTemplates.map(template => ({
+      const scoredTemplates = matchingTemplates.map((template: any) => ({
         template,
         score: this.scoreTemplate(template, criteria)
       }));

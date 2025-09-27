@@ -124,7 +124,7 @@ export class QualificationAgent implements IAgent {
         completedAt: Date.now()
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return this.createErrorResult(
         task.id,
         'EXECUTION_ERROR',
@@ -429,7 +429,7 @@ export class QualificationAgent implements IAgent {
   }
 
   private calculateConfidenceLevel(bantData: BANTQualification): number {
-    const answers = Object.values(bantData).filter(answer => answer !== null);
+    const answers = Object.values(bantData).filter((answer: any) => answer !== null);
     if (answers.length === 0) return 0;
 
     const avgConfidence = answers.reduce((sum, answer) => sum + answer!.confidence, 0) / answers.length;
@@ -554,7 +554,7 @@ export class QualificationAgent implements IAgent {
     try {
       validationSchema.parse(input);
       return { valid: true };
-    } catch (error) {
+    } catch (error: any) {
       return {
         valid: false,
         errors: [{

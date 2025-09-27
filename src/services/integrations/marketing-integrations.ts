@@ -14,7 +14,7 @@ export class MetaAdsIntegration extends BaseIntegration {
       const testUrl = `${this.baseUrl}/me?access_token=${this.integration.config.accessToken}`;
       const response = await this.makeApiRequest(testUrl);
       return response.id !== undefined;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -44,7 +44,7 @@ export class MetaAdsIntegration extends BaseIntegration {
         try {
           await this.syncLeadToCRM(lead);
           recordsSynced++;
-        } catch (error) {
+        } catch (error: any) {
           errors.push(this.createSyncError(lead.id, error));
           recordsFailed++;
         }
@@ -63,7 +63,7 @@ export class MetaAdsIntegration extends BaseIntegration {
         endTime: new Date().toISOString(),
         duration: Date.now() - new Date(startTime).getTime()
       };
-    } catch (error) {
+    } catch (error: any) {
       await this.updateStatus('error');
       throw error;
     }
@@ -99,7 +99,7 @@ export class MetaAdsIntegration extends BaseIntegration {
         endTime: new Date().toISOString(),
         duration: Date.now() - new Date(startTime).getTime()
       };
-    } catch (error) {
+    } catch (error: any) {
       await this.updateStatus('error');
       throw error;
     }
@@ -207,7 +207,7 @@ export class MetaAdsIntegration extends BaseIntegration {
         'POST',
         {
           schema: ['EMAIL', 'PHONE'],
-          data: leads.map(l => [l.email_hash, l.phone_hash])
+          data: leads.map((l: any) => [l.email_hash, l.phone_hash])
         },
         { 'Authorization': `Bearer ${this.integration.config.accessToken}` }
       );
@@ -248,7 +248,7 @@ export class GoogleAdsIntegration extends BaseIntegration {
       );
 
       return response.resourceNames !== undefined;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -278,7 +278,7 @@ export class GoogleAdsIntegration extends BaseIntegration {
         try {
           await this.syncLeadToCRM(lead);
           recordsSynced++;
-        } catch (error) {
+        } catch (error: any) {
           errors.push(this.createSyncError(lead.resourceName, error));
           recordsFailed++;
         }
@@ -300,7 +300,7 @@ export class GoogleAdsIntegration extends BaseIntegration {
         endTime: new Date().toISOString(),
         duration: Date.now() - new Date(startTime).getTime()
       };
-    } catch (error) {
+    } catch (error: any) {
       await this.updateStatus('error');
       throw error;
     }
@@ -334,7 +334,7 @@ export class GoogleAdsIntegration extends BaseIntegration {
         endTime: new Date().toISOString(),
         duration: Date.now() - new Date(startTime).getTime()
       };
-    } catch (error) {
+    } catch (error: any) {
       await this.updateStatus('error');
       throw error;
     }
@@ -535,7 +535,7 @@ export class HubSpotIntegration extends BaseIntegration {
       );
 
       return response.portalId !== undefined;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -564,7 +564,7 @@ export class HubSpotIntegration extends BaseIntegration {
         try {
           await this.syncContactToCRM(contact);
           recordsSynced++;
-        } catch (error) {
+        } catch (error: any) {
           errors.push(this.createSyncError(contact.id, error));
           recordsFailed++;
         }
@@ -576,7 +576,7 @@ export class HubSpotIntegration extends BaseIntegration {
         try {
           await this.syncCompanyToCRM(company);
           recordsSynced++;
-        } catch (error) {
+        } catch (error: any) {
           errors.push(this.createSyncError(company.id, error));
           recordsFailed++;
         }
@@ -588,7 +588,7 @@ export class HubSpotIntegration extends BaseIntegration {
         try {
           await this.syncDealToCRM(deal);
           recordsSynced++;
-        } catch (error) {
+        } catch (error: any) {
           errors.push(this.createSyncError(deal.id, error));
           recordsFailed++;
         }
@@ -607,7 +607,7 @@ export class HubSpotIntegration extends BaseIntegration {
         endTime: new Date().toISOString(),
         duration: Date.now() - new Date(startTime).getTime()
       };
-    } catch (error) {
+    } catch (error: any) {
       await this.updateStatus('error');
       throw error;
     }
@@ -642,7 +642,7 @@ export class HubSpotIntegration extends BaseIntegration {
         endTime: new Date().toISOString(),
         duration: Date.now() - new Date(startTime).getTime()
       };
-    } catch (error) {
+    } catch (error: any) {
       await this.updateStatus('error');
       throw error;
     }

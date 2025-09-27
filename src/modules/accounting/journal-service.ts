@@ -148,7 +148,7 @@ class JournalService {
         totalCredit,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       // Rollback by marking entry as failed if it was created
       try {
         await this.db.prepare(`
@@ -404,7 +404,7 @@ class JournalService {
         this.userId,
         JSON.stringify(data)
       ).run();
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 }

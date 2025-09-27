@@ -668,7 +668,7 @@ class RollbackManager {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Rollback failed', error, { correlationId });
 
       // Emergency procedures
@@ -785,7 +785,7 @@ class RollbackManager {
           // Check monitoring alerts
           const alerts = await this.monitor.checkAlerts(monitoringSession);
           if (alerts.length > 0) {
-            const criticalAlerts = alerts.filter(a => a.severity === 'CRITICAL');
+            const criticalAlerts = alerts.filter((a: any) => a.severity === 'CRITICAL');
             if (criticalAlerts.length > 0) {
               this.logger.warn('Critical alerts detected during rollback', {
                 correlationId,
@@ -807,7 +807,7 @@ class RollbackManager {
             }
           }
 
-        } catch (error) {
+        } catch (error: any) {
           const phaseResult: PhaseResult = {
             phase: phase.name,
             status: 'FAILED',
@@ -866,7 +866,7 @@ class RollbackManager {
 
     if (phase.parallelizable) {
       // Execute actions in parallel
-      const promises = phase.actions.map(action =>
+      const promises = phase.actions.map((action: any) =>
         this.executeAction(action, correlationId)
       );
 
@@ -931,7 +931,7 @@ class RollbackManager {
           retries
         };
 
-      } catch (error) {
+      } catch (error: any) {
         lastError = error instanceof Error ? error.message : String(error);
         retries++;
 
@@ -991,7 +991,7 @@ class RollbackManager {
           });
         }
 
-      } catch (error) {
+      } catch (error: any) {
         results.push({
           check: validation.name,
           status: 'TIMEOUT',
@@ -1012,8 +1012,8 @@ class RollbackManager {
     actionResults: ActionResult[],
     validationResults: ValidationResult[]
   ): PhaseStatus {
-    const failedActions = actionResults.filter(r => r.status === 'FAILED');
-    const failedValidations = validationResults.filter(r => r.status === 'FAIL');
+    const failedActions = actionResults.filter((r: any) => r.status === 'FAILED');
+    const failedValidations = validationResults.filter((r: any) => r.status === 'FAIL');
 
     if (failedActions.length > 0) {
       return failedActions.length === actionResults.length ? 'FAILED' : 'PARTIAL';

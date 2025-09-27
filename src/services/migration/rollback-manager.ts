@@ -180,7 +180,7 @@ class RollbackManager {
       // Store metadata in D1
       await this.storeSnapshotMetadata(snapshot);
 
-    } catch (error) {
+    } catch (error: any) {
       snapshot.status = 'EXPIRED';
     }
   }
@@ -275,7 +275,7 @@ class RollbackManager {
   private async calculateChecksum(data: Uint8Array): Promise<string> {
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashArray.map((b: any) => b.toString(16).padStart(2, '0')).join('');
   }
 
   private async storeSnapshotMetadata(snapshot: Snapshot): Promise<void> {
@@ -321,7 +321,7 @@ class RollbackManager {
 
   private async findBestRollbackSnapshot(migrationId: string): Promise<Snapshot | null> {
     const migrationSnapshots = Array.from(this.snapshots.values())
-      .filter(s => s.migrationId === migrationId && s.status === 'READY')
+      .filter((s: any) => s.migrationId === migrationId && s.status === 'READY')
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
     // Prefer PRE_MIGRATION snapshots, then most recent checkpoint
@@ -503,7 +503,7 @@ class RollbackManager {
         try {
           await this.executeRollbackStep(step, execution);
           this.addLog(execution, 'INFO', `Completed step ${step.order}`);
-        } catch (error) {
+        } catch (error: any) {
           const rollbackError: RollbackError = {
             id: crypto.randomUUID(),
             stepId: step.id,
@@ -527,7 +527,7 @@ class RollbackManager {
       execution.endTime = new Date();
       this.addLog(execution, 'INFO', 'Rollback completed successfully');
 
-    } catch (error) {
+    } catch (error: any) {
       execution.status = 'FAILED';
       execution.endTime = new Date();
       this.addLog(execution, 'ERROR', `Rollback failed: ${(error as Error).message}`);
@@ -743,7 +743,7 @@ class RollbackManager {
       case 'UPDATE':
         if (transaction.newData) {
           const sets = Object.keys(transaction.newData)
-            .map(key => `${key} = ?`)
+            .map((key: any) => `${key} = ?`)
             .join(', ');
           const values = Object.values(transaction.newData);
 
@@ -863,7 +863,7 @@ class RollbackManager {
     let snapshots = Array.from(this.snapshots.values());
 
     if (migrationId) {
-      snapshots = snapshots.filter(s => s.migrationId === migrationId);
+      snapshots = snapshots.filter((s: any) => s.migrationId === migrationId);
     }
 
     return snapshots.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());

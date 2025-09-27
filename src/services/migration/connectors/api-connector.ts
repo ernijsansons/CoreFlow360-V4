@@ -125,7 +125,7 @@ export class APIConnector extends BaseConnector {
       const response = await this.makeRequest('GET', testUrl);
 
       return response.status < 400;
-    } catch (error) {
+    } catch (error: any) {
       this.logError('testConnection', error as Error);
       return false;
     }
@@ -151,7 +151,7 @@ export class APIConnector extends BaseConnector {
         // REST API - try to discover endpoints
         schema.tables = await this.discoverRESTSchema();
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logError('getSchema', error as Error);
       // Return empty schema if discovery fails
     }
@@ -204,7 +204,7 @@ export class APIConnector extends BaseConnector {
         // Rate limiting
         await this.rateLimiter.wait();
 
-      } catch (error) {
+      } catch (error: any) {
         if (options.ignoreErrors) {
           errors += batch.length;
         } else {
@@ -304,7 +304,7 @@ export class APIConnector extends BaseConnector {
     for (const listener of this.webhookListeners.values()) {
       try {
         await listener(payload);
-      } catch (error) {
+      } catch (error: any) {
         this.logError('webhook listener', error as Error);
       }
     }
@@ -541,7 +541,7 @@ export class APIConnector extends BaseConnector {
             });
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Ignore errors for endpoint discovery
       }
     }
@@ -552,7 +552,7 @@ export class APIConnector extends BaseConnector {
   private inferColumnsFromData(data: any[]): Column[] {
     const fieldTypes: Record<string, Set<string>> = {};
 
-    data.forEach(item => {
+    data.forEach((item: any) => {
       if (typeof item === 'object' && item !== null) {
         Object.entries(item).forEach(([key, value]) => {
           if (!fieldTypes[key]) {
@@ -712,7 +712,7 @@ export class APIConnector extends BaseConnector {
 
     // Client-side filtering (if not handled by API)
     if (options.filters) {
-      result = result.filter(item => {
+      result = result.filter((item: any) => {
         return Object.entries(options.filters!).every(([key, value]) => {
           return item[key] === value;
         });
@@ -765,7 +765,7 @@ export class APIConnector extends BaseConnector {
       if (response.ok) {
         return { success: data.length, errors: 0 };
       }
-    } catch (error) {
+    } catch (error: any) {
       // Fall back to individual requests
     }
 
@@ -777,7 +777,7 @@ export class APIConnector extends BaseConnector {
       try {
         await this.writeSingle(table, item, options);
         success++;
-      } catch (error) {
+      } catch (error: any) {
         if (options.ignoreErrors) {
           errors++;
         } else {
@@ -827,7 +827,7 @@ class RateLimiter {
     const now = Date.now();
 
     // Remove requests older than 1 second
-    this.requests = this.requests.filter(time => now - time < 1000);
+    this.requests = this.requests.filter((time: any) => now - time < 1000);
 
     // Check burst limit
     if (this.requests.length >= this.burstLimit) {

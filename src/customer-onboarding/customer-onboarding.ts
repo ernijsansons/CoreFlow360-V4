@@ -45,7 +45,7 @@ async function main() {
         break;
     }
 
-  } catch (error) {
+  } catch (error: any) {
     process.exit(1);
   }
 }

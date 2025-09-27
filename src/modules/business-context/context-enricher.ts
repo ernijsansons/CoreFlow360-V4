@@ -153,7 +153,7 @@ export class ContextEnricher {
 
       return enrichedContext;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Context enrichment failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
         businessId: contextData.businessId,
@@ -382,7 +382,7 @@ export class ContextEnricher {
   }
 
   private generateCapabilitiesPrompt(capabilities: string[], contextData: BusinessContextData): string {
-    const relevantCapabilities = capabilities.filter(cap => 
+    const relevantCapabilities = capabilities.filter((cap: any) => 
       this.isCapabilityRelevant(cap, contextData)
     );
 
@@ -390,7 +390,7 @@ export class ContextEnricher {
   }
 
   private generateBusinessRulesPrompt(rules: string[], contextData: BusinessContextData): string {
-    const relevantRules = rules.filter(rule => 
+    const relevantRules = rules.filter((rule: any) => 
       this.isRuleRelevant(rule, contextData)
     );
 

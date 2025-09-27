@@ -205,7 +205,7 @@ export class PoolOptimizer {
     if (this.history.length < 5) return { increasing: false, decreasing: false, stable: true };
 
     const recent = this.history.slice(-5);
-    const utilizations = recent.map(h => h.utilization);
+    const utilizations = recent.map((h: any) => h.utilization);
     const trend = utilizations[utilizations.length - 1] - utilizations[0];
 
     return {
@@ -283,7 +283,7 @@ export class PoolOptimizer {
   }
 
   private async checkReplicationLag(replicas: DatabaseNode[]): Promise<number> {
-    return Math.max(...replicas.map(r => r.latency));
+    return Math.max(...replicas.map((r: any) => r.latency));
   }
 
   private async selectOptimalNode(factors: any, options: any): Promise<DatabaseNode> {
@@ -300,13 +300,13 @@ export class PoolOptimizer {
 
   private selectBestWriteNode(nodes: DatabaseNode[], factors: any): DatabaseNode {
     return nodes
-      .filter(n => n.isHealthy)
+      .filter((n: any) => n.isHealthy)
       .sort((a, b) => (a.currentLoad + a.latency) - (b.currentLoad + b.latency))[0] || nodes[0];
   }
 
   private selectBestReadNode(nodes: DatabaseNode[], factors: any): DatabaseNode {
     return nodes
-      .filter(n => n.isHealthy && n.type === 'replica')
+      .filter((n: any) => n.isHealthy && n.type === 'replica')
       .sort((a, b) => a.latency - b.latency)[0] || nodes[0];
   }
 
@@ -578,7 +578,7 @@ class QuantumConnectionManager {
   }
 
   private async scaleDown(pool: ConnectionPool, count: number): Promise<void> {
-    const idleConnections = pool.connections.filter(c => !c.isActive);
+    const idleConnections = pool.connections.filter((c: any) => !c.isActive);
     const toRemove = Math.min(count, idleConnections.length);
 
     for (let i = 0; i < toRemove; i++) {

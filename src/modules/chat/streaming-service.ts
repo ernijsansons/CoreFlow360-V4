@@ -48,7 +48,7 @@ class ChatStreamingService {
       messageId,
       userMessage,
       context
-    ).catch(async (error) => {
+    ).catch(async (error: any) => {
       await this.sendErrorChunk(writer, error)
       await writer.close()
     })
@@ -225,7 +225,7 @@ class ChatStreamingService {
         }
       })
 
-    } catch (error) {
+    } catch (error: any) {
       await this.auditLogger.log({
         action: 'chat_stream_failed',
         details: {
@@ -323,7 +323,7 @@ ${JSON.stringify(context.relevantData, null, 2)}`
         default:
           return `Function "${functionName}" is not available.`
       }
-    } catch (error) {
+    } catch (error: any) {
       return `Error executing function "${functionName}": ${error instanceof Error ? error.message : 'Unknown error'}`
     }
   }
@@ -428,7 +428,7 @@ ${JSON.stringify(context.relevantData, null, 2)}`
     const keepAlive = setInterval(async () => {
       try {
         await writer.write(new TextEncoder().encode('data: {"type":"ping"}\n\n'))
-      } catch (error) {
+      } catch (error: any) {
         clearInterval(keepAlive)
       }
     }, 30000) // 30 seconds

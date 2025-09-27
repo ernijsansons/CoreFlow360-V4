@@ -61,7 +61,7 @@ export class CapabilityRegistry {
     if (!caps) return [];
 
     return Array.from(caps)
-      .map(cap => this.capabilities.get(cap))
+      .map((cap: any) => this.capabilities.get(cap))
       .filter(Boolean) as CapabilityDefinition[];
   }
 
@@ -73,7 +73,7 @@ export class CapabilityRegistry {
     if (!caps) return [];
 
     return Array.from(caps)
-      .map(cap => this.capabilities.get(cap))
+      .map((cap: any) => this.capabilities.get(cap))
       .filter(Boolean) as CapabilityDefinition[];
   }
 
@@ -85,7 +85,7 @@ export class CapabilityRegistry {
     if (!caps) return [];
 
     return Array.from(caps)
-      .map(cap => this.capabilities.get(cap))
+      .map((cap: any) => this.capabilities.get(cap))
       .filter(Boolean) as CapabilityDefinition[];
   }
 
@@ -127,7 +127,7 @@ export class CapabilityRegistry {
       '^' + pattern.replace(/\*/g, '.*').replace(/\./g, '\\.') + '$'
     );
 
-    return Array.from(this.capabilities.keys()).filter(cap =>
+    return Array.from(this.capabilities.keys()).filter((cap: any) =>
       regex.test(cap)
     );
   }

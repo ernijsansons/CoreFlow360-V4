@@ -111,7 +111,7 @@ export class EnrichmentPipeline {
         enriched_lead: enrichedLead,
         enrichment_metadata: enrichedLead.enrichment_data.enrichment_metadata
       };
-    } catch (error) {
+    } catch (error: any) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       metadata.errors?.push({
         source: 'pipeline',
@@ -143,8 +143,8 @@ export class EnrichmentPipeline {
     const batches = this.chunkArray(requests, batchSize);
 
     for (const batch of batches) {
-      const batchPromises = batch.map(request =>
-        this.enrichLead(request).catch(error => ({
+      const batchPromises = batch.map((request: any) =>
+        this.enrichLead(request).catch((error: any) => ({
           success: false,
           error: error.message,
           enrichment_metadata: {
@@ -164,7 +164,7 @@ export class EnrichmentPipeline {
       results.push(...batchResults);
 
       // Calculate metrics
-      batchResults.forEach(result => {
+      batchResults.forEach((result: any) => {
         if (result.success) {
           successful++;
         } else {
@@ -213,7 +213,7 @@ export class EnrichmentPipeline {
       promises.push(
         this.enrichWithClearbitCompany(request.domain!, metadata)
           .then(result => { results.clearbitCompany = result; })
-          .catch(error => this.handleEnrichmentError('clearbit', error, metadata))
+          .catch((error: any) => this.handleEnrichmentError('clearbit', error, metadata))
       );
     }
 
@@ -221,7 +221,7 @@ export class EnrichmentPipeline {
       promises.push(
         this.enrichWithApollo(request.domain!, metadata)
           .then(result => { results.apolloCompany = result; })
-          .catch(error => this.handleEnrichmentError('apollo', error, metadata))
+          .catch((error: any) => this.handleEnrichmentError('apollo', error, metadata))
       );
     }
 
@@ -230,7 +230,7 @@ export class EnrichmentPipeline {
       promises.push(
         this.enrichWithClearbitPerson(request.email, metadata)
           .then(result => { results.clearbitPerson = result; })
-          .catch(error => this.handleEnrichmentError('clearbit', error, metadata))
+          .catch((error: any) => this.handleEnrichmentError('clearbit', error, metadata))
       );
     }
 
@@ -239,7 +239,7 @@ export class EnrichmentPipeline {
       promises.push(
         this.enrichWithNews(request.company_name || request.domain!, metadata)
           .then(result => { results.news = result; })
-          .catch(error => this.handleEnrichmentError('news', error, metadata))
+          .catch((error: any) => this.handleEnrichmentError('news', error, metadata))
       );
     }
 
@@ -248,7 +248,7 @@ export class EnrichmentPipeline {
       promises.push(
         this.enrichWithLinkedIn(request.linkedin_url, metadata)
           .then(result => { results.social = result; })
-          .catch(error => this.handleEnrichmentError('linkedin', error, metadata))
+          .catch((error: any) => this.handleEnrichmentError('linkedin', error, metadata))
       );
     }
 
@@ -414,7 +414,7 @@ export class EnrichmentPipeline {
       if (enrichedLead.enrichment_data.ai_insights) {
         // Update lead qualification score and next actions
       }
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -472,7 +472,7 @@ export class EnrichmentPipeline {
     try {
       const cached = await this.env.KV_CACHE.get(key);
       return cached ? JSON.parse(cached) : null;
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -481,7 +481,7 @@ export class EnrichmentPipeline {
     try {
       const ttl = 86400; // 24 hours
       await this.env.KV_CACHE.put(key, JSON.stringify(data), { expirationTtl: ttl });
-    } catch (error) {
+    } catch (error: any) {
     }
   }
 
@@ -539,7 +539,7 @@ export class EnrichmentPipeline {
             unavailable.push(source);
             errors.push(`Unknown source: ${source}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         unavailable.push(source);
         errors.push(`Error validating ${source}: ${error}`);
       }

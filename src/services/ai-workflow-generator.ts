@@ -373,7 +373,7 @@ export class AIWorkflowGenerator {
         deployment,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Workflow generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -617,7 +617,7 @@ Return a complete workflow definition with all necessary nodes, edges, and confi
       visited.add(currentNodeId);
       recursionStack.add(currentNodeId);
 
-      const outgoingEdges = edges.filter(e => e.source === currentNodeId);
+      const outgoingEdges = edges.filter((e: any) => e.source === currentNodeId);
       for (const edge of outgoingEdges) {
         if (dfs(edge.target)) {
           return true;
@@ -678,7 +678,7 @@ Return a JSON array of test cases with input data, expected outputs, and test ty
       );
 
       testCases.push(...response);
-    } catch (error) {
+    } catch (error: any) {
       // Fallback to basic test cases
       testCases.push({
         id: 'basic-1',

@@ -109,7 +109,7 @@ class CapabilityManager {
         category: capability.category,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to register capability', error, {
         capabilityId: capability.id,
       });
@@ -131,7 +131,7 @@ class CapabilityManager {
     const capabilities = Array.from(this.capabilities.values());
 
     if (category) {
-      return capabilities.filter(cap => cap.category === category);
+      return capabilities.filter((cap: any) => cap.category === category);
     }
 
     return capabilities;
@@ -254,7 +254,7 @@ class CapabilityManager {
       description: capability.description,
       version: capability.version,
       category: capability.category,
-      parameters: capability.parameters.map(param => ({
+      parameters: capability.parameters.map((param: any) => ({
         name: param.name,
         type: param.type,
         description: param.description,
@@ -284,7 +284,7 @@ class CapabilityManager {
     maxCost?: number;
     includeDeprecated?: boolean;
   }): CapabilitySpec[] {
-    return Array.from(this.capabilities.values()).filter(capability => {
+    return Array.from(this.capabilities.values()).filter((capability: any) => {
       // Filter by category
       if (criteria.category && capability.category !== criteria.category) {
         return false;
@@ -434,7 +434,7 @@ export const CapabilityUtils = {
                 config.operation === 'api' ? 'api' :
                 config.operation === 'file' ? 'file' : 'computation',
 
-      parameters: config.parameters.map(param => ({
+      parameters: config.parameters.map((param: any) => ({
         ...param,
         validation: {
           required: param.required ?? false,
@@ -511,13 +511,13 @@ export const CapabilityUtils = {
       '',
       '| Name | Type | Required | Description |',
       '|------|------|----------|-------------|',
-      ...capability.parameters.map(param =>
+      ...capability.parameters.map((param: any) =>
         `| ${param.name} | ${param.type} | ${param.validation.required ? 'Yes' : 'No'} | ${param.description} |`
       ),
       '',
       `## Permissions Required`,
       '',
-      ...capability.permissions.requiredCapabilities.map(perm => `- ${perm}`),
+      ...capability.permissions.requiredCapabilities.map((perm: any) => `- ${perm}`),
       '',
       `## Cost Estimation`,
       '',

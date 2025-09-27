@@ -153,7 +153,7 @@ async function initializeGateways(env: Env) {
 // STRIPE ENDPOINTS
 // ============================================================================
 
-app.post('/stripe/payment-intent', zValidator('json', CreatePaymentIntentSchema), async (c) => {
+app.post('/stripe/payment-intent', zValidator('json', CreatePaymentIntentSchema), async (c: any) => {
   try {
     const { stripe, auditLogger } = await initializeGateways(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -181,7 +181,7 @@ app.post('/stripe/payment-intent', zValidator('json', CreatePaymentIntentSchema)
       success: true,
       data: result
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create payment intent'
@@ -189,7 +189,7 @@ app.post('/stripe/payment-intent', zValidator('json', CreatePaymentIntentSchema)
   }
 });
 
-app.post('/stripe/customer', zValidator('json', CreateCustomerSchema), async (c) => {
+app.post('/stripe/customer', zValidator('json', CreateCustomerSchema), async (c: any) => {
   try {
     const { stripe, auditLogger } = await initializeGateways(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -215,7 +215,7 @@ app.post('/stripe/customer', zValidator('json', CreateCustomerSchema), async (c)
       success: true,
       data: result
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create customer'
@@ -223,7 +223,7 @@ app.post('/stripe/customer', zValidator('json', CreateCustomerSchema), async (c)
   }
 });
 
-app.post('/stripe/subscription', zValidator('json', CreateSubscriptionSchema), async (c) => {
+app.post('/stripe/subscription', zValidator('json', CreateSubscriptionSchema), async (c: any) => {
   try {
     const { stripe, auditLogger } = await initializeGateways(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -250,7 +250,7 @@ app.post('/stripe/subscription', zValidator('json', CreateSubscriptionSchema), a
       success: true,
       data: result
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create subscription'
@@ -258,7 +258,7 @@ app.post('/stripe/subscription', zValidator('json', CreateSubscriptionSchema), a
   }
 });
 
-app.post('/stripe/refund', zValidator('json', RefundPaymentSchema), async (c) => {
+app.post('/stripe/refund', zValidator('json', RefundPaymentSchema), async (c: any) => {
   try {
     const { stripe, auditLogger } = await initializeGateways(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -285,7 +285,7 @@ app.post('/stripe/refund', zValidator('json', RefundPaymentSchema), async (c) =>
       success: true,
       data: result
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to process refund'
@@ -293,7 +293,7 @@ app.post('/stripe/refund', zValidator('json', RefundPaymentSchema), async (c) =>
   }
 });
 
-app.post('/stripe/webhook', async (c) => {
+app.post('/stripe/webhook', async (c: any) => {
   try {
     const { stripe, webhookService, auditLogger } = await initializeGateways(c.env);
     const signature = c.req.header('stripe-signature');
@@ -328,7 +328,7 @@ app.post('/stripe/webhook', async (c) => {
       success: true,
       received: true
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Webhook processing failed'
@@ -340,7 +340,7 @@ app.post('/stripe/webhook', async (c) => {
 // PAYPAL ENDPOINTS
 // ============================================================================
 
-app.post('/paypal/order', zValidator('json', PayPalOrderSchema), async (c) => {
+app.post('/paypal/order', zValidator('json', PayPalOrderSchema), async (c: any) => {
   try {
     const { paypal, auditLogger } = await initializeGateways(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -367,7 +367,7 @@ app.post('/paypal/order', zValidator('json', PayPalOrderSchema), async (c) => {
       success: true,
       data: result
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create PayPal order'
@@ -375,7 +375,7 @@ app.post('/paypal/order', zValidator('json', PayPalOrderSchema), async (c) => {
   }
 });
 
-app.post('/paypal/order/:id/capture', async (c) => {
+app.post('/paypal/order/:id/capture', async (c: any) => {
   try {
     const { paypal, auditLogger } = await initializeGateways(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -401,7 +401,7 @@ app.post('/paypal/order/:id/capture', async (c) => {
       success: true,
       data: result
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to capture PayPal order'
@@ -409,7 +409,7 @@ app.post('/paypal/order/:id/capture', async (c) => {
   }
 });
 
-app.post('/paypal/webhook', async (c) => {
+app.post('/paypal/webhook', async (c: any) => {
   try {
     const { paypal, webhookService, auditLogger } = await initializeGateways(c.env);
     const body = await c.req.json();
@@ -448,7 +448,7 @@ app.post('/paypal/webhook', async (c) => {
       success: true,
       received: true
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Webhook processing failed'
@@ -460,7 +460,7 @@ app.post('/paypal/webhook', async (c) => {
 // BANK TRANSFER ENDPOINTS
 // ============================================================================
 
-app.post('/bank-transfer', zValidator('json', BankTransferSchema), async (c) => {
+app.post('/bank-transfer', zValidator('json', BankTransferSchema), async (c: any) => {
   try {
     const { auditLogger } = await initializeGateways(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
@@ -496,7 +496,7 @@ app.post('/bank-transfer', zValidator('json', BankTransferSchema), async (c) => 
         estimatedArrival: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() // 3 days
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to initiate bank transfer'
@@ -508,7 +508,7 @@ app.post('/bank-transfer', zValidator('json', BankTransferSchema), async (c) => 
 // PAYMENT STATUS & HISTORY
 // ============================================================================
 
-app.get('/status/:id', async (c) => {
+app.get('/status/:id', async (c: any) => {
   try {
     const { stripe, paypal } = await initializeGateways(c.env);
     const paymentId = c.req.param('id');
@@ -530,7 +530,7 @@ app.get('/status/:id', async (c) => {
       success: true,
       data: status
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch payment status'
@@ -538,7 +538,7 @@ app.get('/status/:id', async (c) => {
   }
 });
 
-app.get('/history', async (c) => {
+app.get('/history', async (c: any) => {
   try {
     const businessId = c.req.header('X-Business-ID') || 'default';
     const customerId = c.req.query('customerId');
@@ -558,7 +558,7 @@ app.get('/history', async (c) => {
         total: payments.length
       }
     });
-  } catch (error) {
+  } catch (error: any) {
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch payment history'
@@ -570,7 +570,7 @@ app.get('/history', async (c) => {
 // HEALTH CHECK
 // ============================================================================
 
-app.get('/health', async (c) => {
+app.get('/health', async (c: any) => {
   return c.json({
     success: true,
     service: 'payments',

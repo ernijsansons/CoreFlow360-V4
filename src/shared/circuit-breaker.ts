@@ -84,7 +84,7 @@ export class CircuitBreaker {
       this.onSuccess();
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.onFailure(error as Error);
       throw error;
     }
@@ -103,7 +103,7 @@ export class CircuitBreaker {
     for (let attempt = 1; attempt <= retries + 1; attempt++) {
       try {
         return await this.execute(operation);
-      } catch (error) {
+      } catch (error: any) {
         lastError = error as Error;
 
         // Don't retry if circuit is open

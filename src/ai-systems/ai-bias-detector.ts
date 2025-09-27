@@ -530,7 +530,7 @@ export class AIBiasDetector {
     const recommendations: BiasRecommendation[] = [];
     
     // High-priority recommendations based on bias severity
-    const highBiasTypes = biasTypes.filter(bt => bt.score > 0.2);
+    const highBiasTypes = biasTypes.filter((bt: any) => bt.score > 0.2);
     for (const biasType of highBiasTypes) {
       recommendations.push({
         bias: `${biasType.type} bias`,
@@ -542,7 +542,7 @@ export class AIBiasDetector {
     }
     
     // Group-specific recommendations
-    const highBiasGroups = affectedGroups.filter(ag => ag.biasScore > 0.15);
+    const highBiasGroups = affectedGroups.filter((ag: any) => ag.biasScore > 0.15);
     for (const group of highBiasGroups) {
       recommendations.push({
         bias: `${group.group} discrimination`,

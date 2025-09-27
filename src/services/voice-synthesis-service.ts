@@ -84,7 +84,7 @@ export class VoiceSynthesisService {
       
       return response;
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -103,7 +103,7 @@ export class VoiceSynthesisService {
         duration_ms: text.length * 50, // Estimate 50ms per character
         character_count: text.length
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: `ElevenLabs synthesis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -122,7 +122,7 @@ export class VoiceSynthesisService {
         duration_ms: text.length * 50, // Estimate 50ms per character
         character_count: text.length
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: `AWS Polly synthesis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -141,7 +141,7 @@ export class VoiceSynthesisService {
         duration_ms: text.length * 50, // Estimate 50ms per character
         character_count: text.length
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: `Azure synthesis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -160,7 +160,7 @@ export class VoiceSynthesisService {
         duration_ms: text.length * 50, // Estimate 50ms per character
         character_count: text.length
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: `Google synthesis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -212,7 +212,7 @@ export class VoiceSynthesisService {
       
       return response;
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -236,7 +236,7 @@ export class VoiceSynthesisService {
         duration_ms: ssml.length * 50, // Estimate 50ms per character
         character_count: ssml.length
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: `ElevenLabs SSML synthesis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -255,7 +255,7 @@ export class VoiceSynthesisService {
         duration_ms: ssml.length * 50, // Estimate 50ms per character
         character_count: ssml.length
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: `AWS Polly SSML synthesis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -274,7 +274,7 @@ export class VoiceSynthesisService {
         duration_ms: ssml.length * 50, // Estimate 50ms per character
         character_count: ssml.length
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: `Azure SSML synthesis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -293,7 +293,7 @@ export class VoiceSynthesisService {
         duration_ms: ssml.length * 50, // Estimate 50ms per character
         character_count: ssml.length
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: `Google SSML synthesis failed: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -341,7 +341,7 @@ export class VoiceSynthesisService {
     ];
 
     if (provider) {
-      return voices.filter(voice => voice.provider === provider);
+      return voices.filter((voice: any) => voice.provider === provider);
     }
 
     return voices;
@@ -365,7 +365,7 @@ export class VoiceSynthesisService {
       // Mock voice settings update - would update real APIs in production
       this.voiceSettings = { ...this.voiceSettings, ...settings };
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update voice settings:', error);
       return false;
     }
@@ -465,7 +465,7 @@ export class VoiceSynthesisService {
         voice_id: this.config.voice_id,
         timestamp: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: 'unhealthy',
         provider: this.config.provider,
@@ -479,7 +479,7 @@ export class VoiceSynthesisService {
     try {
       // Mock cleanup - would close connections and clean up resources in production
       console.log('Voice Synthesis Service cleanup completed');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Voice Synthesis Service cleanup failed:', error);
     }
   }

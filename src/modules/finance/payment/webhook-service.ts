@@ -248,7 +248,7 @@ class WebhookService {
 
       return processedWebhook
 
-    } catch (error) {
+    } catch (error: any) {
       const processingTimeMs = Date.now() - startTime
 
       auditLogger.log({
@@ -316,7 +316,7 @@ class WebhookService {
             webhookId: webhook.id
           })
       }
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'webhook_business_logic_failed',
         webhookId: webhook.id,
@@ -584,7 +584,7 @@ class WebhookService {
           try {
             await this.retryWebhook(entry.webhook)
             this.retryQueue.delete(webhookId)
-          } catch (error) {
+          } catch (error: any) {
             await this.scheduleRetry(entry.webhook)
           }
         }
@@ -601,7 +601,7 @@ class WebhookService {
 
     try {
       await this.processWebhook(webhook.provider, webhook.rawPayload, webhook.headers)
-    } catch (error) {
+    } catch (error: any) {
       auditLogger.log({
         action: 'webhook_retry_failed',
         webhookId: webhook.id,
@@ -639,7 +639,7 @@ class WebhookService {
             return false
           }
         },
-        parseEvent: async (payload) => {
+        parseEvent: async (payload: any) => {
           const event = JSON.parse(payload)
           return {
             eventType: this.mapStripeEventType(event.type),
@@ -675,7 +675,7 @@ class WebhookService {
             return false
           }
         },
-        parseEvent: async (payload) => {
+        parseEvent: async (payload: any) => {
           const event = JSON.parse(payload)
           return {
             eventType: this.mapPayPalEventType(event.event_type),
@@ -755,19 +755,19 @@ class WebhookService {
 
     if (filters) {
       if (filters.provider) {
-        webhooks = webhooks.filter(w => w.provider === filters.provider)
+        webhooks = webhooks.filter((w: any) => w.provider === filters.provider)
       }
       if (filters.eventType) {
-        webhooks = webhooks.filter(w => w.eventType === filters.eventType)
+        webhooks = webhooks.filter((w: any) => w.eventType === filters.eventType)
       }
       if (filters.status) {
-        webhooks = webhooks.filter(w => w.status === filters.status)
+        webhooks = webhooks.filter((w: any) => w.status === filters.status)
       }
       if (filters.startDate) {
-        webhooks = webhooks.filter(w => w.createdAt >= filters.startDate!)
+        webhooks = webhooks.filter((w: any) => w.createdAt >= filters.startDate!)
       }
       if (filters.endDate) {
-        webhooks = webhooks.filter(w => w.createdAt <= filters.endDate!)
+        webhooks = webhooks.filter((w: any) => w.createdAt <= filters.endDate!)
       }
       if (filters.limit) {
         webhooks = webhooks.slice(0, filters.limit)
@@ -786,7 +786,7 @@ class WebhookService {
   }> {
     const webhooks = Array.from(this.processedWebhooks.values())
     const total = webhooks.length
-    const succeeded = webhooks.filter(w => w.status === WebhookStatus.SUCCEEDED).length
+    const succeeded = webhooks.filter((w: any) => w.status === WebhookStatus.SUCCEEDED).length
     const successRate = total > 0 ? (succeeded / total) * 100 : 0
 
     const avgProcessingTime = total > 0

@@ -360,7 +360,7 @@ export class MetricsCollector {
 
     const tags: Record<string, string> = {};
     if (tagString) {
-      tagString.split(',').forEach(pair => {
+      tagString.split(',').forEach((pair: any) => {
         const [key, value] = pair.split('=');
         if (key && value) {
           tags[key] = value;
@@ -388,7 +388,7 @@ export class MetricsCollector {
         Array.from(this.histograms.entries()).map(([k, v]) => [k, {
           count: v.count,
           sum: v.sum,
-          buckets: v.buckets.map(b => ({ le: b.le, count: b.count }))
+          buckets: v.buckets.map((b: any) => ({ le: b.le, count: b.count }))
         }])
       ),
       summaries: Object.fromEntries(this.summaries)
@@ -413,7 +413,7 @@ export function metricsMiddleware(metrics: MetricsCollector) {
       });
 
       return response;
-    } catch (error) {
+    } catch (error: any) {
       const latency = Date.now() - startTime;
       metrics.recordRequest(latency, 500, {
         method: request.method,
@@ -437,7 +437,7 @@ export function timed(name: string, metrics: MetricsCollector) {
         const duration = Date.now() - startTime;
         metrics.timing(name, duration, { method: propertyKey });
         return result;
-      } catch (error) {
+      } catch (error: any) {
         const duration = Date.now() - startTime;
         metrics.timing(name, duration, { method: propertyKey, error: 'true' });
         throw error;
