@@ -1,0 +1,1202 @@
+[
+  {
+    "businessId": "biz_test_0",
+    "name": "Test Business 0",
+    "industry": "technology",
+    "tier": "startup",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 50,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_1",
+    "name": "Test Business 1",
+    "industry": "finance",
+    "tier": "growth",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 51,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_2",
+    "name": "Test Business 2",
+    "industry": "healthcare",
+    "tier": "enterprise",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 52,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_3",
+    "name": "Test Business 3",
+    "industry": "retail",
+    "tier": "startup",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 53,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_4",
+    "name": "Test Business 4",
+    "industry": "technology",
+    "tier": "growth",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 54,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_5",
+    "name": "Test Business 5",
+    "industry": "finance",
+    "tier": "enterprise",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 55,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_6",
+    "name": "Test Business 6",
+    "industry": "healthcare",
+    "tier": "startup",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 56,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_7",
+    "name": "Test Business 7",
+    "industry": "retail",
+    "tier": "growth",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 57,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_8",
+    "name": "Test Business 8",
+    "industry": "technology",
+    "tier": "enterprise",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 58,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_9",
+    "name": "Test Business 9",
+    "industry": "finance",
+    "tier": "startup",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 59,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_10",
+    "name": "Test Business 10",
+    "industry": "healthcare",
+    "tier": "growth",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 60,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_11",
+    "name": "Test Business 11",
+    "industry": "retail",
+    "tier": "enterprise",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 61,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_12",
+    "name": "Test Business 12",
+    "industry": "technology",
+    "tier": "startup",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 62,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_13",
+    "name": "Test Business 13",
+    "industry": "finance",
+    "tier": "growth",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 63,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_14",
+    "name": "Test Business 14",
+    "industry": "healthcare",
+    "tier": "enterprise",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 64,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_15",
+    "name": "Test Business 15",
+    "industry": "retail",
+    "tier": "startup",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 65,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_16",
+    "name": "Test Business 16",
+    "industry": "technology",
+    "tier": "growth",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 66,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_17",
+    "name": "Test Business 17",
+    "industry": "finance",
+    "tier": "enterprise",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 67,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_18",
+    "name": "Test Business 18",
+    "industry": "healthcare",
+    "tier": "startup",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 68,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_19",
+    "name": "Test Business 19",
+    "industry": "retail",
+    "tier": "growth",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 69,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_20",
+    "name": "Test Business 20",
+    "industry": "technology",
+    "tier": "enterprise",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 70,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_21",
+    "name": "Test Business 21",
+    "industry": "finance",
+    "tier": "startup",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 71,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_22",
+    "name": "Test Business 22",
+    "industry": "healthcare",
+    "tier": "growth",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 72,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_23",
+    "name": "Test Business 23",
+    "industry": "retail",
+    "tier": "enterprise",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 73,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_24",
+    "name": "Test Business 24",
+    "industry": "technology",
+    "tier": "startup",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 74,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_25",
+    "name": "Test Business 25",
+    "industry": "finance",
+    "tier": "growth",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 75,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_26",
+    "name": "Test Business 26",
+    "industry": "healthcare",
+    "tier": "enterprise",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 76,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_27",
+    "name": "Test Business 27",
+    "industry": "retail",
+    "tier": "startup",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 77,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_28",
+    "name": "Test Business 28",
+    "industry": "technology",
+    "tier": "growth",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 78,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_29",
+    "name": "Test Business 29",
+    "industry": "finance",
+    "tier": "enterprise",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 79,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_30",
+    "name": "Test Business 30",
+    "industry": "healthcare",
+    "tier": "startup",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 80,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_31",
+    "name": "Test Business 31",
+    "industry": "retail",
+    "tier": "growth",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 81,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_32",
+    "name": "Test Business 32",
+    "industry": "technology",
+    "tier": "enterprise",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 82,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_33",
+    "name": "Test Business 33",
+    "industry": "finance",
+    "tier": "startup",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 83,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_34",
+    "name": "Test Business 34",
+    "industry": "healthcare",
+    "tier": "growth",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 84,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_35",
+    "name": "Test Business 35",
+    "industry": "retail",
+    "tier": "enterprise",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 85,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_36",
+    "name": "Test Business 36",
+    "industry": "technology",
+    "tier": "startup",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 86,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_37",
+    "name": "Test Business 37",
+    "industry": "finance",
+    "tier": "growth",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 87,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_38",
+    "name": "Test Business 38",
+    "industry": "healthcare",
+    "tier": "enterprise",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 88,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_39",
+    "name": "Test Business 39",
+    "industry": "retail",
+    "tier": "startup",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 89,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_40",
+    "name": "Test Business 40",
+    "industry": "technology",
+    "tier": "growth",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 90,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_41",
+    "name": "Test Business 41",
+    "industry": "finance",
+    "tier": "enterprise",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 91,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_42",
+    "name": "Test Business 42",
+    "industry": "healthcare",
+    "tier": "startup",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 92,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_43",
+    "name": "Test Business 43",
+    "industry": "retail",
+    "tier": "growth",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 93,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_44",
+    "name": "Test Business 44",
+    "industry": "technology",
+    "tier": "enterprise",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 94,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_45",
+    "name": "Test Business 45",
+    "industry": "finance",
+    "tier": "startup",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 95,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_46",
+    "name": "Test Business 46",
+    "industry": "healthcare",
+    "tier": "growth",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 96,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_47",
+    "name": "Test Business 47",
+    "industry": "retail",
+    "tier": "enterprise",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 97,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_48",
+    "name": "Test Business 48",
+    "industry": "technology",
+    "tier": "startup",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 98,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_49",
+    "name": "Test Business 49",
+    "industry": "finance",
+    "tier": "growth",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 99,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_50",
+    "name": "Test Business 50",
+    "industry": "healthcare",
+    "tier": "enterprise",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 100,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_51",
+    "name": "Test Business 51",
+    "industry": "retail",
+    "tier": "startup",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 101,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_52",
+    "name": "Test Business 52",
+    "industry": "technology",
+    "tier": "growth",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 102,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_53",
+    "name": "Test Business 53",
+    "industry": "finance",
+    "tier": "enterprise",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 103,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_54",
+    "name": "Test Business 54",
+    "industry": "healthcare",
+    "tier": "startup",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 104,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_55",
+    "name": "Test Business 55",
+    "industry": "retail",
+    "tier": "growth",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 105,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_56",
+    "name": "Test Business 56",
+    "industry": "technology",
+    "tier": "enterprise",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 106,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_57",
+    "name": "Test Business 57",
+    "industry": "finance",
+    "tier": "startup",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 107,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_58",
+    "name": "Test Business 58",
+    "industry": "healthcare",
+    "tier": "growth",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 108,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_59",
+    "name": "Test Business 59",
+    "industry": "retail",
+    "tier": "enterprise",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 109,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_60",
+    "name": "Test Business 60",
+    "industry": "technology",
+    "tier": "startup",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 110,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_61",
+    "name": "Test Business 61",
+    "industry": "finance",
+    "tier": "growth",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 111,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_62",
+    "name": "Test Business 62",
+    "industry": "healthcare",
+    "tier": "enterprise",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 112,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_63",
+    "name": "Test Business 63",
+    "industry": "retail",
+    "tier": "startup",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 113,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_64",
+    "name": "Test Business 64",
+    "industry": "technology",
+    "tier": "growth",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 114,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_65",
+    "name": "Test Business 65",
+    "industry": "finance",
+    "tier": "enterprise",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 115,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_66",
+    "name": "Test Business 66",
+    "industry": "healthcare",
+    "tier": "startup",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 116,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_67",
+    "name": "Test Business 67",
+    "industry": "retail",
+    "tier": "growth",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 117,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_68",
+    "name": "Test Business 68",
+    "industry": "technology",
+    "tier": "enterprise",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 118,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_69",
+    "name": "Test Business 69",
+    "industry": "finance",
+    "tier": "startup",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 119,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_70",
+    "name": "Test Business 70",
+    "industry": "healthcare",
+    "tier": "growth",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 120,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_71",
+    "name": "Test Business 71",
+    "industry": "retail",
+    "tier": "enterprise",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 121,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_72",
+    "name": "Test Business 72",
+    "industry": "technology",
+    "tier": "startup",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 122,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_73",
+    "name": "Test Business 73",
+    "industry": "finance",
+    "tier": "growth",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 123,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_74",
+    "name": "Test Business 74",
+    "industry": "healthcare",
+    "tier": "enterprise",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 124,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_75",
+    "name": "Test Business 75",
+    "industry": "retail",
+    "tier": "startup",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 125,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_76",
+    "name": "Test Business 76",
+    "industry": "technology",
+    "tier": "growth",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 126,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_77",
+    "name": "Test Business 77",
+    "industry": "finance",
+    "tier": "enterprise",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 127,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_78",
+    "name": "Test Business 78",
+    "industry": "healthcare",
+    "tier": "startup",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 128,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_79",
+    "name": "Test Business 79",
+    "industry": "retail",
+    "tier": "growth",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 129,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_80",
+    "name": "Test Business 80",
+    "industry": "technology",
+    "tier": "enterprise",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 130,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_81",
+    "name": "Test Business 81",
+    "industry": "finance",
+    "tier": "startup",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 131,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_82",
+    "name": "Test Business 82",
+    "industry": "healthcare",
+    "tier": "growth",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 132,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_83",
+    "name": "Test Business 83",
+    "industry": "retail",
+    "tier": "enterprise",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 133,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_84",
+    "name": "Test Business 84",
+    "industry": "technology",
+    "tier": "startup",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 134,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_85",
+    "name": "Test Business 85",
+    "industry": "finance",
+    "tier": "growth",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 135,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_86",
+    "name": "Test Business 86",
+    "industry": "healthcare",
+    "tier": "enterprise",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 136,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_87",
+    "name": "Test Business 87",
+    "industry": "retail",
+    "tier": "startup",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 137,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_88",
+    "name": "Test Business 88",
+    "industry": "technology",
+    "tier": "growth",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 138,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_89",
+    "name": "Test Business 89",
+    "industry": "finance",
+    "tier": "enterprise",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 139,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_90",
+    "name": "Test Business 90",
+    "industry": "healthcare",
+    "tier": "startup",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 140,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_91",
+    "name": "Test Business 91",
+    "industry": "retail",
+    "tier": "growth",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 141,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_92",
+    "name": "Test Business 92",
+    "industry": "technology",
+    "tier": "enterprise",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 142,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_93",
+    "name": "Test Business 93",
+    "industry": "finance",
+    "tier": "startup",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 143,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_94",
+    "name": "Test Business 94",
+    "industry": "healthcare",
+    "tier": "growth",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 144,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_95",
+    "name": "Test Business 95",
+    "industry": "retail",
+    "tier": "enterprise",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 145,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_96",
+    "name": "Test Business 96",
+    "industry": "technology",
+    "tier": "startup",
+    "region": "us-east",
+    "settings": {
+      "maxUsers": 146,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  },
+  {
+    "businessId": "biz_test_97",
+    "name": "Test Business 97",
+    "industry": "finance",
+    "tier": "growth",
+    "region": "us-west",
+    "settings": {
+      "maxUsers": 147,
+      "dataRetention": 90,
+      "features": "advanced"
+    }
+  },
+  {
+    "businessId": "biz_test_98",
+    "name": "Test Business 98",
+    "industry": "healthcare",
+    "tier": "enterprise",
+    "region": "eu-central",
+    "settings": {
+      "maxUsers": 148,
+      "dataRetention": 365,
+      "features": "premium"
+    }
+  },
+  {
+    "businessId": "biz_test_99",
+    "name": "Test Business 99",
+    "industry": "retail",
+    "tier": "startup",
+    "region": "asia-pacific",
+    "settings": {
+      "maxUsers": 149,
+      "dataRetention": 30,
+      "features": "basic"
+    }
+  }
+]

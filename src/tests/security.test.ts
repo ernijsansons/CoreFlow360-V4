@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { JWTSecretManager } from '../shared/security/jwt-secret-manager';
 import { z } from 'zod';
 import {
   validateJWT,
@@ -361,7 +362,7 @@ function calculatePerformanceScore(_entry: any): number {
 describe('JWT Security Tests', () => {
   it('should reject JWT without proper signature verification', async () => {
     const fakeJWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.invalid_signature';
-    const secret = 'test-secret';
+    const secret = JWTSecretManager.generateSecureSecret();
 
     const result = await validateJWT(fakeJWT, secret);
     expect(result.valid).toBe(false);
@@ -371,7 +372,7 @@ describe('JWT Security Tests', () => {
   it('should validate JWT with proper signature', async () => {
     // This would require a properly signed JWT for testing
     // In real tests, you'd use jose to create a valid test JWT
-    const secret = 'test-secret';
+    const secret = JWTSecretManager.generateSecureSecret();
     const testJWT = 'valid-test-jwt'; // Would be a real JWT in practice
 
     // Mock the validation for testing
@@ -383,7 +384,7 @@ describe('JWT Security Tests', () => {
   it('should check JWT blacklist', async () => {
     const mockKV = createMockKV();
     const token = 'test-token';
-    const secret = 'test-secret';
+    const secret = JWTSecretManager.generateSecureSecret();
 
     // Mock a blacklisted token
     await mockKV.put('jwt_blacklist:test-jti', 'revoked');
@@ -421,7 +422,7 @@ describe('MFA/TOTP Tests', () => {
   it('should enforce MFA rate limiting', async () => {
     const mockKV = createMockKV();
     const userId = 'test-user';
-    const secret = 'test-secret';
+    const secret = JWTSecretManager.generateSecureSecret();
 
     // Simulate multiple failed attempts
     for (let i = 0; i < 6; i++) {

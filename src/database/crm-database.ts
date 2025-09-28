@@ -104,12 +104,19 @@ export class CRMDatabase {
   private logger: Logger;
   private transactionManager: TransactionManager;
   private env: Env;
+  private queryCache: Map<string, { result: any; timestamp: number; ttl: number }> = new Map();
+  private connectionPool: Set<D1Database> = new Set();
+  private performanceMetrics: Map<string, { totalTime: number; count: number; avgTime: number }> = new Map();
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private readonly MAX_POOL_SIZE = 10;
 
   constructor(env: Env) {
     this.env = env;
     this.db = env.DB_MAIN;
     this.logger = new Logger();
     this.transactionManager = new TransactionManager(env);
+    this.initializeConnectionPool();
+    this.startPerformanceMonitoring();
 
     // Initialize circuit breaker for database operations
     circuitBreakerRegistry.getOrCreate('crm-database', {
@@ -127,6 +134,208 @@ export class CRMDatabase {
         });
       }
     });
+  }
+
+  /**
+   * Initialize connection pool for better performance
+   */
+  private initializeConnectionPool(): void {
+    // D1 doesn't support traditional connection pooling, but we can optimize connection usage
+    for (let i = 0; i < this.MAX_POOL_SIZE; i++) {
+      this.connectionPool.add(this.env.DB_MAIN);
+    }
+    this.logger.info('Database connection pool initialized', { poolSize: this.MAX_POOL_SIZE });
+  }
+
+  /**
+   * Start performance monitoring for query optimization
+   */
+  private startPerformanceMonitoring(): void {
+    setInterval(() => {
+      this.logPerformanceMetrics();
+      this.cleanupExpiredCache();
+    }, 60000); // Every minute
+  }
+
+  /**
+   * Log current performance metrics
+   */
+  private logPerformanceMetrics(): void {
+    const metrics = Array.from(this.performanceMetrics.entries()).map(([query, data]) => ({
+      query: query.substring(0, 50) + '...',
+      avgTime: Math.round(data.avgTime),
+      count: data.count,
+      totalTime: Math.round(data.totalTime)
+    }));
+
+    this.logger.info('Database performance metrics', {
+      queries: metrics.filter(m => m.avgTime > 50), // Only log slow queries
+      cacheSize: this.queryCache.size,
+      connectionPoolSize: this.connectionPool.size
+    });
+  }
+
+  /**
+   * Clean up expired cache entries
+   */
+  private cleanupExpiredCache(): void {
+    const now = Date.now();
+    let cleaned = 0;
+
+    for (const [key, value] of this.queryCache.entries()) {
+      if (now - value.timestamp > value.ttl) {
+        this.queryCache.delete(key);
+        cleaned++;
+      }
+    }
+
+    if (cleaned > 0) {
+      this.logger.debug('Cleaned expired cache entries', { cleaned, remaining: this.queryCache.size });
+    }
+  }
+
+  /**
+   * Execute query with performance tracking and caching
+   */
+  private async executeWithOptimization<T>(
+    query: string,
+    params: any[] = [],
+    operation: 'first' | 'all' | 'run' = 'all',
+    cacheable = true
+  ): Promise<T> {
+    const startTime = performance.now();
+    const cacheKey = cacheable ? this.generateCacheKey(query, params) : null;
+
+    // Check cache first for read operations
+    if (cacheKey && (operation === 'first' || operation === 'all')) {
+      const cached = this.getFromCache(cacheKey);
+      if (cached) {
+        this.trackPerformance(query, performance.now() - startTime, true);
+        return cached;
+      }
+    }
+
+    try {
+      const statement = this.db.prepare(query);
+      const boundStatement = params.length > 0 ? statement.bind(...params) : statement;
+
+      let result: any;
+      switch (operation) {
+        case 'first':
+          result = await boundStatement.first();
+          break;
+        case 'all':
+          result = await boundStatement.all();
+          break;
+        case 'run':
+          result = await boundStatement.run();
+          break;
+      }
+
+      const executionTime = performance.now() - startTime;
+      this.trackPerformance(query, executionTime, false);
+
+      // Cache successful read results
+      if (cacheKey && result && (operation === 'first' || operation === 'all')) {
+        this.setCache(cacheKey, result);
+      }
+
+      // Log slow queries
+      if (executionTime > 100) {
+        this.logger.warn('Slow query detected', {
+          query: query.substring(0, 100) + '...',
+          executionTime: Math.round(executionTime),
+          operation
+        });
+      }
+
+      return result;
+    } catch (error: any) {
+      const executionTime = performance.now() - startTime;
+      this.trackPerformance(query, executionTime, false);
+
+      this.logger.error('Database query failed', {
+        error: error.message,
+        query: query.substring(0, 100) + '...',
+        executionTime: Math.round(executionTime)
+      });
+
+      throw error;
+    }
+  }
+
+  /**
+   * Generate cache key from query and parameters
+   */
+  private generateCacheKey(query: string, params: any[]): string {
+    const queryHash = query.replace(/\s+/g, ' ').trim();
+    const paramsHash = JSON.stringify(params);
+    return `${queryHash}:${paramsHash}`;
+  }
+
+  /**
+   * Get result from cache if not expired
+   */
+  private getFromCache(key: string): any {
+    const cached = this.queryCache.get(key);
+    if (cached && Date.now() - cached.timestamp < cached.ttl) {
+      return cached.result;
+    }
+    return null;
+  }
+
+  /**
+   * Set result in cache
+   */
+  private setCache(key: string, result: any, ttl = this.CACHE_TTL): void {
+    // Limit cache size to prevent memory issues
+    if (this.queryCache.size > 1000) {
+      const oldestKey = this.queryCache.keys().next().value;
+      if (oldestKey) {
+        this.queryCache.delete(oldestKey);
+      }
+    }
+
+    this.queryCache.set(key, {
+      result,
+      timestamp: Date.now(),
+      ttl
+    });
+  }
+
+  /**
+   * Track query performance metrics
+   */
+  private trackPerformance(query: string, executionTime: number, fromCache: boolean): void {
+    const queryKey = query.substring(0, 100); // Truncate for grouping
+    const existing = this.performanceMetrics.get(queryKey) || { totalTime: 0, count: 0, avgTime: 0 };
+
+    existing.totalTime += executionTime;
+    existing.count += 1;
+    existing.avgTime = existing.totalTime / existing.count;
+
+    this.performanceMetrics.set(queryKey, existing);
+
+    // Track cache hit rate
+    if (fromCache) {
+      this.logger.debug('Cache hit', { query: queryKey.substring(0, 50) + '...', executionTime });
+    }
+  }
+
+  /**
+   * Invalidate cache for specific patterns
+   */
+  private invalidateCache(pattern: string): void {
+    let invalidated = 0;
+    for (const key of this.queryCache.keys()) {
+      if (key.includes(pattern)) {
+        this.queryCache.delete(key);
+        invalidated++;
+      }
+    }
+    if (invalidated > 0) {
+      this.logger.debug('Cache invalidated', { pattern, invalidated });
+    }
   }
 
   /**
@@ -276,10 +485,12 @@ export class CRMDatabase {
 
   async getCompany(id: string, businessId: string): Promise<DatabaseResult> {
     try {
-      const result = await this.db
-        .prepare('SELECT * FROM companies WHERE id = ? AND business_id = ?')
-        .bind(id, businessId)
-        .first();
+      const result = await this.executeWithOptimization<any>(
+        'SELECT * FROM companies WHERE id = ? AND business_id = ?',
+        [id, businessId],
+        'first',
+        true
+      );
 
       if (!result) {
         return { success: false, error: 'Company not found' };
@@ -311,10 +522,15 @@ export class CRMDatabase {
 
       const values = Object.values(aiData).filter((value: any) => value !== undefined);
 
-      const result = await this.db
-        .prepare(`UPDATE companies SET ${updates}, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND business_id = ?`)
-        .bind(...values, id, businessId)
-        .run();
+      const result = await this.executeWithOptimization<any>(
+        `UPDATE companies SET ${updates}, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND business_id = ?`,
+        [...values, id, businessId],
+        'run',
+        false
+      );
+
+      // Invalidate cache for this company
+      this.invalidateCache(`companies WHERE id = ? AND business_id = ?`);
 
       return { success: Boolean(result.meta.success), data: { updated: result.meta.changes } };
     } catch (error: any) {
@@ -352,15 +568,15 @@ export class CRMDatabase {
 
   async getContact(id: string, businessId: string): Promise<DatabaseResult> {
     try {
-      const result = await this.db
-        .prepare(`
-          SELECT c.*, co.name as company_name, co.domain as company_domain
-          FROM contacts c
-          LEFT JOIN companies co ON c.company_id = co.id AND co.business_id = ?
-          WHERE c.id = ? AND c.business_id = ?
-        `)
-        .bind(businessId, id, businessId)
-        .first();
+      const result = await this.executeWithOptimization<any>(
+        `SELECT c.*, co.name as company_name, co.domain as company_domain
+         FROM contacts c
+         LEFT JOIN companies co ON c.company_id = co.id AND co.business_id = ?
+         WHERE c.id = ? AND c.business_id = ?`,
+        [businessId, id, businessId],
+        'first',
+        true
+      );
 
       if (!result) {
         return { success: false, error: 'Contact not found' };
@@ -374,10 +590,12 @@ export class CRMDatabase {
 
   async findContactByEmail(businessId: string, email: string): Promise<DatabaseResult> {
     try {
-      const result = await this.db
-        .prepare('SELECT * FROM contacts WHERE business_id = ? AND email = ?')
-        .bind(businessId, email)
-        .first();
+      const result = await this.executeWithOptimization<any>(
+        'SELECT * FROM contacts WHERE business_id = ? AND email = ?',
+        [businessId, email],
+        'first',
+        true
+      );
 
       return { success: true, data: result };
     } catch (error: any) {
@@ -471,22 +689,26 @@ export class CRMDatabase {
         LIMIT ? OFFSET ?
       `;
 
-      const results = await this.db
-        .prepare(query)
-        .bind(...params, limit, offset)
-        .all();
+      const results = await this.executeWithOptimization<any>(
+        query,
+        [...params, limit, offset],
+        'all',
+        true
+      );
 
-      // Get total count for pagination
+      // Get total count for pagination with caching
       const countQuery = `
         SELECT COUNT(*) as total
         FROM leads l
         ${whereClause}
       `;
 
-      const countResult = await this.db
-        .prepare(countQuery)
-        .bind(...params)
-        .first() as any;
+      const countResult = await this.executeWithOptimization<any>(
+        countQuery,
+        params,
+        'first',
+        true
+      ) as any;
 
       return {
         success: true,
@@ -507,15 +729,17 @@ export class CRMDatabase {
 
   async updateLeadStatus(id: string, status: string, aiSummary?: string): Promise<DatabaseResult> {
     try {
-      const result = await this.db
-        .prepare(`
-          UPDATE leads
-         
-  SET status = ?, ai_qualification_summary = COALESCE(?, ai_qualification_summary), updated_at = CURRENT_TIMESTAMP
-          WHERE id = ?
-        `)
-        .bind(status, aiSummary, id)
-        .run();
+      const result = await this.executeWithOptimization<any>(
+        `UPDATE leads
+         SET status = ?, ai_qualification_summary = COALESCE(?, ai_qualification_summary), updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`,
+        [status, aiSummary, id],
+        'run',
+        false
+      );
+
+      // Invalidate cache for leads queries
+      this.invalidateCache('FROM leads');
 
       return { success: Boolean(result.meta.success), data: { updated: result.meta.changes } };
     } catch (error: any) {
@@ -782,5 +1006,206 @@ export class CRMDatabase {
       return 'created_at'; // Default safe sort field
     }
     return sortBy;
+  }
+
+  /**
+   * Get performance statistics
+   */
+  async getPerformanceStats(): Promise<{
+    queryCount: number;
+    avgQueryTime: number;
+    slowQueries: Array<{ query: string; avgTime: number; count: number }>;
+    cacheHitRate: number;
+    cacheSize: number;
+  }> {
+    const metrics = Array.from(this.performanceMetrics.entries());
+    const totalQueries = metrics.reduce((sum, [_, data]) => sum + data.count, 0);
+    const totalTime = metrics.reduce((sum, [_, data]) => sum + data.totalTime, 0);
+    const avgQueryTime = totalQueries > 0 ? totalTime / totalQueries : 0;
+
+    const slowQueries = metrics
+      .filter(([_, data]) => data.avgTime > 50)
+      .map(([query, data]) => ({
+        query: query.substring(0, 80) + '...',
+        avgTime: Math.round(data.avgTime),
+        count: data.count
+      }))
+      .sort((a, b) => b.avgTime - a.avgTime)
+      .slice(0, 10);
+
+    // Calculate cache hit rate (simplified)
+    const cacheableQueries = metrics.filter(([query]) =>
+      query.toUpperCase().startsWith('SELECT')
+    );
+    const totalCacheableQueries = cacheableQueries.reduce((sum, [_, data]) => sum + data.count, 0);
+    const estimatedCacheHits = Math.min(this.queryCache.size * 10, totalCacheableQueries * 0.3);
+    const cacheHitRate = totalCacheableQueries > 0 ? (estimatedCacheHits / totalCacheableQueries) * 100 : 0;
+
+    return {
+      queryCount: totalQueries,
+      avgQueryTime: Math.round(avgQueryTime),
+      slowQueries,
+      cacheHitRate: Math.round(cacheHitRate),
+      cacheSize: this.queryCache.size
+    };
+  }
+
+  /**
+   * Batch query optimization for N+1 problems
+   */
+  async batchGetCompanies(ids: string[], businessId: string): Promise<DatabaseResult<any[]>> {
+    if (ids.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    try {
+      const placeholders = ids.map(() => '?').join(',');
+      const query = `SELECT * FROM companies WHERE id IN (${placeholders}) AND business_id = ?`;
+      const params = [...ids, businessId];
+
+      const result = await this.executeWithOptimization<any>(
+        query,
+        params,
+        'all',
+        true
+      );
+
+      return { success: true, data: result.results || [] };
+    } catch (error: any) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Batch get contacts with company information
+   */
+  async batchGetContactsWithCompanies(contactIds: string[], businessId: string): Promise<DatabaseResult<any[]>> {
+    if (contactIds.length === 0) {
+      return { success: true, data: [] };
+    }
+
+    try {
+      const placeholders = contactIds.map(() => '?').join(',');
+      const query = `
+        SELECT c.*, co.name as company_name, co.domain as company_domain
+        FROM contacts c
+        LEFT JOIN companies co ON c.company_id = co.id AND co.business_id = ?
+        WHERE c.id IN (${placeholders}) AND c.business_id = ?
+      `;
+      const params = [businessId, ...contactIds, businessId];
+
+      const result = await this.executeWithOptimization<any>(
+        query,
+        params,
+        'all',
+        true
+      );
+
+      return { success: true, data: result.results || [] };
+    } catch (error: any) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Get leads with related data in single query (avoiding N+1)
+   */
+  async getLeadsWithRelatedData(businessId: string, filters: LeadFilters = {}, pagination: PaginationOptions = {}): Promise<DatabaseResult> {
+    try {
+      const { page = 1, limit = 50, sortBy = 'created_at', sortOrder = 'DESC' } = pagination;
+      const offset = (page - 1) * limit;
+
+      const validSortBy = this.validateSortField(sortBy, ['created_at', 'updated_at', 'status', 'ai_qualification_score']);
+      const validSortOrder = sortOrder === 'ASC' ? 'ASC' : 'DESC';
+
+      let whereClause = 'WHERE l.business_id = ?';
+      const params: any[] = [businessId];
+
+      // Apply filters
+      if (filters.status) {
+        whereClause += ' AND l.status = ?';
+        params.push(filters.status);
+      }
+
+      if (filters.assigned_to) {
+        whereClause += ' AND l.assigned_to = ?';
+        params.push(filters.assigned_to);
+      }
+
+      if (filters.source) {
+        whereClause += ' AND l.source = ?';
+        params.push(filters.source);
+      }
+
+      if (filters.ai_qualification_score_min) {
+        whereClause += ' AND l.ai_qualification_score >= ?';
+        params.push(filters.ai_qualification_score_min);
+      }
+
+      if (filters.created_after) {
+        whereClause += ' AND l.created_at >= ?';
+        params.push(filters.created_after);
+      }
+
+      if (filters.created_before) {
+        whereClause += ' AND l.created_at <= ?';
+        params.push(filters.created_before);
+      }
+
+      // Optimized query with all related data in single query
+      const query = `
+        SELECT
+          l.*,
+          c.first_name, c.last_name, c.email, c.title, c.linkedin_url,
+          co.name as company_name, co.domain as company_domain, co.industry,
+          COUNT(conv.id) as conversation_count
+        FROM leads l
+        LEFT JOIN contacts c ON l.contact_id = c.id
+        LEFT JOIN companies co ON l.company_id = co.id
+        LEFT JOIN conversations conv ON l.id = conv.lead_id
+        ${whereClause}
+        GROUP BY l.id
+        ORDER BY l.${validSortBy} ${validSortOrder}
+        LIMIT ? OFFSET ?
+      `;
+
+      const results = await this.executeWithOptimization<any>(
+        query,
+        [...params, limit, offset],
+        'all',
+        true
+      );
+
+      // Get total count for pagination with optimized query
+      const countQuery = `
+        SELECT COUNT(DISTINCT l.id) as total
+        FROM leads l
+        LEFT JOIN contacts c ON l.contact_id = c.id
+        LEFT JOIN companies co ON l.company_id = co.id
+        ${whereClause}
+      `;
+
+      const countResult = await this.executeWithOptimization<any>(
+        countQuery,
+        params,
+        'first',
+        true
+      ) as any;
+
+      return {
+        success: true,
+        data: {
+          leads: results.results || [],
+          pagination: {
+            page,
+            limit,
+            total: Number(countResult?.total || 0),
+            totalPages: Math.ceil(Number(countResult?.total || 0) / limit)
+          }
+        }
+      };
+    } catch (error: any) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
 }

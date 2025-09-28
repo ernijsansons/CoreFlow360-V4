@@ -21,10 +21,10 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
-      - DATABASE_URL=postgresql://coreflow:${POSTGRES_PASSWORD:-devpassword}@postgres:5432/coreflow360
+      - DATABASE_URL=postgresql://coreflow:${POSTGRES_PASSWORD}@postgres:5432/coreflow360
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-dev-encryption-key}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
     volumes:
       - .:/app
       - /app/node_modules
@@ -73,7 +73,7 @@ services:
     environment:
       - POSTGRES_DB=coreflow360
       - POSTGRES_USER=coreflow
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-devpassword}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
       - ./database/init:/docker-entrypoint-initdb.d:ro

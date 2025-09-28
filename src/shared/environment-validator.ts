@@ -7,7 +7,8 @@
  * - Environment-specific security rules
  */
 
-import { SecurityError } from './error-handler';
+import { SecurityError } from './errors/app-error';
+import { JWTSecretManager } from './security/jwt-secret-manager';
 
 export interface RequiredSecrets {
   JWT_SECRET: string;
@@ -267,7 +268,7 @@ export class EnvironmentValidator {
    * Complete environment validation with JWT bypass protection
    */
   static validate(env: any): { required: RequiredSecrets; optional: OptionalSecrets } {
-    // CRITICAL: First validate JWT_SECRET to prevent authentication bypass
+    // CRITICAL: Use comprehensive JWT secret validation to prevent authentication bypass
     this.validateJWTSecret(env.JWT_SECRET);
 
     // Validate environment setup
@@ -301,25 +302,26 @@ export class EnvironmentValidator {
   }
 
   /**
-   * Validate JWT_SECRET specifically for the authentication bypass vulnerability
+   * Validate JWT_SECRET using comprehensive security validation
    */
   static validateJWTSecret(jwtSecret: string | undefined): void {
-    if (!jwtSecret) {
-      throw new SecurityError('CRITICAL: JWT_SECRET environment variable is missing. This prevents secure authentication.');
+    const validation = JWTSecretManager.validateJWTSecret(jwtSecret, process.env.ENVIRONMENT || 'development');
+
+    if (!validation.isValid) {
+      const errorMessage = [
+        'CRITICAL JWT SECRET VALIDATION FAILED:',
+        ...validation.errors,
+        '',
+        'This vulnerability can lead to JWT Authentication Bypass (CVSS 9.8).',
+        'Generate a secure secret: openssl rand -base64 64'
+      ].join('\n');
+
+      throw new SecurityError(errorMessage);
     }
 
-    // Check for the exact vulnerable fallback value
-    if (jwtSecret === 'fallback-secret') {
-      throw new SecurityError('CRITICAL: JWT_SECRET is set to vulnerable fallback value. This enables JWT Authentication Bypass (CVSS 9.8).');
-    }
-
-    // Additional validation
-    if (jwtSecret.length < 32) {
-      throw new SecurityError('CRITICAL: JWT_SECRET is too short. Must be at least 32 characters for cryptographic security.');
-    }
-
-    if (this.isInsecureValue(jwtSecret)) {
-      throw new SecurityError('CRITICAL: JWT_SECRET contains insecure value. This compromises authentication security.');
+    // Log warnings if any
+    if (validation.warnings.length > 0) {
+      console.warn('JWT Secret Warnings:', validation.warnings.join(', '));
     }
   }
 }

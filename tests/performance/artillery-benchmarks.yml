@@ -1,0 +1,377 @@
+# Artillery.js Performance Benchmarks
+# Comprehensive load testing configuration for CoreFlow360 V4
+
+config:
+  target: "http://localhost:8787"
+  phases:
+    # Warm-up phase
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm-up"
+
+    # Gradual load increase
+    - duration: 300
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp-up"
+
+    # Sustained load
+    - duration: 600
+      arrivalRate: 50
+      name: "Sustained Load"
+
+    # Peak load test
+    - duration: 180
+      arrivalRate: 100
+      name: "Peak Load"
+
+    # Stress test
+    - duration: 120
+      arrivalRate: 200
+      name: "Stress Test"
+
+    # Recovery test
+    - duration: 180
+      arrivalRate: 10
+      name: "Recovery"
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      User-Agent: "Artillery-LoadTest/1.0"
+
+  variables:
+    businessIds:
+      - "biz_acme_corp"
+      - "biz_startup_inc"
+      - "biz_global_ltd"
+      - "biz_enterprise_co"
+      - "biz_small_business"
+
+    departments:
+      - "finance"
+      - "sales"
+      - "hr"
+      - "marketing"
+      - "operations"
+      - "it"
+      - "legal"
+
+    capabilities:
+      - "financial.analysis"
+      - "sales.forecasting"
+      - "hr.recruitment"
+      - "marketing.campaign"
+      - "operations.optimization"
+      - "it.monitoring"
+      - "legal.compliance"
+
+  payload:
+    path: "./test-data"
+    fields:
+      - "businessContext"
+      - "taskData"
+      - "userProfiles"
+
+  plugins:
+    expect: {}
+    metrics-by-endpoint: {}
+    hdrhistogram: {}
+
+scenarios:
+  # Authentication and Session Management
+  - name: "Authentication Flow"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "loadtest+{{ $randomInt(1, 1000) }}@example.com"
+            password: "TestPassword123!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.sessionId"
+              as: "sessionId"
+          expect:
+            - statusCode: 200
+            - hasProperty: "token"
+            - contentType: "json"
+
+      - get:
+          url: "/api/auth/validate"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "valid"
+
+      - post:
+          url: "/api/auth/logout"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # Agent Task Execution
+  - name: "Agent Task Execution"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "agent_user+{{ $randomInt(1, 100) }}@example.com"
+            password: "TestPassword123!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - post:
+          url: "/api/v4/agents/execute"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            capability: "{{ $pick(capabilities) }}"
+            input:
+              message: "Analyze the Q{{ $randomInt(1, 4) }} performance data"
+              data:
+                revenue: "{{ $randomInt(100000, 1000000) }}"
+                expenses: "{{ $randomInt(50000, 800000) }}"
+                period: "Q{{ $randomInt(1, 4) }}-2024"
+            context:
+              businessId: "{{ $pick(businessIds) }}"
+              department: "{{ $pick(departments) }}"
+              priority: "{{ $pick(['low', 'medium', 'high']) }}"
+            constraints:
+              maxCost: "{{ $randomNumber(0.1, 2.0) }}"
+              timeout: 30000
+          expect:
+            - statusCode: 200
+            - hasProperty: "success"
+            - hasProperty: "result"
+            - property: "totalLatency"
+              lt: 5000
+
+  # Multi-Business Operations
+  - name: "Multi-Business Operations"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "multibiz_user+{{ $randomInt(1, 50) }}@example.com"
+            password: "TestPassword123!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.businessId"
+              as: "currentBusiness"
+
+      - post:
+          url: "/api/business/switch"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            targetBusinessId: "{{ $pick(businessIds) }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "context"
+
+      - get:
+          url: "/api/business/context"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "businessId"
+            - hasProperty: "permissions"
+
+  # Financial Operations
+  - name: "Financial Operations"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "finance_user+{{ $randomInt(1, 75) }}@example.com"
+            password: "TestPassword123!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - post:
+          url: "/api/finance/invoices"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            amount: "{{ $randomNumber(100, 10000) }}"
+            currency: "USD"
+            customerId: "cust_{{ $randomInt(1, 1000) }}"
+            dueDate: "2024-{{ $randomInt(1, 12) }}-{{ $randomInt(1, 28) }}"
+            items:
+              - description: "Service {{ $randomInt(1, 100) }}"
+                quantity: "{{ $randomInt(1, 10) }}"
+                rate: "{{ $randomNumber(10, 500) }}"
+          expect:
+            - statusCode: 201
+            - hasProperty: "invoiceId"
+
+      - get:
+          url: "/api/finance/reports/profit-loss"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          qs:
+            period: "Q{{ $randomInt(1, 4) }}-2024"
+            format: "json"
+          expect:
+            - statusCode: 200
+            - hasProperty: "revenue"
+            - hasProperty: "expenses"
+
+  # Real-time Operations
+  - name: "Real-time Operations"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "realtime_user+{{ $randomInt(1, 25) }}@example.com"
+            password: "TestPassword123!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - get:
+          url: "/api/realtime/dashboard"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "metrics"
+
+      - post:
+          url: "/api/realtime/events"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            event: "user_action"
+            data:
+              action: "page_view"
+              page: "/dashboard"
+              timestamp: "{{ $timestamp }}"
+          expect:
+            - statusCode: 200
+
+  # Data Export and Heavy Operations
+  - name: "Data Export Operations"
+    weight: 5
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "export_user+{{ $randomInt(1, 10) }}@example.com"
+            password: "TestPassword123!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - post:
+          url: "/api/export/request"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            type: "full_backup"
+            format: "json"
+            includeAttachments: false
+            dateRange:
+              start: "2024-01-01"
+              end: "2024-12-31"
+          expect:
+            - statusCode: 202
+            - hasProperty: "jobId"
+
+before:
+  flow:
+    - log: "Starting CoreFlow360 V4 Performance Benchmarks"
+    - log: "Target: {{ target }}"
+    - log: "Test Data: {{ $environment.TEST_DATA_SIZE || 'default' }}"
+
+after:
+  flow:
+    - log: "Performance benchmarks completed"
+    - log: "Check results for performance regression analysis"
+
+# Performance thresholds and expectations
+expect:
+  # Overall system performance
+  - http.response_time.p99 < 2000  # 99th percentile under 2 seconds
+  - http.response_time.p95 < 1000  # 95th percentile under 1 second
+  - http.response_time.p50 < 500   # Median under 500ms
+  - http.response_time.mean < 400  # Average under 400ms
+
+  # Success rates
+  - http.codes.200 > 95%           # 95% success rate minimum
+  - http.codes.4xx < 2%            # Less than 2% client errors
+  - http.codes.5xx < 1%            # Less than 1% server errors
+
+  # Agent-specific performance
+  - plugins.metrics-by-endpoint."/api/v4/agents/execute".response_time.p99 < 5000
+  - plugins.metrics-by-endpoint."/api/v4/agents/execute".response_time.p95 < 3000
+
+  # Authentication performance
+  - plugins.metrics-by-endpoint."/api/auth/login".response_time.p99 < 1000
+  - plugins.metrics-by-endpoint."/api/auth/validate".response_time.p99 < 200
+
+# Custom metrics and monitoring
+custom:
+  # Business logic performance
+  agent_execution_time:
+    expression: "http.response_time"
+    condition: "url.includes('/agents/execute')"
+    threshold: 5000
+
+  auth_latency:
+    expression: "http.response_time"
+    condition: "url.includes('/auth/')"
+    threshold: 1000
+
+  # Error rate monitoring
+  critical_error_rate:
+    expression: "http.codes.5xx / http.request_rate"
+    threshold: 0.01  # 1% maximum
+
+  # Throughput requirements
+  minimum_throughput:
+    expression: "http.request_rate"
+    threshold: 10    # Minimum 10 requests per second
+
+# Environment-specific configurations
+environments:
+  development:
+    target: "http://localhost:8787"
+    phases:
+      - duration: 30
+        arrivalRate: 2
+        name: "Dev Test"
+
+  staging:
+    target: "https://staging.coreflow360.com"
+    phases:
+      - duration: 120
+        arrivalRate: 10
+        rampTo: 25
+        name: "Staging Load Test"
+
+  production:
+    target: "https://api.coreflow360.com"
+    phases:
+      - duration: 300
+        arrivalRate: 20
+        rampTo: 100
+        name: "Production Smoke Test"

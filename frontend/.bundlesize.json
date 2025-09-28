@@ -1,0 +1,140 @@
+{
+  "files": [
+    {
+      "path": "dist/assets/js/index-*.js",
+      "maxSize": "50kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/react-core-*.js",
+      "maxSize": "45kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/react-dom-*.js",
+      "maxSize": "130kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/router-*.js",
+      "maxSize": "35kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/ui-primitives-*.js",
+      "maxSize": "80kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/ui-overlays-*.js",
+      "maxSize": "40kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/ui-utils-*.js",
+      "maxSize": "15kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/state-management-*.js",
+      "maxSize": "25kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/forms-validation-*.js",
+      "maxSize": "60kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/charts-recharts-*.js",
+      "maxSize": "180kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/d3-lib-*.js",
+      "maxSize": "100kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/animations-*.js",
+      "maxSize": "45kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/date-utilities-*.js",
+      "maxSize": "35kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/icon-library-*.js",
+      "maxSize": "80kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/toast-lib-*.js",
+      "maxSize": "15kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/drawer-lib-*.js",
+      "maxSize": "20kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/utils-small-*.js",
+      "maxSize": "10kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/vendor-small-*.js",
+      "maxSize": "30kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/monitoring-*.js",
+      "maxSize": "50kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/feature-agents-*.js",
+      "maxSize": "40kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/feature-chat-*.js",
+      "maxSize": "35kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/feature-dashboard-*.js",
+      "maxSize": "45kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/feature-business-*.js",
+      "maxSize": "50kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/js/feature-workflow-*.js",
+      "maxSize": "40kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/css/index-*.css",
+      "maxSize": "25kb",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/**/*.js",
+      "maxSize": "200kb",
+      "compression": "gzip",
+      "error": false
+    }
+  ],
+  "defaultCompression": "gzip",
+  "ci": {
+    "trackBranches": ["main", "master", "develop"],
+    "repoBranchBase": "master"
+  }
+}

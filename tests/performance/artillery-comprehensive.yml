@@ -1,0 +1,454 @@
+# Comprehensive Performance Test Suite for CoreFlow360 V4
+# Targets p99 response times under 150ms across all critical endpoints
+
+config:
+  target: 'http://localhost:8787'
+  phases:
+    # Warm-up phase
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm-up"
+    # Load test phase
+    - duration: 120
+      arrivalRate: 20
+      name: "Load Test"
+    # Stress test phase
+    - duration: 60
+      arrivalRate: 50
+      name: "Stress Test"
+    # Spike test phase
+    - duration: 30
+      arrivalRate: 100
+      name: "Spike Test"
+    # Sustained load phase
+    - duration: 300
+      arrivalRate: 30
+      name: "Sustained Load"
+
+  defaults:
+    headers:
+      'Content-Type': 'application/json'
+      'User-Agent': 'Artillery/CoreFlow360-LoadTest'
+      'X-Business-ID': 'business123'
+      'Authorization': 'Bearer test-jwt-token'
+
+  # Performance thresholds - FAIL if exceeded
+  ensure:
+    p95: 100  # 95th percentile under 100ms
+    p99: 150  # 99th percentile under 150ms (CRITICAL)
+    maxErrorRate: 1  # Error rate under 1%
+
+  # Variables for dynamic testing
+  variables:
+    businessIds:
+      - 'business123'
+      - 'business456'
+      - 'business789'
+    currencies:
+      - 'USD'
+      - 'EUR'
+      - 'GBP'
+    invoiceAmounts:
+      - 100.00
+      - 500.00
+      - 1000.00
+      - 5000.00
+
+  # Custom functions for dynamic data generation
+  processor: "./tests/performance/artillery-helpers.js"
+
+scenarios:
+  # API Gateway Performance Tests
+  - name: "API Gateway - Route Discovery"
+    weight: 10
+    flow:
+      - get:
+          url: "/api/v1/health"
+          expect:
+            - statusCode: 200
+            - hasProperty: "status"
+          capture:
+            - json: "$.timestamp"
+              as: "healthTimestamp"
+
+      - get:
+          url: "/api/v1/system/info"
+          expect:
+            - statusCode: 200
+            - hasProperty: "version"
+
+      - get:
+          url: "/api/v1/routes"
+          expect:
+            - statusCode: 200
+
+  # Authentication & Authorization Performance
+  - name: "Authentication Flow"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "test@example.com"
+            password: "testpassword123"
+          expect:
+            - statusCode: 200
+            - hasProperty: "token"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - get:
+          url: "/api/v1/auth/profile"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+      - post:
+          url: "/api/v1/auth/refresh"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+
+  # CRM Database Performance Tests
+  - name: "CRM Operations"
+    weight: 25
+    flow:
+      # Create company
+      - post:
+          url: "/api/v1/companies"
+          json:
+            business_id: "{{ $randomPick(businessIds) }}"
+            name: "Test Company {{ $randomString() }}"
+            domain: "{{ $randomString() }}.com"
+            industry: "Technology"
+            size_range: "11-50"
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.data.id"
+              as: "companyId"
+
+      # Get company
+      - get:
+          url: "/api/v1/companies/{{ companyId }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "id"
+
+      # Create contact
+      - post:
+          url: "/api/v1/contacts"
+          json:
+            business_id: "{{ $randomPick(businessIds) }}"
+            company_id: "{{ companyId }}"
+            email: "{{ $randomString() }}@example.com"
+            first_name: "Test"
+            last_name: "Contact"
+            title: "CEO"
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.data.id"
+              as: "contactId"
+
+      # Create lead
+      - post:
+          url: "/api/v1/leads"
+          json:
+            business_id: "{{ $randomPick(businessIds) }}"
+            contact_id: "{{ contactId }}"
+            company_id: "{{ companyId }}"
+            source: "website"
+            status: "new"
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.data.id"
+              as: "leadId"
+
+      # Get leads with filters
+      - get:
+          url: "/api/v1/leads?status=new&limit=50"
+          expect:
+            - statusCode: 200
+            - hasProperty: "data.leads"
+
+      # Update lead status
+      - patch:
+          url: "/api/v1/leads/{{ leadId }}/status"
+          json:
+            status: "qualified"
+            ai_summary: "High potential lead based on company profile"
+          expect:
+            - statusCode: 200
+
+  # Finance Module Performance Tests
+  - name: "Finance Operations"
+    weight: 30
+    flow:
+      # Create customer
+      - post:
+          url: "/api/v1/finance/customers"
+          json:
+            business_id: "{{ $randomPick(businessIds) }}"
+            name: "Customer {{ $randomString() }}"
+            email: "customer{{ $randomString() }}@example.com"
+            currency: "{{ $randomPick(currencies) }}"
+            payment_terms:
+              type: "net"
+              days: 30
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.data.id"
+              as: "customerId"
+
+      # Create invoice
+      - post:
+          url: "/api/v1/finance/invoices"
+          json:
+            business_id: "{{ $randomPick(businessIds) }}"
+            customer_id: "{{ customerId }}"
+            issue_date: "{{ $timestamp() }}"
+            currency: "{{ $randomPick(currencies) }}"
+            lines:
+              - description: "Product {{ $randomString() }}"
+                quantity: 2
+                unit_price: "{{ $randomPick(invoiceAmounts) }}"
+                account_id: "acc_revenue"
+              - description: "Service {{ $randomString() }}"
+                quantity: 1
+                unit_price: 150.00
+                account_id: "acc_service"
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.data.id"
+              as: "invoiceId"
+
+      # Get invoice
+      - get:
+          url: "/api/v1/finance/invoices/{{ invoiceId }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "id"
+
+      # Calculate taxes
+      - post:
+          url: "/api/v1/finance/invoices/{{ invoiceId }}/calculate-tax"
+          expect:
+            - statusCode: 200
+            - hasProperty: "tax_total"
+
+      # Generate PDF
+      - post:
+          url: "/api/v1/finance/invoices/{{ invoiceId }}/pdf"
+          expect:
+            - statusCode: 200
+
+      # Create journal entry
+      - post:
+          url: "/api/v1/finance/journal-entries"
+          json:
+            business_id: "{{ $randomPick(businessIds) }}"
+            description: "Test Entry {{ $randomString() }}"
+            date: "{{ $timestamp() }}"
+            lines:
+              - account_id: "acc_cash"
+                debit: 1000.00
+                credit: 0
+                description: "Cash receipt"
+              - account_id: "acc_revenue"
+                debit: 0
+                credit: 1000.00
+                description: "Revenue recognition"
+          expect:
+            - statusCode: 201
+
+  # Cache Performance Tests
+  - name: "Cache Operations"
+    weight: 10
+    flow:
+      # Cache miss scenario
+      - get:
+          url: "/api/v1/cache/test-key-{{ $randomString() }}"
+          expect:
+            - statusCode: 404
+
+      # Cache set
+      - post:
+          url: "/api/v1/cache/test-key-{{ $randomString() }}"
+          json:
+            data: "test-value-{{ $randomString() }}"
+            ttl: 300
+          expect:
+            - statusCode: 201
+
+      # Cache hit scenario
+      - get:
+          url: "/api/v1/cache/popular-data"
+          expect:
+            - statusCode: 200
+
+      # Cache invalidation
+      - delete:
+          url: "/api/v1/cache/pattern/*"
+          expect:
+            - statusCode: 200
+
+  # AI Agent Performance Tests
+  - name: "AI Agent Operations"
+    weight: 10
+    flow:
+      # Get agent capabilities
+      - get:
+          url: "/api/v1/agents/capabilities"
+          expect:
+            - statusCode: 200
+            - hasProperty: "agents"
+
+      # Create AI task
+      - post:
+          url: "/api/v1/agents/tasks"
+          json:
+            business_id: "{{ $randomPick(businessIds) }}"
+            type: "lead_qualification"
+            priority: 5
+            payload:
+              lead_id: "lead_{{ $randomString() }}"
+              action: "analyze_company"
+          expect:
+            - statusCode: 201
+          capture:
+            - json: "$.data.id"
+              as: "taskId"
+
+      # Get AI task status
+      - get:
+          url: "/api/v1/agents/tasks/{{ taskId }}/status"
+          expect:
+            - statusCode: 200
+
+      # AI decision request
+      - post:
+          url: "/api/v1/agents/decide"
+          json:
+            context: "lead_qualification"
+            data:
+              company_name: "Test Company"
+              industry: "Technology"
+              revenue: "1M-5M"
+          expect:
+            - statusCode: 200
+
+# Concurrency and Race Condition Tests
+concurrency_scenarios:
+  # Test concurrent invoice creation
+  - name: "Concurrent Invoice Creation"
+    weight: 5
+    flow:
+      - loop:
+          count: 10
+          over:
+            - post:
+                url: "/api/v1/finance/invoices"
+                json:
+                  business_id: "business123"
+                  customer_id: "customer123"
+                  issue_date: "{{ $timestamp() }}"
+                  lines:
+                    - description: "Concurrent test"
+                      quantity: 1
+                      unit_price: 100.00
+                      account_id: "acc_revenue"
+                expect:
+                  - statusCode: 201
+
+  # Test concurrent cache operations
+  - name: "Concurrent Cache Access"
+    weight: 5
+    flow:
+      - loop:
+          count: 20
+          over:
+            - get:
+                url: "/api/v1/cache/high-contention-key"
+            - post:
+                url: "/api/v1/cache/high-contention-key"
+                json:
+                  data: "concurrent-value-{{ $randomString() }}"
+
+# Database Performance Tests
+database_scenarios:
+  - name: "Database Stress Test"
+    weight: 15
+    flow:
+      # Batch operations
+      - post:
+          url: "/api/v1/companies/batch"
+          json:
+            companies:
+              - business_id: "business123"
+                name: "Batch Company 1"
+              - business_id: "business123"
+                name: "Batch Company 2"
+              - business_id: "business123"
+                name: "Batch Company 3"
+          expect:
+            - statusCode: 201
+
+      # Complex query with joins
+      - get:
+          url: "/api/v1/analytics/leads?include_company=true&include_contact=true&limit=100"
+          expect:
+            - statusCode: 200
+
+      # Aggregation query
+      - get:
+          url: "/api/v1/analytics/metrics?period=month&group_by=source"
+          expect:
+            - statusCode: 200
+
+# Security Performance Tests
+security_scenarios:
+  - name: "Security Operations"
+    weight: 5
+    flow:
+      # Rate limiting test
+      - loop:
+          count: 100
+          over:
+            - get:
+                url: "/api/v1/public/info"
+
+      # JWT validation performance
+      - loop:
+          count: 50
+          over:
+            - get:
+                url: "/api/v1/auth/validate"
+                headers:
+                  Authorization: "Bearer {{ $generateJWT() }}"
+
+# Real-time Operations Tests
+realtime_scenarios:
+  - name: "Real-time Operations"
+    weight: 5
+    flow:
+      # WebSocket connection simulation
+      - post:
+          url: "/api/v1/realtime/connect"
+          json:
+            channel: "business_updates"
+            business_id: "business123"
+          expect:
+            - statusCode: 200
+
+      # Server-sent events
+      - get:
+          url: "/api/v1/realtime/events"
+          expect:
+            - statusCode: 200

@@ -30,7 +30,7 @@ export class HybridCacheManager {
    */
   async setUserSession(sessionId: string, sessionData: any): Promise<void> {
     const key = `session:${sessionId}`;
-    await this.simpleCache.set(key, sessionData, 'user-data');
+    await this.simpleCache.set(key, sessionData, { tags: ['user-data'] });
   }
 
   async getUserSession(sessionId: string): Promise<any> {
@@ -43,7 +43,7 @@ export class HybridCacheManager {
    */
   async setUserPreferences(userId: string, preferences: any): Promise<void> {
     const key = `prefs:${userId}`;
-    await this.simpleCache.set(key, preferences, 'user-data');
+    await this.simpleCache.set(key, preferences, { tags: ['user-data'] });
   }
 
   async getUserPreferences(userId: string): Promise<any> {
@@ -107,7 +107,7 @@ export class HybridCacheManager {
    */
   async setConfig(configKey: string, configData: any): Promise<void> {
     const key = `config:${configKey}`;
-    await this.simpleCache.set(key, configData, 'config');
+    await this.simpleCache.set(key, configData, { tags: ['config'] });
   }
 
   async getConfig(configKey: string): Promise<any> {
@@ -165,7 +165,7 @@ export class HybridCacheManager {
 
     try {
       // Test simple cache
-      await this.simpleCache.set(testKey, testData, 'default');
+      await this.simpleCache.set(testKey, testData, { tags: ['default'] });
       const simpleResult = await this.simpleCache.get(testKey);
       const simpleHealthy = simpleResult !== null;
 

@@ -49,6 +49,12 @@ export class ConflictError extends AppError {
   }
 }
 
+export class SecurityError extends AppError {
+  constructor(message: string, context?: Record<string, unknown>) {
+    super(message, 403, true, context);
+  }
+}
+
 export class RateLimitError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
     super(message, 429, true, context);
@@ -63,6 +69,44 @@ export class InternalError extends AppError {
 
 export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError;
+}
+
+export enum ErrorCategory {
+  VALIDATION = 'VALIDATION',
+  AUTHENTICATION = 'AUTHENTICATION',
+  AUTHORIZATION = 'AUTHORIZATION',
+  NOT_FOUND = 'NOT_FOUND',
+  CONFLICT = 'CONFLICT',
+  RATE_LIMIT = 'RATE_LIMIT',
+  INTERNAL = 'INTERNAL',
+  NETWORK = 'NETWORK',
+  DATABASE = 'DATABASE',
+  CONFIGURATION = 'CONFIGURATION'
+}
+
+export enum ErrorSeverity {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL'
+}
+
+export interface ErrorDetails {
+  category: ErrorCategory;
+  severity: ErrorSeverity;
+  requestId?: string;
+  userId?: string;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ErrorContext {
+  requestId?: string;
+  userId?: string;
+  businessId?: string;
+  operation?: string;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
 }
 
 export function formatErrorResponse(error: AppError): {
