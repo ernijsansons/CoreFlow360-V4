@@ -1,0 +1,585 @@
+# Production-Ready Load Testing Configuration
+# Comprehensive performance validation for CoreFlow360 V4 deployment
+
+config:
+  target: "{{ $environment.TARGET_URL || 'http://localhost:8787' }}"
+
+  # Progressive load testing phases
+  phases:
+    # 1. System warm-up
+    - duration: 120
+      arrivalRate: 2
+      name: "System Warmup"
+
+    # 2. Baseline establishment
+    - duration: 180
+      arrivalRate: 5
+      rampTo: 15
+      name: "Baseline Load"
+
+    # 3. Target load validation
+    - duration: 300
+      arrivalRate: 25
+      rampTo: 50
+      name: "Target Load (50 RPS)"
+
+    # 4. Performance target validation
+    - duration: 600
+      arrivalRate: 75
+      rampTo: 100
+      name: "Performance Target (100 RPS)"
+
+    # 5. Scale validation
+    - duration: 300
+      arrivalRate: 100
+      rampTo: 150
+      name: "Scale Validation (150 RPS)"
+
+    # 6. Stress testing
+    - duration: 180
+      arrivalRate: 150
+      rampTo: 200
+      name: "Stress Test (200 RPS)"
+
+    # 7. Peak load burst
+    - duration: 120
+      arrivalRate: 200
+      rampTo: 300
+      name: "Peak Load Burst"
+
+    # 8. Sustained high load
+    - duration: 300
+      arrivalRate: 250
+      name: "Sustained High Load"
+
+    # 9. Recovery validation
+    - duration: 180
+      arrivalRate: 50
+      rampTo: 10
+      name: "Recovery Validation"
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      User-Agent: "CoreFlow360-LoadTest/4.0"
+      Accept: "application/json"
+
+  # Test data variables
+  variables:
+    businessIds:
+      - "biz_enterprise_alpha"
+      - "biz_startup_beta"
+      - "biz_scale_gamma"
+      - "biz_growth_delta"
+      - "biz_global_epsilon"
+      - "biz_tech_zeta"
+      - "biz_finance_eta"
+      - "biz_retail_theta"
+      - "biz_service_iota"
+      - "biz_manufacturing_kappa"
+
+    agentCapabilities:
+      - "financial.analysis.comprehensive"
+      - "sales.forecasting.advanced"
+      - "inventory.optimization.smart"
+      - "hr.recruitment.intelligent"
+      - "marketing.campaign.ai"
+      - "operations.efficiency.optimization"
+      - "compliance.monitoring.automated"
+      - "customer.analytics.predictive"
+
+    userRoles:
+      - "admin"
+      - "manager"
+      - "analyst"
+      - "operator"
+      - "viewer"
+
+    departments:
+      - "finance"
+      - "sales"
+      - "operations"
+      - "hr"
+      - "marketing"
+      - "it"
+      - "legal"
+      - "customer_success"
+
+  # Performance monitoring plugins
+  plugins:
+    expect: {}
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+    hdrhistogram: {}
+    publish-metrics:
+      - type: "cloudwatch"
+        region: "us-east-1"
+        namespace: "CoreFlow360/LoadTest"
+
+# Test scenarios with realistic user patterns
+scenarios:
+  # Critical path: Authentication & session management
+  - name: "Authentication Performance"
+    weight: 25
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "loadtest+{{ $randomInt(1, 10000) }}@coreflow360.com"
+            password: "LoadTest2024!"
+            businessId: "{{ $pick(businessIds) }}"
+            remember: "{{ $randomBoolean() }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.sessionId"
+              as: "sessionId"
+            - json: "$.businessId"
+              as: "businessId"
+          expect:
+            - statusCode: 200
+            - hasProperty: "token"
+            - property: "responseTime"
+              lt: 500
+          name: "Login"
+
+      - get:
+          url: "/api/auth/session/validate"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "valid"
+            - property: "responseTime"
+              lt: 100
+          name: "Session Validation"
+
+      - get:
+          url: "/api/auth/permissions"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "permissions"
+            - property: "responseTime"
+              lt: 150
+          name: "Permission Check"
+
+  # Core functionality: AI agent execution
+  - name: "AI Agent Performance"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "agent_user+{{ $randomInt(1, 5000) }}@coreflow360.com"
+            password: "LoadTest2024!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.businessId"
+              as: "businessId"
+
+      - post:
+          url: "/api/v4/agents/execute"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            capability: "{{ $pick(agentCapabilities) }}"
+            input:
+              message: "Analyze Q{{ $randomInt(1, 4) }} {{ $randomInt(2023, 2024) }} performance for {{ $pick(departments) }} department"
+              data:
+                revenue: "{{ $randomInt(50000, 5000000) }}"
+                expenses: "{{ $randomInt(30000, 4000000) }}"
+                customers: "{{ $randomInt(100, 50000) }}"
+                period: "Q{{ $randomInt(1, 4) }}-{{ $randomInt(2023, 2024) }}"
+                region: "{{ $pick(['US', 'EU', 'APAC', 'LATAM']) }}"
+            context:
+              businessId: "{{ businessId }}"
+              department: "{{ $pick(departments) }}"
+              userId: "user_{{ $randomInt(1, 1000) }}"
+              sessionId: "{{ sessionId }}"
+              priority: "{{ $pick(['low', 'medium', 'high', 'urgent']) }}"
+              requestId: "req_{{ $timestamp }}_{{ $randomInt(1000, 9999) }}"
+            constraints:
+              maxCost: "{{ $randomNumber(0.05, 3.0) }}"
+              timeout: "{{ $randomInt(15000, 45000) }}"
+              model: "{{ $pick(['claude-3-sonnet', 'gpt-4', 'claude-3-haiku']) }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "success"
+            - hasProperty: "result"
+            - hasProperty: "executionTime"
+            - property: "executionTime"
+              lt: 5000
+            - property: "responseTime"
+              lt: 6000
+          name: "Agent Execution"
+
+      - get:
+          url: "/api/v4/agents/status/{{ sessionId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "agentStatus"
+            - property: "responseTime"
+              lt: 200
+          name: "Agent Status Check"
+
+  # Multi-business operations
+  - name: "Multi-Business Operations"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "multibiz+{{ $randomInt(1, 2000) }}@coreflow360.com"
+            password: "LoadTest2024!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+            - json: "$.businessId"
+              as: "currentBusiness"
+
+      - get:
+          url: "/api/business/list"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "businesses"
+            - property: "responseTime"
+              lt: 300
+          name: "Business List"
+
+      - post:
+          url: "/api/business/switch"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            targetBusinessId: "{{ $pick(businessIds) }}"
+            preserveSession: true
+          expect:
+            - statusCode: 200
+            - hasProperty: "context"
+            - property: "responseTime"
+              lt: 400
+          name: "Business Switch"
+
+      - get:
+          url: "/api/business/dashboard"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "metrics"
+            - hasProperty: "charts"
+            - property: "responseTime"
+              lt: 800
+          name: "Business Dashboard"
+
+      - get:
+          url: "/api/portfolio/analytics"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          qs:
+            period: "{{ $pick(['7d', '30d', '90d', '1y']) }}"
+            metrics: "revenue,growth,efficiency"
+          expect:
+            - statusCode: 200
+            - hasProperty: "portfolio"
+            - property: "responseTime"
+              lt: 1000
+          name: "Portfolio Analytics"
+
+  # Financial operations (high accuracy required)
+  - name: "Financial Operations"
+    weight: 15
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "finance+{{ $randomInt(1, 1500) }}@coreflow360.com"
+            password: "LoadTest2024!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - post:
+          url: "/api/finance/transactions"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            amount: "{{ $randomNumber(10.00, 50000.00) }}"
+            currency: "{{ $pick(['USD', 'EUR', 'GBP', 'CAD']) }}"
+            type: "{{ $pick(['revenue', 'expense', 'transfer']) }}"
+            category: "{{ $pick(['software', 'marketing', 'payroll', 'office', 'travel']) }}"
+            description: "Load test transaction {{ $randomInt(1, 999999) }}"
+            date: "{{ $timestamp }}"
+            metadata:
+              department: "{{ $pick(departments) }}"
+              project: "project_{{ $randomInt(1, 100) }}"
+              vendor: "vendor_{{ $randomInt(1, 50) }}"
+          expect:
+            - statusCode: 201
+            - hasProperty: "transactionId"
+            - hasProperty: "balance"
+            - property: "responseTime"
+              lt: 1000
+          name: "Create Transaction"
+
+      - get:
+          url: "/api/finance/reports/profit-loss"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          qs:
+            period: "{{ $pick(['month', 'quarter', 'year']) }}"
+            format: "json"
+            currency: "USD"
+            includeProjections: "true"
+          expect:
+            - statusCode: 200
+            - hasProperty: "revenue"
+            - hasProperty: "expenses"
+            - hasProperty: "netIncome"
+            - property: "responseTime"
+              lt: 1500
+          name: "P&L Report"
+
+      - get:
+          url: "/api/finance/cash-flow"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          qs:
+            months: "{{ $randomInt(3, 12) }}"
+            projection: "true"
+          expect:
+            - statusCode: 200
+            - hasProperty: "cashFlow"
+            - property: "responseTime"
+              lt: 1200
+          name: "Cash Flow Analysis"
+
+  # Real-time operations
+  - name: "Real-time Operations"
+    weight: 7
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "realtime+{{ $randomInt(1, 800) }}@coreflow360.com"
+            password: "LoadTest2024!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - get:
+          url: "/api/realtime/dashboard"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          expect:
+            - statusCode: 200
+            - hasProperty: "liveMetrics"
+            - property: "responseTime"
+              lt: 300
+          name: "Live Dashboard"
+
+      - post:
+          url: "/api/realtime/events"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            event: "{{ $pick(['user_action', 'system_event', 'business_metric']) }}"
+            data:
+              action: "{{ $pick(['page_view', 'click', 'form_submit', 'api_call']) }}"
+              timestamp: "{{ $timestamp }}"
+              value: "{{ $randomNumber(1, 1000) }}"
+              metadata:
+                source: "load_test"
+                session: "{{ sessionId }}"
+          expect:
+            - statusCode: 200
+            - property: "responseTime"
+              lt: 200
+          name: "Event Tracking"
+
+  # Data operations (bulk/export)
+  - name: "Data Operations"
+    weight: 3
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "data+{{ $randomInt(1, 300) }}@coreflow360.com"
+            password: "LoadTest2024!"
+            businessId: "{{ $pick(businessIds) }}"
+          capture:
+            - json: "$.token"
+              as: "authToken"
+
+      - post:
+          url: "/api/data/export/request"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            type: "{{ $pick(['transactions', 'contacts', 'reports', 'analytics']) }}"
+            format: "{{ $pick(['json', 'csv', 'xlsx']) }}"
+            dateRange:
+              start: "{{ $randomDate('2024-01-01', '2024-06-01') }}"
+              end: "{{ $randomDate('2024-06-01', '2024-12-31') }}"
+            includeMetadata: "{{ $randomBoolean() }}"
+            compression: "{{ $pick(['none', 'gzip', 'zip']) }}"
+          expect:
+            - statusCode: 202
+            - hasProperty: "exportId"
+            - hasProperty: "estimatedTime"
+            - property: "responseTime"
+              lt: 2000
+          name: "Data Export Request"
+
+# Performance expectations and thresholds
+expect:
+  # Overall system performance (CRITICAL TARGETS)
+  - http.response_time.p99 < 2000   # 99th percentile under 2 seconds
+  - http.response_time.p95 < 1000   # 95th percentile under 1 second (TARGET)
+  - http.response_time.p50 < 300    # Median under 300ms
+  - http.response_time.mean < 250   # Average under 250ms
+
+  # Success rate requirements
+  - http.codes.200 > 98%            # 98% success rate minimum
+  - http.codes.4xx < 1%             # Less than 1% client errors
+  - http.codes.5xx < 0.5%           # Less than 0.5% server errors
+
+  # Throughput requirements
+  - http.request_rate > 50          # Minimum 50 RPS sustained
+
+  # Authentication performance (CRITICAL)
+  - plugins.metrics-by-endpoint."Login".response_time.p99 < 500
+  - plugins.metrics-by-endpoint."Login".response_time.p95 < 300
+  - plugins.metrics-by-endpoint."Session Validation".response_time.p99 < 100
+
+  # AI Agent performance (CORE FUNCTIONALITY)
+  - plugins.metrics-by-endpoint."Agent Execution".response_time.p99 < 6000
+  - plugins.metrics-by-endpoint."Agent Execution".response_time.p95 < 4000
+  - plugins.metrics-by-endpoint."Agent Execution".codes.200 > 97%
+
+  # Multi-business performance
+  - plugins.metrics-by-endpoint."Business Switch".response_time.p99 < 400
+  - plugins.metrics-by-endpoint."Business Dashboard".response_time.p99 < 800
+
+  # Financial operations (HIGH ACCURACY)
+  - plugins.metrics-by-endpoint."Create Transaction".response_time.p99 < 1000
+  - plugins.metrics-by-endpoint."Create Transaction".codes.201 > 99%
+  - plugins.metrics-by-endpoint."P&L Report".response_time.p99 < 1500
+
+  # Real-time operations (LOW LATENCY)
+  - plugins.metrics-by-endpoint."Live Dashboard".response_time.p99 < 300
+  - plugins.metrics-by-endpoint."Event Tracking".response_time.p99 < 200
+
+# Custom performance metrics
+custom:
+  # Core business metrics
+  agent_success_rate:
+    expression: "plugins.metrics-by-endpoint.'Agent Execution'.codes.200 / plugins.metrics-by-endpoint.'Agent Execution'.count"
+    threshold: 0.97
+
+  auth_latency_compliance:
+    expression: "plugins.metrics-by-endpoint.'Login'.response_time.p95"
+    threshold: 300
+
+  financial_accuracy:
+    expression: "plugins.metrics-by-endpoint.'Create Transaction'.codes.201 / plugins.metrics-by-endpoint.'Create Transaction'.count"
+    threshold: 0.99
+
+  system_efficiency:
+    expression: "http.response_time.p95"
+    threshold: 1000
+
+  # Error rate monitoring
+  critical_error_rate:
+    expression: "http.codes.5xx / http.request_rate"
+    threshold: 0.005  # 0.5% maximum
+
+  # Throughput monitoring
+  sustained_throughput:
+    expression: "http.request_rate"
+    threshold: 50
+
+# Environment-specific configurations
+environments:
+  development:
+    target: "http://localhost:8787"
+    phases:
+      - duration: 60
+        arrivalRate: 2
+        rampTo: 5
+        name: "Dev Test"
+    expect:
+      - http.response_time.p95 < 2000
+      - http.codes.200 > 90%
+
+  staging:
+    target: "https://staging-api.coreflow360.com"
+    phases:
+      - duration: 300
+        arrivalRate: 10
+        rampTo: 25
+        name: "Staging Validation"
+    expect:
+      - http.response_time.p95 < 1500
+      - http.codes.200 > 95%
+
+  production:
+    target: "https://api.coreflow360.com"
+    phases:
+      - duration: 600
+        arrivalRate: 50
+        rampTo: 100
+        name: "Production Load Test"
+    expect:
+      - http.response_time.p95 < 1000
+      - http.codes.200 > 98%
+
+# Before and after hooks
+before:
+  flow:
+    - log: "🚀 Starting CoreFlow360 V4 Production Load Testing"
+    - log: "Target: {{ target }}"
+    - log: "Expected Load: Up to 300 RPS peak"
+    - log: "Performance Targets: P95 < 100ms API, P99 < 200ms"
+
+after:
+  flow:
+    - log: "📊 Load testing completed"
+    - log: "Analyzing performance results..."
+    - log: "Check CloudWatch metrics for detailed analysis"
+    - log: "Review error logs for any performance degradation"
+
+# Monitoring and alerting
+monitoring:
+  cloudwatch:
+    region: "us-east-1"
+    namespace: "CoreFlow360/Performance"
+    metrics:
+      - name: "ResponseTimeP95"
+        value: "{{ http.response_time.p95 }}"
+        unit: "Milliseconds"
+      - name: "RequestRate"
+        value: "{{ http.request_rate }}"
+        unit: "Count/Second"
+      - name: "ErrorRate"
+        value: "{{ (http.codes.4xx + http.codes.5xx) / http.request_rate }}"
+        unit: "Percent"
+
+  alerts:
+    - condition: "http.response_time.p95 > 1000"
+      message: "⚠️ API response time P95 exceeded 1000ms threshold"
+    - condition: "http.codes.5xx / http.request_rate > 0.01"
+      message: "🚨 Server error rate exceeded 1% threshold"
+    - condition: "http.request_rate < 50"
+      message: "📉 Request rate below minimum 50 RPS threshold"

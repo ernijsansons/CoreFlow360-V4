@@ -1,0 +1,222 @@
+{
+  "auditSummary": {
+    "totalIssues": 8,
+    "criticalCount": 2,
+    "highCount": 3,
+    "mediumCount": 2,
+    "lowCount": 1,
+    "deploymentBlocked": true,
+    "overallRiskScore": 7.2,
+    "complianceFramework": "OWASP Top 10 2025",
+    "auditDate": "2025-09-27T00:00:00Z",
+    "auditor": "Claude Code Securitizer",
+    "scopeCoverage": "Full Application Stack"
+  },
+  "vulnerabilities": [
+    {
+      "id": "VULN-001",
+      "title": "Hardcoded JWT Secret in Authentication Flow",
+      "description": "Critical security vulnerability where JWT_SECRET environment variable validation is inconsistent across authentication routes. Missing JWT_SECRET could lead to authentication bypass or application crashes in production.",
+      "category": "A02:2021 – Cryptographic Failures",
+      "owaspMapping": "A02:2025 – Cryptographic Failures",
+      "cvssScore": 8.5,
+      "severity": "Critical",
+      "location": "src/routes/auth.ts:42, 99, 272, 369, 475",
+      "impact": "Complete authentication bypass, potential system compromise, denial of service",
+      "recommendation": "Implement centralized JWT secret validation at application startup. Add environment variable validation middleware. Use secure key management service for production secrets.",
+      "codeExample": "if (!c.env.JWT_SECRET) {\n  return c.json({\n    success: false,\n    error: 'Server configuration error',\n    code: 'MISSING_JWT_SECRET'\n  }, 500);\n}",
+      "fixExample": "// Add at application startup\nfunction validateRequiredSecrets(env: Env) {\n  const required = ['JWT_SECRET', 'ANTHROPIC_API_KEY', 'STRIPE_SECRET_KEY'];\n  const missing = required.filter(key => !env[key]);\n  if (missing.length > 0) {\n    throw new Error(`Missing required secrets: ${missing.join(', ')}`);\n  }\n}\n\n// Use secure key rotation\nclass SecretManager {\n  async getJWTSecret(): Promise<string> {\n    // Implement key rotation logic\n    return await this.getSecret('JWT_SECRET');\n  }\n}"
+    },
+    {
+      "id": "VULN-002",
+      "title": "JWT Authentication Bypass via Signature Verification",
+      "description": "Critical vulnerability in JWT verification logic where manual JWT parsing could allow signature bypass. The code attempts to use jose library but has fallback logic that could be exploited.",
+      "category": "A07:2021 – Identification and Authentication Failures",
+      "owaspMapping": "A07:2025 – Identification and Authentication Failures",
+      "cvssScore": 9.1,
+      "severity": "Critical",
+      "location": "src/middleware/auth.ts:315",
+      "impact": "Complete authentication bypass, unauthorized access to all protected resources, potential data breach",
+      "recommendation": "Remove manual JWT parsing entirely. Use only jose library for all JWT operations. Implement proper error handling without fallbacks.",
+      "codeExample": "const errorMessage = jwtError instanceof Error ? jwt(error as Error).message : String(jwtError);",
+      "fixExample": "// Remove manual parsing, use only jose\ntry {\n  const { payload } = await jwtVerify(token, secret, {\n    algorithms: ['HS256'],\n    clockTolerance: 5,\n    maxTokenAge: '24h'\n  });\n  return { valid: true, payload };\n} catch (error) {\n  // Log specific error but don't expose details\n  logger.warn('JWT verification failed', { tokenId: payload?.jti });\n  return { valid: false, error: 'Invalid token' };\n}"
+    },
+    {
+      "id": "VULN-003",
+      "title": "XSS Prevention Insufficient in Input Sanitization",
+      "description": "The XSS prevention patterns in sanitizeInput function are comprehensive but may miss some advanced XSS vectors. Event handler detection needs enhancement for HTML5 events.",
+      "category": "A03:2021 – Injection",
+      "owaspMapping": "A03:2025 – Injection",
+      "cvssScore": 6.8,
+      "severity": "High",
+      "location": "src/middleware/security.ts:573-631",
+      "impact": "Cross-site scripting attacks, session hijacking, data theft, malicious code execution in user browsers",
+      "recommendation": "Implement Content Security Policy with strict directives. Use whitelist-based input validation. Add DOM-based XSS protection.",
+      "codeExample": "// Current XSS patterns may miss some vectors\nconst xssPatterns = [\n  /javascript\\s*:/gi,\n  /on\\w+\\s*=/gi\n];",
+      "fixExample": "// Enhanced XSS protection\nconst advancedXSSPatterns = [\n  /javascript\\s*:/gi,\n  /data\\s*:\\s*text\\/html/gi,\n  /on(\\w+)\\s*=/gi,\n  /%3[Cc]script/gi, // URL encoded\n  /&lt;script/gi,   // HTML encoded\n  /\\\\u[0-9a-f]{4}/gi, // Unicode encoded\n  /<iframe[^>]*src\\s*=/gi,\n  /expression\\s*\\(/gi\n];\n\n// Implement CSP\nheaders.set('Content-Security-Policy', \n  \"default-src 'self'; script-src 'self' 'unsafe-inline'; object-src 'none';\");"
+    },
+    {
+      "id": "VULN-004",
+      "title": "SQL Injection Risk in Dynamic Query Building",
+      "description": "Potential SQL injection vulnerability in user profile update functionality where field names and values are dynamically constructed without proper validation.",
+      "category": "A03:2021 – Injection",
+      "owaspMapping": "A03:2025 – Injection",
+      "cvssScore": 7.2,
+      "severity": "High",
+      "location": "src/routes/auth.ts:194-226",
+      "impact": "Database compromise, unauthorized data access, data manipulation, potential remote code execution",
+      "recommendation": "Use parameterized queries exclusively. Implement strict field validation. Use ORM with built-in SQL injection protection.",
+      "codeExample": "for (const field of allowedFields) {\n  if (body[field] !== undefined) {\n    updates.push(`${field} = ?`);\n    values.push(body[field]);\n  }\n}",
+      "fixExample": "// Use strict field validation\nconst ALLOWED_FIELDS = {\n  'first_name': { type: 'string', maxLength: 50 },\n  'last_name': { type: 'string', maxLength: 50 },\n  'language': { type: 'enum', values: ['en', 'es', 'fr'] }\n} as const;\n\n// Validate and sanitize\nconst validatedUpdates = Object.entries(body)\n  .filter(([field, value]) => {\n    const config = ALLOWED_FIELDS[field];\n    return config && validateField(value, config);\n  })\n  .map(([field, value]) => ({ field, value: sanitizeInput(value) }));"
+    },
+    {
+      "id": "VULN-005",
+      "title": "Rate Limiting Fail-Open Configuration",
+      "description": "Rate limiting implementation has a fail-open vulnerability where errors in rate limit checking allow requests to proceed, potentially enabling DoS attacks.",
+      "category": "A06:2021 – Vulnerable and Outdated Components",
+      "owaspMapping": "A06:2025 – Vulnerable and Outdated Components",
+      "cvssScore": 6.5,
+      "severity": "High",
+      "location": "src/middleware/security.ts:312-321",
+      "impact": "Denial of service attacks, resource exhaustion, bypassing of security controls",
+      "recommendation": "Change to fail-closed approach. Implement circuit breaker pattern. Add comprehensive error monitoring.",
+      "codeExample": "} catch (error: any) {\n  // SECURITY FIX: Fail closed - deny request if rate limiting fails\n  return {\n    allowed: false,\n    remaining: 0,\n    resetTime: now + window,\n    totalHits: requests\n  };\n}",
+      "fixExample": "// Implement circuit breaker with fallback\nclass RateLimitCircuitBreaker {\n  private failures = 0;\n  private lastFailure = 0;\n  private readonly threshold = 5;\n  private readonly timeout = 60000;\n\n  async execute<T>(operation: () => Promise<T>): Promise<T> {\n    if (this.isOpen()) {\n      throw new Error('Rate limit service unavailable');\n    }\n    try {\n      const result = await operation();\n      this.onSuccess();\n      return result;\n    } catch (error) {\n      this.onFailure();\n      throw error;\n    }\n  }\n}"
+    },
+    {
+      "id": "VULN-006",
+      "title": "Sensitive Data Exposure in Error Messages",
+      "description": "Error handling throughout the application may expose sensitive information including internal paths, configuration details, and system information in error responses.",
+      "category": "A09:2021 – Security Logging and Monitoring Failures",
+      "owaspMapping": "A09:2025 – Security Logging and Monitoring Failures",
+      "cvssScore": 5.8,
+      "severity": "Medium",
+      "location": "Multiple files: error handling patterns",
+      "impact": "Information disclosure, system reconnaissance, potential attack vector discovery",
+      "recommendation": "Implement centralized error handling with sanitized responses. Use error codes instead of detailed messages in production.",
+      "codeExample": "return c.json({\n  success: false,\n  error: 'Server configuration error',\n  code: 'MISSING_JWT_SECRET'\n}, 500);",
+      "fixExample": "// Centralized error handler\nclass SecureErrorHandler {\n  handle(error: Error, isProduction: boolean) {\n    const errorId = generateErrorId();\n    this.logError(errorId, error);\n    \n    if (isProduction) {\n      return {\n        error: 'Internal server error',\n        errorId,\n        timestamp: Date.now()\n      };\n    } else {\n      return {\n        error: error.message,\n        errorId,\n        stack: error.stack\n      };\n    }\n  }\n}"
+    },
+    {
+      "id": "VULN-007",
+      "title": "Session Fixation Vulnerability",
+      "description": "Session management implementation may be vulnerable to session fixation attacks as session IDs are not regenerated after authentication state changes.",
+      "category": "A07:2021 – Identification and Authentication Failures",
+      "owaspMapping": "A07:2025 – Identification and Authentication Failures",
+      "cvssScore": 6.0,
+      "severity": "Medium",
+      "location": "src/middleware/security.ts:1468-1595",
+      "impact": "Session hijacking, unauthorized access, privilege escalation",
+      "recommendation": "Regenerate session IDs after login, privilege changes, and MFA verification. Implement session invalidation on security events.",
+      "codeExample": "// Current implementation doesn't regenerate session ID\nconst sessionId = generateSessionId();\nawait kv.put(sessionKey, JSON.stringify(sessionData));",
+      "fixExample": "// Secure session management\nclass SecureSessionManager {\n  async regenerateSessionId(oldSessionId: string, sessionData: SessionData): Promise<string> {\n    // Generate new session ID\n    const newSessionId = generateSessionId();\n    \n    // Transfer data to new session\n    await this.kv.put(`session:${newSessionId}`, JSON.stringify({\n      ...sessionData,\n      sessionId: newSessionId,\n      regeneratedAt: new Date().toISOString()\n    }));\n    \n    // Invalidate old session\n    await this.kv.delete(`session:${oldSessionId}`);\n    \n    return newSessionId;\n  }\n}"
+    },
+    {
+      "id": "VULN-008",
+      "title": "Insufficient CORS Validation",
+      "description": "CORS implementation has permissive localhost handling in development mode that could be exploited. Origin validation needs strengthening.",
+      "category": "A05:2021 – Security Misconfiguration",
+      "owaspMapping": "A05:2025 – Security Misconfiguration",
+      "cvssScore": 4.2,
+      "severity": "Low",
+      "location": "src/middleware/security.ts:171-176",
+      "impact": "Cross-origin attacks, data theft, unauthorized API access from malicious websites",
+      "recommendation": "Implement strict origin validation even in development. Use environment-specific CORS policies.",
+      "codeExample": "if (environment === 'development') {\n  if (origin.startsWith('http://localhost:') || origin.startsWith('https://localhost:')) {\n    allowedOrigin = origin;\n  }\n}",
+      "fixExample": "// Strict CORS validation\nconst ALLOWED_DEV_PORTS = [3000, 5173, 8080]; // Specific ports only\n\nif (environment === 'development') {\n  const url = new URL(origin);\n  if ((url.hostname === 'localhost' || url.hostname === '127.0.0.1') && \n      ALLOWED_DEV_PORTS.includes(parseInt(url.port))) {\n    allowedOrigin = origin;\n  }\n}"
+    }
+  ],
+  "mitigations": {
+    "immediate": [
+      "Fix JWT authentication bypass vulnerability (VULN-002) - CRITICAL",
+      "Implement centralized JWT secret validation (VULN-001) - CRITICAL",
+      "Remove manual JWT parsing fallbacks",
+      "Deploy fail-closed rate limiting configuration",
+      "Implement session ID regeneration after authentication"
+    ],
+    "shortTerm": [
+      "Enhance XSS prevention patterns for HTML5 events",
+      "Implement parameterized queries for all dynamic SQL",
+      "Deploy Content Security Policy with strict directives",
+      "Add comprehensive error sanitization",
+      "Strengthen CORS origin validation"
+    ],
+    "longTerm": [
+      "Implement Web Application Firewall (WAF)",
+      "Deploy security monitoring and alerting",
+      "Conduct regular penetration testing",
+      "Implement automated security scanning in CI/CD",
+      "Add runtime application self-protection (RASP)"
+    ]
+  },
+  "securityControls": {
+    "implemented": [
+      "JWT-based authentication with jose library",
+      "Comprehensive input sanitization functions",
+      "Rate limiting with multiple strategies",
+      "Security headers (CSP, HSTS, X-Frame-Options)",
+      "MFA support with TOTP and backup codes",
+      "Session management with security checks",
+      "Audit logging with compliance tracking",
+      "API key management with proper hashing"
+    ],
+    "missing": [
+      "Web Application Firewall (WAF)",
+      "Runtime Application Self-Protection (RASP)",
+      "Database Activity Monitoring (DAM)",
+      "File Integrity Monitoring (FIM)",
+      "Advanced Threat Protection (ATP)",
+      "Security Information and Event Management (SIEM)"
+    ],
+    "recommendations": [
+      "Deploy Cloudflare WAF or equivalent protection",
+      "Implement real-time security monitoring",
+      "Add automated vulnerability scanning",
+      "Deploy secrets management service (HashiCorp Vault)",
+      "Implement zero-trust network architecture",
+      "Add endpoint detection and response (EDR)"
+    ]
+  },
+  "complianceGaps": {
+    "owasp2025": [
+      "A02: Cryptographic Failures - JWT secret management needs improvement",
+      "A03: Injection - SQL injection risks in dynamic queries",
+      "A05: Security Misconfiguration - CORS validation needs strengthening",
+      "A07: Authentication Failures - Session fixation vulnerability",
+      "A09: Logging Failures - Error message sanitization required"
+    ],
+    "recommendations": [
+      "Implement comprehensive security testing program",
+      "Deploy security code analysis tools (SAST/DAST)",
+      "Establish security incident response procedures",
+      "Implement secure development lifecycle (SDLC)",
+      "Deploy continuous security monitoring"
+    ]
+  },
+  "riskAssessment": {
+    "businessImpact": "High - Critical authentication vulnerabilities could lead to complete system compromise",
+    "technicalDebt": "Medium - Several security improvements needed but application has good foundation",
+    "immediateThreats": [
+      "Authentication bypass attacks",
+      "Session hijacking attempts",
+      "SQL injection exploits",
+      "Cross-site scripting attacks"
+    ],
+    "longTermRisks": [
+      "Advanced persistent threats (APT)",
+      "Zero-day exploit vulnerabilities",
+      "Supply chain attacks",
+      "Insider threat scenarios"
+    ]
+  },
+  "deploymentRecommendation": {
+    "status": "DEPLOYMENT BLOCKED",
+    "reason": "Critical authentication vulnerabilities must be resolved before production deployment",
+    "requiredFixes": [
+      "VULN-001: JWT secret validation",
+      "VULN-002: JWT authentication bypass",
+      "VULN-004: SQL injection prevention"
+    ],
+    "estimatedEffort": "3-5 days for critical fixes, 2-3 weeks for comprehensive security hardening"
+  }
+}

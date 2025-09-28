@@ -6,6 +6,7 @@
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import { unstable_dev } from 'wrangler';
 import type { UnstableDevWorker } from 'wrangler';
+import { randomBytes } from 'crypto';
 
 describe('Finance API Endpoints', () => {
   let worker: UnstableDevWorker;
@@ -18,12 +19,12 @@ describe('Finance API Endpoints', () => {
       local: true,
       vars: {
         ENVIRONMENT: 'test',
-        JWT_SECRET: 'test-secret',
-        STRIPE_SECRET_KEY: 'sk_test_' + 'x'.repeat(24),
-        STRIPE_PUBLISHABLE_KEY: 'pk_test_' + 'x'.repeat(24),
-        STRIPE_WEBHOOK_SECRET: 'whsec_test',
-        PAYPAL_CLIENT_ID: 'test-client-id',
-        PAYPAL_CLIENT_SECRET: 'test-secret'
+        JWT_SECRET: Buffer.from(randomBytes(32)).toString('base64'),
+        STRIPE_SECRET_KEY: 'sk_test_' + randomBytes(24).toString('hex'),
+        STRIPE_PUBLISHABLE_KEY: 'pk_test_' + randomBytes(24).toString('hex'),
+        STRIPE_WEBHOOK_SECRET: 'whsec_' + randomBytes(16).toString('hex'),
+        PAYPAL_CLIENT_ID: 'test-client-' + randomBytes(8).toString('hex'),
+        PAYPAL_CLIENT_SECRET: Buffer.from(randomBytes(32)).toString('base64')
       }
     });
   });

@@ -1,0 +1,233 @@
+{
+  "auditSummary": {
+    "totalIssues": 8,
+    "criticalCount": 2,
+    "highCount": 3,
+    "mediumCount": 2,
+    "lowCount": 1,
+    "deploymentBlocked": true,
+    "overallRiskScore": 8.4,
+    "auditTimestamp": "2025-09-27T10:30:00Z",
+    "auditor": "Securitizer - OWASP 2025 Security Audit Engine",
+    "version": "1.0.0",
+    "complianceFramework": "OWASP Top 10 2025"
+  },
+  "vulnerabilities": [
+    {
+      "id": "COREFLOW-2025-001",
+      "title": "Critical JWT Secret Management Vulnerability",
+      "description": "The application uses weak fallback JWT secrets and lacks proper secret validation. Environment variables are checked but weak fallback values may be accepted in certain configurations.",
+      "category": "A07:2025 - Identification and Authentication Failures",
+      "cvssScore": 9.8,
+      "severity": "Critical",
+      "location": "src/modules/auth/jwt.ts, src/routes/auth.ts",
+      "impact": "Complete authentication bypass possible. Attackers could forge JWT tokens and gain unauthorized access to any user account or business data.",
+      "recommendation": "Implement mandatory strong secret validation, remove fallback secrets, use HashiCorp Vault or similar for secret management, implement JWT secret rotation.",
+      "codeExample": "// VULNERABLE CODE\nif (!c.env.JWT_SECRET) {\n  throw new Error('JWT_SECRET environment variable is required');\n}\n// Still allows weak secrets like 'test-secret'",
+      "fixExample": "// SECURE IMPLEMENTATION\nclass SecretManager {\n  validateJWTSecret(secret: string): void {\n    if (!secret || secret.length < 64) {\n      throw new Error('JWT secret must be at least 64 characters');\n    }\n    if (/^(test|dev|demo|fallback|default)/i.test(secret)) {\n      throw new Error('Production secrets cannot contain test patterns');\n    }\n    // Additional entropy validation\n    const entropy = this.calculateEntropy(secret);\n    if (entropy < 4.5) {\n      throw new Error('JWT secret has insufficient entropy');\n    }\n  }\n}"
+    },
+    {
+      "id": "COREFLOW-2025-002",
+      "title": "Hardcoded Secrets in Environment Files",
+      "description": "Multiple hardcoded secrets found in .env files and configuration. Weak test secrets like 'test-secret', 'dev-jwt-secret' detected across the codebase.",
+      "category": "A02:2025 - Cryptographic Failures",
+      "cvssScore": 9.1,
+      "severity": "Critical",
+      "location": ".env, docker-compose.dev.yml, .github/workflows/*.yml",
+      "impact": "Exposure of production-equivalent secrets in version control. Potential for credential stuffing and unauthorized system access.",
+      "recommendation": "Remove all hardcoded secrets, implement secure secret management (HashiCorp Vault, AWS Secrets Manager), use dynamic secret generation for tests.",
+      "codeExample": "# VULNERABLE - Found in .env\nJWT_SECRET=your_jwt_secret_key_minimum_32_characters\nENCRYPTION_KEY=your_encryption_key_32_characters\nPOSTGRES_PASSWORD=your_secure_postgres_password",
+      "fixExample": "# SECURE APPROACH\n# .env.template (checked into version control)\nJWT_SECRET=<set-via-secrets-manager>\nENCRYPTION_KEY=<set-via-secrets-manager>\nPOSTGRES_PASSWORD=<set-via-secrets-manager>\n\n# Use runtime secret injection\nclass SecretLoader {\n  async loadSecrets(): Promise<Config> {\n    return {\n      jwtSecret: await this.getSecret('JWT_SECRET'),\n      encryptionKey: await this.getSecret('ENCRYPTION_KEY')\n    };\n  }\n}"
+    },
+    {
+      "id": "COREFLOW-2025-003",
+      "title": "Insufficient Business Data Isolation",
+      "description": "Row-level security is implemented but lacks comprehensive validation. Some queries may allow cross-business data access through parameter manipulation.",
+      "category": "A01:2025 - Broken Access Control",
+      "cvssScore": 8.2,
+      "severity": "High",
+      "location": "src/routes/finance.ts, src/database/tenant-isolated-db.ts",
+      "impact": "Potential for unauthorized access to other business's financial data, customer information, and proprietary business intelligence.",
+      "recommendation": "Implement mandatory business_id validation on all queries, add database-level row security policies, create comprehensive access control tests.",
+      "codeExample": "// VULNERABLE - Insufficient validation\nconst businessId = c.req.header('X-Business-ID') || 'default';\nconst accounts = await chartManager.getAccounts(businessId);",
+      "fixExample": "// SECURE IMPLEMENTATION\nclass SecureDataAccess {\n  async validateBusinessAccess(userId: string, businessId: string): Promise<void> {\n    const membership = await this.db.prepare(\n      'SELECT 1 FROM business_memberships WHERE user_id = ? AND business_id = ? AND status = \"active\"'\n    ).bind(userId, businessId).first();\n    \n    if (!membership) {\n      throw new UnauthorizedError('Access denied to business data');\n    }\n  }\n  \n  async executeBusinessQuery(query: string, businessId: string, params: any[]) {\n    // Ensure all queries include business_id filter\n    if (!query.includes('business_id')) {\n      throw new SecurityError('Query must include business_id filter');\n    }\n    return this.db.prepare(query).bind(businessId, ...params);\n  }\n}"
+    },
+    {
+      "id": "COREFLOW-2025-004",
+      "title": "Missing Rate Limiting on Critical Endpoints",
+      "description": "Authentication endpoints have rate limiting but other critical endpoints like financial operations and AI agent interactions lack proper rate limiting.",
+      "category": "A04:2025 - Insecure Design",
+      "cvssScore": 7.8,
+      "severity": "High",
+      "location": "src/routes/finance.ts, src/routes/agents.ts",
+      "impact": "Potential for abuse through automated attacks, resource exhaustion, and cost amplification through AI API calls.",
+      "recommendation": "Implement comprehensive rate limiting across all endpoints, add business-specific quotas, implement adaptive rate limiting based on user behavior.",
+      "codeExample": "// MISSING RATE LIMITING\napp.post('/journal-entries', zValidator('json', CreateJournalEntrySchema), async (c: any) => {\n  // No rate limiting - vulnerable to abuse\n  const entry = await journalManager.createEntry(businessId, data, userId);\n});",
+      "fixExample": "// SECURE WITH RATE LIMITING\nconst createRateLimiter = (max: number, window: number) => {\n  return rateLimitMiddleware({\n    keyGenerator: (c) => `${c.get('userId')}:${c.get('businessId')}`,\n    max,\n    window,\n    standardHeaders: true,\n    legacyHeaders: false\n  });\n};\n\napp.post('/journal-entries', \n  authenticate(),\n  createRateLimiter(10, 60000), // 10 requests per minute\n  zValidator('json', CreateJournalEntrySchema), \n  async (c: any) => {\n    const entry = await journalManager.createEntry(businessId, data, userId);\n  }\n);"
+    },
+    {
+      "id": "COREFLOW-2025-005",
+      "title": "AI Agent Prompt Injection Vulnerability",
+      "description": "AI agent system has prompt injection detection but may be bypassable with sophisticated techniques. Input sanitization could be improved.",
+      "category": "A03:2025 - Injection",
+      "cvssScore": 7.5,
+      "severity": "High",
+      "location": "src/modules/agent-system/security-utils.ts",
+      "impact": "Potential for AI agents to execute unintended operations, access unauthorized data, or leak sensitive business information through crafted prompts.",
+      "recommendation": "Implement advanced prompt injection detection, use structured outputs only, add AI agent capability restrictions, implement conversation context isolation.",
+      "codeExample": "// CURRENT DETECTION MAY BE BYPASSED\nconst PROMPT_INJECTION_PATTERNS = [\n  /ignore\\s+previous\\s+instructions/gi,\n  /you\\s+are\\s+now/gi\n  // Limited patterns - sophisticated attacks may bypass\n];",
+      "fixExample": "// ENHANCED PROTECTION\nclass AdvancedPromptGuard {\n  async validateInput(input: string, context: AgentContext): Promise<ValidationResult> {\n    // Multi-layer detection\n    const checks = await Promise.all([\n      this.detectSyntacticPatterns(input),\n      this.detectSemanticAnomalies(input, context),\n      this.validateAgainstWhitelist(input, context.allowedOperations),\n      this.checkEntityBoundaries(input, context.businessId)\n    ]);\n    \n    // Use ensemble approach for higher accuracy\n    const riskScore = this.calculateEnsembleRisk(checks);\n    return {\n      allowed: riskScore < 0.3,\n      confidence: Math.max(...checks.map(c => c.confidence)),\n      reasons: checks.filter(c => c.triggered).map(c => c.reason)\n    };\n  }\n}"
+    },
+    {
+      "id": "COREFLOW-2025-006",
+      "title": "Insufficient Session Security",
+      "description": "Session management implements basic security but lacks advanced protections like session fingerprinting and concurrent session limits.",
+      "category": "A07:2025 - Identification and Authentication Failures",
+      "cvssScore": 6.8,
+      "severity": "Medium",
+      "location": "src/modules/auth/session.ts, src/routes/auth.ts",
+      "impact": "Potential for session hijacking, concurrent session abuse, and inadequate session lifecycle management.",
+      "recommendation": "Implement session fingerprinting, add concurrent session limits, enhance session monitoring and anomaly detection.",
+      "codeExample": "// BASIC SESSION IMPLEMENTATION\nc.header('Set-Cookie', `session=${result.sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/`);",
+      "fixExample": "// ENHANCED SESSION SECURITY\nclass SecureSessionManager {\n  createSession(user: User, request: Request): SessionData {\n    const fingerprint = this.generateFingerprint(request);\n    const session = {\n      id: crypto.randomUUID(),\n      userId: user.id,\n      businessId: user.businessId,\n      fingerprint,\n      ipAddress: this.getClientIP(request),\n      userAgent: request.headers.get('user-agent'),\n      createdAt: new Date(),\n      lastAccessAt: new Date(),\n      maxConcurrentSessions: 3\n    };\n    \n    // Check concurrent session limits\n    this.enforceConcurrentSessionLimit(user.id);\n    \n    return session;\n  }\n  \n  validateSession(sessionId: string, request: Request): boolean {\n    const session = this.getSession(sessionId);\n    const currentFingerprint = this.generateFingerprint(request);\n    \n    return session && \n           session.fingerprint === currentFingerprint &&\n           this.isValidIP(session.ipAddress, this.getClientIP(request));\n  }\n}"
+    },
+    {
+      "id": "COREFLOW-2025-007",
+      "title": "Weak Cryptographic Implementation",
+      "description": "Password hashing uses bcrypt but configuration may not be optimal. Custom hash functions for non-sensitive data use weak algorithms.",
+      "category": "A02:2025 - Cryptographic Failures",
+      "cvssScore": 6.2,
+      "severity": "Medium",
+      "location": "src/modules/auth/crypto.ts, src/modules/agent-system/security-utils.ts",
+      "impact": "Potential for password cracking if database is compromised, weak hash collisions in non-critical functions.",
+      "recommendation": "Upgrade to Argon2id for password hashing, increase work factors, replace custom hash functions with cryptographically secure alternatives.",
+      "codeExample": "// WEAK HASH FUNCTION\nexport function hashString(input: string): string {\n  let hash = 0;\n  for (let i = 0; i < input.length; i++) {\n    const char = input.charCodeAt(i);\n    hash = ((hash << 5) - hash) + char;\n    hash = hash & hash; // Convert to 32-bit integer\n  }\n  return Math.abs(hash).toString(36);\n}",
+      "fixExample": "// SECURE IMPLEMENTATION\nimport argon2 from 'argon2';\n\nclass SecureCrypto {\n  async hashPassword(password: string): Promise<string> {\n    return argon2.hash(password, {\n      type: argon2.argon2id,\n      memoryCost: 65536, // 64 MB\n      timeCost: 3,        // 3 iterations\n      parallelism: 4      // 4 threads\n    });\n  }\n  \n  async hashData(data: string): Promise<string> {\n    const encoder = new TextEncoder();\n    const dataBuffer = encoder.encode(data);\n    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);\n    return Array.from(new Uint8Array(hashBuffer))\n      .map(b => b.toString(16).padStart(2, '0'))\n      .join('');\n  }\n}"
+    },
+    {
+      "id": "COREFLOW-2025-008",
+      "title": "Missing Content Security Policy",
+      "description": "Application lacks comprehensive Content Security Policy headers, potentially allowing XSS attacks and unauthorized resource loading.",
+      "category": "A05:2025 - Security Misconfiguration",
+      "cvssScore": 5.4,
+      "severity": "Low",
+      "location": "src/middleware/security-headers.ts",
+      "impact": "Potential for XSS attacks, clickjacking, and unauthorized external resource loading.",
+      "recommendation": "Implement strict Content Security Policy, add frame protection headers, enable security monitoring headers.",
+      "codeExample": "// MISSING CSP IMPLEMENTATION\n// No comprehensive CSP headers found",
+      "fixExample": "// STRICT CSP IMPLEMENTATION\nconst securityHeaders = {\n  'Content-Security-Policy': [\n    \"default-src 'self'\",\n    \"script-src 'self' 'strict-dynamic'\",\n    \"style-src 'self' 'unsafe-inline'\",\n    \"img-src 'self' data: https:\",\n    \"font-src 'self' https://fonts.gstatic.com\",\n    \"connect-src 'self' https://api.coreflow360.com\",\n    \"frame-ancestors 'none'\",\n    \"object-src 'none'\",\n    \"base-uri 'self'\",\n    \"upgrade-insecure-requests\"\n  ].join('; '),\n  'X-Frame-Options': 'DENY',\n  'X-Content-Type-Options': 'nosniff',\n  'X-XSS-Protection': '1; mode=block',\n  'Referrer-Policy': 'strict-origin-when-cross-origin',\n  'Permissions-Policy': 'camera=(), microphone=(), location=()'\n};"
+    }
+  ],
+  "mitigations": {
+    "immediate": [
+      "Replace all hardcoded secrets with secure environment variable management",
+      "Implement mandatory JWT secret validation with minimum entropy requirements",
+      "Add comprehensive business_id validation to all data access queries",
+      "Deploy strict Content Security Policy headers"
+    ],
+    "shortTerm": [
+      "Implement comprehensive rate limiting across all API endpoints",
+      "Enhance AI agent prompt injection detection with multi-layer analysis",
+      "Upgrade password hashing to Argon2id with optimal parameters",
+      "Add session fingerprinting and concurrent session management"
+    ],
+    "longTerm": [
+      "Implement HashiCorp Vault or AWS Secrets Manager for secret management",
+      "Deploy automated security testing in CI/CD pipeline",
+      "Add advanced threat detection and monitoring",
+      "Implement zero-trust architecture with continuous verification"
+    ]
+  },
+  "securityControls": {
+    "implemented": [
+      "JWT-based authentication with token blacklisting",
+      "Multi-factor authentication (MFA) support",
+      "Row-level security for multi-business data isolation",
+      "Input validation using Zod schemas",
+      "Basic rate limiting on authentication endpoints",
+      "SQL injection prevention through parameterized queries",
+      "Prompt injection detection for AI agents",
+      "Comprehensive audit logging",
+      "Session management with secure cookies",
+      "Business context isolation"
+    ],
+    "missing": [
+      "Advanced secret management system",
+      "Comprehensive Content Security Policy",
+      "Session fingerprinting and anomaly detection",
+      "Advanced cryptographic implementations",
+      "Comprehensive rate limiting",
+      "Advanced prompt injection protection",
+      "Database-level row security policies",
+      "Advanced threat detection and monitoring"
+    ],
+    "recommendations": [
+      "Implement enterprise-grade secret management",
+      "Deploy Web Application Firewall (WAF)",
+      "Add real-time security monitoring and alerting",
+      "Implement security automation in CI/CD",
+      "Add penetration testing to security lifecycle",
+      "Deploy advanced AI-powered threat detection",
+      "Implement zero-trust network architecture",
+      "Add comprehensive security training for developers"
+    ]
+  },
+  "owaspMapping": {
+    "A01_BrokenAccessControl": ["COREFLOW-2025-003"],
+    "A02_CryptographicFailures": ["COREFLOW-2025-002", "COREFLOW-2025-007"],
+    "A03_Injection": ["COREFLOW-2025-005"],
+    "A04_InsecureDesign": ["COREFLOW-2025-004"],
+    "A05_SecurityMisconfiguration": ["COREFLOW-2025-008"],
+    "A06_VulnerableOutdatedComponents": [],
+    "A07_IdentificationAuthFailures": ["COREFLOW-2025-001", "COREFLOW-2025-006"],
+    "A08_SoftwareDataIntegrityFailures": [],
+    "A09_SecurityLoggingMonitoringFailures": [],
+    "A10_ServerSideRequestForgery": []
+  },
+  "complianceStatus": {
+    "owasp2025Compliance": 62,
+    "criticalIssuesResolved": false,
+    "productionReadiness": false,
+    "recommendedActions": [
+      "IMMEDIATE: Address critical vulnerabilities before deployment",
+      "SHORT-TERM: Implement comprehensive security controls",
+      "LONG-TERM: Establish security-first development culture"
+    ]
+  },
+  "testingRecommendations": {
+    "securityTests": [
+      "Automated SAST scanning in CI/CD pipeline",
+      "Dynamic Application Security Testing (DAST)",
+      "Interactive Application Security Testing (IAST)",
+      "Secret detection and credential scanning",
+      "Dependency vulnerability scanning",
+      "Container security scanning"
+    ],
+    "penetrationTesting": [
+      "Authentication and authorization bypass testing",
+      "Business logic vulnerability testing",
+      "AI agent prompt injection testing",
+      "Multi-business data isolation testing",
+      "Session management vulnerability testing"
+    ],
+    "continuousSecurity": [
+      "Real-time vulnerability monitoring",
+      "Automated security regression testing",
+      "Security metrics and dashboards",
+      "Threat modeling updates",
+      "Security incident response testing"
+    ]
+  },
+  "executiveSummary": {
+    "riskLevel": "HIGH",
+    "deploymentRecommendation": "BLOCK - Critical vulnerabilities must be resolved",
+    "keyFindings": [
+      "Critical authentication vulnerabilities could allow complete system compromise",
+      "Hardcoded secrets present significant credential exposure risk",
+      "Business data isolation requires strengthening to prevent data leakage",
+      "AI agent security needs enhancement to prevent prompt injection attacks"
+    ],
+    "businessImpact": "Current vulnerabilities pose significant risk to customer data, business operations, and regulatory compliance. Immediate action required before production deployment.",
+    "timeline": "Critical issues: 1-2 weeks, High priority: 2-4 weeks, Medium priority: 1-2 months"
+  }
+}

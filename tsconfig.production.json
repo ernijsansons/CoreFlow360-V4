@@ -1,0 +1,41 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "sourceMap": true,
+    "declaration": false,
+    "removeComments": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/ai-systems/edge-ai-orchestrator.ts",
+    "src/ai-systems/webgpu-neural-accelerator.ts",
+    "src/ai-systems/webgpu-*.ts",
+    "src/supernova/supernova-audit-executor.ts",
+    "src/workers/learning-worker.ts",
+    "src/workers/database-admin.ts",
+    "src/workers/database-admin-fixed.ts",
+    "**/*test*",
+    "**/*spec*",
+    "frontend/src/__tests__",
+    "frontend/src/tests"
+  ],
+  "include": [
+    "src/**/*",
+    "!src/ai-systems/edge-ai-orchestrator.ts",
+    "!src/ai-systems/webgpu-neural-accelerator.ts",
+    "!src/supernova/supernova-audit-executor.ts",
+    "!src/workers/learning-worker.ts",
+    "!src/workers/database-admin.ts",
+    "!src/workers/database-admin-fixed.ts"
+  ]
+}

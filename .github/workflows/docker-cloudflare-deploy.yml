@@ -112,10 +112,13 @@ jobs:
       - name: Create test environment file
         run: |
           cp env.example .env
-          echo "POSTGRES_PASSWORD=test_password" >> .env
-          echo "REDIS_PASSWORD=test_password" >> .env
-          echo "JWT_SECRET=test_jwt_secret_minimum_32_characters_long" >> .env
-          echo "ENCRYPTION_KEY=test_encryption_key_32_characters" >> .env
+          # Generate cryptographically secure secrets for testing
+          echo "POSTGRES_PASSWORD=$(openssl rand -base64 32)" >> .env
+          echo "REDIS_PASSWORD=$(openssl rand -base64 32)" >> .env
+          echo "JWT_SECRET=$(openssl rand -base64 64)" >> .env
+          echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env
+          echo "ANTHROPIC_API_KEY=test_anthropic_key_$(openssl rand -hex 16)" >> .env
+          echo "OPENAI_API_KEY=test_openai_key_$(openssl rand -hex 16)" >> .env
 
       - name: Start test stack
         run: |

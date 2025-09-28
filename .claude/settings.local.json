@@ -57,7 +57,13 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(gh pr create:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Read(//c/Users/ernij/OneDrive/Documents/**)",
+      "Bash(npx eslint:*)",
+      "Bash(grep:*)",
+      "Bash(for i in {1..5})",
+      "Bash(do echo \"Run $i:\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,327 @@
+/* UI Component Styles and Missing Tailwind Utilities */
+
+/* Text Utilities */
+.text-muted-foreground {
+  color: var(--color-text-secondary);
+}
+
+.text-destructive {
+  color: var(--error-9);
+}
+
+.text-primary {
+  color: var(--brand-9);
+}
+
+.text-success {
+  color: var(--success-9);
+}
+
+.text-warning {
+  color: var(--warning-9);
+}
+
+.text-info {
+  color: var(--info-9);
+}
+
+/* Background Utilities */
+.bg-muted {
+  background-color: var(--color-bg-muted);
+}
+
+.bg-destructive {
+  background-color: var(--error-8);
+}
+
+.bg-primary {
+  background-color: var(--brand-8);
+}
+
+.bg-success {
+  background-color: var(--success-8);
+}
+
+.bg-warning {
+  background-color: var(--warning-8);
+}
+
+.bg-info {
+  background-color: var(--info-8);
+}
+
+/* Border Utilities */
+.border-muted {
+  border-color: var(--color-border-subtle);
+}
+
+.border-destructive {
+  border-color: var(--error-6);
+}
+
+.border-primary {
+  border-color: var(--brand-6);
+}
+
+/* Shadow Utilities */
+.shadow-xs {
+  box-shadow: var(--shadow-xs);
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.shadow-xl {
+  box-shadow: var(--shadow-xl);
+}
+
+.shadow-2xl {
+  box-shadow: var(--shadow-2xl);
+}
+
+/* Focus Utilities */
+.focus-visible\:ring-primary:focus-visible {
+  --tw-ring-color: var(--brand-8);
+}
+
+.focus\:ring-destructive:focus {
+  --tw-ring-color: var(--error-8);
+}
+
+/* Animation Utilities */
+.animate-spin-slow {
+  animation: spin 2s linear infinite;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 1s ease-in-out infinite;
+}
+
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(-10%);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .7;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Accessibility Utilities */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.focus-visible\:outline-none:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focus-visible\:ring-2:focus-visible {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
+.focus-visible\:ring-offset-2:focus-visible {
+  --tw-ring-offset-width: 2px;
+}
+
+/* Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  .motion-reduce {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .motion-reduce * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --color-text-primary: var(--contrast-high-text);
+  --color-text-secondary: var(--contrast-high-text-secondary);
+  --color-border-default: var(--contrast-high-border);
+  --color-bg-surface: var(--contrast-high-bg);
+}
+
+/* Theme Density Classes */
+.density-compact {
+  --component-padding: var(--spacing-xs);
+  --component-gap: var(--spacing-sm);
+  --component-height: 2rem;
+}
+
+.density-comfortable {
+  --component-padding: var(--spacing-md);
+  --component-gap: var(--spacing-md);
+  --component-height: 2.5rem;
+}
+
+.density-spacious {
+  --component-padding: var(--spacing-lg);
+  --component-gap: var(--spacing-lg);
+  --component-height: 3rem;
+}
+
+/* Component-specific overrides for missing design tokens */
+:root {
+  /* Z-index scale */
+  --z-index-base: 0;
+  --z-index-raised: 10;
+  --z-index-dropdown: 100;
+  --z-index-overlay: 200;
+  --z-index-modal: 300;
+  --z-index-toast: 400;
+  --z-index-tooltip: 500;
+
+  /* Additional shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* Focus shadows */
+  --shadow-focus: 0 0 0 2px var(--brand-8);
+  --shadow-focus-error: 0 0 0 2px var(--error-8);
+  --shadow-focus-success: 0 0 0 2px var(--success-8);
+  --shadow-focus-warning: 0 0 0 2px var(--warning-8);
+
+  /* High contrast colors */
+  --contrast-high-text: #000000;
+  --contrast-high-text-secondary: #333333;
+  --contrast-high-border: #000000;
+  --contrast-high-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+  --contrast-high-text: #ffffff;
+  --contrast-high-text-secondary: #cccccc;
+  --contrast-high-border: #ffffff;
+  --contrast-high-bg: #000000;
+}
+
+/* Responsive breakpoint indicators (for debugging) */
+.debug-breakpoints::before {
+  content: 'xs';
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: red;
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+  z-index: 9999;
+}
+
+@media (min-width: 480px) {
+  .debug-breakpoints::before {
+    content: 'sm';
+  }
+}
+
+@media (min-width: 768px) {
+  .debug-breakpoints::before {
+    content: 'md';
+  }
+}
+
+@media (min-width: 1024px) {
+  .debug-breakpoints::before {
+    content: 'lg';
+  }
+}
+
+@media (min-width: 1280px) {
+  .debug-breakpoints::before {
+    content: 'xl';
+  }
+}
+
+@media (min-width: 1536px) {
+  .debug-breakpoints::before {
+    content: '2xl';
+  }
+}

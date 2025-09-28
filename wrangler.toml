@@ -1,5 +1,5 @@
 name = "coreflow360-v4"
-main = "src/index.minimal.ts"
+main = "src/index.production.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 

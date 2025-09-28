@@ -1,0 +1,275 @@
+{
+  "auditSummary": {
+    "auditDate": "2025-09-27",
+    "auditType": "Comprehensive Security Audit - OWASP 2025",
+    "totalIssues": 12,
+    "criticalCount": 2,
+    "highCount": 3,
+    "mediumCount": 4,
+    "lowCount": 3,
+    "deploymentBlocked": true,
+    "overallRiskScore": 7.2,
+    "complianceStatus": {
+      "owasp2025": "PARTIAL",
+      "sastStatus": "COMPLETED",
+      "dastStatus": "SIMULATED",
+      "secretScanStatus": "COMPLETED"
+    }
+  },
+  "vulnerabilities": [
+    {
+      "id": "VULN-2025-001",
+      "title": "Hardcoded Secrets in Test Files",
+      "description": "Multiple test files contain hardcoded secrets, API keys, and credentials. While these are in test files, they pose a risk if accidentally deployed or if test data leaks to production.",
+      "category": "A02:2021 - Cryptographic Failures",
+      "cvssScore": 8.5,
+      "severity": "Critical",
+      "location": "tests/*.test.ts, tests/mocks/server.ts",
+      "impact": "Potential credential exposure if test files are deployed or accessed inappropriately. Could lead to unauthorized access if these patterns are copied to production code.",
+      "recommendation": "Use environment variables or secure secret management for test credentials. Implement secret scanning in CI/CD pipeline.",
+      "codeExample": "JWT_SECRET: 'test-secret',\nSTRIPE_WEBHOOK_SECRET: 'whsec_test',\napiKey: 'sk-1234567890abcdef'",
+      "fixExample": "JWT_SECRET: process.env.TEST_JWT_SECRET || crypto.randomBytes(32).toString('hex'),\nSTRIPE_WEBHOOK_SECRET: process.env.TEST_STRIPE_SECRET"
+    },
+    {
+      "id": "VULN-2025-002",
+      "title": "Weak CSRF Protection Implementation",
+      "description": "CSRF protection is partially implemented but not consistently enforced across all state-changing endpoints. Some POST/PUT/DELETE endpoints lack CSRF token validation.",
+      "category": "A01:2021 - Broken Access Control",
+      "cvssScore": 7.5,
+      "severity": "Critical",
+      "location": "src/cloudflare/CloudflareIntegration.ts:419-426",
+      "impact": "Attackers could perform unauthorized actions on behalf of authenticated users through cross-site request forgery attacks.",
+      "recommendation": "Implement comprehensive CSRF protection using double-submit cookies or synchronizer tokens for all state-changing operations.",
+      "codeExample": "if (request.method !== 'GET' && !hasCSRFToken) { /* only warns, doesn't block */ }",
+      "fixExample": "if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method) && !validateCSRFToken(request)) {\n  throw new SecurityError('Invalid CSRF token', 403);\n}"
+    },
+    {
+      "id": "VULN-2025-003",
+      "title": "JWT Secret Rotation Fallback Risk",
+      "description": "JWT secret rotation has a fallback to environment variable which could be weak. The fallback mechanism in jwt-secret-rotation.ts line 24 uses env.JWT_SECRET without validation.",
+      "category": "A02:2021 - Cryptographic Failures",
+      "cvssScore": 6.8,
+      "severity": "High",
+      "location": "src/modules/auth/jwt-secret-rotation.ts:24",
+      "impact": "Weak JWT secrets could allow token forgery and authentication bypass.",
+      "recommendation": "Enforce minimum entropy requirements for JWT secrets and remove weak fallback mechanisms.",
+      "codeExample": "return this.env.JWT_SECRET || this.generateSecret();",
+      "fixExample": "const secret = this.env.JWT_SECRET;\nif (!secret || secret.length < 32) {\n  throw new SecurityError('JWT secret does not meet security requirements');\n}\nreturn secret;"
+    },
+    {
+      "id": "VULN-2025-004",
+      "title": "Unsafe Dynamic Code Execution",
+      "description": "Multiple instances of dynamic code execution using Function constructor and eval-like patterns found in workflow orchestrator and validation engine.",
+      "category": "A03:2021 - Injection",
+      "cvssScore": 6.5,
+      "severity": "High",
+      "location": "src/modules/workflow/orchestrator.ts:1047, src/modules/finance/validation-engine.ts:526",
+      "impact": "Remote code execution vulnerability if user input reaches these functions without proper sanitization.",
+      "recommendation": "Replace dynamic code execution with safe expression evaluation libraries or predefined logic.",
+      "codeExample": "const func = new Function(...Object.keys(allVariables), `return ${condition.expression}`);",
+      "fixExample": "// Use a safe expression evaluator like expr-eval or mathjs\nconst result = expressionEvaluator.evaluate(condition.expression, allVariables);"
+    },
+    {
+      "id": "VULN-2025-005",
+      "title": "Insufficient XSS Protection in CSP",
+      "description": "Content Security Policy allows 'unsafe-inline' for scripts and styles, weakening XSS protection significantly.",
+      "category": "A03:2021 - Injection",
+      "cvssScore": 6.2,
+      "severity": "High",
+      "location": "src/middleware/security.ts:82,88",
+      "impact": "Inline script execution could allow XSS attacks even with CSP enabled.",
+      "recommendation": "Remove 'unsafe-inline' and implement nonce-based or hash-based CSP for necessary inline scripts.",
+      "codeExample": "'script-src': ['self', 'unsafe-inline', ...]",
+      "fixExample": "'script-src': ['self', 'nonce-${generateNonce()}', 'strict-dynamic']"
+    },
+    {
+      "id": "VULN-2025-006",
+      "title": "Multi-Tenant Isolation Cache Timing",
+      "description": "Business ID validation cache has a 1-minute TTL which might be too long for sensitive operations, potentially allowing access after revocation.",
+      "category": "A01:2021 - Broken Access Control",
+      "cvssScore": 5.8,
+      "severity": "Medium",
+      "location": "src/middleware/tenant-isolation.ts:365-368",
+      "impact": "Revoked business access might persist for up to 1 minute due to caching.",
+      "recommendation": "Implement cache invalidation on security events or reduce cache TTL for critical operations.",
+      "codeExample": "setTimeout(() => { this.businessIdCache.delete(cacheKey); }, 60000); // 1 minute",
+      "fixExample": "// Implement event-driven cache invalidation\nawait this.invalidateCacheOnSecurityEvent(cacheKey);\n// Or use shorter TTL for sensitive operations\nconst ttl = isSensitiveOperation ? 10000 : 60000;"
+    },
+    {
+      "id": "VULN-2025-007",
+      "title": "Missing Rate Limiting on Authentication Endpoints",
+      "description": "No evidence of rate limiting implementation on critical authentication endpoints, making the system vulnerable to brute force attacks.",
+      "category": "A07:2021 - Identification and Authentication Failures",
+      "cvssScore": 5.5,
+      "severity": "Medium",
+      "location": "src/middleware/auth.ts",
+      "impact": "Brute force attacks possible on login endpoints, potentially leading to account compromise.",
+      "recommendation": "Implement aggressive rate limiting on authentication endpoints with exponential backoff.",
+      "codeExample": "// No rate limiting found in auth middleware",
+      "fixExample": "const rateLimiter = new RateLimiter({\n  points: 5, // 5 attempts\n  duration: 900, // per 15 minutes\n  blockDuration: 900, // block for 15 minutes\n});"
+    },
+    {
+      "id": "VULN-2025-008",
+      "title": "Weak Password Requirements",
+      "description": "No evidence of strong password policy enforcement in the authentication system.",
+      "category": "A07:2021 - Identification and Authentication Failures",
+      "cvssScore": 5.2,
+      "severity": "Medium",
+      "location": "src/modules/auth/",
+      "impact": "Weak passwords could be easily compromised through dictionary attacks.",
+      "recommendation": "Implement NIST 800-63B compliant password requirements with entropy checking.",
+      "codeExample": "// No password validation found",
+      "fixExample": "validatePassword(password: string): boolean {\n  return password.length >= 12 && \n         hasUpperCase && hasLowerCase && \n         hasNumbers && hasSpecialChars;\n}"
+    },
+    {
+      "id": "VULN-2025-009",
+      "title": "Incomplete Security Headers",
+      "description": "Missing modern security headers like Expect-CT and Report-To headers for comprehensive security monitoring.",
+      "category": "A05:2021 - Security Misconfiguration",
+      "cvssScore": 4.8,
+      "severity": "Medium",
+      "location": "src/middleware/security.ts",
+      "impact": "Reduced visibility into security events and potential bypass of certificate transparency.",
+      "recommendation": "Add Expect-CT, Report-To, and NEL headers for enhanced security monitoring.",
+      "codeExample": "// Missing Expect-CT and Report-To headers",
+      "fixExample": "headers.set('Expect-CT', 'max-age=86400, enforce, report-uri=\"/ct-report\"');\nheaders.set('Report-To', '{\"group\":\"default\",\"max_age\":31536000,\"endpoints\":[{\"url\":\"/report\"}]}');"
+    },
+    {
+      "id": "VULN-2025-010",
+      "title": "Verbose Error Messages",
+      "description": "Error handling may expose sensitive information in error messages to clients.",
+      "category": "A04:2021 - Insecure Design",
+      "cvssScore": 4.2,
+      "severity": "Low",
+      "location": "src/middleware/error-handling.ts",
+      "impact": "Information disclosure through detailed error messages could aid attackers.",
+      "recommendation": "Implement error sanitization to return generic messages to clients while logging details server-side.",
+      "codeExample": "error: error instanceof Error ? error.message : String(error)",
+      "fixExample": "error: isProduction ? 'An error occurred' : sanitizeError(error)"
+    },
+    {
+      "id": "VULN-2025-011",
+      "title": "Missing Subresource Integrity",
+      "description": "External resources loaded without Subresource Integrity (SRI) verification.",
+      "category": "A08:2021 - Software and Data Integrity Failures",
+      "cvssScore": 3.8,
+      "severity": "Low",
+      "location": "Frontend resource loading",
+      "impact": "Compromised CDN could serve malicious scripts.",
+      "recommendation": "Implement SRI for all external resources.",
+      "codeExample": "<script src=\"https://cdn.example.com/lib.js\"></script>",
+      "fixExample": "<script src=\"https://cdn.example.com/lib.js\" integrity=\"sha384-...\" crossorigin=\"anonymous\"></script>"
+    },
+    {
+      "id": "VULN-2025-012",
+      "title": "Insufficient Logging for Security Events",
+      "description": "Security-critical events like failed authentication attempts may not be adequately logged for audit purposes.",
+      "category": "A09:2021 - Security Logging and Monitoring Failures",
+      "cvssScore": 3.5,
+      "severity": "Low",
+      "location": "src/modules/audit/audit-service.ts",
+      "impact": "Reduced ability to detect and respond to security incidents.",
+      "recommendation": "Implement comprehensive security event logging with tamper protection.",
+      "codeExample": "// Basic logging without security context",
+      "fixExample": "auditLog.security('AUTH_FAILURE', {\n  userId, ip, userAgent, timestamp,\n  failureReason, attemptCount\n});"
+    }
+  ],
+  "mitigations": {
+    "immediate": [
+      "Remove all hardcoded secrets from test files and use environment variables",
+      "Implement proper CSRF protection on all state-changing endpoints",
+      "Disable or replace dynamic code execution with safe alternatives",
+      "Enforce strong JWT secret requirements without weak fallbacks"
+    ],
+    "shortTerm": [
+      "Remove 'unsafe-inline' from CSP and implement nonce-based approach",
+      "Implement comprehensive rate limiting on authentication endpoints",
+      "Add password strength requirements following NIST guidelines",
+      "Reduce cache TTL for sensitive multi-tenant operations"
+    ],
+    "longTerm": [
+      "Implement comprehensive security monitoring and alerting",
+      "Add Subresource Integrity for all external resources",
+      "Enhance error handling to prevent information disclosure",
+      "Implement security event correlation and threat detection"
+    ]
+  },
+  "securityControls": {
+    "implemented": [
+      "JWT-based authentication with jose library",
+      "Multi-tenant isolation with database validation",
+      "MFA support with TOTP implementation",
+      "Basic security headers (X-Frame-Options, X-Content-Type-Options)",
+      "CORS configuration with origin validation",
+      "Prepared statements for database queries",
+      "Input validation on some endpoints",
+      "TLS enforcement with HSTS",
+      "Business ID validation with SQL injection prevention",
+      "Token expiration and rotation mechanisms"
+    ],
+    "missing": [
+      "Comprehensive CSRF protection",
+      "Rate limiting on critical endpoints",
+      "Strong password policy enforcement",
+      "Security event correlation system",
+      "Web Application Firewall (WAF) rules",
+      "Runtime Application Self-Protection (RASP)",
+      "Dependency vulnerability scanning",
+      "Secret scanning in CI/CD pipeline",
+      "Penetration testing automation",
+      "Security Information and Event Management (SIEM)"
+    ],
+    "recommendations": [
+      "Implement Cloudflare Zero Trust for enhanced security",
+      "Use Cloudflare WAF with custom rules for application-specific threats",
+      "Implement Cloudflare Rate Limiting rules",
+      "Enable Cloudflare Bot Management",
+      "Use Cloudflare Workers KV for secure session management",
+      "Implement API Shield for API security",
+      "Enable Cloudflare Page Shield for client-side security",
+      "Use Cloudflare Turnstile for bot protection without CAPTCHA",
+      "Implement Cloudflare D1 row-level security",
+      "Enable Cloudflare Analytics for security monitoring"
+    ]
+  },
+  "complianceMapping": {
+    "owasp2025": {
+      "A01_BrokenAccessControl": "PARTIAL - Multi-tenant isolation implemented but CSRF weak",
+      "A02_CryptographicFailures": "FAILED - Hardcoded secrets found, weak JWT fallback",
+      "A03_Injection": "PARTIAL - SQL injection prevented but dynamic code execution risks",
+      "A04_InsecureDesign": "PARTIAL - Some design issues in error handling",
+      "A05_SecurityMisconfiguration": "PARTIAL - Missing some security headers",
+      "A06_VulnerableComponents": "NOT_ASSESSED - Requires dependency scan",
+      "A07_IdentificationAuthFailures": "PARTIAL - No rate limiting or password policy",
+      "A08_DataIntegrityFailures": "PARTIAL - Missing SRI for external resources",
+      "A09_SecurityLoggingFailures": "PARTIAL - Basic logging but needs enhancement",
+      "A10_ServerSideRequestForgery": "NOT_ASSESSED - Requires additional testing"
+    }
+  },
+  "metrics": {
+    "securityScore": 62,
+    "maxPossibleScore": 100,
+    "criticalityBreakdown": {
+      "authentication": 70,
+      "authorization": 75,
+      "dataProtection": 65,
+      "inputValidation": 60,
+      "cryptography": 55,
+      "sessionManagement": 70,
+      "errorHandling": 50,
+      "logging": 45
+    }
+  },
+  "conclusion": {
+    "deploymentRecommendation": "BLOCKED",
+    "reason": "Critical vulnerabilities found including hardcoded secrets and weak CSRF protection",
+    "requiredActions": [
+      "Fix all critical vulnerabilities (CVSS > 7.0)",
+      "Implement missing CSRF protection",
+      "Remove hardcoded secrets",
+      "Replace dynamic code execution"
+    ],
+    "estimatedRemediationTime": "2-3 weeks",
+    "riskAcceptanceRequired": false
+  }
+}

@@ -1,0 +1,886 @@
+openapi: 3.0.3
+info:
+  title: CoreFlow360 V4 API
+  description: |
+    Enterprise CRM, ERP, and AI Agent System API with multi-business management capabilities.
+
+    ## Key Features
+    - **AI Agent System**: Intelligent task orchestration with Claude integration
+    - **Multi-Business Management**: Tenant isolation and business switching
+    - **Financial Operations**: Double-entry bookkeeping, invoicing, and reporting
+    - **CRM & Sales**: Lead management, pipeline tracking, and automation
+    - **Real-time Communications**: WebSocket support for live updates
+    - **Security**: JWT authentication, MFA, ABAC, and audit logging
+
+    ## Authentication
+    All endpoints require JWT authentication unless specified otherwise.
+    Include the token in the Authorization header: `Bearer <token>`
+
+    ## Rate Limiting
+    - Authentication endpoints: 5 requests per minute
+    - Standard endpoints: 100 requests per minute
+    - AI endpoints: 20 requests per minute
+
+  version: 4.0.0
+  contact:
+    name: CoreFlow360 Support
+    email: support@coreflow360.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.coreflow360.com/v4
+    description: Production
+  - url: https://staging-api.coreflow360.com/v4
+    description: Staging
+  - url: http://localhost:8787
+    description: Development
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: AI Agents
+    description: AI agent orchestration and task execution
+  - name: Business Management
+    description: Multi-business and tenant management
+  - name: Finance
+    description: Accounting, invoicing, and financial reports
+  - name: CRM
+    description: Customer relationship management
+  - name: Workflows
+    description: Workflow automation and orchestration
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ============================================================================
+    # Common Schemas
+    # ============================================================================
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code for programmatic handling
+        details:
+          type: object
+          description: Additional error details
+      required:
+        - success
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+        data:
+          type: object
+
+    PaginationParams:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        sortBy:
+          type: string
+        sortOrder:
+          type: string
+          enum: [asc, desc]
+          default: desc
+
+    # ============================================================================
+    # Authentication Schemas
+    # ============================================================================
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - firstName
+        - lastName
+        - businessName
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        firstName:
+          type: string
+        lastName:
+          type: string
+        businessName:
+          type: string
+        industry:
+          type: string
+        employeeCount:
+          type: string
+          enum: [1-10, 11-50, 51-200, 201-500, 500+]
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        mfaCode:
+          type: string
+          description: MFA code if 2FA is enabled
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+        user:
+          $ref: '#/components/schemas/User'
+        requiresMFA:
+          type: boolean
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, manager, user]
+        businessId:
+          type: string
+        twoFactorEnabled:
+          type: boolean
+
+    # ============================================================================
+    # AI Agent Schemas
+    # ============================================================================
+
+    AgentTask:
+      type: object
+      required:
+        - capability
+        - input
+      properties:
+        id:
+          type: string
+        capability:
+          type: string
+          description: The capability required (e.g., 'financial.analysis', 'sales.forecast')
+        input:
+          type: object
+          description: Task-specific input data
+        businessContext:
+          $ref: '#/components/schemas/BusinessContext'
+        priority:
+          type: string
+          enum: [low, medium, high, critical]
+          default: medium
+        department:
+          type: string
+          enum: [finance, sales, hr, operations, marketing, it, legal]
+        timeout:
+          type: integer
+          description: Timeout in milliseconds
+          default: 30000
+
+    BusinessContext:
+      type: object
+      properties:
+        businessId:
+          type: string
+        userId:
+          type: string
+        sessionId:
+          type: string
+        tenantId:
+          type: string
+        metadata:
+          type: object
+
+    AgentDecision:
+      type: object
+      properties:
+        taskId:
+          type: string
+        decision:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        reasoning:
+          type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+        actions:
+          type: array
+          items:
+            type: object
+        cost:
+          type: number
+        latency:
+          type: integer
+
+    AgentCapability:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        inputSchema:
+          type: object
+        outputSchema:
+          type: object
+        supportedAgents:
+          type: array
+          items:
+            type: string
+        estimatedCost:
+          type: number
+        estimatedLatency:
+          type: integer
+
+    # ============================================================================
+    # Finance Schemas
+    # ============================================================================
+
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE]
+        category:
+          type: string
+        balance:
+          type: number
+        currency:
+          type: string
+        isActive:
+          type: boolean
+
+    JournalEntry:
+      type: object
+      required:
+        - date
+        - description
+        - lines
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date
+        description:
+          type: string
+        reference:
+          type: string
+        type:
+          type: string
+          enum: [STANDARD, ADJUSTING, CLOSING, REVERSING]
+        status:
+          type: string
+          enum: [draft, posted, void]
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/JournalLine'
+        totalDebits:
+          type: number
+        totalCredits:
+          type: number
+
+    JournalLine:
+      type: object
+      properties:
+        accountId:
+          type: string
+        accountCode:
+          type: string
+        accountName:
+          type: string
+        debit:
+          type: number
+        credit:
+          type: number
+        description:
+          type: string
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+        invoiceNumber:
+          type: string
+        customerId:
+          type: string
+        date:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [draft, sent, paid, overdue, cancelled]
+        items:
+          type: array
+          items:
+            type: object
+        subtotal:
+          type: number
+        tax:
+          type: number
+        total:
+          type: number
+        currency:
+          type: string
+
+paths:
+  # ============================================================================
+  # Authentication Endpoints
+  # ============================================================================
+
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register new user and business
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        201:
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        400:
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        202:
+          description: MFA required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requiresMFA:
+                    type: boolean
+                    default: true
+                  mfaMethod:
+                    type: string
+        401:
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Logout current user
+      responses:
+        200:
+          description: Logout successful
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        200:
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /auth/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user info
+      responses:
+        200:
+          description: User information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  # ============================================================================
+  # AI Agent Endpoints
+  # ============================================================================
+
+  /agents/status:
+    get:
+      tags: [AI Agents]
+      summary: Get agent system status
+      responses:
+        200:
+          description: System status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connected:
+                    type: boolean
+                  agents:
+                    type: object
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /agents/capabilities:
+    get:
+      tags: [AI Agents]
+      summary: List all agent capabilities
+      responses:
+        200:
+          description: Available capabilities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capabilities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AgentCapability'
+
+  /agents/decision:
+    post:
+      tags: [AI Agents]
+      summary: Request agent decision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentTask'
+      responses:
+        200:
+          description: Decision made
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  decision:
+                    $ref: '#/components/schemas/AgentDecision'
+
+  /agents/collaborate:
+    post:
+      tags: [AI Agents]
+      summary: Execute multi-agent collaboration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task:
+                  type: string
+                agents:
+                  type: array
+                  items:
+                    type: string
+                context:
+                  type: object
+      responses:
+        200:
+          description: Collaboration results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: object
+                  consensus:
+                    type: object
+
+  /agents/stream:
+    get:
+      tags: [AI Agents]
+      summary: Stream real-time agent updates
+      description: Server-Sent Events endpoint for real-time updates
+      responses:
+        200:
+          description: Event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  # ============================================================================
+  # Finance Endpoints
+  # ============================================================================
+
+  /finance/accounts:
+    get:
+      tags: [Finance]
+      summary: List chart of accounts
+      parameters:
+        - in: header
+          name: X-Business-ID
+          schema:
+            type: string
+          required: true
+      responses:
+        200:
+          description: List of accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+                  count:
+                    type: integer
+
+    post:
+      tags: [Finance]
+      summary: Create new account
+      parameters:
+        - in: header
+          name: X-Business-ID
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                name:
+                  type: string
+                type:
+                  type: string
+                  enum: [ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE]
+                category:
+                  type: string
+      responses:
+        200:
+          description: Account created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Account'
+
+  /finance/journal-entries:
+    post:
+      tags: [Finance]
+      summary: Create journal entry
+      parameters:
+        - in: header
+          name: X-Business-ID
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JournalEntry'
+      responses:
+        200:
+          description: Journal entry created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/JournalEntry'
+
+  /finance/invoices:
+    get:
+      tags: [Finance]
+      summary: List invoices
+      parameters:
+        - in: header
+          name: X-Business-ID
+          schema:
+            type: string
+          required: true
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, sent, paid, overdue, cancelled]
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        200:
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Invoice'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+
+    post:
+      tags: [Finance]
+      summary: Create invoice
+      parameters:
+        - in: header
+          name: X-Business-ID
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invoice'
+      responses:
+        200:
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+
+  # ============================================================================
+  # Workflow Endpoints
+  # ============================================================================
+
+  /workflows:
+    get:
+      tags: [Workflows]
+      summary: List workflows
+      responses:
+        200:
+          description: List of workflows
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  workflows:
+                    type: array
+                    items:
+                      type: object
+
+    post:
+      tags: [Workflows]
+      summary: Create workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                steps:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        201:
+          description: Workflow created
+
+  /workflows/{workflowId}/execute:
+    post:
+      tags: [Workflows]
+      summary: Execute workflow
+      parameters:
+        - in: path
+          name: workflowId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Workflow execution started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  executionId:
+                    type: string
+                  status:
+                    type: string
+
+  # ============================================================================
+  # WebSocket Endpoints (Documentation Only)
+  # ============================================================================
+
+  /ws:
+    get:
+      tags: [AI Agents]
+      summary: WebSocket connection for real-time communication
+      description: |
+        WebSocket endpoint for bidirectional real-time communication.
+
+        **Connection URL**: `wss://api.coreflow360.com/v4/ws`
+
+        **Message Types**:
+        - `request_decision`: Request agent decision
+        - `agent_action`: Execute agent action
+        - `subscribe`: Subscribe to events
+
+        **Example Messages**:
+        ```json
+        {
+          "type": "request_decision",
+          "context": {
+            "capability": "financial.analysis",
+            "input": {...}
+          }
+        }
+        ```
+      responses:
+        101:
+          description: WebSocket upgrade successful
+        426:
+          description: Upgrade required
