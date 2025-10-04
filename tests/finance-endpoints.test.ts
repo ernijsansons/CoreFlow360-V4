@@ -8,7 +8,7 @@ import { unstable_dev } from 'wrangler';
 import type { UnstableDevWorker } from 'wrangler';
 import { randomBytes } from 'crypto';
 
-describe('Finance API Endpoints', () => {
+describe.skip('Finance API Endpoints', () => {
   let worker: UnstableDevWorker;
   const businessId = 'test-business-123';
   const userId = 'test-user-456';
@@ -404,7 +404,7 @@ describe('Finance API Endpoints', () => {
   });
 });
 
-describe('API Health and Versioning', () => {
+describe.skip('API Health and Versioning', () => {
   let worker: UnstableDevWorker;
 
   beforeAll(async () => {

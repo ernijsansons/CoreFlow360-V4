@@ -3,7 +3,7 @@
  * Prevents duplicate operations and ensures data consistency
  */
 
-import crypto from 'crypto';
+// Using Web Crypto API for Cloudflare Workers compatibility
 import { Logger } from './logger';
 import { SecurityError } from './security-utils';
 import type { Env } from '../types/env';
@@ -52,7 +52,7 @@ class IdempotencyManager {
     operation: () => Promise<T>,
     options: IdempotencyOptions
   ): Promise<IdempotencyResult<T>> {
-    const idempotencyKey = this.generateIdempotencyKey(options);
+    const idempotencyKey = await this.generateIdempotencyKey(options);
     const lockKey = `lock:${idempotencyKey}`;
 
     try {
@@ -171,7 +171,7 @@ class IdempotencyManager {
   /**
    * Generate idempotency key from options and request context
    */
-  private generateIdempotencyKey(options: IdempotencyOptions): string {
+  private async generateIdempotencyKey(options: IdempotencyOptions): Promise<string> {
     if (options.key) {
       // Use custom key but ensure it's scoped to business
       return `${options.businessId}:${options.key}`;
@@ -185,11 +185,7 @@ class IdempotencyManager {
       timestamp: Math.floor(Date.now() / 1000) // Round to second for potential duplicates
     };
 
-    const hash = crypto
-      .createHash('sha256')
-      .update(JSON.stringify(keyData))
-      .digest('hex')
-      .substring(0, 16);
+    const hash = await this.sha256Hash(JSON.stringify(keyData));
 
     return `${options.businessId}:${options.operation}:${hash}`;
   }
@@ -344,7 +340,7 @@ class IdempotencyManager {
     }
 
     try {
-      const lockValue = crypto.randomUUID();
+      const lockValue = this.generateUUID();
       const existing = await this.env.KV_CACHE.get(lockKey);
 
       if (existing) {
@@ -396,6 +392,23 @@ class IdempotencyManager {
    */
   async getOperationStatus(idempotencyKey: string): Promise<IdempotencyResult | null> {
     return this.getExistingResult(idempotencyKey);
+  }
+
+  /**
+   * SHA-256 hash using Web Crypto API
+   */
+  private async sha256Hash(data: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(data));
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
+  }
+
+  /**
+   * Generate UUID using Web Crypto API
+   */
+  private generateUUID(): string {
+    return crypto.randomUUID();
   }
 
   /**
@@ -451,7 +464,7 @@ export function withIdempotency(options: Omit<IdempotencyOptions, 'operation'>) 
 /**
  * Generate idempotency key from request
  */
-export function generateIdempotencyKeyFromRequest(
+export async function generateIdempotencyKeyFromRequest(
   request: {
     method: string;
     url: string;
@@ -459,7 +472,7 @@ export function generateIdempotencyKeyFromRequest(
     headers?: Record<string, string>;
   },
   businessId: string
-): string {
+): Promise<string> {
   // Check for explicit idempotency key in headers
   const explicitKey = request.headers?.['idempotency-key'] || request.headers?.['Idempotency-Key'];
   if (explicitKey) {
@@ -471,26 +484,27 @@ export function generateIdempotencyKeyFromRequest(
     const keyData = {
       method: request.method,
       url: request.url,
-     
-  body: request.body ? crypto.createHash('sha256').update(JSON.stringify(request.body)).digest('hex').substring(0, 16) : null,
+      body: request.body ? await sha256HashStatic(JSON.stringify(request.body)) : null,
       businessId
     };
 
-    const hash = crypto
-      .createHash('sha256')
-      .update(JSON.stringify(keyData))
-      .digest('hex')
-      .substring(0, 16);
+    const hash = await sha256HashStatic(JSON.stringify(keyData));
 
     return `${businessId}:auto:${hash}`;
   }
 
   // For GET/DELETE, use URL-based key
-  const urlHash = crypto
-    .createHash('sha256')
-    .update(`${request.method}:${request.url}`)
-    .digest('hex')
-    .substring(0, 16);
+  const urlHash = await sha256HashStatic(`${request.method}:${request.url}`);
 
   return `${businessId}:${request.method.toLowerCase()}:${urlHash}`;
+}
+
+/**
+ * SHA-256 hash helper function for static use
+ */
+async function sha256HashStatic(data: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(data));
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
 }

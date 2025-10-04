@@ -1,6 +1,7 @@
 {
     "name": "coreflow360-v4",
     "version": "1.0.0",
+    "type": "module",
     "engines": {
         "node": ">=20.0.0"
     },
@@ -47,7 +48,9 @@
         "test:ai-integration": "vitest run tests/integration/ai-*.test.ts",
         "test:failover": "vitest run tests/integration/failover.test.ts",
         "test:db-integrity": "vitest run tests/integration/database-integrity.test.ts",
-        "test:security": "vitest run tests/security/",
+        "test:security": "vitest run src/tests/security/ --coverage",
+        "test:security:validation": "tsx scripts/run-security-validation.ts",
+        "test:security:fuzz": "vitest run src/tests/security/fuzz-security.test.ts",
         "test:security:auth": "vitest run tests/security/authentication.test.ts",
         "test:security:input": "vitest run tests/security/input-validation.test.ts",
         "test:security:authz": "vitest run tests/security/authorization.test.ts",
@@ -73,7 +76,7 @@
         "test:production-blue-comprehensive": "vitest run tests/production/blue-validation.test.ts",
         "test:production-comprehensive": "vitest run tests/production/",
         "test:alerting-system": "vitest run tests/monitoring/alerting.test.ts",
-        "lint": "eslint src/ tests/ --ext .ts,.js --max-warnings 0",
+        "lint": "eslint src/ tests/ --max-warnings 0",
         "lint:fix": "npm run lint -- --fix",
         "lint:report": "npm run lint -- --format html --output-file reports/eslint-report.html",
         "format": "prettier --write \"src/**/*.{ts,js,json}\" \"tests/**/*.{ts,js,json}\"",
@@ -145,6 +148,7 @@
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20250924.0",
+        "@faker-js/faker": "^10.0.0",
         "@testing-library/jest-dom": "^6.8.0",
         "@testing-library/react": "^16.3.0",
         "@testing-library/user-event": "^14.6.1",

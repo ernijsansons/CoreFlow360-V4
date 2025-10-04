@@ -1,5 +1,13 @@
 // Comprehensive Authentication System for CoreFlow360 V4
 import { jwtVerify, SignJWT } from 'jose';
+import {
+  PasswordSecurity,
+  ApiKeySecurity,
+  JWTSecretManager,
+  InputSanitizer,
+  AuditLogger,
+  SecureDatabase
+} from '../security/security-utilities';
 
 // Cloudflare types
 declare global {
@@ -162,11 +170,12 @@ export class AuthSystem {
         return { success: false, error: 'Invalid email format' };
       }
 
-      if (request.password.length < 8) {
-        return { success: false, error: 'Password must be at least 8 characters' };
+      // Enhanced password validation per OWASP standards
+      if (!InputSanitizer.isStrongPassword(request.password)) {
+        return { success: false, error: 'Password must be at least 12 characters and contain uppercase, lowercase, numbers, and special characters' };
       }
 
-      // Check if user already exists
+      // Check if user already exists (parameterized query to prevent SQL injection)
       const existingUser = await this.db.prepare('SELECT id FROM users WHERE email = ?')
         .bind(request.email).first();
 
@@ -457,27 +466,18 @@ export class AuthSystem {
 
   // Private helper methods
   private async hashPassword(password: string): Promise<string> {
-    // In a real implementation, use bcrypt or similar
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password + 'salt');
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    // Using PBKDF2 with 100,000 iterations as per OWASP recommendations
+    return await PasswordSecurity.hashPassword(password);
   }
 
   private async verifyPassword(password: string, hash: string): Promise<boolean> {
-    const passwordHash = await this.hashPassword(password);
-    return passwordHash === hash;
+    // Using constant-time comparison to prevent timing attacks
+    return await PasswordSecurity.verifyPassword(password, hash);
   }
 
   private async hashApiKey(apiKey: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(apiKey);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    // Using PBKDF2 for API key hashing
+    return await ApiKeySecurity.hashApiKey(apiKey);
   }
 
   private async generateToken(user: User): Promise<string> {
@@ -538,7 +538,7 @@ export class AuthSystem {
   }
 
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    // Using enhanced email validation
+    return InputSanitizer.isValidEmail(email);
   }
 }

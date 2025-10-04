@@ -1,5 +1,8 @@
 // Production-Ready CoreFlow360 V4 Worker with Full Authentication
 import { AuthSystem, User, LoginRequest, RegisterRequest } from './auth/auth-system';
+import { CORSManager } from './security/cors-config';
+import { AuthSchemas, InputSanitizer, ValidationError } from './security/validation-schemas';
+import { DistributedRateLimiter, AuditLogger } from './security/security-utilities';
 
 export interface Env {
   // Database bindings
@@ -234,7 +237,9 @@ const createProductionRoutes = (
     }
 
     try {
-      const body = await request.json() as RegisterRequest;
+      const rawBody = await request.json();
+      // Validate and sanitize input
+      const body = await InputSanitizer.validate(AuthSchemas.register, rawBody);
       const result = await authSystem.register(body);
 
       if (result.success) {
@@ -280,7 +285,9 @@ const createProductionRoutes = (
     }
 
     try {
-      const body = await request.json() as LoginRequest;
+      const rawBody = await request.json();
+      // Validate and sanitize input
+      const body = await InputSanitizer.validate(AuthSchemas.login, rawBody);
       const ipAddress = request.headers.get('CF-Connecting-IP') || undefined;
       const userAgent = request.headers.get('User-Agent') || undefined;
 
@@ -497,17 +504,25 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // CORS headers
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': env.ALLOWED_ORIGINS || '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-User-ID'
-    };
+    // Initialize CORS manager with proper configuration
+    const corsManager = new CORSManager(env.ENVIRONMENT || 'production');
+    const origin = request.headers.get('Origin');
 
+    // Handle preflight requests
     if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders
+      return corsManager.handlePreflight(request);
+    }
+
+    // Get CORS headers for this origin
+    const corsHeaders = origin ? corsManager.getCORSHeaders(origin) : {};
+
+    // Check if origin is allowed
+    if (origin && !corsManager.isOriginAllowed(origin)) {
+      return new Response(JSON.stringify({
+        error: 'CORS policy: Origin not allowed'
+      }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
@@ -535,10 +550,10 @@ export default {
         ctx.waitUntil(authSystem.initializeDatabase());
       }
 
-      // Rate limiting check for API endpoints
-      if (path.startsWith('/api/') && env.RATE_LIMITER_DO) {
-        const rateLimiterId = env.RATE_LIMITER_DO.idFromName('global');
-        const rateLimiter = env.RATE_LIMITER_DO.get(rateLimiterId);
+      // Enhanced distributed rate limiting
+      if (path.startsWith('/api/') && env.KV_RATE_LIMIT_METRICS) {
+        const rateLimiter = new DistributedRateLimiter(env.KV_RATE_LIMIT_METRICS);
+        const allowed = await rateLimiter.check(request);
 
         const checkRequest = new Request(`http://localhost/check`, {
           headers: {

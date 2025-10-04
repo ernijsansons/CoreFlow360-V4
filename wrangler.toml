@@ -2,14 +2,157 @@ name = "coreflow360-v4"
 main = "src/index.production.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
+account_id = "d2897bdebfa128919bd89b265e6a712e"
 
 [env.production]
 name = "coreflow360-v4-prod"
-vars = { ENVIRONMENT = "production", LOG_LEVEL = "warn", SENTRY_ENVIRONMENT = "production" }
+
+[env.production.vars]
+ENVIRONMENT = "production"
+LOG_LEVEL = "warn"
+SENTRY_ENVIRONMENT = "production"
+APP_NAME = "CoreFlow360 V4"
+API_VERSION = "v4"
+AGENT_SYSTEM_ENABLED = "true"
+MAX_AGENT_CONCURRENCY = "10"
+AGENT_TIMEOUT_MS = "30000"
+
+# Production-specific bindings
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "coreflow360-agents"
+database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
+migrations_dir = "database/migrations"
+
+[[env.production.d1_databases]]
+binding = "DB_MAIN"
+database_name = "coreflow360-agents"
+database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
+migrations_dir = "database/migrations"
+
+[[env.production.d1_databases]]
+binding = "DB_ANALYTICS"
+database_name = "mustbeviral-db"
+database_id = "4cdeab75-a1b4-477e-a92c-de996065578c"
+
+[[env.production.kv_namespaces]]
+binding = "KV_CACHE"
+id = "62253644abcf4ce78558fbd764b366fb"
+
+[[env.production.kv_namespaces]]
+binding = "KV_SESSION"
+id = "bd87c1fb6fd34a21b47e6cdbdd5a20ae"
+
+[[env.production.kv_namespaces]]
+binding = "KV_RATE_LIMIT_METRICS"
+id = "c74011292d2947ac9d980556d62c1b51"
+
+[[env.production.kv_namespaces]]
+binding = "KV_AUTH"
+id = "091859c74f514d5eae66f3e2937b345e"
+
+# Agent-specific KV namespaces
+[[env.production.kv_namespaces]]
+binding = "AGENT_CACHE"
+id = "0dd3a20b30f54f5787ec9777d8cc208a"
+
+[[env.production.kv_namespaces]]
+binding = "AGENT_MEMORY"
+id = "dd1612a1880845a0a916cef8dea95323"
+
+[[env.production.kv_namespaces]]
+binding = "PATTERN_CACHE"
+id = "0b48f9a582754f9e97e67e184589fa8a"
+
+[[env.production.durable_objects.bindings]]
+name = "RATE_LIMITER_DO"
+class_name = "AdvancedRateLimiterDO"
+
+[[env.production.r2_buckets]]
+binding = "R2_DOCUMENTS"
+bucket_name = "coreflow360-documents"
+
+[[env.production.r2_buckets]]
+binding = "R2_BACKUPS"
+bucket_name = "coreflow360-backups"
+
+[env.production.ai]
+binding = "AI"
 
 [env.staging]
 name = "coreflow360-v4-staging"
-vars = { ENVIRONMENT = "staging", LOG_LEVEL = "info", SENTRY_ENVIRONMENT = "staging" }
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+LOG_LEVEL = "info"
+SENTRY_ENVIRONMENT = "staging"
+APP_NAME = "CoreFlow360 V4"
+API_VERSION = "v4"
+AGENT_SYSTEM_ENABLED = "true"
+MAX_AGENT_CONCURRENCY = "5"
+AGENT_TIMEOUT_MS = "20000"
+
+# Staging-specific bindings
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "coreflow360-agents"
+database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
+migrations_dir = "database/migrations"
+
+[[env.staging.d1_databases]]
+binding = "DB_MAIN"
+database_name = "coreflow360-agents"
+database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
+migrations_dir = "database/migrations"
+
+[[env.staging.d1_databases]]
+binding = "DB_ANALYTICS"
+database_name = "mustbeviral-db"
+database_id = "4cdeab75-a1b4-477e-a92c-de996065578c"
+
+[[env.staging.kv_namespaces]]
+binding = "KV_CACHE"
+id = "62253644abcf4ce78558fbd764b366fb"
+
+[[env.staging.kv_namespaces]]
+binding = "KV_SESSION"
+id = "bd87c1fb6fd34a21b47e6cdbdd5a20ae"
+
+[[env.staging.kv_namespaces]]
+binding = "KV_RATE_LIMIT_METRICS"
+id = "c74011292d2947ac9d980556d62c1b51"
+
+[[env.staging.kv_namespaces]]
+binding = "KV_AUTH"
+id = "091859c74f514d5eae66f3e2937b345e"
+
+# Agent-specific KV namespaces for staging
+[[env.staging.kv_namespaces]]
+binding = "AGENT_CACHE"
+id = "0dd3a20b30f54f5787ec9777d8cc208a"
+
+[[env.staging.kv_namespaces]]
+binding = "AGENT_MEMORY"
+id = "dd1612a1880845a0a916cef8dea95323"
+
+[[env.staging.kv_namespaces]]
+binding = "PATTERN_CACHE"
+id = "0b48f9a582754f9e97e67e184589fa8a"
+
+[[env.staging.durable_objects.bindings]]
+name = "RATE_LIMITER_DO"
+class_name = "AdvancedRateLimiterDO"
+
+[[env.staging.r2_buckets]]
+binding = "R2_DOCUMENTS"
+bucket_name = "coreflow360-documents"
+
+[[env.staging.r2_buckets]]
+binding = "R2_BACKUPS"
+bucket_name = "coreflow360-backups"
+
+[env.staging.ai]
+binding = "AI"
 
 [env.development]
 name = "coreflow360-v4-dev"
@@ -44,26 +187,21 @@ id = "bd87c1fb6fd34a21b47e6cdbdd5a20ae"
 
 [[kv_namespaces]]
 binding = "KV_RATE_LIMIT_METRICS"
-id = "rate-limit-metrics-namespace"
+id = "59f91cf8a4704cbc978b06fe31fec7bc"
 
-# Rate Limiter binding for native Cloudflare protection
-[[rate_limiters]]
-binding = "RATE_LIMITER"
-namespace_id = "coreflow360_rate_limiter"
+[[kv_namespaces]]
+binding = "KV_AUTH"
+id = "091859c74f514d5eae66f3e2937b345e"
 
 # Durable Objects for distributed rate limiting
 [[durable_objects.bindings]]
 name = "RATE_LIMITER_DO"
 class_name = "AdvancedRateLimiterDO"
 
-# Queue bindings (Note: Requires paid Cloudflare plan)
-# [[queues.producers]]
-# binding = "TASK_QUEUE"
-# queue = "coreflow360-tasks"
-
-# [[queues.producers]]
-# binding = "EMAIL_QUEUE"
-# queue = "coreflow360-emails"
+# Durable Object Migrations (for free plan compatibility)
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["AdvancedRateLimiterDO"]
 
 # R2 Bucket bindings
 [[r2_buckets]]
@@ -91,24 +229,3 @@ head_sampling_rate = 0.1
 
 [placement]
 mode = "smart"
-
-# CPU and memory limits (requires paid plan)
-# [limits]
-# cpu_ms = 50000
-# memory_mb = 128
-
-# Secrets to be added via wrangler secret put:
-# AUTH_SECRET - JWT signing secret
-# ENCRYPTION_KEY - Data encryption key
-# JWT_SECRET - JWT token secret
-# STRIPE_SECRET_KEY - Stripe payment processing API key
-# STRIPE_PUBLISHABLE_KEY - Stripe publishable key for frontend
-# STRIPE_WEBHOOK_SECRET - Stripe webhook signature secret
-# PAYPAL_CLIENT_ID - PayPal client ID
-# PAYPAL_CLIENT_SECRET - PayPal client secret
-# OPENAI_API_KEY - OpenAI API access
-# ANTHROPIC_API_KEY - Anthropic Claude API access
-# EMAIL_API_KEY - Email service API key
-# SENTRY_DSN - Sentry error tracking DSN
-# API_BASE_URL - Base URL for API endpoints
-# ALLOWED_ORIGINS - Comma-separated list of allowed CORS origins

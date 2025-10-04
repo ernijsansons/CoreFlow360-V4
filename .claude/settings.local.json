@@ -63,7 +63,18 @@
       "Bash(grep:*)",
       "Bash(for i in {1..5})",
       "Bash(do echo \"Run $i:\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(start:*)",
+      "Bash(set CLOUDFLARE_API_TOKEN=1H99aQr1-fX6zic4Y19lXSjGMuvr7UIE1vdBQWCL)",
+      "Bash(cmd /c \"set CLOUDFLARE_API_TOKEN=1H99aQr1-fX6zic4Y19lXSjGMuvr7UIE1vdBQWCL && wrangler whoami\")",
+      "Bash(git reset:*)",
+      "Bash(python:*)",
+      "Bash(openssl rand:*)",
+      "Bash(npm ls:*)",
+      "WebFetch(domain:coreflow360-v4-prod.ernijs-ansons.workers.dev)",
+      "Bash(cd:*)",
+      "Bash(cat:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

@@ -106,7 +106,7 @@ describe('InvoiceManager', () => {
         discountType: 'percentage'
       }
     ],
-    terms: { type: PaymentTermType.NET, days: 30 },
+    terms: { type: PaymentTermType.NET, netDays: 30, description: 'Net 30 days' },
     notes: 'Test invoice',
     referenceNumber: 'REF123'
   };
@@ -373,7 +373,7 @@ describe('InvoiceManager', () => {
       total: 220.00,
       balanceDue: 220.00,
       status: InvoiceStatus.DRAFT,
-      terms: { type: PaymentTermType.NET, days: 30 },
+      terms: { type: PaymentTermType.NET, netDays: 30, description: 'Net 30 days' },
       lines: [
         {
           id: 'line1',
@@ -534,7 +534,7 @@ describe('InvoiceManager', () => {
       total: 220.00,
       balanceDue: 220.00,
       status: InvoiceStatus.SENT,
-      terms: { type: PaymentTermType.NET, days: 30 },
+      terms: { type: PaymentTermType.NET, netDays: 30, description: 'Net 30 days' },
       lines: [
         {
           id: 'line1',
@@ -551,8 +551,11 @@ describe('InvoiceManager', () => {
       taxLines: [
         {
           id: 'tax1',
+          invoiceId: 'inv123',
+          taxRateId: 'tax_rate_1',
           taxName: 'Sales Tax',
           taxRate: 0.10,
+          taxableAmount: 200.00,
           taxAmount: 20.00,
           accountId: 'acc_tax'
         }

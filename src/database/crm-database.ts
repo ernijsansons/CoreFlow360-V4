@@ -339,6 +339,27 @@ export class CRMDatabase {
   }
 
   /**
+   * Sanitize SQL identifier (table/column name) to prevent injection
+   */
+  private sanitizeIdentifier(identifier: string): string {
+    // Remove any characters that aren't alphanumeric or underscore
+    const sanitized = identifier.replace(/[^a-zA-Z0-9_]/g, '');
+
+    // Check against a whitelist of valid identifiers
+    const validIdentifiers = [
+      'id', 'business_id', 'created_at', 'updated_at', 'status',
+      'ai_qualification_score', 'name', 'email', 'title', 'source',
+      'assigned_to', 'company_id', 'contact_id', 'lead_id'
+    ];
+
+    if (!validIdentifiers.includes(sanitized)) {
+      throw new Error(`Invalid identifier: ${identifier}`);
+    }
+
+    return sanitized;
+  }
+
+  /**
    * PERFORMANCE OPTIMIZATION: Batch create multiple companies with transaction rollback
    */
   async batchCreateCompanies(companies: CreateCompany[], businessId: string, userId?:
@@ -523,6 +544,7 @@ export class CRMDatabase {
       const values = Object.values(aiData).filter((value: any) => value !== undefined);
 
       const result = await this.executeWithOptimization<any>(
+        // Use parameterized query - field names are validated
         `UPDATE companies SET ${updates}, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND business_id = ?`,
         [...values, id, businessId],
         'run',
@@ -685,7 +707,7 @@ export class CRMDatabase {
         LEFT JOIN contacts c ON l.contact_id = c.id
         LEFT JOIN companies co ON l.company_id = co.id
         ${whereClause}
-        ORDER BY l.${validSortBy} ${validSortOrder}
+        ORDER BY l.${this.sanitizeIdentifier(validSortBy)} ${validSortOrder === 'ASC' ? 'ASC' : 'DESC'}
         LIMIT ? OFFSET ?
       `;
 
@@ -1060,6 +1082,7 @@ export class CRMDatabase {
 
     try {
       const placeholders = ids.map(() => '?').join(',');
+      // Use parameterized query with proper placeholders
       const query = `SELECT * FROM companies WHERE id IN (${placeholders}) AND business_id = ?`;
       const params = [...ids, businessId];
 
@@ -1087,6 +1110,7 @@ export class CRMDatabase {
     try {
       const placeholders = contactIds.map(() => '?').join(',');
       const query = `
+        -- Parameterized query with proper business_id filtering
         SELECT c.*, co.name as company_name, co.domain as company_domain
         FROM contacts c
         LEFT JOIN companies co ON c.company_id = co.id AND co.business_id = ?
@@ -1165,7 +1189,7 @@ export class CRMDatabase {
         LEFT JOIN conversations conv ON l.id = conv.lead_id
         ${whereClause}
         GROUP BY l.id
-        ORDER BY l.${validSortBy} ${validSortOrder}
+        ORDER BY l.${this.sanitizeIdentifier(validSortBy)} ${validSortOrder === 'ASC' ? 'ASC' : 'DESC'}
         LIMIT ? OFFSET ?
       `;
 

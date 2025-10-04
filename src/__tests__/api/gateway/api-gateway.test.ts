@@ -166,7 +166,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(200);
 
-      const data = await response.json();
+      const data = await response.json() as {success: boolean; route: string};
       expect(data.success).toBe(true);
       expect(data.route).toBe('test-route');
     });
@@ -179,7 +179,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(404);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toBe('Route not found');
     });
 
@@ -234,7 +234,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(400);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toContain('Validation error');
     });
   });
@@ -260,7 +260,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(401);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toBe('Authentication required');
     });
 
@@ -287,7 +287,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(401);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toBe('Invalid token format');
     });
 
@@ -423,7 +423,7 @@ describe('APIGateway', () => {
       const response3 = await gateway.handleRequest(createRequest());
       expect(response3.status).toBe(429);
 
-      const data = await response3.json();
+      const data = await response3.json() as any;
       expect(data.error).toBe('Rate limit exceeded');
     });
 
@@ -656,7 +656,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(400);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toContain('Validation error');
     });
   });
@@ -815,7 +815,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(500);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toBe('Internal server error');
     });
 
@@ -844,7 +844,7 @@ describe('APIGateway', () => {
       });
 
       const response = await gateway.handleRequest(request);
-      const data = await response.json();
+      const data = await response.json() as any;
 
       expect(data.data).toBeInstanceOf(Array);
       expect(data.pagination).toHaveProperty('page');
@@ -866,7 +866,7 @@ describe('APIGateway', () => {
       });
 
       const response = await gateway.handleRequest(request);
-      const data = await response.json();
+      const data = await response.json() as any;
 
       expect(data.data).toBeInstanceOf(Array);
       expect(data.count).toBe(25);
@@ -886,7 +886,7 @@ describe('APIGateway', () => {
       });
 
       const response = await gateway.handleRequest(request);
-      const data = await response.json();
+      const data = await response.json() as any;
 
       expect(data.data).toHaveProperty('totalLeads');
       expect(data.data).toHaveProperty('conversionRate');

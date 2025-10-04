@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi, MockedFunction } from 'vitest';
-import { CRMDatabase, CreateCompany, CreateContact, CreateLead, CreateAITask, DatabaseResult, PaginationOptions, LeadFilters } from '../../../database/crm-database';
-import { Logger } from '../../../shared/logger';
-import { TransactionManager } from '../../../shared/transaction-manager';
-import type { Env } from '../../../types/env';
+import { CRMDatabase, CreateCompany, CreateContact, CreateLead, CreateAITask, DatabaseResult, PaginationOptions, LeadFilters } from '../../database/crm-database';
+import { Logger } from '../../shared/logger';
+import { TransactionManager } from '../../shared/transaction-manager';
+import type { Env } from '../../types/env';
 
 // Mock D1Database
 const mockD1Database = {
@@ -116,7 +116,7 @@ describe('CRMDatabase', () => {
     // Create fresh instances for each test
     mockLogger = new (Logger as any)();
     mockTransactionManager = new (TransactionManager as any)(mockEnv);
-    mockTransactionManager.withTransaction.mockImplementation(async (fn) => {
+    mockTransactionManager.withTransaction.mockImplementation(async (fn: (db: any) => Promise<any>) => {
       return { success: true, data: await fn(mockD1Database) };
     });
 
@@ -310,7 +310,7 @@ describe('CRMDatabase', () => {
       });
 
       it('should rollback transaction on error', async () => {
-        mockTransactionManager.withTransaction.mockImplementation(async (fn) => {
+        mockTransactionManager.withTransaction.mockImplementation(async (fn: (db: any) => Promise<any>) => {
           throw new Error('Transaction error');
         });
 
