@@ -5,6 +5,7 @@
  */
 
 import type { AnalyticsEngineDataset, KVNamespace } from './types/cloudflare';
+import type { Env } from '../types/env';
 
 export class CloudflareIntegration {
   private readonly env: Env;
@@ -139,14 +140,16 @@ export class CloudflareAnalytics {
   async track(event: string, data: Record<string, any>): Promise<void> {
     try {
       // Analytics Engine
-      await this.env.ANALYTICS.writeDataPoint({
-        blobs: [event, this.env.ENVIRONMENT],
-        doubles: [Date.now(), data.duration || 0],
-        indexes: [event]
-      });
+      if (this.env.ANALYTICS) {
+        await this.env.ANALYTICS.writeDataPoint({
+          blobs: [event, this.env.ENVIRONMENT],
+          doubles: [Date.now(), data.duration || 0],
+          indexes: [event]
+        });
+      }
 
       // Performance Analytics
-      if (data.duration) {
+      if (data.duration && this.env.PERFORMANCE_ANALYTICS) {
         await this.env.PERFORMANCE_ANALYTICS.writeDataPoint({
           blobs: [event, 'performance'],
           doubles: [data.duration, Date.now()],
@@ -207,7 +210,7 @@ export class CloudflareCache {
   async get<T>(key: string, options?: CacheOptions): Promise<T | null> {
     try {
       // Try KV first for user-specific data
-      if (options?.userSpecific) {
+      if (options?.userSpecific && this.env.CACHE) {
         const cached = await this.env.CACHE.get(key);
         return cached ? JSON.parse(cached) : null;
       }
@@ -233,7 +236,7 @@ export class CloudflareCache {
       const ttl = options?.ttl || 3600; // 1 hour default
 
       // Store in KV for user-specific data
-      if (options?.userSpecific) {
+      if (options?.userSpecific && this.env.CACHE) {
         await this.env.CACHE.put(key, JSON.stringify(value), {
           expirationTtl: ttl
         });
@@ -260,7 +263,7 @@ export class CloudflareCache {
   async invalidate(pattern: string): Promise<void> {
     try {
       // Invalidate KV entries (for specific keys)
-      if (!pattern.includes('*')) {
+      if (!pattern.includes('*') && this.env.CACHE) {
         await this.env.CACHE.delete(pattern);
         return;
       }
@@ -332,6 +335,14 @@ export class CloudflareSecurity {
 
   private async checkRateLimit(request: Request): Promise<SecurityCheck> {
     try {
+      if (!this.env.CACHE) {
+        return {
+          name: 'rate_limit',
+          passed: true,
+          message: 'Rate limiting unavailable'
+        };
+      }
+
       const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
       const path = new URL(request.url).pathname;
 
@@ -605,14 +616,7 @@ export class CloudflarePerformance {
   }
 }
 
-// Type definitions
-interface Env {
-  ENVIRONMENT: string;
-  ANALYTICS: AnalyticsEngineDataset;
-  PERFORMANCE_ANALYTICS: AnalyticsEngineDataset;
-  CACHE: KVNamespace;
-  CORS_ORIGINS?: string;
-}
+// Type definitions - Env imported from canonical source
 
 interface CloudflareStatus {
   success: boolean;

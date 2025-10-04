@@ -312,7 +312,7 @@ export class CallOrchestrator {
    * Sort queue by priority
    */
   private sortQueueByPriority(): void {
-    const priorityOrder = { 'high': 0, 'normal': 1, 'low': 2 };
+    const priorityOrder: Record<CallPriority, number> = { 'high': 0, 'normal': 1, 'low': 2 };
     this.callQueue.sort((a, b) => {
       const aPriority = priorityOrder[a.priority] || 1;
       const bPriority = priorityOrder[b.priority] || 1;
@@ -324,7 +324,7 @@ export class CallOrchestrator {
    * Calculate estimated wait time
    */
   private calculateEstimatedWaitTime(priority: CallPriority): number {
-    const priorityOrder = { 'high': 0, 'normal': 1, 'low': 2 };
+    const priorityOrder: Record<CallPriority, number> = { 'high': 0, 'normal': 1, 'low': 2 };
     const currentPriority = priorityOrder[priority] || 1;
     
     let waitTime = 0;

@@ -18,6 +18,7 @@ export interface Agent {
   workload: number; // 0-100
   specializations: string[];
   performance: PerformanceMetrics;
+  lastHealthCheck?: number;
 }
 
 export interface AgentCapability {
@@ -498,21 +499,22 @@ export class AgentOrchestrationFramework {
         evidence: [`Task executed by ${agent.name}`, `Duration: ${duration}ms`],
         confidence: (qualityScore + performanceScore + securityScore) / 3
       };
-    } catch (error) {
+    } catch (error: unknown) {
       const duration = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : String(error);
 
       this.logger.error('Task execution failed', { taskId: task.id, error });
 
       return {
         success: false,
-        output: { error: error.message },
+        output: { error: errorMessage },
         metrics: {
           duration,
           qualityScore: 0,
           performanceScore: 0,
           securityScore: 0
         },
-        evidence: [`Task failed: ${error.message}`],
+        evidence: [`Task failed: ${errorMessage}`],
         confidence: 0
       };
     }
@@ -1021,7 +1023,7 @@ export class AgentOrchestrationFramework {
 
   private assessRisksAndPlanVerification(dag: WorkflowDAG, level: string): void {
     // Assess risks and plan verification gates
-    const riskThresholds = {
+    const riskThresholds: Record<string, number> = {
       'basic': 0.7,
       'standard': 0.85,
       'strict': 0.95

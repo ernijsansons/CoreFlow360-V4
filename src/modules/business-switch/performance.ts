@@ -196,7 +196,7 @@ export class PerformanceMonitor {
       'data_sync': 3000,
     };
 
-    const allThresholds = { ...defaultThresholds, ...thresholds };
+    const allThresholds: Record<string, number> = { ...defaultThresholds, ...thresholds };
 
     for (const [operation, samples] of this.metrics) {
       const stats = this.getStats(operation);

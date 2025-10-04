@@ -42,49 +42,19 @@ import {
 import { AuthSystem } from './auth/auth-system';
 import { SecureDatabase } from './database/secure-database';
 
+// Types - Use canonical Env definition
+import type { Env } from './types/env';
+import type { AppContext, Next } from './types/hono-context';
+
 // Export Durable Object for rate limiting
 export { RateLimiterDurableObject as AdvancedRateLimiterDO } from './durable-objects/rate-limiter';
 
-// Types
-export interface Env {
-  // Databases
-  DB_MAIN: D1Database;
-  DB_ANALYTICS: D1Database;
-
-  // KV Namespaces
-  KV_CACHE: KVNamespace;
-  KV_SESSION: KVNamespace;
-  KV_AUTH: KVNamespace;
-  KV_RATE_LIMIT: KVNamespace;
-
-  // R2 Buckets
-  R2_DOCUMENTS: R2Bucket;
-  R2_BACKUPS: R2Bucket;
-
-  // Durable Objects
-  RATE_LIMITER_DO: DurableObjectNamespace;
-  WORKFLOW_EXECUTOR: DurableObjectNamespace;
-
-  // Analytics
-  ANALYTICS: AnalyticsEngineDataset;
-
-  // Secrets
-  JWT_SECRET: string;
-  ENCRYPTION_KEY: string;
-  API_KEY_SALT: string;
-
-  // AI Services
-  ANTHROPIC_API_KEY: string;
-  OPENAI_API_KEY: string;
-
-  // Configuration
-  ENVIRONMENT: 'development' | 'staging' | 'production';
-  ALLOWED_ORIGINS: string;
-}
+// Re-export canonical types
+export type { Env } from './types/env';
 
 // Create application factory
 function createApp(env: Env) {
-  const app = new Hono<{ Bindings: Env }>();
+  const app = new Hono<{ Bindings: Env; Variables: import('./types/hono-context').AppVariables }>();
 
   // Initialize security components
   const jwtRotation = new JWTRotation(env);
@@ -128,7 +98,7 @@ function createApp(env: Env) {
   app.use('*', createErrorHandler({ env: env.ENVIRONMENT }, env.KV_CACHE));
 
   // 2. Request ID and correlation
-  app.use('*', async (c, next) => {
+  app.use('*', async (c: AppContext, next: Next) => {
     const correlationId = c.req.header('X-Correlation-ID') || crypto.randomUUID();
     const requestId = crypto.randomUUID();
 
@@ -189,7 +159,7 @@ function createApp(env: Env) {
   app.use('*', etag());
 
   // 9. Rate limiting
-  app.use('*', async (c, next) => {
+  app.use('*', async (c: AppContext, next: Next) => {
     const rateLimitResult = await advancedRateLimit(
       c.req.raw,
       env.KV_RATE_LIMIT,
@@ -227,7 +197,7 @@ function createApp(env: Env) {
   });
 
   // 10. Input validation and sanitization
-  app.use('*', async (c, next) => {
+  app.use('*', async (c: AppContext, next: Next) => {
     if (['POST', 'PUT', 'PATCH'].includes(c.req.method)) {
       const contentType = c.req.header('Content-Type');
 
@@ -289,7 +259,7 @@ function createApp(env: Env) {
   // =======================
 
   // Middleware to verify authentication
-  const authMiddleware = async (c: any, next: any) => {
+  const authMiddleware = async (c: AppContext, next: Next) => {
     const authHeader = c.req.header('Authorization');
 
     if (!authHeader?.startsWith('Bearer ')) {
@@ -302,16 +272,21 @@ function createApp(env: Env) {
       // Verify JWT with rotation support
       const result = await jwtRotation.verifyWithRotation(token);
 
-      if (!result.valid || !result.payload) {
+      if (!result.valid || !result.payload || !result.payload.sub) {
         logger.security('invalid_token', 'medium', { token: token.substring(0, 10) });
         return c.json({ error: 'Invalid token' }, 401);
       }
 
+      // Extract and validate payload fields
+      const userId = typeof result.payload.sub === 'string' ? result.payload.sub : String(result.payload.sub);
+      const businessId = (result.payload as any).businessId || '';
+      const roles = Array.isArray((result.payload as any).roles) ? (result.payload as any).roles : [];
+
       // Set user context
-      c.set('userId', result.payload.sub);
-      c.set('businessId', result.payload.businessId);
-      c.set('roles', result.payload.roles || []);
-      c.set('tokenVersion', result.version);
+      c.set('userId', userId);
+      c.set('businessId', businessId);
+      c.set('roles', roles);
+      c.set('tokenVersion', result.version || 1);
 
       await next();
     } catch (error) {
@@ -321,7 +296,7 @@ function createApp(env: Env) {
   };
 
   // Login endpoint
-  app.post('/api/auth/login', async (c) => {
+  app.post('/api/auth/login', async (c: AppContext) => {
     const body = c.get('sanitizedBody') || await c.req.json();
     const { email, password, businessId } = body;
 
@@ -367,7 +342,7 @@ function createApp(env: Env) {
   });
 
   // Register endpoint
-  app.post('/api/auth/register', async (c) => {
+  app.post('/api/auth/register', async (c: AppContext) => {
     const body = c.get('sanitizedBody') || await c.req.json();
     const result = await authSystem.register(body);
 
@@ -384,7 +359,7 @@ function createApp(env: Env) {
   });
 
   // Logout endpoint
-  app.post('/api/auth/logout', authMiddleware, async (c) => {
+  app.post('/api/auth/logout', authMiddleware, async (c: AppContext) => {
     const authHeader = c.req.header('Authorization');
     const token = authHeader!.substring(7);
 
@@ -400,7 +375,7 @@ function createApp(env: Env) {
   // API KEY MANAGEMENT
   // =======================
 
-  app.post('/api/keys/generate', authMiddleware, async (c) => {
+  app.post('/api/keys/generate', authMiddleware, async (c: AppContext) => {
     const userId = c.get('userId');
     const businessId = c.get('businessId');
     const body = await c.req.json();
@@ -437,7 +412,7 @@ function createApp(env: Env) {
   // PROTECTED BUSINESS ENDPOINTS
   // =======================
 
-  app.get('/api/business/:id', authMiddleware, async (c) => {
+  app.get('/api/business/:id', authMiddleware, async (c: AppContext) => {
     const businessId = c.param('id');
     const userId = c.get('userId');
 

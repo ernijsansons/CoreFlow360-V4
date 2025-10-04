@@ -43,19 +43,19 @@ export class WorkflowAutomation {
 
     for (const row of result.results) {
       const workflow: Workflow = {
-        id: row.id as string,
-        name: row.name as string,
-        description: row.description as string,
-        trigger: JSON.parse(row.trigger_config as string),
-        steps: JSON.parse(row.steps_config as string),
-        status: row.status as 'active' | 'inactive' | 'draft',
-        createdAt: new Date(row.created_at as string),
-        updatedAt: new Date(row.updated_at as string),
-        createdBy: row.created_by as string,
-        businessId: row.business_id as string,
-        version: row.version as number,
-        tags: JSON.parse(row.tags as string || '[]'),
-        metadata: JSON.parse(row.metadata as string || '{}')
+        id: (row as any).id as string,
+        name: (row as any).name as string,
+        description: (row as any).description as string,
+        trigger: JSON.parse((row as any).trigger_config as string),
+        steps: JSON.parse((row as any).steps_config as string),
+        status: (row as any).status as 'active' | 'inactive' | 'draft',
+        createdAt: new Date((row as any).created_at as string),
+        updatedAt: new Date((row as any).updated_at as string),
+        createdBy: (row as any).created_by as string,
+        businessId: (row as any).business_id as string,
+        version: (row as any).version as number,
+        tags: JSON.parse((row as any).tags as string || '[]'),
+        metadata: JSON.parse((row as any).metadata as string || '{}')
       };
       
       this.workflows.set(workflow.id, workflow);

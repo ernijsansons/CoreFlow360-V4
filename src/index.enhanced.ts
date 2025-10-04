@@ -1,72 +1,11 @@
 // Enhanced Cloudflare Worker with Database and AI Integration
 import { AuthSystem } from './auth/auth-system';
 
-// Cloudflare Worker types
-declare global {
-  interface D1Database {
-    prepare(query: string): D1PreparedStatement;
-  }
-  interface D1PreparedStatement {
-    bind(...values: any[]): D1PreparedStatement;
-    first<T = unknown>(): Promise<T | null>;
-    run(): Promise<D1Result>;
-    all<T = unknown>(): Promise<D1Result<T>>;
-  }
-  // D1Result interface is already defined in @cloudflare/workers-types
-  interface KVNamespace {
-    get(key: string): Promise<string | null>;
-    put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
-  }
-  interface R2Bucket {
-    get(key: string): Promise<R2Object | null>;
-    put(key: string, value: ReadableStream | ArrayBuffer | string): Promise<R2Object>;
-  }
-  interface R2Object {
-    body: ReadableStream;
-  }
-  // DurableObjectState interface is already defined in @cloudflare/workers-types
-  interface DurableObjectNamespace {
-    idFromName(name: string): DurableObjectId;
-    get(id: DurableObjectId): DurableObject;
-  }
-  interface DurableObjectId {}
-  interface DurableObject {
-    fetch(request: Request): Promise<Response>;
-  }
-  interface ExecutionContext {
-    waitUntil(promise: Promise<any>): void;
-  }
-}
+// Use canonical Env type
+import type { Env } from './types/env';
 
-export interface Env {
-  // Database bindings
-  DB?: D1Database;
-  DB_MAIN?: D1Database;
-  DB_ANALYTICS?: D1Database;
-
-  // KV Storage
-  KV_CACHE?: KVNamespace;
-  KV_SESSION?: KVNamespace;
-  KV_AUTH?: KVNamespace;
-  KV_RATE_LIMIT_METRICS?: KVNamespace;
-
-  // R2 Storage
-  R2_DOCUMENTS?: R2Bucket;
-  R2_BACKUPS?: R2Bucket;
-
-  // AI & Services
-  AI?: any;
-  RATE_LIMITER_DO?: DurableObjectNamespace;
-
-  // Environment variables
-  JWT_SECRET?: string;
-  ANTHROPIC_API_KEY?: string;
-  OPENAI_API_KEY?: string;
-  EMAIL_API_KEY?: string;
-  API_BASE_URL?: string;
-  ENVIRONMENT?: string;
-  ALLOWED_ORIGINS?: string;
-}
+// Re-export canonical type
+export type { Env } from './types/env';
 
 // Enhanced Durable Object for Rate Limiting
 export class AdvancedRateLimiterDO {

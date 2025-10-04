@@ -499,14 +499,14 @@ export class GoogleAdsIntegration extends BaseIntegration {
     `).all();
 
     for (const segment of segments.results) {
-      const userListId = segment.metadata?.google_user_list_id;
+      const userListId = (segment as any).metadata?.google_user_list_id;
       if (!userListId) continue;
 
       const leads = await db.prepare(`
         SELECT email, phone FROM leads
         WHERE segment_id = ?
           AND status = 'qualified'
-      `).bind(segment.id).all();
+      `).bind((segment as any).id).all();
 
       // Upload to Google Ads customer match
       // Implementation would follow Google Ads API documentation

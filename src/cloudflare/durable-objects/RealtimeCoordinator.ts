@@ -5,6 +5,7 @@
  */
 
 import type { DurableObject, DurableObjectState, AnalyticsEngineDataset } from '../types/cloudflare';
+import type { Env } from '../../types/env';
 
 interface BroadcastRequest {
   roomId: string;
@@ -541,20 +542,10 @@ interface UserSession {
   lastActivity: Date;
 }
 
-interface Env {
-  ENVIRONMENT?: string;
-  ANALYTICS?: AnalyticsEngineDataset;
-}
-
-// Type definitions
+// Type definitions - Env imported from canonical source
 interface UserSession {
   userId: string;
   roomId: string;
   connectedAt: Date;
   lastActivity: Date;
-}
-
-interface Env {
-  ENVIRONMENT?: string;
-  ANALYTICS?: AnalyticsEngineDataset;
 }

@@ -883,9 +883,9 @@ export class CRMAnalytics {
     return result.results.map((row, index) => ({
       rank: index + 1,
       previousRank: index + 1, // Would track historical ranks
-      name: row.name as string,
-      avatar: row.avatar as string,
-      value: row.revenue as number,
+      name: (row as any).name as string,
+      avatar: (row as any).avatar as string,
+      value: (row as any).revenue as number,
       change: 0, // Would calculate change
       percentOfTarget: 85 + Math.random() * 30 // Mock
     }));

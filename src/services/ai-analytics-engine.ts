@@ -20,7 +20,7 @@ export class AIAnalyticsEngine {
     const businesses = await this.db.prepare('SELECT id FROM businesses').all();
 
     for (const business of businesses.results) {
-      const businessAlerts = await this.analyzeBusinessMetrics(business.id);
+      const businessAlerts = await this.analyzeBusinessMetrics((business as any).id);
       alerts.push(...businessAlerts);
     }
 

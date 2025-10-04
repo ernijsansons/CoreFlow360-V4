@@ -13,14 +13,15 @@ let dataSync: DataSynchronizationService;
 // Initialize services middleware
 agents.use('*', async (c, next) => {
   if (!agentBridge) {
+    const env = c.env as any;
     agentBridge = new CoreFlow360AgentBridge(
       {
-        agentEndpoint: c.env.AGENT_SYSTEM_URL || 'http://localhost:3000',
-        coreflowAPI: c.env.COREFLOW_API_URL || 'http://localhost:8787',
-        apiKey: c.env.AGENT_API_KEY,
+        agentEndpoint: env.AGENT_SYSTEM_URL || 'http://localhost:3000',
+        coreflowAPI: env.COREFLOW_API_URL || 'http://localhost:8787',
+        apiKey: env.AGENT_API_KEY,
         enableRealtime: true
       },
-      c.env
+      env
     );
 
     await agentBridge.initialize();

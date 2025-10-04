@@ -95,9 +95,10 @@ export class RateLimiterDurableObject {
         default:
           return new Response('Not Found', { status: 404 });
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Rate limiter error:', error);
-      return new Response(JSON.stringify({ error: error.message }), {
+      return new Response(JSON.stringify({ error: errorMessage }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });

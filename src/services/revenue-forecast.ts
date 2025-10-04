@@ -486,7 +486,7 @@ export class RevenueForecast {
     // Calculate conversion rates
     const byStage: Record<string, number> = {};
     for (const stage of historicalDeals.results) {
-      byStage[stage.stage as string] = (stage.won as number) / (stage.total as number);
+      byStage[(stage as any).stage as string] = ((stage as any).won as number) / ((stage as any).total as number);
     }
 
     // Get overall conversion

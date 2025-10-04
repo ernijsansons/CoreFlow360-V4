@@ -194,7 +194,7 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       const order: PayPalOrder = await response.json()
@@ -238,11 +238,11 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       const captureData = await response.json()
-      const capture = captureData.purchase_units[0].payments.captures[0] as PayPalCapture
+      const capture = (captureData as any).purchase_units[0].payments.captures[0] as PayPalCapture
 
       auditLogger.log({
         action: 'paypal_order_captured',
@@ -308,7 +308,7 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       const refund: PayPalRefund = await response.json()
@@ -348,7 +348,7 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       return await response.json()
@@ -549,12 +549,12 @@ export class PayPalPaymentGateway {
       const tokenData = await response.json()
 
       this.accessToken = {
-        scope: tokenData.scope,
-        accessToken: tokenData.access_token,
-        tokenType: tokenData.token_type,
-        appId: tokenData.app_id,
-        expiresIn: tokenData.expires_in,
-        nonce: tokenData.nonce,
+        scope: (tokenData as any).scope,
+        accessToken: (tokenData as any).access_token,
+        tokenType: (tokenData as any).token_type,
+        appId: (tokenData as any).app_id,
+        expiresIn: (tokenData as any).expires_in,
+        nonce: (tokenData as any).nonce,
         obtainedAt: Date.now()
       }
 
@@ -678,7 +678,7 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       return await response.json()
@@ -701,7 +701,7 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       return await response.json()

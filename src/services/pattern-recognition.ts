@@ -360,7 +360,7 @@ export class PatternRecognition {
     `).bind(pattern.type, ...pattern.applicability).all();
 
     for (const strategyRow of relevantStrategies.results) {
-      const strategy = JSON.parse(strategyRow.strategy_data as string);
+      const strategy = JSON.parse((strategyRow as any).strategy_data as string);
 
       // Apply pattern insights to strategy
       const updatedStrategy = await this.applyPatternToStrategy(strategy, pattern);
@@ -729,7 +729,7 @@ export class PatternRecognition {
     `).all();
 
     for (const row of patterns.results) {
-      const pattern = JSON.parse(row.pattern_data as string) as Pattern;
+      const pattern = JSON.parse((row as any).pattern_data as string) as Pattern;
       this.patterns.set(pattern.id, pattern);
     }
 

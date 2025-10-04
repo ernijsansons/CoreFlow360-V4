@@ -4,38 +4,11 @@ import { CORSManager } from './security/cors-config';
 import { AuthSchemas, InputSanitizer, ValidationError } from './security/validation-schemas';
 import { DistributedRateLimiter, AuditLogger } from './security/security-utilities';
 
-export interface Env {
-  // Database bindings
-  DB?: D1Database;
-  DB_MAIN?: D1Database;
-  DB_ANALYTICS?: D1Database;
+// Use canonical Env type
+import type { Env } from './types/env';
 
-  // KV Storage
-  KV_CACHE?: KVNamespace;
-  KV_SESSION?: KVNamespace;
-  KV_AUTH?: KVNamespace;
-  KV_RATE_LIMIT_METRICS?: KVNamespace;
-
-  // R2 Storage
-  R2_DOCUMENTS?: R2Bucket;
-  R2_BACKUPS?: R2Bucket;
-
-  // Services
-  AI?: any;
-  RATE_LIMITER_DO?: DurableObjectNamespace;
-
-  // Secrets
-  JWT_SECRET?: string;
-  ANTHROPIC_API_KEY?: string;
-  OPENAI_API_KEY?: string;
-  EMAIL_API_KEY?: string;
-  ENCRYPTION_KEY?: string;
-
-  // Config
-  API_BASE_URL?: string;
-  ENVIRONMENT?: string;
-  ALLOWED_ORIGINS?: string;
-}
+// Re-export canonical type
+export type { Env } from './types/env';
 
 // Enhanced Rate Limiter Durable Object
 export class AdvancedRateLimiterDO {

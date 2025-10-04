@@ -1,16 +1,20 @@
 export class AppError extends Error {
   public readonly statusCode: number;
+  public readonly errorCode?: string;
   public readonly isOperational: boolean;
   public readonly context?: Record<string, unknown>;
 
   constructor(
     message: string,
     statusCode: number = 500,
+    errorCode?: string,
     isOperational: boolean = true,
     context?: Record<string, unknown>
   ) {
     super(message);
+    this.name = 'AppError';
     this.statusCode = statusCode;
+    this.errorCode = errorCode;
     this.isOperational = isOperational;
     this.context = context;
 
@@ -21,49 +25,65 @@ export class AppError extends Error {
 
 export class ValidationError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 400, true, context);
+    super(message, 400, undefined, true, context);
+    this.name = 'ValidationError';
+    Object.setPrototypeOf(this, ValidationError.prototype);
   }
 }
 
 export class AuthenticationError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 401, true, context);
+    super(message, 401, undefined, true, context);
+    this.name = 'AuthenticationError';
+    Object.setPrototypeOf(this, AuthenticationError.prototype);
   }
 }
 
 export class AuthorizationError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 403, true, context);
+    super(message, 403, undefined, true, context);
+    this.name = 'AuthorizationError';
+    Object.setPrototypeOf(this, AuthorizationError.prototype);
   }
 }
 
 export class NotFoundError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 404, true, context);
+    super(message, 404, undefined, true, context);
+    this.name = 'NotFoundError';
+    Object.setPrototypeOf(this, NotFoundError.prototype);
   }
 }
 
 export class ConflictError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 409, true, context);
+    super(message, 409, undefined, true, context);
+    this.name = 'ConflictError';
+    Object.setPrototypeOf(this, ConflictError.prototype);
   }
 }
 
 export class SecurityError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 403, true, context);
+    super(message, 403, undefined, true, context);
+    this.name = 'SecurityError';
+    Object.setPrototypeOf(this, SecurityError.prototype);
   }
 }
 
 export class RateLimitError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 429, true, context);
+    super(message, 429, undefined, true, context);
+    this.name = 'RateLimitError';
+    Object.setPrototypeOf(this, RateLimitError.prototype);
   }
 }
 
 export class InternalError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 500, false, context);
+    super(message, 500, undefined, false, context);
+    this.name = 'InternalError';
+    Object.setPrototypeOf(this, InternalError.prototype);
   }
 }
 

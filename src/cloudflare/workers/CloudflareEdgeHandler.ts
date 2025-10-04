@@ -6,6 +6,7 @@
 
 import type { ExecutionContext, MessageBatch, ScheduledEvent, Message,
   DurableObjectNamespace, R2Bucket, AnalyticsEngineDataset, KVNamespace } from '../types/cloudflare';
+import type { Env } from '../../types/env';
 import { CloudflareIntegration } from '../CloudflareIntegration';
 import { createCors } from '../utils/cors';
 import { createSecurityHeaders } from '../utils/security';
@@ -568,13 +569,4 @@ async function processAnalyticsMessage(body: any, env: Env, logger: any): Promis
   // Implement analytics processing
 }
 
-// Type definitions
-interface Env {
-  ENVIRONMENT: string;
-  REALTIME_COORDINATOR: DurableObjectNamespace;
-  R2_ASSETS: R2Bucket;
-  ANALYTICS: AnalyticsEngineDataset;
-  PERFORMANCE_ANALYTICS: AnalyticsEngineDataset;
-  CACHE: KVNamespace;
-  CORS_ORIGINS?: string;
-}
+// Type definitions - Env imported from canonical source

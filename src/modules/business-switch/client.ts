@@ -32,7 +32,7 @@ export class BusinessSwitchClientHelper {
     });
 
     if (response.ok) {
-      const data = await response.json();
+      const data = await response.json() as any;
       this.storeContext(data.business);
     }
   }
@@ -67,9 +67,9 @@ export class BusinessSwitchClientHelper {
       this.recordPerformance('switch_business', duration);
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as any;
         this.storeContext(data.business);
-        
+
         if (this.onSwitch) {
           this.onSwitch(data.business);
         }
@@ -80,7 +80,7 @@ export class BusinessSwitchClientHelper {
           performanceMs: duration,
         };
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json() as any;
         return {
           success: false,
           error: errorData.message || 'Business switch failed',
@@ -121,13 +121,13 @@ export class BusinessSwitchClientHelper {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as any;
         return {
           success: true,
           businesses: data.businesses,
         };
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json() as any;
         return {
           success: false,
           error: errorData.message || 'Failed to get available businesses',
@@ -277,13 +277,13 @@ export class BusinessSwitchClientHelper {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as any;
         return {
           success: true,
           business: data.business,
         };
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json() as any;
         return {
           success: false,
           error: errorData.message || 'Failed to get business details',
@@ -314,14 +314,14 @@ export class BusinessSwitchClientHelper {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as any;
         this.storeContext(data.business);
         return {
           success: true,
           context: data.business,
         };
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json() as any;
         return {
           success: false,
           error: errorData.message || 'Failed to refresh context',

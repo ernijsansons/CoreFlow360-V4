@@ -248,8 +248,8 @@ class ClearbitService {
       const data = await response.json();
 
       return {
-        contact: this.transformPersonData(data.person),
-        company: this.transformCompanyData(data.company),
+        contact: this.transformPersonData((data as any).person),
+        company: this.transformCompanyData((data as any).company),
         rateLimit
       };
     } catch (error: any) {
@@ -341,7 +341,7 @@ class ClearbitService {
       const data = await response.json();
 
       return {
-        contacts: data.map((person: ClearbitPersonResponse) => this.transformPersonData(person)),
+        contacts: (data as any).map((person: ClearbitPersonResponse) => this.transformPersonData(person)),
         rateLimit
       };
     } catch (error: any) {

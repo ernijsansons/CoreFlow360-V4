@@ -690,7 +690,7 @@ export class PlaybookGenerator {
     const playbooks = await db.prepare('SELECT * FROM playbooks').all();
 
     for (const row of playbooks.results) {
-      const playbook = JSON.parse(row.playbook_data as string) as Playbook;
+      const playbook = JSON.parse((row as any).playbook_data as string) as Playbook;
       this.playbooks.set(playbook.id, playbook);
     }
 
@@ -702,7 +702,7 @@ export class PlaybookGenerator {
     const segments = await db.prepare('SELECT * FROM customer_segments').all();
 
     for (const row of segments.results) {
-      const segment = JSON.parse(row.segment_data as string) as CustomerSegment;
+      const segment = JSON.parse((row as any).segment_data as string) as CustomerSegment;
       this.segments.set(segment.id, segment);
     }
   }
@@ -713,7 +713,7 @@ export class PlaybookGenerator {
     const patterns = await db.prepare('SELECT * FROM patterns').all();
 
     for (const row of patterns.results) {
-      const pattern = JSON.parse(row.pattern_data as string) as Pattern;
+      const pattern = JSON.parse((row as any).pattern_data as string) as Pattern;
       this.patterns.set(pattern.id, pattern);
     }
   }

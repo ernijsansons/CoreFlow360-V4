@@ -554,13 +554,14 @@ export class VerificationQualitySystem {
             score: result.score,
             details: result.details
           };
-        } catch (error) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           this.logger.error('Criterion execution failed', { criteriaId: criterion.id, error });
           return {
             criteriaId: criterion.id,
             passed: false,
             score: 0,
-            details: `Execution failed: ${error.message}`
+            details: `Execution failed: ${errorMessage}`
           };
         }
       })
@@ -612,13 +613,14 @@ export class VerificationQualitySystem {
       measures.map(async (measure) => {
         try {
           return await this.executeSingleAntiHallucinationMeasure(measure, task, taskResult);
-        } catch (error) {
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
           this.logger.error('Anti-hallucination measure failed', { type: measure.type, error });
           return {
             measureType: measure.type,
             passed: false,
             confidence: 0,
-            details: `Execution failed: ${error.message}`,
+            details: `Execution failed: ${errorMessage}`,
             evidence: [],
             recommendations: ['Review and retry the measure']
           };

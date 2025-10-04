@@ -5,10 +5,11 @@
  */
 
 import type { AnalyticsEngineDataset, KVNamespace, R2Bucket } from '../types/cloudflare';
+import type { Env } from '../../types/env';
 
 export class SmartCaching {
   private env: Env;
-  private analytics: AnalyticsEngineDataset;
+  private analytics?: AnalyticsEngineDataset;
 
   constructor(env: Env) {
     this.env = env;
@@ -211,6 +212,10 @@ export class SmartCaching {
    */
   private async getFromKV<T>(key: string, options: CacheGetOptions): Promise<CacheResult<T>> {
     try {
+      if (!this.env.CACHE) {
+        return { hit: false, data: null, source: 'kv', error: 'KV not available' };
+      }
+
       const cached = await this.env.CACHE.get(key);
 
       if (cached) {
@@ -370,6 +375,10 @@ export class SmartCaching {
    * Set in KV store
    */
   private async setInKV<T>(key: string, data: T, options: CacheSetOptions): Promise<void> {
+    if (!this.env.CACHE) {
+      return;
+    }
+
     const ttl = options.ttl || 3600;
     const expires = Date.now() + (ttl * 1000);
 
@@ -457,6 +466,10 @@ export class SmartCaching {
    * Invalidate KV entries
    */
   private async invalidateKV(pattern: string): Promise<number> {
+    if (!this.env.CACHE) {
+      return 0;
+    }
+
     if (!pattern.includes('*')) {
       // Simple key deletion
       await this.env.CACHE.delete(pattern);
@@ -528,20 +541,22 @@ export class SmartCaching {
     duration: number
   ): Promise<void> {
     try {
-      await this.analytics.writeDataPoint({
-        blobs: [
-          operation,
-          strategy,
-          success ? 'success' : 'failure',
-          this.env.ENVIRONMENT || 'unknown'
-        ],
-        doubles: [
-          Date.now(),
-          duration,
-          success ? 1 : 0
-        ],
-        indexes: [operation, strategy]
-      });
+      if (this.analytics) {
+        await this.analytics.writeDataPoint({
+          blobs: [
+            operation,
+            strategy,
+            success ? 'success' : 'failure',
+            this.env.ENVIRONMENT || 'unknown'
+          ],
+          doubles: [
+            Date.now(),
+            duration,
+            success ? 1 : 0
+          ],
+          indexes: [operation, strategy]
+        });
+      }
     } catch (error: any) {
       // Don't let analytics failures break caching
     }
@@ -569,13 +584,7 @@ export class SmartCaching {
   }
 }
 
-// Type definitions
-interface Env {
-  ENVIRONMENT: string;
-  CACHE: KVNamespace;
-  R2_CACHE: R2Bucket;
-  ANALYTICS: AnalyticsEngineDataset;
-}
+// Type definitions - Env imported from canonical source
 
 interface CacheGetOptions {
   userSpecific?: boolean;

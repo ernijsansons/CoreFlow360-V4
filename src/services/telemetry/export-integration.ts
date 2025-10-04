@@ -366,7 +366,7 @@ class ExportIntegrationService {
       });
 
       const result = await response.json();
-      return `Email sent: ${result.id}`;
+      return `Email sent: ${(result as any).id}`;
     }
 
     throw new Error('Email service not configured');

@@ -141,7 +141,7 @@ export class JWTRotation {
 
     } catch (error) {
       console.error('JWT secret rotation failed:', error);
-      throw new Error(`Secret rotation failed: ${error.message}`);
+      throw new Error(`Secret rotation failed: ${(error as any).message}`);
     }
   }
 
@@ -269,7 +269,7 @@ export class JWTRotation {
 
     } catch (error) {
       console.error('Emergency rotation failed:', error);
-      throw new Error(`Emergency rotation failed: ${error.message}`);
+      throw new Error(`Emergency rotation failed: ${(error as any).message}`);
     }
   }
 

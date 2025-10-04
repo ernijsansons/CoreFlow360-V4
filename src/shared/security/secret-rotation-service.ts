@@ -157,7 +157,7 @@ export class SecretRotationService {
       };
     } catch (error) {
       console.error('JWT secret rotation failed:', error);
-      throw new SecurityError(`Secret rotation failed: ${error.message}`);
+      throw new SecurityError(`Secret rotation failed: ${(error as any).message}`);
     }
   }
 
@@ -189,7 +189,7 @@ export class SecretRotationService {
       };
     } catch (error) {
       console.error('Emergency rotation failed:', error);
-      throw new SecurityError(`Emergency rotation failed: ${error.message}`);
+      throw new SecurityError(`Emergency rotation failed: ${(error as any).message}`);
     }
   }
 
@@ -276,7 +276,7 @@ export class SecretRotationService {
         currentVersion: -1,
         lastRotation: null,
         nextRotationDue: new Date().toISOString(),
-        issues: [`Failed to get rotation health: ${error.message}`]
+        issues: [`Failed to get rotation health: ${(error as any).message}`]
       };
     }
   }

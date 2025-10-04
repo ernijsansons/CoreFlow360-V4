@@ -302,7 +302,7 @@ export class StreamingHandler {
         });
 
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json() as any;
 
           if (data.chunks) {
             // Send all available chunks

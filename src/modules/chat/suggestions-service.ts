@@ -509,7 +509,7 @@ class SuggestionsService {
       })
       .sort((a, b) => {
         // Priority scoring
-        const priorityScore = { high: 3, medium: 2, low: 1 }
+        const priorityScore: Record<string, number> = { high: 3, medium: 2, low: 1 }
         const aScore = priorityScore[a.priority || 'low']
         const bScore = priorityScore[b.priority || 'low']
 

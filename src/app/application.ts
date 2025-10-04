@@ -31,32 +31,120 @@ export async function createSecureApp(
   securityConfig: SecurityConfig,
   ctx: ExecutionContext
 ): Promise<SecureApp> {
-  const app = new Hono();
+  const app = new Hono<{ Bindings: Env }>();
 
   // Initialize core services
   const observability = new ObservabilityService(env);
-  const errorHandler = new ErrorHandler(env, observability);
-  const routeManager = new RouteManager(env);
+  const errorHandler = new ErrorHandler(
+    {
+      logErrors: true,
+      includeStack: env.ENVIRONMENT === 'development',
+      sanitizeErrors: env.ENVIRONMENT === 'production',
+      defaultMessage: 'An error occurred',
+      env: (env.ENVIRONMENT as 'development' | 'staging' | 'production') || 'production'
+    },
+    env.KV_SESSION
+  );
+  const routeManager = new RouteManager(app);
 
   // Middleware chain - ORDER IS CRITICAL for security
   // Layer 1: Infrastructure Security
-  app.use('*', new CorsMiddleware(securityConfig).handler());
+  const corsConfig = securityConfig.getCorsConfig();
+  app.use('*', async (c, next) => {
+    const corsMiddleware = CorsMiddleware({
+      allowedOrigins: corsConfig.allowedOrigins,
+      allowedMethods: corsConfig.allowedMethods,
+      allowedHeaders: corsConfig.allowedHeaders,
+      credentials: corsConfig.allowCredentials,
+      environment: (env.ENVIRONMENT as 'development' | 'staging' | 'production') || 'production'
+    });
+
+    const result = await corsMiddleware(c.req.raw);
+    if (result.response) {
+      return result.response;
+    }
+
+    // Apply CORS headers to response
+    await next();
+    Object.entries(result.headers).forEach(([key, value]) => {
+      c.res.headers.set(key, value);
+    });
+
+    return;
+  });
+
   app.use('*', new SecurityMiddleware(securityConfig).handler());
 
   // Layer 2: Traffic Management
-  app.use('*', new RateLimitingMiddleware(env).handler());
+  const rateLimitConfig = securityConfig.getRateLimitConfig();
+  app.use('*', async (c, next) => {
+    const kvNamespace = env.KV_RATE_LIMIT_METRICS || env.KV_CACHE;
+    if (!kvNamespace) {
+      console.warn('Rate limiting disabled - no KV namespace available');
+      await next();
+      return;
+    }
+
+    const rateLimiter = RateLimitingMiddleware(
+      {
+        requests: rateLimitConfig.perIP.requests,
+        window: rateLimitConfig.perIP.window,
+        strategy: 'sliding'
+      },
+      kvNamespace
+    );
+
+    const result = await rateLimiter(c.req.raw);
+    if (!result.allowed && result.response) {
+      return result.response;
+    }
+
+    // Apply rate limit headers
+    if (result.headers) {
+      Object.entries(result.headers).forEach(([key, value]) => {
+        c.res.headers.set(key, value);
+      });
+    }
+
+    await next();
+    return;
+  });
 
   // Layer 3: Input Validation
-  app.use('*', new ValidationMiddleware(env).handler());
+  app.use('*', async (c, next) => {
+    const validationMiddleware = ValidationMiddleware({
+      maxRequestSize: 10 * 1024 * 1024,
+      enableXSSProtection: true,
+      enableSQLInjectionProtection: true,
+      enablePathTraversalProtection: true,
+      strictMode: true
+    });
+
+    const result = await validationMiddleware(c.req.raw);
+    if (!result.valid && result.riskScore > 50) {
+      return c.json({
+        error: 'Validation failed',
+        errors: result.errors,
+        riskScore: result.riskScore
+      }, 400);
+    }
+
+    await next();
+    return;
+  });
 
   // Layer 4: Authentication & Authorization
-  app.use('/api/*', new AuthenticationMiddleware(env).handler());
+  app.use('/api/*', async (c, next) => {
+    const authMiddleware = new AuthenticationMiddleware(c);
+    return authMiddleware.authMiddleware(c, next);
+  });
 
   // Layer 5: Audit & Monitoring
-  app.use('*', new AuditMiddleware(env, observability).handler());
+  const auditMiddleware = new AuditMiddleware(env);
+  app.use('*', await auditMiddleware.middleware());
 
   // Register routes
-  await routeManager.registerRoutes(app);
+  routeManager.registerRoutes();
 
   // Global error handler
   app.onError(errorHandler.handle.bind(errorHandler));

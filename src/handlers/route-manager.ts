@@ -7,6 +7,7 @@ import type { Env } from '../types/environment';
 
 export class RouteManager {
   private app: Hono<{ Bindings: Env }>;
+  private dynamicRoutes: Map<string, Function> = new Map();
 
   constructor(app: Hono<{ Bindings: Env }>) {
     this.app = app;
@@ -35,5 +36,19 @@ export class RouteManager {
 
     // API routes will be registered here
     // This is a placeholder for route registration
+  }
+
+  /**
+   * Register a dynamic route at runtime
+   */
+  registerDynamicRoute(path: string, handler: Function): void {
+    this.dynamicRoutes.set(path, handler);
+  }
+
+  /**
+   * Cleanup resources
+   */
+  async cleanup(): Promise<void> {
+    this.dynamicRoutes.clear();
   }
 }

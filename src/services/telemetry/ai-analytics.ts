@@ -254,7 +254,7 @@ export class AIAlertEngine {
       });
 
       const result = await response.json();
-      return result.anomalies || [];
+      return (result as any).anomalies || [];
     } catch (error: any) {
       return this.detectStatisticalAnomalies(metrics, config);
     }
