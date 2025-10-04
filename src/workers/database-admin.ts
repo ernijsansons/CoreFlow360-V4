@@ -82,7 +82,12 @@ app.post('/migrations/rollback/:version', async (c: any) => {
     const version = c.req.param('version');
     const rollbackFiles = await loadRollbacks();
 
-    const rollback = rollbackFiles.find(r => r.version === version);
+    interface RollbackFile {
+      version: string;
+      rollbackSql?: string;
+    }
+
+    const rollback = (rollbackFiles as RollbackFile[]).find(r => r.version === version);
 
     if (!rollback || !rollback.rollbackSql) {
       return c.json({

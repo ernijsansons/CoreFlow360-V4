@@ -20,6 +20,11 @@ export class LearningWorker {
   private taskQueue: LearningTask[] = [];
 
   constructor(env: Env) {
+    // Validate required database binding
+    if (!env.DB_CRM) {
+      throw new Error('DB_CRM binding is required for LearningWorker but was not found');
+    }
+
     this.env = env;
     this.learningEngine = new ContinuousLearningEngine(env, 'system');
     this.patternRecognition = new PatternRecognition(env, 'system');
@@ -168,7 +173,7 @@ export class LearningWorker {
 
   // Validate existing patterns
   private async validatePatterns(businessId: string): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM!; // Safe: validated in constructor
 
     // Get patterns that haven't been validated recently - CRITICAL: Include business_id filter
     const patternsToValidate = await db.prepare(`
@@ -190,7 +195,7 @@ export class LearningWorker {
 
   // Update playbooks based on new data
   private async updatePlaybooks(businessId: string): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM!; // Safe: validated in constructor
 
     // Get active playbooks that need updating - CRITICAL: Include business_id filter
     const playbooksToUpdate = await db.prepare(`
@@ -214,7 +219,7 @@ export class LearningWorker {
       const playbookData = JSON.parse((row as any).playbook_data as string);
 
       // Get recent feedback - CRITICAL: Include business_id filter
-      const feedback = await db.prepare(`
+      const feedback = await this.env.DB_CRM!.prepare(`
         SELECT * FROM feedback
         WHERE playbook_id = ? AND business_id = ?
         ORDER BY created_at DESC
@@ -254,7 +259,7 @@ export class LearningWorker {
 
   // Conclude an experiment
   private async concludeExperiment(experiment: any, businessId: string): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM!; // Safe: validated in constructor
 
 
     // Analyze results - CRITICAL: Include business_id filter
@@ -315,7 +320,7 @@ export class LearningWorker {
   // Check experiment progress
   private async checkExperimentProgress(experiment: any, businessId: string): Promise<void> {
     // Monitor experiment progress and make adjustments if needed
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM!; // Safe: validated in constructor
 
     const stats = await db.prepare(`
       SELECT

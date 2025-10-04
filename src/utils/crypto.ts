@@ -13,6 +13,20 @@
  */
 
 /**
+ * Helper: Ensure Uint8Array has proper ArrayBuffer for Web Crypto API
+ * Converts ArrayBufferLike to ArrayBuffer if needed
+ * @security-critical Prevents type mismatches in crypto operations
+ */
+function ensureBufferSource(data: Uint8Array): BufferSource {
+  // If buffer is already ArrayBuffer, return as-is
+  if (data.buffer instanceof ArrayBuffer && data.byteOffset === 0 && data.byteLength === data.buffer.byteLength) {
+    return data as BufferSource;
+  }
+  // Create a proper copy with ArrayBuffer - explicitly slice to ensure ArrayBuffer
+  return new Uint8Array(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)) as BufferSource;
+}
+
+/**
  * Generate cryptographically secure nonce for CSP
  * Uses 16 bytes of random data for maximum entropy
  */
@@ -211,7 +225,7 @@ export async function generateSaltedHash(
   const hashBuffer = await crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
-      salt,
+      salt: ensureBufferSource(salt),
       iterations,
       hash: 'SHA-256'
     },

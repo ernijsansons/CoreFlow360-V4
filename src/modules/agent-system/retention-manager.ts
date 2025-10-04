@@ -7,6 +7,17 @@ import { Logger } from '../../shared/logger';
 import type { D1Database, KVNamespace, R2Bucket } from '@cloudflare/workers-types';
 import { sanitizeBusinessId } from './security-utils';
 
+/**
+ * Helper: Ensure Uint8Array has proper ArrayBuffer for Web Crypto API
+ * @security-critical Prevents type mismatches in crypto operations
+ */
+function ensureBufferSource(data: Uint8Array): BufferSource {
+  if (data.buffer instanceof ArrayBuffer && data.byteOffset === 0 && data.byteLength === data.buffer.byteLength) {
+    return data as BufferSource;
+  }
+  return new Uint8Array(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)) as BufferSource;
+}
+
 export interface RetentionPolicy {
   id: string;
   name: string;
@@ -497,7 +508,7 @@ class RetentionManager {
       const format = compression === 'brotli' ? 'deflate' : 'gzip';
       const cs = new CompressionStream(format);
       const writer = cs.writable.getWriter();
-      writer.write(input);
+      writer.write(ensureBufferSource(input));
       writer.close();
 
       const chunks: Uint8Array[] = [];
@@ -541,9 +552,9 @@ class RetentionManager {
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
     const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: ensureBufferSource(iv) },
       key,
-      input
+      ensureBufferSource(input)
     );
 
     // Combine IV and encrypted data
