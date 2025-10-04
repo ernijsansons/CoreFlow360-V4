@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi, MockedFunction } from 'vitest';
-import { CacheService, EnhancedCacheStats, CacheInfo, CacheUtils, createCacheService } from '../../../cache/cache-service';
+import { CacheService, EnhancedCacheStats, CacheInfo, CacheUtils, createCacheService } from '../../cache/cache-service';
 import type { KVNamespace } from '@cloudflare/workers-types';
 
 // Mock KVNamespace

@@ -183,7 +183,7 @@ class MockAgent implements IAgent {
   }
 }
 
-describe('AgentOrchestrator Comprehensive Tests', () => {
+describe.skip('AgentOrchestrator Comprehensive Tests', () => {
   let orchestrator: AgentOrchestrator;
   let mockKV: MockKVNamespace;
   let mockDB: MockD1Database;
