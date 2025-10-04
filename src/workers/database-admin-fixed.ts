@@ -183,11 +183,17 @@ app.post('/migrations/rollback', async (c: any) => {
 
     const runner = new MigrationRunner(c.env.DB_MAIN);
     const rollbacks = await loadRollbacks();
+
+    interface RollbackFile {
+      version: string;
+      sql: string;
+    }
+
     const results = [];
 
     // Execute rollbacks one by one for the specified steps
     for (let i = 0; i < Math.min(steps, rollbacks.length); i++) {
-      const rollback = rollbacks[i];
+      const rollback = rollbacks[i] as RollbackFile;
       const result = await runner.rollbackMigration(rollback.version, rollback.sql);
       results.push(result);
     }

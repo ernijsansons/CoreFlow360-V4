@@ -112,6 +112,11 @@ export function getMigrationsToApply(currentVersion: number): typeof migrations 
   return migrations.filter(m => m.version > currentVersion);
 }
 
-// Aliases for compatibility
-export const loadMigrations = migrations;
-export const loadRollbacks: any[] = [];
+// Aliases for compatibility - return functions to match expected API
+export async function loadMigrations() {
+  return migrations;
+}
+
+export async function loadRollbacks() {
+  return [];
+}

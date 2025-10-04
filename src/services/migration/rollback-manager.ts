@@ -1,5 +1,16 @@
 import { MigrationConfig, RollbackConfig, Checkpoint } from '../../types/migration';
 
+/**
+ * Helper: Ensure Uint8Array has proper ArrayBuffer for Web Crypto API
+ * @security-critical Prevents type mismatches in crypto operations
+ */
+function ensureBufferSource(data: Uint8Array): BufferSource {
+  if (data.buffer instanceof ArrayBuffer && data.byteOffset === 0 && data.byteLength === data.buffer.byteLength) {
+    return data as BufferSource;
+  }
+  return new Uint8Array(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)) as BufferSource;
+}
+
 interface Snapshot {
   id: string;
   migrationId: string;
@@ -241,9 +252,10 @@ class RollbackManager {
     }
 
     // Use Web Crypto API for encryption
+    const keyMaterial = new TextEncoder().encode(this.env.ENCRYPTION_KEY);
     const key = await crypto.subtle.importKey(
       'raw',
-      new TextEncoder().encode(this.env.ENCRYPTION_KEY),
+      ensureBufferSource(keyMaterial),
       { name: 'AES-GCM' },
       false,
       ['encrypt']
@@ -251,9 +263,9 @@ class RollbackManager {
 
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: ensureBufferSource(iv) },
       key,
-      data
+      ensureBufferSource(data)
     );
 
     // Combine IV and encrypted data
@@ -273,7 +285,7 @@ class RollbackManager {
   }
 
   private async calculateChecksum(data: Uint8Array): Promise<string> {
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', ensureBufferSource(data));
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map((b: any) => b.toString(16).padStart(2, '0')).join('');
   }
@@ -630,9 +642,10 @@ class RollbackManager {
       return encryptedData;
     }
 
+    const keyMaterial = new TextEncoder().encode(this.env.ENCRYPTION_KEY);
     const key = await crypto.subtle.importKey(
       'raw',
-      new TextEncoder().encode(this.env.ENCRYPTION_KEY),
+      ensureBufferSource(keyMaterial),
       { name: 'AES-GCM' },
       false,
       ['decrypt']
@@ -642,9 +655,9 @@ class RollbackManager {
     const data = encryptedData.slice(12);
 
     const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: ensureBufferSource(iv) },
       key,
-      data
+      ensureBufferSource(data)
     );
 
     return new Uint8Array(decrypted);
@@ -657,7 +670,7 @@ class RollbackManager {
         const writer = stream.writable.getWriter();
         const reader = stream.readable.getReader();
 
-        writer.write(compressedData);
+        writer.write(ensureBufferSource(compressedData));
         writer.close();
 
         const chunks: Uint8Array[] = [];

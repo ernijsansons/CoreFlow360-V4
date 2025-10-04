@@ -12,6 +12,20 @@
  */
 
 /**
+ * Helper: Ensure Uint8Array has proper ArrayBuffer for Web Crypto API
+ * Converts ArrayBufferLike to ArrayBuffer if needed
+ * @security-critical Prevents type mismatches in crypto operations
+ */
+function ensureBufferSource(data: Uint8Array): BufferSource {
+  // If buffer is already ArrayBuffer, return as-is
+  if (data.buffer instanceof ArrayBuffer && data.byteOffset === 0 && data.byteLength === data.buffer.byteLength) {
+    return data as BufferSource;
+  }
+  // Create a proper copy with ArrayBuffer - explicitly slice to ensure ArrayBuffer
+  return new Uint8Array(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)) as BufferSource;
+}
+
+/**
  * Password hashing using PBKDF2 (Web Crypto API compatible)
  * Note: Argon2 is preferred but not available in Web Crypto API
  * Using PBKDF2 with high iteration count as secure alternative
@@ -407,7 +421,7 @@ export class TOTPCrypto {
     // HMAC-SHA1 (TOTP standard)
     const key = await crypto.subtle.importKey(
       'raw',
-      secretBytes,
+      ensureBufferSource(secretBytes),
       { name: 'HMAC', hash: 'SHA-1' },
       false,
       ['sign']
@@ -566,7 +580,7 @@ export class KeyDerivation {
     return await crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: ensureBufferSource(salt),
         iterations: iterations,
         hash: 'SHA-256'
       },
@@ -602,7 +616,7 @@ export class KeyDerivation {
     const dataBuffer = new TextEncoder().encode(data);
 
     const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: iv },
+      { name: 'AES-GCM', iv: ensureBufferSource(iv) },
       key,
       dataBuffer
     );
@@ -622,9 +636,9 @@ export class KeyDerivation {
     key: CryptoKey
   ): Promise<string> {
     const decrypted = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: iv },
+      { name: 'AES-GCM', iv: ensureBufferSource(iv) },
       key,
-      encrypted
+      ensureBufferSource(encrypted)
     );
 
     return new TextDecoder().decode(decrypted);

@@ -2,6 +2,20 @@
  * Cryptographic utilities using Web Crypto API
  */
 
+/**
+ * Helper: Ensure Uint8Array has proper ArrayBuffer for Web Crypto API
+ * Converts ArrayBufferLike to ArrayBuffer if needed
+ * @security-critical Prevents type mismatches in crypto operations
+ */
+function ensureBufferSource(data: Uint8Array): BufferSource {
+  // If buffer is already ArrayBuffer, return as-is
+  if (data.buffer instanceof ArrayBuffer && data.byteOffset === 0 && data.byteLength === data.buffer.byteLength) {
+    return data as BufferSource;
+  }
+  // Create a proper copy with ArrayBuffer - explicitly slice to ensure ArrayBuffer
+  return new Uint8Array(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)) as BufferSource;
+}
+
 // Constants for password hashing
 const PBKDF2_ITERATIONS = 100000;
 const SALT_LENGTH = 32;
@@ -43,7 +57,7 @@ export async function hashPassword(password: string, salt?: string): Promise<{ h
   const hashBuffer = await crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
-      salt: saltBuffer,
+      salt: ensureBufferSource(saltBuffer),
       iterations: PBKDF2_ITERATIONS,
       hash: 'SHA-256'
     },
@@ -213,9 +227,9 @@ export async function decrypt(encryptedData: string, iv: string, key: string): P
 
   // Decrypt
   const decrypted = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: ivBuffer },
+    { name: 'AES-GCM', iv: ensureBufferSource(ivBuffer) },
     cryptoKey,
-    encryptedBuffer
+    ensureBufferSource(encryptedBuffer)
   );
 
   const decoder = new TextDecoder();
