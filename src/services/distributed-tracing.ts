@@ -423,9 +423,9 @@ export class DistributedTracing {
     const p99Index = Math.floor(durationsArray.length * 0.99);
 
     return {
-      totalTraces: result.total_traces as number,
-      averageDuration: (result.avg_duration as number) || 0,
-      errorRate: (result.total_traces as number) > 0 ? (result.error_count as number) / (result.total_traces as number) : 0,
+      totalTraces: (result as any).total_traces as number,
+      averageDuration: ((result as any).avg_duration as number) || 0,
+      errorRate: ((result as any).total_traces as number) > 0 ? ((result as any).error_count as number) / ((result as any).total_traces as number) : 0,
       p95Duration: (durationsArray[p95Index] as number) || 0,
       p99Duration: (durationsArray[p99Index] as number) || 0
     };

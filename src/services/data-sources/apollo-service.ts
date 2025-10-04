@@ -219,15 +219,15 @@ class ApolloService {
           contacts: [],
           total_entries: 0,
           rateLimit,
-          error: `Apollo API error: ${response.status} ${errorData.error || response.statusText}`
+          error: `Apollo API error: ${response.status} ${(errorData as any).error || response.statusText}`
         };
       }
 
       const data = await response.json();
 
       return {
-        contacts: data.people.map((person: ApolloPersonResponse) => this.transformPersonData(person)),
-        total_entries: data.pagination?.total_entries || 0,
+        contacts: (data as any).people.map((person: ApolloPersonResponse) => this.transformPersonData(person)),
+        total_entries: (data as any).pagination?.total_entries || 0,
         rateLimit
       };
     } catch (error: any) {
@@ -269,14 +269,14 @@ class ApolloService {
         return {
           contact: null,
           rateLimit,
-          error: `Apollo API error: ${response.status} ${errorData.error || response.statusText}`
+          error: `Apollo API error: ${response.status} ${(errorData as any).error || response.statusText}`
         };
       }
 
       const data = await response.json();
 
       return {
-        contact: this.transformPersonData(data.person),
+        contact: this.transformPersonData((data as any).person),
         rateLimit
       };
     } catch (error: any) {
@@ -317,14 +317,14 @@ class ApolloService {
         return {
           company: null,
           rateLimit,
-          error: `Apollo API error: ${response.status} ${errorData.error || response.statusText}`
+          error: `Apollo API error: ${response.status} ${(errorData as any).error || response.statusText}`
         };
       }
 
       const data = await response.json();
 
       return {
-        company: this.transformCompanyData(data.organization),
+        company: this.transformCompanyData((data as any).organization),
         rateLimit
       };
     } catch (error: any) {
@@ -365,7 +365,7 @@ class ApolloService {
           email: null,
           confidence: 0,
           rateLimit,
-          error: `Apollo API error: ${response.status} ${errorData.error || response.statusText}`
+          error: `Apollo API error: ${response.status} ${(errorData as any).error || response.statusText}`
         };
       }
 
@@ -422,15 +422,15 @@ class ApolloService {
           companies: [],
           total_entries: 0,
           rateLimit,
-          error: `Apollo API error: ${response.status} ${errorData.error || response.statusText}`
+          error: `Apollo API error: ${response.status} ${(errorData as any).error || response.statusText}`
         };
       }
 
       const data = await response.json();
 
       return {
-        companies: data.organizations.map((org: ApolloCompanyResponse) => this.transformCompanyData(org)),
-        total_entries: data.pagination?.total_entries || 0,
+        companies: (data as any).organizations.map((org: ApolloCompanyResponse) => this.transformCompanyData(org)),
+        total_entries: (data as any).pagination?.total_entries || 0,
         rateLimit
       };
     } catch (error: any) {

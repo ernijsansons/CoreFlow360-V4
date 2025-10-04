@@ -4,7 +4,7 @@
  * Implements structured error responses and logging
  */
 
-import { Context, Next } from 'hono';
+import type { AppContext, Next } from '../types/hono-context';
 
 export interface ErrorResponse {
   error: {
@@ -122,7 +122,7 @@ export class ErrorHandler {
    * Main error handling middleware
    */
   middleware() {
-    return async (c: Context, next: Next) => {
+    return async (c: AppContext, next: Next) => {
       try {
         await next();
       } catch (error: any) {
@@ -134,7 +134,7 @@ export class ErrorHandler {
   /**
    * Handle error and generate response
    */
-  private async handleError(error: any, c: Context): Promise<void> {
+  private async handleError(error: any, c: AppContext): Promise<void> {
     const requestId = c.get('requestId') || crypto.randomUUID();
     const timestamp = new Date().toISOString();
 
@@ -287,10 +287,55 @@ export class ErrorHandler {
   }
 
   /**
+   * Handle error for Hono's onError hook
+   */
+  async handle(error: any, c: AppContext): Promise<Response> {
+    await this.handleError(error, c);
+    return c.res;
+  }
+
+  /**
+   * Handle unexpected errors outside the middleware chain
+   */
+  handleUnexpected(error: Error, request: Request): Response {
+    const requestId = crypto.randomUUID();
+    const timestamp = new Date().toISOString();
+
+    // Log error
+    console.error('[UNEXPECTED ERROR]', {
+      requestId,
+      timestamp,
+      message: error.message,
+      stack: error.stack,
+      url: request.url,
+      method: request.method
+    });
+
+    // Prepare error response
+    const errorResponse: ErrorResponse = {
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: this.config.sanitizeErrors ? this.config.defaultMessage : error.message,
+        timestamp,
+        requestId
+      }
+    };
+
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY'
+      }
+    });
+  }
+
+  /**
    * Create async error wrapper for route handlers
    */
   static asyncWrapper(fn: Function) {
-    return async (c: Context, next: Next) => {
+    return async (c: AppContext, next: Next) => {
       try {
         return await fn(c, next);
       } catch (error) {
@@ -329,7 +374,7 @@ export function createErrorHandler(config?: Partial<ErrorHandlerConfig>, kv?: KV
 /**
  * Error recovery middleware - attempts to recover from errors
  */
-export async function errorRecoveryMiddleware(c: Context, next: Next) {
+export async function errorRecoveryMiddleware(c: AppContext, next: Next) {
   const maxRetries = 3;
   let lastError: any;
 

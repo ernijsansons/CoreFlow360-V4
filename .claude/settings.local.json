@@ -74,7 +74,8 @@
       "WebFetch(domain:coreflow360-v4-prod.ernijs-ansons.workers.dev)",
       "Bash(cd:*)",
       "Bash(cat:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Read(//c/C/**)"
     ],
     "deny": [],
     "ask": []

@@ -314,7 +314,7 @@ export class SecurityTestSuite {
       }
     };
 
-    const sanitized = sanitizeForLogging(objectWithPII);
+    const sanitized = sanitizeForLogging(objectWithPII) as any;
     this.addTest(
       'Object Sanitization - Sensitive Keys',
       sanitized.password === '[REDACTED]' && sanitized.apiKey === '[REDACTED]',

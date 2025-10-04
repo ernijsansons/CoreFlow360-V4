@@ -4,7 +4,7 @@
  * Implements log aggregation, correlation, and security event tracking
  */
 
-import { Context, Next } from 'hono';
+import type { AppContext, Next } from '../types/hono-context';
 
 export enum LogLevel {
   DEBUG = 0,
@@ -116,7 +116,7 @@ export class StructuredLogger {
    * Logging middleware
    */
   middleware() {
-    return async (c: Context, next: Next) => {
+    return async (c: AppContext, next: Next) => {
       const startTime = Date.now();
 
       // Generate correlation ID
@@ -175,28 +175,28 @@ export class StructuredLogger {
   /**
    * Log debug message
    */
-  debug(message: string, metadata?: Record<string, any>, context?: Context): void {
+  debug(message: string, metadata?: Record<string, any>, context?: AppContext): void {
     this.log(LogLevel.DEBUG, message, metadata, context);
   }
 
   /**
    * Log info message
    */
-  info(message: string, metadata?: Record<string, any>, context?: Context): void {
+  info(message: string, metadata?: Record<string, any>, context?: AppContext): void {
     this.log(LogLevel.INFO, message, metadata, context);
   }
 
   /**
    * Log warning message
    */
-  warn(message: string, metadata?: Record<string, any>, context?: Context): void {
+  warn(message: string, metadata?: Record<string, any>, context?: AppContext): void {
     this.log(LogLevel.WARN, message, metadata, context);
   }
 
   /**
    * Log error message
    */
-  error(message: string, error?: any, metadata?: Record<string, any>, context?: Context): void {
+  error(message: string, error?: any, metadata?: Record<string, any>, context?: AppContext): void {
     const errorInfo: ErrorInfo = {
       message: error?.message || 'Unknown error',
       stack: this.config.env !== 'production' ? error?.stack : undefined,
@@ -210,14 +210,14 @@ export class StructuredLogger {
   /**
    * Log critical message
    */
-  critical(message: string, metadata?: Record<string, any>, context?: Context): void {
+  critical(message: string, metadata?: Record<string, any>, context?: AppContext): void {
     this.log(LogLevel.CRITICAL, message, metadata, context);
   }
 
   /**
    * Log security event
    */
-  security(event: string, severity: SecurityInfo['severity'], details: Record<string, any>, context?: Context): void {
+  security(event: string, severity: SecurityInfo['severity'], details: Record<string, any>, context?: AppContext): void {
     const securityInfo: SecurityInfo = {
       event,
       severity,
@@ -230,7 +230,7 @@ export class StructuredLogger {
   /**
    * Main logging method
    */
-  private log(level: LogLevel, message: string, metadata?: Record<string, any>, context?: Context): void {
+  private log(level: LogLevel, message: string, metadata?: Record<string, any>, context?: AppContext): void {
     if (level < this.config.minLevel) return;
 
     const entry: LogEntry = {
@@ -261,7 +261,7 @@ export class StructuredLogger {
   /**
    * Build log context from request
    */
-  private buildContext(context?: Context): LogContext {
+  private buildContext(context?: AppContext): LogContext {
     if (!context) {
       return {
         environment: this.config.env,

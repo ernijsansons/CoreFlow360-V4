@@ -352,11 +352,11 @@ export class APIConnector extends BaseConnector {
     }
 
     const tokenData = await response.json();
-    this.authToken = tokenData.access_token;
+    this.authToken = (tokenData as any).access_token;
 
     // Store token expiry time
-    if (tokenData.expires_in) {
-      const expiryTime = Date.now() + (tokenData.expires_in * 1000);
+    if ((tokenData as any).expires_in) {
+      const expiryTime = Date.now() + ((tokenData as any).expires_in * 1000);
       this.config.parameters.tokenExpiry = expiryTime;
     }
   }
@@ -469,7 +469,7 @@ export class APIConnector extends BaseConnector {
     }
 
     const result = await response.json();
-    const types = result.data.__schema.types;
+    const types = (result as any).data.__schema.types;
 
     return types
       .filter((type: any) => type.fields && !type.name.startsWith('__'))

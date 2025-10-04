@@ -942,7 +942,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
   }
 
   private async handleAPIError(response: Response): Promise<never> {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch(() => ({})) as any;
 
     switch (response.status) {
       case 400:

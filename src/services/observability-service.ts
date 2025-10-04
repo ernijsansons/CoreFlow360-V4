@@ -64,4 +64,32 @@ export class ObservabilityService {
       activeConnections: 0
     };
   }
+
+  /**
+   * Flush metrics to storage (if analytics binding available)
+   */
+  async flush(): Promise<void> {
+    try {
+      // If analytics engine is available, write metrics
+      if (this.env.ANALYTICS || this.env.PERFORMANCE_ANALYTICS) {
+        const analytics = this.env.ANALYTICS || this.env.PERFORMANCE_ANALYTICS;
+        await analytics?.writeDataPoint({
+          blobs: ['observability_metrics'],
+          doubles: [
+            this.metrics.requestCount,
+            this.metrics.errorCount,
+            this.metrics.avgResponseTime,
+            this.metrics.activeConnections
+          ],
+          indexes: ['metrics']
+        });
+      }
+
+      // Reset after flush
+      this.resetMetrics();
+    } catch (error) {
+      console.error('Failed to flush observability metrics:', error);
+      // Don't throw - metrics flushing is non-critical
+    }
+  }
 }

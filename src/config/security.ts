@@ -197,7 +197,7 @@ export class SecurityConfig {
   getCorsConfig() {
     return {
       allowedOrigins: this.options.allowedOrigins,
-      allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
       allowedHeaders: [
         'Content-Type',
         'Authorization',
@@ -208,7 +208,13 @@ export class SecurityConfig {
         'X-API-Key',
         'X-CSRF-Token'
       ],
+      exposedHeaders: [
+        'X-Request-ID',
+        'X-Rate-Limit-Remaining',
+        'X-Rate-Limit-Reset'
+      ],
       allowCredentials: true,
+      credentials: true,
       maxAge: 86400
     };
   }

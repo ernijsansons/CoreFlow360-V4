@@ -94,7 +94,7 @@ export class SecurityBootstrap {
     } catch (error) {
       result.passed = false;
       result.blocksStartup = true;
-      result.criticalIssues.push(`Security validation failed: ${error.message}`);
+      result.criticalIssues.push(`Security validation failed: ${(error as any).message}`);
 
       console.error('🚨 SECURITY VALIDATION FAILED - APPLICATION STARTUP BLOCKED');
       console.error(error);
@@ -141,7 +141,7 @@ export class SecurityBootstrap {
     } catch (error) {
       result.passed = false;
       result.blocksStartup = true;
-      result.criticalIssues.push(`JWT secret validation system error: ${error.message}`);
+      result.criticalIssues.push(`JWT secret validation system error: ${(error as any).message}`);
     }
   }
 
@@ -341,7 +341,7 @@ export class SecurityBootstrap {
       // Memory and system checks could go here
       console.log('✅ Startup health checks completed');
     } catch (error) {
-      result.warnings.push(`Health check error: ${error.message}`);
+      result.warnings.push(`Health check error: ${(error as any).message}`);
     }
   }
 

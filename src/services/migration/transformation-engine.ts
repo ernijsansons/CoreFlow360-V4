@@ -488,8 +488,8 @@ export class TransformationEngine {
    const response = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${this.env.GEOCODING_API_KEY}`);
       const data = await response.json();
 
-      if (data.features && data.features.length > 0) {
-        const feature = data.features[0];
+      if ((data as any).features && (data as any).features.length > 0) {
+        const feature = (data as any).features[0];
         return {
           latitude: feature.center[1],
           longitude: feature.center[0],
@@ -511,8 +511,8 @@ export class TransformationEngine {
       const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
       const data = await response.json();
 
-      if (data.rates && data.rates[toCurrency]) {
-        return amount * data.rates[toCurrency];
+      if ((data as any).rates && (data as any).rates[toCurrency]) {
+        return amount * (data as any).rates[toCurrency];
       }
     } catch (error: any) {
     }

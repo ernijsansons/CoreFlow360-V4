@@ -498,8 +498,8 @@ async function identifyImprovements(this: any, env: Env): Promise<any[]> {
     for (const strategy of underperformingStrategies.results) {
       improvements.push({
         type: 'strategy',
-        target: strategy.name,
-        issue: `Low success rate: ${((strategy.success_rate as number) * 100).toFixed(1)}%`,
+        target: (strategy as any).name,
+        issue: `Low success rate: ${(((strategy as any).success_rate as number) * 100).toFixed(1)}%`,
         recommendation: 'Review and update strategy approach or create new variants for testing'
       });
     }
@@ -515,7 +515,7 @@ async function identifyImprovements(this: any, env: Env): Promise<any[]> {
     for (const playbook of stalePlaybooks.results) {
       improvements.push({
         type: 'playbook',
-        target: playbook.name,
+        target: (playbook as any).name,
         issue: 'Not updated in over 30 days',
         recommendation: 'Review recent feedback and update playbook content'
       });
@@ -532,8 +532,8 @@ async function identifyImprovements(this: any, env: Env): Promise<any[]> {
     for (const pattern of unvalidatedPatterns.results) {
       improvements.push({
         type: 'pattern',
-        target: pattern.name,
-        issue: `Low confidence (${((pattern.confidence as number) * 100).toFixed(1)}%) and not recently validated`,
+        target: (pattern as any).name,
+        issue: `Low confidence (${(((pattern as any).confidence as number) * 100).toFixed(1)}%) and not recently validated`,
         recommendation: 'Validate pattern against recent data or consider retiring'
       });
     }
@@ -575,13 +575,13 @@ async function detectAnomalies(this: any, env: Env): Promise<any[]> {
     for (const anomaly of successRateAnomaly.results) {
       anomalies.push({
         type: 'performance_drop',
-        date: anomaly.date,
+        date: (anomaly as any).date,
         metric: 'success_rate',
-        value: anomaly.success_rate,
-        baseline: anomaly.baseline,
+        value: (anomaly as any).success_rate,
+        baseline: (anomaly as any).baseline,
         severity: 'high',
         description: `Success rate dropped
-  to ${((anomaly.success_rate as number) * 100).toFixed(1)}% (baseline: ${((anomaly.baseline as number) * 100).toFixed(1)}%)`
+  to ${(((anomaly as any).success_rate as number) * 100).toFixed(1)}% (baseline: ${(((anomaly as any).baseline as number) * 100).toFixed(1)}%)`
       });
     }
 
@@ -616,13 +616,13 @@ async function detectAnomalies(this: any, env: Env): Promise<any[]> {
     for (const anomaly of responseTimeAnomaly.results) {
       anomalies.push({
         type: 'response_time_spike',
-        date: anomaly.hour,
+        date: (anomaly as any).hour,
         metric: 'response_time',
-        value: anomaly.avg_response_time,
-        baseline: anomaly.baseline,
+        value: (anomaly as any).avg_response_time,
+        baseline: (anomaly as any).baseline,
         severity: 'medium',
         description: `Response
-  time spiked to ${anomaly.avg_response_time} minutes (baseline: ${Math.round(anomaly.baseline as number)} minutes)`
+  time spiked to ${(anomaly as any).avg_response_time} minutes (baseline: ${Math.round((anomaly as any).baseline as number)} minutes)`
       });
     }
 

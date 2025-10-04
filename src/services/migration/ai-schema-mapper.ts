@@ -167,7 +167,7 @@ export class AISchemaMapper {
       });
 
       const result = await response.json();
-      return JSON.parse(result.content || '{}');
+      return JSON.parse((result as any).content || '{}');
     } catch (error: any) {
       return { semanticType: null, businessConcept: null };
     }

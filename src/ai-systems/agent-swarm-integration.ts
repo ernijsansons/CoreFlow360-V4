@@ -344,7 +344,8 @@ export class AgentSwarmIntegration {
       });
 
       return response;
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Swarm request failed', { requestId: request.id, error });
 
       const response: SwarmResponse = {
@@ -361,13 +362,13 @@ export class AgentSwarmIntegration {
           timeElapsed: Date.now() - startTime,
           timeRemaining: 0
         },
-        error: error.message
+        error: errorMessage
       };
 
       this.sendUpdate(request.id, {
         timestamp: Date.now(),
         type: 'completion',
-        message: `Swarm execution failed: ${error.message}`,
+        message: `Swarm execution failed: ${errorMessage}`,
         severity: 'error'
       });
 

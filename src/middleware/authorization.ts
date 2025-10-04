@@ -1038,12 +1038,5 @@ export function requireRole(
   };
 }
 
-// Export types
-export type {
-  Permission,
-  Role,
-  PermissionCondition,
-  AccessRequest,
-  AccessDecision,
-  AuthorizationPolicy
-};
+// Types already exported as interfaces above (lines 24-100)
+// No need to re-export them here

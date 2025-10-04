@@ -2,8 +2,8 @@
  * Audit Middleware - Comprehensive audit logging middleware
  */
 
-import { Context, Next } from 'hono';
 import type { Env } from '../types/environment';
+import type { AppContext, Next } from '../types/hono-context';
 
 export class AuditMiddleware {
   private readonly auditLogger: Console;
@@ -16,7 +16,7 @@ export class AuditMiddleware {
    * Log audit trail for all requests
    */
   async middleware() {
-    return async (c: Context<{ Bindings: Env }>, next: Next) => {
+    return async (c: AppContext, next: Next) => {
       const startTime = Date.now();
       const requestId = crypto.randomUUID();
 

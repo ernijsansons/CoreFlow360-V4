@@ -1,28 +1,11 @@
 // Minimal Cloudflare Worker Entry Point
 import { Router } from 'itty-router';
 
-// Cloudflare types
-type DurableObjectState = any; // Using any for simplicity in minimal setup
-type ExecutionContext = any;
+// Use canonical Env type
+import type { Env } from './types/env';
 
-export interface Env {
-  DB: D1Database;
-  CACHE: KVNamespace;
-  R2_DOCUMENTS: R2Bucket;
-  R2_ASSETS: R2Bucket;
-  ANALYTICS: AnalyticsEngineDataset;
-  REALTIME: DurableObjectNamespace;
-  AI: Ai;
-  TASK_QUEUE: Queue;
-  EMAIL_QUEUE: Queue;
-  WEBHOOK_QUEUE: Queue;
-  JWT_SECRET: string;
-  ANTHROPIC_API_KEY: string;
-  EMAIL_API_KEY: string;
-  API_BASE_URL: string;
-  ENVIRONMENT: string;
-  ALLOWED_ORIGINS: string;
-}
+// Re-export canonical type
+export type { Env } from './types/env';
 
 const router = Router();
 

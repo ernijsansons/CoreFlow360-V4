@@ -323,13 +323,13 @@ class CurrencyService {
 
     const data = await response.json()
 
-    if (!data.success) {
-      throw new Error(`Fixer API error: ${data.error?.info || 'Unknown error'}`)
+    if (!(data as any).success) {
+      throw new Error(`Fixer API error: ${(data as any).error?.info || 'Unknown error'}`)
     }
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.timestamp * 1000).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).timestamp * 1000).toISOString()
     }
   }
 
@@ -346,8 +346,8 @@ class CurrencyService {
     const data = await response.json()
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.date).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).date).toISOString()
     }
   }
 
@@ -364,8 +364,8 @@ class CurrencyService {
     const data = await response.json()
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.timestamp * 1000).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).timestamp * 1000).toISOString()
     }
   }
 
@@ -382,13 +382,13 @@ class CurrencyService {
 
     const data = await response.json()
 
-    if (!data.success) {
-      throw new Error(`Fixer API error: ${data.error?.info || 'Unknown error'}`)
+    if (!(data as any).success) {
+      throw new Error(`Fixer API error: ${(data as any).error?.info || 'Unknown error'}`)
     }
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.date).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).date).toISOString()
     }
   }
 
@@ -406,8 +406,8 @@ class CurrencyService {
     const data = await response.json()
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.date).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).date).toISOString()
     }
   }
 
@@ -425,8 +425,8 @@ class CurrencyService {
     const data = await response.json()
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.timestamp * 1000).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).timestamp * 1000).toISOString()
     }
   }
 

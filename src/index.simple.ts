@@ -1,21 +1,10 @@
 // Simple Cloudflare Worker without external dependencies
-export interface Env {
-  DB?: D1Database;
-  KV_CACHE?: KVNamespace;
-  KV_SESSION?: KVNamespace;
-  KV_AUTH?: KVNamespace;
-  KV_RATE_LIMIT_METRICS?: KVNamespace;
-  R2_DOCUMENTS?: R2Bucket;
-  R2_BACKUPS?: R2Bucket;
-  AI?: any;
-  RATE_LIMITER_DO?: DurableObjectNamespace;
-  JWT_SECRET?: string;
-  ANTHROPIC_API_KEY?: string;
-  EMAIL_API_KEY?: string;
-  API_BASE_URL?: string;
-  ENVIRONMENT?: string;
-  ALLOWED_ORIGINS?: string;
-}
+
+// Use canonical Env type
+import type { Env } from './types/env';
+
+// Re-export canonical type
+export type { Env } from './types/env';
 
 // Export Durable Object class
 export class AdvancedRateLimiterDO {

@@ -574,7 +574,7 @@ class CurrencyManager {
       }
 
       const data = await response.json();
-      const rate = data.rates?.[toCurrency];
+      const rate = (data as any).rates?.[toCurrency];
 
       if (typeof rate !== 'number') {
         throw new Error(`Invalid rate received for ${fromCurrency}/${toCurrency}`);

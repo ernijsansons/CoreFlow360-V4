@@ -3,7 +3,7 @@
  * Tracks application metrics, performance, and health status
  */
 
-import { Context } from 'hono';
+import type { AppContext } from '../types/hono-context';
 
 export interface PerformanceMetrics {
   requestId: string;
@@ -86,7 +86,7 @@ export class PerformanceMonitor {
    * Performance monitoring middleware
    */
   middleware() {
-    return async (c: Context, next: () => Promise<void>) => {
+    return async (c: AppContext, next: () => Promise<void>) => {
       const startTime = Date.now();
       const requestId = c.get('requestId') || crypto.randomUUID();
 

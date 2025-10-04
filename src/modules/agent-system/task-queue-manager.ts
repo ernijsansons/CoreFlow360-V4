@@ -395,7 +395,7 @@ class TaskQueueManager {
    * Get priority score
    */
   private getPriorityScore(priority: TaskPriority): number {
-    const scores = {
+    const scores: Record<TaskPriority, number> = {
       critical: 1000,
       high: 100,
       medium: 10,
