@@ -14,6 +14,7 @@
  */
 
 import { Hono } from 'hono';
+import type { StatusCode } from 'hono/utils/http-status';
 import { cors } from 'hono/cors';
 import { compress } from 'hono/compress';
 import { etag } from 'hono/etag';
@@ -221,8 +222,8 @@ function createApp(env: Env) {
 
   app.get('/health', async (c) => {
     const health = await performanceMonitor.getHealthMetrics();
-    const statusCode = health.status === 'healthy' ? 200 :
-                       health.status === 'degraded' ? 503 : 500;
+    const statusCode = (health.status === 'healthy' ? 200 :
+                       health.status === 'degraded' ? 503 : 500) as StatusCode;
 
     return c.json(health, statusCode);
   });

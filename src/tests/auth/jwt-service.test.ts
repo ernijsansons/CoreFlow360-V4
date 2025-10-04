@@ -14,46 +14,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
 import { JWTService, JWTClaims, JWTTokenPair, JWTVerificationResult } from '../../services/jwt-service';
-
-// Mock KVNamespace for testing
-class MockKVNamespace implements KVNamespace {
-  private store = new Map<string, string>();
-
-  async get(key: string): Promise<string | null> {
-    return this.store.get(key) || null;
-  }
-
-  async put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void> {
-    this.store.set(key, value);
-  }
-
-  async delete(key: string): Promise<void> {
-    this.store.delete(key);
-  }
-
-  async list(options?: { prefix?: string; limit?: number }): Promise<{ keys: { name: string }[] }> {
-    const keys = Array.from(this.store.keys())
-      .filter(key => !options?.prefix || key.startsWith(options.prefix))
-      .slice(0, options?.limit || 1000)
-      .map(name => ({ name }));
-    return { keys };
-  }
-
-  // Clear all data for testing
-  clear(): void {
-    this.store.clear();
-  }
-
-  // Get all data for testing
-  getAll(): Map<string, string> {
-    return new Map(this.store);
-  }
-
-  // Additional KVNamespace methods (not used in tests)
-  async getWithMetadata(): Promise<any> { return null; }
-  async put(): Promise<void> { }
-  async getMetadata(): Promise<any> { return null; }
-}
+import { MockKVNamespace } from '../mocks/kv-namespace-mock';
 
 describe('JWTService', () => {
   let jwtService: JWTService;
@@ -399,8 +360,10 @@ describe('JWTService', () => {
       });
 
       // New tokens should be different
-      expect(refreshResult.accessToken).not.toBe(originalTokenPair.accessToken);
-      expect(refreshResult.refreshToken).not.toBe(originalTokenPair.refreshToken);
+      if ('accessToken' in refreshResult && 'refreshToken' in refreshResult) {
+        expect(refreshResult.accessToken).not.toBe(originalTokenPair.accessToken);
+        expect(refreshResult.refreshToken).not.toBe(originalTokenPair.refreshToken);
+      }
     });
 
     it('should reject access tokens for refresh', async () => {

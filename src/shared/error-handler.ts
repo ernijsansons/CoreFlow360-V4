@@ -1,4 +1,5 @@
 import { Context } from 'hono';
+import type { StatusCode } from 'hono/utils/http-status';
 import { z } from 'zod';
 import { ERROR_CODES, HTTP_STATUS } from './constants';
 
@@ -111,7 +112,7 @@ export async function errorHandler(err: Error, c: Context): Promise<Response> {
         timestamp: new Date().toISOString(),
         duration: Date.now() - startTime,
       },
-    }, HTTP_STATUS.BAD_REQUEST);
+    }, HTTP_STATUS.BAD_REQUEST as StatusCode);
   }
 
   // Handle custom app errors
@@ -128,7 +129,7 @@ export async function errorHandler(err: Error, c: Context): Promise<Response> {
         timestamp: new Date().toISOString(),
         duration: Date.now() - startTime,
       },
-    }, err.statusCode || 500);
+    }, (err.statusCode || 500) as StatusCode);
   }
 
   // Handle unexpected errors
@@ -146,7 +147,7 @@ export async function errorHandler(err: Error, c: Context): Promise<Response> {
       timestamp: new Date().toISOString(),
       duration: Date.now() - startTime,
     },
-  }, HTTP_STATUS.INTERNAL_SERVER_ERROR);
+  }, HTTP_STATUS.INTERNAL_SERVER_ERROR as StatusCode);
 }
 
 /**

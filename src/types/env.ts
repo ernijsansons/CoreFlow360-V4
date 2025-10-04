@@ -39,6 +39,7 @@ export interface Env {
   // DURABLE OBJECTS (from wrangler.toml)
   // ==========================================
   RATE_LIMITER_DO?: DurableObjectNamespace;
+  WORKFLOW_EXECUTOR?: DurableObjectNamespace;
 
   // ==========================================
   // AI BINDING (from wrangler.toml)

@@ -138,7 +138,7 @@ export class SupernovaAuditExecutor {
 
     // Recommendations Section
     report += `## 💡 COMPREHENSIVE RECOMMENDATIONS\n\n`;
-    auditReport.recommendations.forEach((rec, index) => {
+    auditReport.recommendations.forEach((rec: string, index: number) => {
       report += `${index + 1}. ${rec}\n`;
     });
 

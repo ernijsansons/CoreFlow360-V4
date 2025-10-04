@@ -15,38 +15,7 @@ import { SessionService } from '../../services/session-service';
 import { PasswordCrypto, APIKeyCrypto, TOTPCrypto } from '../../utils/auth-crypto';
 import { AuthenticationMiddleware, createAuthMiddleware } from '../../middleware/auth';
 import { AuthorizationService, createAuthorizationService } from '../../middleware/authorization';
-
-// Mock implementations
-class MockKVNamespace implements KVNamespace {
-  private store = new Map<string, string>();
-
-  async get(key: string): Promise<string | null> {
-    return this.store.get(key) || null;
-  }
-
-  async put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void> {
-    this.store.set(key, value);
-  }
-
-  async delete(key: string): Promise<void> {
-    this.store.delete(key);
-  }
-
-  async list(options?: { prefix?: string; limit?: number }): Promise<{ keys: { name: string }[] }> {
-    const keys = Array.from(this.store.keys())
-      .filter(key => !options?.prefix || key.startsWith(options.prefix))
-      .slice(0, options?.limit || 1000)
-      .map(name => ({ name }));
-    return { keys };
-  }
-
-  clear(): void {
-    this.store.clear();
-  }
-
-  async getWithMetadata(): Promise<any> { return null; }
-  async getMetadata(): Promise<any> { return null; }
-}
+import { MockKVNamespace } from '../mocks/kv-namespace-mock';
 
 class MockD1Database implements D1Database {
   private tables = new Map<string, any[]>();
