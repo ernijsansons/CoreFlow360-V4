@@ -229,6 +229,9 @@ async function handleWebSocketRequest(
   const url = new URL(request.url);
 
   // Get Durable Object for real-time coordination
+  if (!env.REALTIME_COORDINATOR) {
+    return new Response('REALTIME_COORDINATOR not configured', { status: 503 });
+  }
   const id = env.REALTIME_COORDINATOR.idFromName('global');
   const coordinator = env.REALTIME_COORDINATOR.get(id);
 
@@ -343,6 +346,9 @@ async function handleStaticAssets(
 
   try {
     // Try to get from R2 first
+    if (!env.R2_ASSETS) {
+      return new Response('R2_ASSETS not configured', { status: 503 });
+    }
     const object = await env.R2_ASSETS.get(assetPath);
 
     if (object) {
@@ -386,6 +392,9 @@ async function handleApplicationRequest(
 
   // Serve index.html for SPA routes
   try {
+    if (!env.R2_ASSETS) {
+      return fetch(request); // Fallback to origin
+    }
     const indexHtml = await env.R2_ASSETS.get('index.html');
 
     if (indexHtml) {

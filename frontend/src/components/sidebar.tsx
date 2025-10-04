@@ -169,8 +169,10 @@ export function Sidebar() {
               isActive && "bg-accent text-accent-foreground",
               level > 0 && "ml-4"
             )}
+            aria-expanded={isExpanded}
+            aria-label={`${item.label} menu`}
           >
-            {item.icon && <item.icon className="mr-3 h-4 w-4" />}
+            {item.icon && <item.icon className="mr-3 h-4 w-4" aria-hidden="true" />}
             {sidebarOpen && (
               <>
                 <span className="flex-1 text-left">{item.label}</span>
@@ -203,8 +205,10 @@ export function Sidebar() {
           isActive && "bg-accent text-accent-foreground",
           level > 0 && "ml-4"
         )}
+        aria-current={isActive ? 'page' : undefined}
+        aria-label={item.label}
       >
-        {item.icon && <item.icon className="mr-3 h-4 w-4" />}
+        {item.icon && <item.icon className="mr-3 h-4 w-4" aria-hidden="true" />}
         {sidebarOpen && (
           <>
             <span className="flex-1">{item.label}</span>
@@ -231,12 +235,16 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside
+        id="main-sidebar"
         className={cn(
           "fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] bg-background border-r transition-all duration-200 ease-in-out",
           sidebarOpen ? "w-64" : "w-16",
           "lg:translate-x-0",
           !sidebarOpen && "-translate-x-full lg:translate-x-0"
         )}
+        role="navigation"
+        aria-label="Main navigation"
+        aria-hidden={!sidebarOpen ? "true" : "false"}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar content */}
@@ -253,12 +261,14 @@ export function Sidebar() {
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="w-full justify-center"
+              aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
             >
               <ChevronLeft
                 className={cn(
                   "h-4 w-4 transition-transform",
                   !sidebarOpen && "rotate-180"
                 )}
+                aria-hidden="true"
               />
             </Button>
           </div>

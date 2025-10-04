@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { CRMDashboard } from '@/modules/crm'
 import { useEntityPermissions } from '@/hooks'
+import { useUIStore } from '@/stores/ui-store'
 
 export const Route = createFileRoute('/crm/')({
   component: CRMPage,

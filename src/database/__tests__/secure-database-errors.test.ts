@@ -26,6 +26,9 @@ describe('SecureDatabase Error Handling', () => {
       businessId: 'test-business-123',
       userId: 'test-user-456',
       role: 'admin',
+      enforceRLS: true,
+      auditLog: true,
+      preventCrossTenant: true,
     });
   });
 
@@ -195,10 +198,13 @@ describe('SecureDatabase Error Handling', () => {
         businessId: 'test-business-123',
         userId: 'test-user-456',
         role: 'viewer', // Not owner or admin
+        enforceRLS: true,
+        auditLog: true,
+        preventCrossTenant: true,
       });
 
       try {
-        await viewerDb.rawQuery('SELECT * FROM companies');
+        await viewerDb.executeRaw('SELECT * FROM companies');
         expect.fail('Should have thrown AppError');
       } catch (error) {
         expect(error).toBeInstanceOf(AppError);
@@ -211,7 +217,7 @@ describe('SecureDatabase Error Handling', () => {
       const longQuery = 'SELECT ' + 'column, '.repeat(10000) + ' FROM companies';
 
       try {
-        await secureDb.rawQuery(longQuery);
+        await secureDb.executeRaw(longQuery);
         expect.fail('Should have thrown AppError');
       } catch (error) {
         expect(error).toBeInstanceOf(AppError);
@@ -229,7 +235,7 @@ describe('SecureDatabase Error Handling', () => {
 
       for (const query of dangerousQueries) {
         try {
-          await secureDb.rawQuery(query);
+          await secureDb.executeRaw(query);
           expect.fail(`Should have thrown AppError for query: ${query}`);
         } catch (error) {
           expect(error).toBeInstanceOf(AppError);

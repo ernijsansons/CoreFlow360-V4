@@ -26,7 +26,10 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      role="banner"
+    >
       <div className="flex h-16 items-center px-4 gap-4">
         {/* Sidebar Toggle */}
         <Button
@@ -34,8 +37,10 @@ export function Header() {
           size="icon"
           onClick={toggleSidebar}
           className="lg:hidden"
+          aria-label="Toggle sidebar menu"
+          aria-expanded={useUIStore.getState().sidebarOpen}
         >
-          <Menu className="h-5 w-5" />
+          <Menu className="h-5 w-5" aria-hidden="true" />
         </Button>
 
         {/* Entity Switcher */}
@@ -44,12 +49,15 @@ export function Header() {
         {/* Search */}
         <div className="flex-1 max-w-md">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" aria-hidden="true" />
             <Input
               placeholder="Search... (⌘K)"
               className="pl-9 cursor-pointer"
               onClick={toggleCommandPalette}
               readOnly
+              aria-label="Open search command palette"
+              aria-keyshortcuts="Control+K"
+              role="button"
             />
           </div>
         </div>
@@ -65,15 +73,23 @@ export function Header() {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+              <Button
+                variant="ghost"
+                className="relative h-9 w-9 rounded-full"
+                aria-label={`User menu for ${user?.firstName || 'User'}`}
+                aria-haspopup="true"
+              >
                 {user?.avatar ? (
                   <img
                     src={user.avatar}
-                    alt={user.firstName}
+                    alt={`${user.firstName} ${user.lastName}`}
                     className="h-9 w-9 rounded-full object-cover"
                   />
                 ) : (
-                  <div className="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-sm font-medium">
+                  <div
+                    className="h-9 w-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white text-sm font-medium"
+                    aria-hidden="true"
+                  >
                     {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
                   </div>
                 )}

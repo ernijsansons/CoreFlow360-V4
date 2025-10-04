@@ -183,7 +183,7 @@ describe('Tenant Isolation Layer - Core Security', () => {
   describe('Query Security - INSERT Operations', () => {
     it('should auto-inject business_id for INSERT operations', () => {
       const context = createTestContext('business_123', 'user_1');
-      const data = { name: 'Test Invoice', amount: 1000 };
+      const data: any = { name: 'Test Invoice', amount: 1000 };
       const result = isolationLayer.validateData(data, 'invoices', 'INSERT', context);
 
       expect(result.valid).toBe(true);
@@ -363,7 +363,7 @@ describe('Secure Database Wrapper - Integration Tests', () => {
 
   describe('Secure Insert Operations', () => {
     it('should auto-inject business_id and audit fields', async () => {
-      const data = { name: 'New Invoice', amount: 1000 };
+      const data: any = { name: 'New Invoice', amount: 1000 };
       const result = await db.insert('invoices', data);
 
       expect(result.success).toBe(true);

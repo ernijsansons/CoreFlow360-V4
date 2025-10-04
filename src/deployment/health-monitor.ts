@@ -460,7 +460,11 @@ export class DeploymentHealthMonitor {
 
     try {
       // Simple query to test database connectivity
-      const result = await this.env.DB_CRM.prepare('SELECT 1 as test').first();
+      const db = this.env.DB_CRM || this.env.DB_MAIN;
+      if (!db) {
+        throw new Error('No database available');
+      }
+      const result = await db.prepare('SELECT 1 as test').first();
       const responseTime = Date.now() - startTime;
       const isHealthy = result && responseTime <= check.thresholds.responseTime;
 

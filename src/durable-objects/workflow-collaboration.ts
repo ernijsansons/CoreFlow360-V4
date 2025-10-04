@@ -440,7 +440,10 @@ export class WorkflowCollaboration {
 
   private async applyChangeToWorkflow(change: WorkflowChange): Promise<void> {
     // Apply the change to the workflow state in the database
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+    if (!db) {
+      throw new Error('Database not configured');
+    }
 
     switch (change.type) {
       case 'node_update':
@@ -560,7 +563,8 @@ export class WorkflowCollaboration {
         }
       });
 
-      const db = this.env.DB_CRM;
+      const db = this.env.DB_CRM || this.env.DB_MAIN;
+      if (!db) throw new Error('Database not configured');
       await db.prepare('DELETE FROM workflow_comments WHERE id = ?').bind(commentId).run();
     }
   }
@@ -804,7 +808,8 @@ export class WorkflowCollaboration {
   // =====================================================
 
   private async loadParticipantData(userId: string): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+      if (!db) throw new Error('Database not configured');
 
     // Add business isolation to prevent cross-tenant access
     const participant = await db.prepare(`
@@ -829,7 +834,8 @@ export class WorkflowCollaboration {
   }
 
   private async saveParticipantToDatabase(participant: Participant): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+      if (!db) throw new Error('Database not configured');
 
     // Get business_id from workflow_designs to ensure proper business isolation
     await db.prepare(`
@@ -850,7 +856,8 @@ export class WorkflowCollaboration {
   }
 
   private async saveCommentToDatabase(comment: Comment): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+      if (!db) throw new Error('Database not configured');
 
     await db.prepare(`
       INSERT INTO workflow_comments (
@@ -875,7 +882,8 @@ export class WorkflowCollaboration {
   }
 
   private async updateCommentInDatabase(comment: Comment): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+      if (!db) throw new Error('Database not configured');
 
     await db.prepare(`
       UPDATE workflow_comments
@@ -895,7 +903,8 @@ export class WorkflowCollaboration {
 
   private async saveChangeToDatabase(change: WorkflowChange): Promise<void> {
     // Store change history for audit and conflict resolution
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+      if (!db) throw new Error('Database not configured');
 
     await db.prepare(`
       INSERT INTO workflow_change_history (

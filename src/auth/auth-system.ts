@@ -64,8 +64,10 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
-  businessId: string;
+  businessId?: string;
   companyName?: string;
+  phone?: string;
+  acceptTerms: boolean;
 }
 
 export interface ApiKey {
