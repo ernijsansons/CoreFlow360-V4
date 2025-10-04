@@ -168,7 +168,7 @@ export class StartupValidator {
     }
 
     // Check for missing security features
-    if (!env.RATE_LIMITER) {
+    if (!env.RATE_LIMITER_DO) {
       warnings.push('Rate limiter not configured - DoS protection may be limited');
     }
 

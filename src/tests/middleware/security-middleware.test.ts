@@ -29,25 +29,11 @@ import {
   PasswordSecurity
 } from '../../utils/crypto';
 
+import { MockKVNamespace } from '../mocks/kv-namespace-mock';
+
 // Mock implementations
 const createMockKV = (): KVNamespace => {
-  const store = new Map<string, string>();
-  return {
-    get: vi.fn().mockImplementation(async (key: string) => store.get(key) || null),
-    put: vi.fn().mockImplementation(async (key: string, value: string, options?: any) => {
-      store.set(key, value);
-    }),
-    delete: vi.fn().mockImplementation(async (key: string) => {
-      store.delete(key);
-    }),
-    list: vi.fn().mockImplementation(async (options?: any) => {
-      const keys = Array.from(store.keys())
-        .filter(key => !options?.prefix || key.startsWith(options.prefix))
-        .slice(0, options?.limit || 1000)
-        .map(name => ({ name }));
-      return { keys, list_complete: true, cursor: '' };
-    })
-  } as KVNamespace;
+  return new MockKVNamespace() as any as KVNamespace;
 };
 
 const createMockRequest = (

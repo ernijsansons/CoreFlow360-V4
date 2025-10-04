@@ -34,16 +34,16 @@ export class SupernovaDeepAuditor {
    */
   async performDeepAudit(projectRoot: string): Promise<DeepAuditReport> {
     logger.info('SUPERNOVA: Starting comprehensive deep audit');
-    
+
     const startTime = Date.now();
     const files = await this.discoverFiles(projectRoot);
-    
+
     for (const file of files) {
       await this.auditFile(file);
     }
-    
+
     const duration = Date.now() - startTime;
-    
+
     return {
       summary: {
         totalFiles: files.length,
@@ -56,6 +56,46 @@ export class SupernovaDeepAuditor {
       },
       files: Array.from(this.auditResults.values()),
       recommendations: this.generateRecommendations()
+    };
+  }
+
+  /**
+   * Audit entire codebase starting from a root directory
+   * This is an alias for performDeepAudit with additional metadata
+   */
+  async auditEntireCodebase(projectRoot: string): Promise<any> {
+    logger.info(`SUPERNOVA: Auditing entire codebase at ${projectRoot}`);
+
+    const startTime = Date.now();
+    const deepAuditReport = await this.performDeepAudit(projectRoot);
+
+    // Add additional metadata for comprehensive audit
+    return {
+      ...deepAuditReport,
+      summary: {
+        ...deepAuditReport.summary,
+        auditTime: Date.now() - startTime,
+        totalIssues: this.criticalIssues + this.highIssues + this.mediumIssues + this.lowIssues,
+        totalLines: this.totalLinesAudited
+      },
+      files: deepAuditReport.files.map(file => ({
+        ...file,
+        issues: file.issues.map(issue => ({
+          ...issue,
+          filePath: file.filePath,
+          code: '',
+          reasoning: issue.message,
+          recommendation: issue.suggestion,
+          impact: issue.type,
+          confidence: 0.85
+        })),
+        metrics: {
+          complexity: file.complexity,
+          maintainability: file.maintainability,
+          security: file.security.score,
+          performance: file.performance.score
+        }
+      }))
     };
   }
 

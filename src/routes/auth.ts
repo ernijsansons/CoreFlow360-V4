@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type { StatusCode } from 'hono/utils/http-status';
 import type { Env } from '../types/env';
 import { createAuthService } from '../modules/user-management/auth-service';
 import { extractTenantContext } from '../database/tenant-isolated-db';
@@ -123,7 +124,7 @@ auth.post('/login', rateLimiters.login, asyncHandler(async (c: any) => {
     }
     return c.json(result);
   } else {
-    const statusCode = result.requiresMFA ? 202 : 401;
+    const statusCode = (result.requiresMFA ? 202 : 401) as StatusCode;
     return c.json(result, statusCode);
   }
 }));
