@@ -75,7 +75,12 @@
       "Bash(cd:*)",
       "Bash(cat:*)",
       "Bash(tee:*)",
-      "Read(//c/C/**)"
+      "Read(//c/C/**)",
+      "Read(//c//**)",
+      "Bash(git config:*)",
+      "Bash(npx wrangler pages deploy:*)",
+      "Bash(npx wrangler:*)",
+      "Bash(unset:*)"
     ],
     "deny": [],
     "ask": []

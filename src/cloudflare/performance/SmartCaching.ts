@@ -273,6 +273,9 @@ export class SmartCaching {
    */
   private async getFromR2<T>(key: string, options: CacheGetOptions): Promise<CacheResult<T>> {
     try {
+      if (!this.env.R2_CACHE) {
+        return { hit: false, data: null, source: 'r2', error: 'R2_CACHE not configured' };
+      }
       const object = await this.env.R2_CACHE.get(key);
 
       if (object) {
@@ -417,6 +420,9 @@ export class SmartCaching {
    * Set in R2 storage
    */
   private async setInR2<T>(key: string, data: T, options: CacheSetOptions): Promise<void> {
+    if (!this.env.R2_CACHE) {
+      throw new Error('R2_CACHE not configured');
+    }
     const content = JSON.stringify(data);
 
     await this.env.R2_CACHE.put(key, content, {
@@ -511,6 +517,10 @@ export class SmartCaching {
    * Invalidate R2 objects
    */
   private async invalidateR2(pattern: string): Promise<number> {
+    if (!this.env.R2_CACHE) {
+      return 0;
+    }
+
     if (!pattern.includes('*')) {
       await this.env.R2_CACHE.delete(pattern);
       return 1;

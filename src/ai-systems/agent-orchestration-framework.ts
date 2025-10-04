@@ -1271,7 +1271,13 @@ export class AgentOrchestrationFramework {
   getSystemStatus(): {
     agents: Agent[];
     activeWorkflows: WorkflowDAG[];
-    systemMetrics: typeof this.systemMetrics;
+    systemMetrics: {
+      totalTasksExecuted: number;
+      averageWorkflowCompletionTime: number;
+      parallelExecutionEfficiency: number;
+      verificationAccuracy: number;
+      conflictResolutionRate: number;
+    };
     collaborationPatterns: AgentCollaborationPattern[];
   } {
     return {

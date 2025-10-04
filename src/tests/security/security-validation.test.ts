@@ -846,6 +846,12 @@ describe('Edge Case Testing', () => {
 });
 
 describe('Security Compliance Validation', () => {
+  let mockKV: MockKVNamespace;
+
+  beforeEach(() => {
+    mockKV = new MockKVNamespace();
+  });
+
   it('should meet OWASP cryptographic requirements', async () => {
     // Test PBKDF2 iterations
     const password = 'TestPassword123!';
@@ -909,6 +915,12 @@ describe('Security Compliance Validation', () => {
 });
 
 describe('Performance Benchmarks', () => {
+  let mockKV: MockKVNamespace;
+
+  beforeEach(() => {
+    mockKV = new MockKVNamespace();
+  });
+
   it('should meet performance requirements for auth operations', async () => {
     const service = new JWTService(mockKV as any);
 

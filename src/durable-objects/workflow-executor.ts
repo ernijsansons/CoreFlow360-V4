@@ -1095,7 +1095,8 @@ export class WorkflowExecutor {
   }
 
   private async saveExecutionResults(context: ExecutionContext, results: any): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+    if (!db) throw new Error('Database not configured');
     
     await db.prepare(`
       INSERT OR REPLACE INTO workflow_executions (
@@ -1158,7 +1159,8 @@ export class WorkflowExecutor {
 
   private async gatherExecutionMetrics(): Promise<any> {
     // Gather historical execution metrics for AI adaptation
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+    if (!db) throw new Error('Database not configured');
     
     const metrics = await db.prepare(`
       SELECT 
@@ -1237,7 +1239,8 @@ export class WorkflowExecutor {
   }
 
   private async createApprovalChain(node: ExecutionNode, context: ExecutionContext, inputData: WorkflowInputData): Promise<any> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+    if (!db) throw new Error('Database not configured');
     
     const approvalChain = {
       id: `approval_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -1283,7 +1286,8 @@ export class WorkflowExecutor {
 
   private async executeDatabaseQuery(config: any, inputData: WorkflowInputData, context: ExecutionContext): Promise<WorkflowOutputData> {
     // Execute database query integration
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+    if (!db) throw new Error('Database not configured');
     const result = await db.prepare(config.query).bind(...Object.values(inputData)).all();
     return { results: result.results || [] };
   }

@@ -530,7 +530,7 @@ export class RealtimeCoordinator implements DurableObject {
     }
 
     // Schedule next cleanup
-    await this.state.setAlarm(Date.now() + 60 * 60 * 1000); // 1 hour
+    await this.state.storage.setAlarm(Date.now() + 60 * 60 * 1000); // 1 hour
   }
 }
 

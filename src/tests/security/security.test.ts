@@ -55,11 +55,13 @@ import {
   APIKey,
   RateLimitConfig,
   RateLimitResult,
-  TenantSecurityContext,
-  TenantIsolationViolation,
   validateFileUpload
 } from '../../middleware/security';
-import { tenantIsolation } from '../../shared/security/tenant-isolation-layer';
+import {
+  tenantIsolation,
+  TenantSecurityContext,
+  TenantIsolationViolation
+} from '../../shared/security/tenant-isolation-layer';
 import { JWTSecretManager } from '../../shared/security/jwt-secret-manager';
 
 // Mock implementations for reliable testing
@@ -79,7 +81,12 @@ const createMockKV = (): KVNamespace => {
         .slice(0, options?.limit || 1000)
         .map(name => ({ name }));
       return { keys, list_complete: true, cursor: '' };
-    })
+    }),
+    getWithMetadata: vi.fn().mockImplementation(async (key: string) => ({
+      value: store.get(key) || null,
+      metadata: null,
+      cacheStatus: null
+    }))
   } as KVNamespace;
 };
 
@@ -469,7 +476,7 @@ describe('🔒 COMPREHENSIVE SECURITY TEST SUITE', () => {
     });
 
     it('should auto-inject business_id for valid INSERT operations', () => {
-      const insertData = {
+      const insertData: any = {
         name: 'Test Account'
         // business_id should be auto-injected
       };

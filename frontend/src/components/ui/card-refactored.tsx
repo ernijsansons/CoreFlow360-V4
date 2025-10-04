@@ -95,7 +95,7 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
  *     <CardDescription>Manage your account preferences</CardDescription>
  *   </CardHeader>
  *   <CardContent>
- *     {/* Content uses consistent spacing */}
+ *     Content uses consistent spacing
  *   </CardContent>
  *   <CardFooter>
  *     <Button>Save</Button>
