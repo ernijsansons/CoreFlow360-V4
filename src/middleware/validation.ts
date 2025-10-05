@@ -696,22 +696,5 @@ export const ValidationSchemas = {
 };
 
 /**
- * Export all validation utilities
+ * All validation utilities are exported inline above
  */
-export {
-  sanitizeXSS,
-  validateSQLInjection,
-  validatePathTraversal,
-  validateFileUpload,
-  validateContentType,
-  validateRequestSize,
-  validateInput,
-  createValidationMiddleware,
-  ValidationSchemas,
-  DEFAULT_VALIDATION_CONFIG,
-  XSS_PATTERNS,
-  SQL_INJECTION_PATTERNS,
-  PATH_TRAVERSAL_PATTERNS,
-  DANGEROUS_EXTENSIONS,
-  DANGEROUS_MIME_TYPES
-};

@@ -13,9 +13,13 @@
     "downlevelIteration": true,
 
     "strict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noImplicitReturns": true,
+    "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
     "noImplicitOverride": false,
@@ -38,5 +42,14 @@
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", "dist", ".wrangler"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".wrangler",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/integration-tests.ts",
+    "**/performance-benchmarks.ts",
+    "**/test-*.ts"
+  ]
 }

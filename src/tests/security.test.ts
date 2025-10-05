@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { JWTSecretManager } from '../shared/security/jwt-secret-manager';
 import { z } from 'zod';
+import { createMockKV as mockKVFactory } from './mocks/kv-namespace-mock';
 import {
   validateJWT,
   validateJWTWithBlacklist,
@@ -759,25 +760,7 @@ describe('Security Headers Tests', () => {
 
 // Mock helper functions for testing
 function createMockKV(): KVNamespace {
-  const store = new Map<string, string>();
-
-  return {
-    get: async (key: string) => store.get(key) || null,
-    put: async (key: string, value: string, options?: any) => {
-      store.set(key, value);
-    },
-    delete: async (key: string) => {
-      store.delete(key);
-    },
-    list: async (options?: any) => {
-      const keys = Array.from(store.keys())
-        .filter((key: any) => !options?.prefix || key.startsWith(options.prefix))
-        .slice(0, options?.limit || 1000)
-        .map((name: any) => ({ name }));
-
-      return { keys, list_complete: true, cursor: '' };
-    }
-  } as KVNamespace;
+  return mockKVFactory().asKVNamespace();
 }
 
 function createMockRequest(ip: string, origin?: string, userAgent?: string): Request {

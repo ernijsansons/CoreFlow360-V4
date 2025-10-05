@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { unstable_dev } from 'wrangler';
-import type { UnstableDevWorker } from 'wrangler';
+import type { Unstable_DevWorker } from 'wrangler';
 
 // Import security components for unit testing
 import { JWTRotation } from '../../security/jwt-rotation';

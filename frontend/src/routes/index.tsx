@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Dashboard } from '@/modules/dashboard'
+import { useUIStore } from '@/stores'
 
 export const Route = createFileRoute('/')({
   component: Dashboard,

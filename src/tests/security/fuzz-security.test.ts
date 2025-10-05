@@ -26,9 +26,9 @@ import {
   sanitizeEmail,
   validateJWT,
   rateLimitByIP,
-  detectSuspiciousActivity,
-  tenantIsolation
+  detectSuspiciousActivity
 } from '../../middleware/security';
+import { tenantIsolation } from '../../middleware/tenant-isolation-middleware';
 
 // Fuzz testing data generators
 class SecurityFuzzGenerator {
@@ -527,7 +527,7 @@ describe('🎯 SECURITY FUZZ TESTING SUITE', () => {
       suspiciousPatterns.forEach(request => {
         const result = detectSuspiciousActivity(request);
         expect(result.suspicious).toBe(true);
-        expect(result.reasons).toHaveLength.greaterThan(0);
+        expect(result.reasons.length).toBeGreaterThan(0);
       });
     });
 
@@ -661,7 +661,7 @@ describe('🎯 SECURITY FUZZ TESTING SUITE', () => {
           // Should either secure the query or detect violations
           if (!result.secure) {
             expect(result.violations.length).toBeGreaterThan(0);
-            expect(result.violations.some(v =>
+            expect(result.violations.some((v: any) =>
               ['injection_attempt', 'missing_business_id', 'cross_tenant_access'].includes(v.type)
             )).toBe(true);
           }

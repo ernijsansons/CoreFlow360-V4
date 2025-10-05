@@ -225,6 +225,7 @@ export async function tenantIsolationMiddleware(c: Context, next: Next) {
       });
     }
 
+    return;
   } catch (error: any) {
     // Log security errors
     logger.error('Tenant isolation middleware error', {
@@ -239,7 +240,7 @@ export async function tenantIsolationMiddleware(c: Context, next: Next) {
       return c.json(
         {
           error: error.message,
-          code: error.code,
+          code: error.errorCode,
           requestId: c.get('requestId')
         },
         error.statusCode as any

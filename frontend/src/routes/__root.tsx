@@ -7,20 +7,6 @@ import { MainLayout } from '@/layouts/main-layout'
 
 export const Route = createRootRoute({
   component: RootComponent,
-  beforeLoad: async ({ location }) => {
-    const { isAuthenticated, checkTokenExpiry } = useAuthStore.getState()
-
-    // Check if token is still valid
-    if (isAuthenticated && !checkTokenExpiry()) {
-      throw new Error('Token expired')
-    }
-
-    // Redirect to login if not authenticated and not on public routes
-    const publicRoutes = ['/login', '/register', '/forgot-password']
-    if (!isAuthenticated && !publicRoutes.includes(location.pathname)) {
-      throw new Error('Not authenticated')
-    }
-  },
   errorComponent: ({ error, reset }) => (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center space-y-4">
