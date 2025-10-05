@@ -37,12 +37,19 @@ export default defineConfig({
         manualChunks: (id) => {
           // Enhanced chunk splitting strategy for optimal performance
           if (id.includes('node_modules')) {
-            // Core React and routing - highest priority
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
+            // Split React core from React DOM for better caching
+            if (id.includes('react/') || id.includes('scheduler/')) {
+              return 'react-core';
             }
-            if (id.includes('@tanstack/react-router')) {
-              return 'router';
+            if (id.includes('react-dom/')) {
+              return 'react-dom';
+            }
+            // Router split into core and devtools
+            if (id.includes('@tanstack/react-router') && !id.includes('devtools')) {
+              return 'router-core';
+            }
+            if (id.includes('@tanstack/router-devtools')) {
+              return 'router-devtools';
             }
             
             // UI frameworks - medium priority, can be cached aggressively
@@ -124,7 +131,7 @@ export default defineConfig({
     minify: 'terser',
     target: 'esnext',
     reportCompressedSize: false,
-    chunkSizeWarningLimit: 500, // Smaller chunks for better caching
+    chunkSizeWarningLimit: 200, // Aggressive chunk size limit for optimal loading
     cssCodeSplit: true, // Split CSS for better caching
     terserOptions: {
       compress: {
@@ -144,23 +151,29 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      'react', 
-      'react-dom', 
-      '@tanstack/react-router', 
+      'react',
+      'react/jsx-runtime',
+      'react-dom',
+      'react-dom/client',
+      '@tanstack/react-router',
       'zustand',
+      'zustand/middleware',
+      'zustand/middleware/immer',
       'react-hook-form',
-      '@hookform/resolvers',
+      '@hookform/resolvers/zod',
       'zod',
       'clsx',
       'tailwind-merge',
-      'lucide-react'
+      'lucide-react',
+      'sonner'
     ],
     exclude: [
-      'recharts', 
-      'd3', 
+      'recharts',
+      'd3',
       'framer-motion',
       '@sentry/react',
-      'web-vitals'
+      'web-vitals',
+      '@tanstack/router-devtools'
     ],
     force: true, // Force pre-bundling for better performance
   },
