@@ -81,7 +81,11 @@
       "Bash(npx wrangler pages deploy:*)",
       "Bash(npx wrangler:*)",
       "Bash(unset:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(head:*)",
+      "Bash(Out-File -FilePath grug-errors.txt)"
     ],
     "deny": [],
     "ask": []

@@ -13,27 +13,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { JWTService } from '../../services/jwt-service';
 import { SessionService } from '../../services/session-service';
 import { PasswordCrypto, APIKeyCrypto, TOTPCrypto } from '../../utils/auth-crypto';
-import { AuthenticationMiddleware, createAuthMiddleware } from '../../middleware/auth';
+import { AuthMiddleware, authenticate } from '../../middleware/auth';
 import { AuthorizationService, createAuthorizationService } from '../../middleware/authorization';
 import { MockKVNamespace } from '../mocks/kv-namespace-mock';
-
-class MockD1Database implements D1Database {
-  private tables = new Map<string, any[]>();
-
-  prepare(query: string): D1PreparedStatement {
-    return {
-      bind: (...values: any[]) => this,
-      first: async <T = unknown>(): Promise<T | null> => null,
-      run: async (): Promise<D1Result> => ({ success: true, meta: {} as any }),
-      all: async <T = unknown>(): Promise<D1Result<T>> => ({ success: true, results: [], meta: {} as any }),
-      raw: async (): Promise<any[]> => []
-    } as D1PreparedStatement;
-  }
-
-  dump(): Promise<ArrayBuffer> { throw new Error('Not implemented'); }
-  batch(): Promise<D1Result[]> { throw new Error('Not implemented'); }
-  exec(): Promise<D1ExecResult> { throw new Error('Not implemented'); }
-}
+import { MockD1Database } from '../mocks/d1-database-mock';
 
 function createMockRequest(
   headers: Record<string, string> = {},
@@ -63,7 +46,7 @@ describe('Security Vulnerability Fixes Validation', () => {
   let mockDB: MockD1Database;
   let jwtService: JWTService;
   let sessionService: SessionService;
-  let authMiddleware: AuthenticationMiddleware;
+  let authMiddleware: AuthMiddleware;
   let authorizationService: AuthorizationService;
 
   beforeEach(() => {
@@ -86,7 +69,7 @@ describe('Security Vulnerability Fixes Validation', () => {
       }
     });
 
-    authMiddleware = createAuthMiddleware(mockDB as any, {
+    authMiddleware = new AuthMiddleware(mockDB as any, {
       jwtService,
       sessionService,
       rateLimitKV: mockKV as any,

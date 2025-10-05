@@ -13,6 +13,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { JWTSecretManager } from '../../shared/security/jwt-secret-manager';
 import { SecretRotationService } from '../../shared/security/secret-rotation-service';
+import { createMockKV as mockKVFactory } from '../mocks/kv-namespace-mock';
 
 describe('JWT Secret Security Tests - OWASP 2025', () => {
   beforeEach(() => {
@@ -194,7 +195,7 @@ describe('JWT Secret Security Tests - OWASP 2025', () => {
 
       try {
         JWTSecretManager.initializeJWTSecret(mockEnv);
-        fail('Should have thrown an error');
+        expect.fail('Should have thrown an error');
       } catch (error: any) {
         expect(error.message).toContain('To fix this issue:');
         expect(error.message).toContain('openssl rand -base64 64');
@@ -445,23 +446,5 @@ describe('Secret Rotation Service Tests', () => {
 
 // Mock KV implementation for testing
 function createMockKV(): KVNamespace {
-  const store = new Map<string, string>();
-
-  return {
-    get: async (key: string) => store.get(key) || null,
-    put: async (key: string, value: string, options?: any) => {
-      store.set(key, value);
-    },
-    delete: async (key: string) => {
-      store.delete(key);
-    },
-    list: async (options?: any) => {
-      const keys = Array.from(store.keys())
-        .filter(key => !options?.prefix || key.startsWith(options.prefix))
-        .slice(0, options?.limit || 1000)
-        .map(name => ({ name }));
-
-      return { keys, list_complete: true, cursor: '' };
-    }
-  } as KVNamespace;
+  return mockKVFactory().asKVNamespace();
 }

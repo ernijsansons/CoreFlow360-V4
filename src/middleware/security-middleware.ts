@@ -49,6 +49,7 @@ export class SecurityMiddleware {
           });
         }
 
+        return;
       } catch (error: any) {
         logger.error('Security middleware error', {
           requestId,
