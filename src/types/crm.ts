@@ -346,6 +346,7 @@ export interface Lead {
   ai_predicted_value?: number;
   ai_close_probability?: number; // 0-1
   ai_estimated_close_date?: string;
+  ai_intent_summary?: string;
   assigned_to?: string;
   assigned_type: AssignedType;
   created_at: string;
@@ -355,9 +356,12 @@ export interface Lead {
   first_name?: string;
   last_name?: string;
   email?: string;
+  phone?: string;
   contact_title?: string;
+  title?: string;
   company_name?: string;
   company_domain?: string;
+  industry?: string;
 }
 
 export interface Conversation {

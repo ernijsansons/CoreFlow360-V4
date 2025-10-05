@@ -131,7 +131,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
   // Magnetic snapping logic
   const applyMagneticSnapping = (item: Layout, layout: Layout[]): Layout => {
     const otherItems = layout.filter(i => i.i !== item.i)
-    let snappedItem = { ...item }
+    const snappedItem = { ...item }
 
     // Snap to grid lines
     const gridX = Math.round(item.x / 2) * 2
@@ -178,7 +178,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
     if (!widget) return item
 
     const constraints = widget.constraints || {}
-    let constrainedItem = { ...item }
+    const constrainedItem = { ...item }
 
     if (constraints.minW && item.w < constraints.minW) {
       constrainedItem.w = constraints.minW

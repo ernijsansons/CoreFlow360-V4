@@ -53,7 +53,7 @@ export interface CacheStats {
   popular_keys: string[]
 }
 
-export class CacheManager extends DurableObject {
+export class CacheManager extends DurableObject<any> {
   private storage: DurableObjectStorage
   private env: any
   private cache: Map<string, CacheEntry> = new Map()
@@ -642,5 +642,3 @@ export class CacheManager extends DurableObject {
     await this.storage.put('cache:policies', this.policies)
   }
 }
-
-export { CacheManager }

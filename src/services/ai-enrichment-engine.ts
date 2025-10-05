@@ -135,13 +135,13 @@ Respond with just the four numbers.
 `;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+      const response = await this.env?.AI?.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast' as any, {
         prompt,
         max_tokens: 100,
         temperature: 0.1
-      });
+      }) as any;
 
-      const scores = this.parseScores(response.response);
+      const scores = this.parseScores(response?.response || response);
 
       return {
         icp_fit_score: scores[0] || 50,
@@ -190,13 +190,13 @@ Be specific about evidence found in the data.
 `;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+      const response = await this.env?.AI?.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast' as any, {
         prompt,
         max_tokens: 512,
         temperature: 0.3
-      });
+      }) as any;
 
-      return this.parseQualificationInsights(response.response, data);
+      return this.parseQualificationInsights(response?.response || response, data);
     } catch (error: any) {
       return this.getDefaultQualificationInsights(data);
     }
@@ -232,13 +232,13 @@ Provide specific, actionable insights.
 `;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+      const response = await this.env?.AI?.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast' as any, {
         prompt,
         max_tokens: 400,
         temperature: 0.4
-      });
+      }) as any;
 
-      return this.parsePersonalizationInsights(response.response, data);
+      return this.parsePersonalizationInsights(response?.response || response, data);
     } catch (error: any) {
       return this.getDefaultPersonalizationInsights(data);
     }
@@ -288,13 +288,13 @@ Be specific and actionable.
 `;
 
     try {
-      const response = await this.env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+      const response = await this.env?.AI?.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast' as any, {
         prompt,
         max_tokens: 500,
         temperature: 0.4
-      });
+      }) as any;
 
-      return this.parseRecommendations(response.response, data);
+      return this.parseRecommendations(response?.response || response, data);
     } catch (error: any) {
       return this.getDefaultRecommendations(data);
     }
@@ -329,7 +329,7 @@ Be specific and actionable.
     }
 
     // Competition risk
-    if (data.company?.tech_stack?.tools?.length > 10) {
+    if (data.company?.tech_stack?.tools && data.company.tech_stack.tools.length > 10) {
       riskFactors.push({
         type: 'competition',
         risk: 'Heavy tech stack may indicate existing vendor relationships',
@@ -340,7 +340,7 @@ Be specific and actionable.
     }
 
     // Timing risk
-    if (data.news?.recent_news?.some(n => n.sentiment === 'negative')) {
+    if (data.news?.recent_news && data.news.recent_news.some((n: any) => n.sentiment === 'negative')) {
       riskFactors.push({
         type: 'timing',
         risk: 'Recent negative news may affect buying decisions',

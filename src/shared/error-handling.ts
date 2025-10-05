@@ -59,17 +59,30 @@ export class ApplicationError extends Error {
   public readonly retryable: boolean;
   public readonly userMessage?: string;
 
-  constructor(details: Omit<ErrorDetails, 'timestamp'>) {
-    super(details.message);
-    this.name = 'ApplicationError';
-    this.category = details.category;
-    this.severity = details.severity;
-    this.code = details.code;
-    this.context = details.context;
-    this.originalError = details.originalError;
-    this.timestamp = new Date();
-    this.retryable = details.retryable;
-    this.userMessage = details.userMessage;
+  constructor(messageOrDetails: string | Omit<ErrorDetails, 'timestamp'>) {
+    // Handle string input for backward compatibility
+    if (typeof messageOrDetails === 'string') {
+      super(messageOrDetails);
+      this.name = 'ApplicationError';
+      this.category = ErrorCategory.UNKNOWN;
+      this.severity = ErrorSeverity.MEDIUM;
+      this.code = 'APPLICATION_ERROR';
+      this.message = messageOrDetails;
+      this.timestamp = new Date();
+      this.retryable = false;
+    } else {
+      // Handle object input (original behavior)
+      super(messageOrDetails.message);
+      this.name = 'ApplicationError';
+      this.category = messageOrDetails.category;
+      this.severity = messageOrDetails.severity;
+      this.code = messageOrDetails.code;
+      this.context = messageOrDetails.context;
+      this.originalError = messageOrDetails.originalError;
+      this.timestamp = new Date();
+      this.retryable = messageOrDetails.retryable;
+      this.userMessage = messageOrDetails.userMessage;
+    }
 
     // Maintain stack trace
     if (Error.captureStackTrace) {

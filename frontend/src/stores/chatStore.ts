@@ -178,7 +178,7 @@ export const useChatStore = create<ChatStore>()(
             const reader = response.body.getReader()
             const decoder = new TextDecoder()
 
-            let assistantMessage: ChatMessage = {
+            const assistantMessage: ChatMessage = {
               id: crypto.randomUUID(),
               conversationId: state.currentConversation?.id || 'temp',
               type: 'assistant',

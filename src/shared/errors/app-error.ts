@@ -25,7 +25,7 @@ export class AppError extends Error {
 
 export class ValidationError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 400, undefined, true, context);
+    super(message, 400, 'VALIDATION_ERROR', true, context);
     this.name = 'ValidationError';
     Object.setPrototypeOf(this, ValidationError.prototype);
   }
@@ -33,7 +33,7 @@ export class ValidationError extends AppError {
 
 export class AuthenticationError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 401, undefined, true, context);
+    super(message, 401, 'AUTHENTICATION_ERROR', true, context);
     this.name = 'AuthenticationError';
     Object.setPrototypeOf(this, AuthenticationError.prototype);
   }
@@ -41,7 +41,7 @@ export class AuthenticationError extends AppError {
 
 export class AuthorizationError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 403, undefined, true, context);
+    super(message, 403, 'AUTHORIZATION_ERROR', true, context);
     this.name = 'AuthorizationError';
     Object.setPrototypeOf(this, AuthorizationError.prototype);
   }
@@ -49,7 +49,7 @@ export class AuthorizationError extends AppError {
 
 export class NotFoundError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 404, undefined, true, context);
+    super(message, 404, 'NOT_FOUND', true, context);
     this.name = 'NotFoundError';
     Object.setPrototypeOf(this, NotFoundError.prototype);
   }
@@ -57,7 +57,7 @@ export class NotFoundError extends AppError {
 
 export class ConflictError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 409, undefined, true, context);
+    super(message, 409, 'CONFLICT_ERROR', true, context);
     this.name = 'ConflictError';
     Object.setPrototypeOf(this, ConflictError.prototype);
   }
@@ -65,7 +65,7 @@ export class ConflictError extends AppError {
 
 export class SecurityError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 403, undefined, true, context);
+    super(message, 403, 'SECURITY_ERROR', true, context);
     this.name = 'SecurityError';
     Object.setPrototypeOf(this, SecurityError.prototype);
   }
@@ -73,7 +73,7 @@ export class SecurityError extends AppError {
 
 export class RateLimitError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 429, undefined, true, context);
+    super(message, 429, 'RATE_LIMIT_ERROR', true, context);
     this.name = 'RateLimitError';
     Object.setPrototypeOf(this, RateLimitError.prototype);
   }
@@ -81,7 +81,7 @@ export class RateLimitError extends AppError {
 
 export class InternalError extends AppError {
   constructor(message: string, context?: Record<string, unknown>) {
-    super(message, 500, undefined, false, context);
+    super(message, 500, 'INTERNAL_ERROR', false, context);
     this.name = 'InternalError';
     Object.setPrototypeOf(this, InternalError.prototype);
   }

@@ -699,12 +699,14 @@ export class AIEmailWriter {
   private async fetchRecentActivity(lead: Lead): Promise<string | undefined> {
     // Check CRM for recent activities
     const db = this.env.DB_CRM;
+    if (!db) return undefined;
+
     const result = await db.prepare(`
       SELECT description FROM lead_activities
       WHERE lead_id = ?
       ORDER BY created_at DESC
       LIMIT 1
-    `).bind(lead.id).first();
+    `).bind(lead.id).first() as any;
 
     return result?.description as string | undefined;
   }
@@ -781,6 +783,8 @@ export class AIEmailWriter {
 
   private async getEngagementHistory(leadId: string): Promise<any> {
     const db = this.env.DB_CRM;
+    if (!db) return { opens: 0, clicks: 0, replies: 0 };
+
     const result = await db.prepare(`
       SELECT
         COUNT(CASE WHEN opened_at IS NOT NULL THEN 1 END) as opens,
@@ -788,7 +792,7 @@ export class AIEmailWriter {
         COUNT(CASE WHEN replied_at IS NOT NULL THEN 1 END) as replies
       FROM channel_messages
       WHERE lead_id = ? AND channel = 'email'
-    `).bind(leadId).first();
+    `).bind(leadId).first() as any;
 
     return {
       opens: result?.opens || 0,
@@ -822,12 +826,14 @@ export class AIEmailWriter {
 
   private async checkRecentEngagement(leadId: string): Promise<boolean> {
     const db = this.env.DB_CRM;
+    if (!db) return false;
+
     const result = await db.prepare(`
       SELECT COUNT(*) as count
       FROM lead_activities
       WHERE lead_id = ?
         AND created_at >= datetime('now', '-7 days')
-    `).bind(leadId).first();
+    `).bind(leadId).first() as any;
 
     return (result?.count as number) > 0;
   }
@@ -888,6 +894,7 @@ export class AIEmailWriter {
   }): Promise<void> {
     // Update email performance metrics in database
     const db = this.env.DB_CRM;
+    if (!db) return;
 
     const updates = [];
     const values = [];

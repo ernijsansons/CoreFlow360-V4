@@ -89,7 +89,10 @@
       "Bash(Select-String -Pattern \"error TS\")",
       "Bash(Measure-Object)",
       "Bash(Select-Object -ExpandProperty Count)",
-      "Bash(1)"
+      "Bash(1)",
+      "Bash(npx vite-bundle-visualizer:*)",
+      "Bash(do gzip:*)",
+      "Bash(more:*)"
     ],
     "deny": [],
     "ask": []
