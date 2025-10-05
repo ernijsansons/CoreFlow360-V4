@@ -6,6 +6,7 @@ export { Label } from './label'
 export { Badge } from './badge-refactored'
 export { Alert, AlertTitle, AlertDescription } from './alert'
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
+export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from './dialog'
 
 // Dropdown Menu components (from Radix UI)
 export * as DropdownMenu from '@radix-ui/react-dropdown-menu'

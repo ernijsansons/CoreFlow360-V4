@@ -44,7 +44,7 @@ export function LoginForm() {
       })
 
       // Store authentication data
-      login(response.token, response.user)
+      login(response.token, response.refreshToken || response.token, response.user)
 
       toast.success('Login successful!', {
         description: `Welcome back, ${response.user.firstName}!`,
