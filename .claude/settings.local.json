@@ -80,7 +80,8 @@
       "Bash(git config:*)",
       "Bash(npx wrangler pages deploy:*)",
       "Bash(npx wrangler:*)",
-      "Bash(unset:*)"
+      "Bash(unset:*)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []
