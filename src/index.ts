@@ -515,8 +515,8 @@ export default {
         // Check rate limiting
         try {
           let rateLimitPassed = false;
-          const rateLimitResponse = await rateLimitByIP(request, env.KV_RATE_LIMIT_METRICS || env.RATE_LIMITER);
-          
+          const rateLimitResponse = await rateLimitByIP(request, env.KV_RATE_LIMIT_METRICS || env.RATE_LIMITER_DO as any);
+
           // If rate limit exceeded, return error response
           if (!rateLimitResponse.allowed) {
             return new Response(JSON.stringify({

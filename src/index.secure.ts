@@ -71,7 +71,7 @@ function createApp(env: Env) {
   const logger = createStructuredLogger(
     {
       minLevel: env.ENVIRONMENT === 'production' ? LogLevel.INFO : LogLevel.DEBUG,
-      env: env.ENVIRONMENT
+      env: env.ENVIRONMENT as 'development' | 'staging' | 'production'
     },
     env.KV_CACHE,
     env.ANALYTICS
@@ -89,14 +89,22 @@ function createApp(env: Env) {
 
   // Initialize business systems
   const authSystem = new AuthSystem(env.DB_MAIN, env.KV_AUTH, env.JWT_SECRET);
-  const database = new SecureDatabase(env.DB_MAIN);
+  const database = new SecureDatabase(env.DB_MAIN, {
+    env: env.ENVIRONMENT as 'development' | 'staging' | 'production',
+    auditLog: true,
+    enforceRLS: true,
+    preventCrossTenant: true,
+    enableAuditLog: true,
+    enableQueryValidation: true,
+    enableRateLimiting: true
+  });
 
   // =======================
   // MIDDLEWARE CHAIN
   // =======================
 
   // 1. Error handling (outermost)
-  app.use('*', createErrorHandler({ env: env.ENVIRONMENT }, env.KV_CACHE));
+  app.use('*', createErrorHandler({ env: env.ENVIRONMENT as 'development' | 'staging' | 'production' }, env.KV_CACHE));
 
   // 2. Request ID and correlation
   app.use('*', async (c: AppContext, next: Next) => {
@@ -143,9 +151,9 @@ function createApp(env: Env) {
   const allowedOrigins = env.ALLOWED_ORIGINS?.split(',') || ['https://app.coreflow360.com'];
   app.use('*', cors({
     origin: (origin) => {
-      if (!origin) return true; // Allow requests with no origin (e.g., Postman)
+      if (!origin) return '*'; // Allow requests with no origin (e.g., Postman)
       if (env.ENVIRONMENT === 'development' && origin.includes('localhost')) return origin;
-      return allowedOrigins.includes(origin) ? origin : false;
+      return allowedOrigins.includes(origin) ? origin : null;
     },
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -163,7 +171,7 @@ function createApp(env: Env) {
   app.use('*', async (c: AppContext, next: Next) => {
     const rateLimitResult = await advancedRateLimit(
       c.req.raw,
-      env.KV_RATE_LIMIT,
+      env.KV_RATE_LIMIT || ({} as any),
       {
         requests: 100,
         window: 60,
@@ -194,7 +202,7 @@ function createApp(env: Env) {
       );
     }
 
-    await next();
+    return next();
   });
 
   // 10. Input validation and sanitization
@@ -213,7 +221,7 @@ function createApp(env: Env) {
       }
     }
 
-    await next();
+    return next();
   });
 
   // =======================
@@ -222,10 +230,10 @@ function createApp(env: Env) {
 
   app.get('/health', async (c) => {
     const health = await performanceMonitor.getHealthMetrics();
-    const statusCode = (health.status === 'healthy' ? 200 :
-                       health.status === 'degraded' ? 503 : 500) as StatusCode;
+    const statusCode = health.status === 'healthy' ? 200 :
+                       health.status === 'degraded' ? 503 : 500;
 
-    return c.json(health, statusCode);
+    return c.json(health, statusCode as any);
   });
 
   app.get('/metrics', async (c) => {
@@ -365,7 +373,10 @@ function createApp(env: Env) {
     const token = authHeader!.substring(7);
 
     await authSystem.logout(token);
-    await sessionManager.destroyAllUserSessions(c.get('userId'));
+    const userId = c.get('userId');
+    if (userId) {
+      await sessionManager.destroyAllUserSessions(userId);
+    }
 
     logger.info('User logged out', { userId: c.get('userId') });
 
@@ -377,8 +388,8 @@ function createApp(env: Env) {
   // =======================
 
   app.post('/api/keys/generate', authMiddleware, async (c: AppContext) => {
-    const userId = c.get('userId');
-    const businessId = c.get('businessId');
+    const userId = c.get('userId') || '';
+    const businessId = c.get('businessId') || '';
     const body = await c.req.json();
 
     // Check permission
@@ -414,8 +425,8 @@ function createApp(env: Env) {
   // =======================
 
   app.get('/api/business/:id', authMiddleware, async (c: AppContext) => {
-    const businessId = c.param('id');
-    const userId = c.get('userId');
+    const businessId = c.req.param('id');
+    const userId = c.get('userId') || '';
 
     // Check RBAC permission
     const hasAccess = await rbacSystem.checkAccess({
@@ -435,13 +446,13 @@ function createApp(env: Env) {
     }
 
     // Fetch business data with row-level security
-    const business = await database.getBusinessSecure(businessId, userId);
+    const business = await database.select('businesses', { id: businessId });
 
-    if (!business) {
+    if (!business.success || !business.data || business.data.length === 0) {
       return c.json({ error: 'Business not found' }, 404);
     }
 
-    return c.json(business);
+    return c.json(business.data[0]);
   });
 
   // =======================

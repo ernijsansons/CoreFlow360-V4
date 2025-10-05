@@ -31,7 +31,7 @@ export async function createSecureApp(
   securityConfig: SecurityConfig,
   ctx: ExecutionContext
 ): Promise<SecureApp> {
-  const app = new Hono<{ Bindings: Env }>();
+  const app = new Hono<{ Bindings: Env; Variables: any }>();
 
   // Initialize core services
   const observability = new ObservabilityService(env);

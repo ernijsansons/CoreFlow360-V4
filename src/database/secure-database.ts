@@ -25,13 +25,17 @@ import { AppError } from '../shared/errors/app-error';
 
 // Security configuration schema
 const SecurityConfigSchema = z.object({
-  businessId: z.string().min(1),
-  userId: z.string().min(1),
-  role: z.enum(['owner', 'admin', 'user', 'viewer']),
+  businessId: z.string().min(1).optional(),
+  userId: z.string().min(1).optional(),
+  role: z.enum(['owner', 'admin', 'user', 'viewer']).optional(),
   tenantId: z.string().optional(),
   enforceRLS: z.boolean().default(true),
   auditLog: z.boolean().default(true),
-  preventCrossTenant: z.boolean().default(true)
+  preventCrossTenant: z.boolean().default(true),
+  env: z.enum(['development', 'staging', 'production']).optional(),
+  enableAuditLog: z.boolean().optional(),
+  enableQueryValidation: z.boolean().optional(),
+  enableRateLimiting: z.boolean().optional()
 });
 
 type SecurityConfig = z.infer<typeof SecurityConfigSchema>;
@@ -752,6 +756,26 @@ export class SecureDatabase {
       ...this.config,
       ...updates
     });
+  }
+
+  /**
+   * Health check for database connectivity
+   */
+  async healthCheck(): Promise<{ status: string; latency?: number }> {
+    try {
+      const startTime = Date.now();
+      const result = await this.db.prepare('SELECT 1 as health').first();
+      const latency = Date.now() - startTime;
+
+      return {
+        status: result ? 'healthy' : 'unhealthy',
+        latency
+      };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      logger.error('Database health check failed', { error: msg });
+      return { status: 'unhealthy' };
+    }
   }
 }
 

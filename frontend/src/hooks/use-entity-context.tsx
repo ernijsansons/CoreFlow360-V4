@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useEntityStore } from '@/stores'
+import { useEntityStore, useAuthStore } from '@/stores'
 import type { Entity } from '@/types'
 
 interface EntityContextType {

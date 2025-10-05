@@ -122,6 +122,15 @@ export class MockD1Database implements D1Database {
       duration: 0
     };
   }
+
+  withSession(constraintOrBookmark?: string): any {
+    // Return a mock session that implements D1DatabaseSession
+    return {
+      prepare: this.prepare.bind(this),
+      exec: this.exec.bind(this),
+      batch: this.batch.bind(this)
+    };
+  }
 }
 
 /**

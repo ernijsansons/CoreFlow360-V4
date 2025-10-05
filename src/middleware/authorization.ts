@@ -14,12 +14,29 @@
  * - Business context enforcement
  */
 
-import { AuthContext } from './auth';
+import { AuthContext as BaseAuthContext } from '../modules/auth/types';
 import {
   logAuditEvent,
   AuditEventType,
   AuditSeverity
 } from './security';
+
+// Extended AuthContext for authorization with nested user/metadata structure
+export interface AuthContext {
+  user: {
+    id: string;
+    email: string;
+    businessId: string;
+    role: string;
+    permissions: string[];
+  };
+  metadata: {
+    requestId: string;
+    ipAddress?: string;
+    userAgent?: string;
+    timestamp: number;
+  };
+}
 
 export interface Permission {
   id: string;

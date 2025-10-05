@@ -134,7 +134,7 @@ export class ErrorHandler {
   /**
    * Handle error and generate response
    */
-  private async handleError(error: any, c: AppContext): Promise<Response | void> {
+  private async handleError(error: any, c: AppContext): Promise<Response> {
     const requestId = c.get('requestId') || crypto.randomUUID();
     const timestamp = new Date().toISOString();
 

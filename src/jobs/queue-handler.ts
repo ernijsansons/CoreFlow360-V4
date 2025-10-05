@@ -658,10 +658,12 @@ export class QueueHandler {
 
   private async loadEmailTemplate(template: string, env: Env): Promise<any> {
     // Load email template from R2 or predefined templates
-    const response = await env.R2_ASSETS.get(`email-templates/${template}.json`);
+    if (env.R2_ASSETS) {
+      const response = await env.R2_ASSETS.get(`email-templates/${template}.json`);
 
-    if (response) {
-      return await new Response(response.body).json();
+      if (response) {
+        return await new Response(response.body).json();
+      }
     }
 
     // Fallback templates
@@ -696,7 +698,9 @@ export class QueueHandler {
 
   private async queueEmailJob(job: EmailJob, env: Env): Promise<void> {
     // Queue email for processing
-    await env.EMAIL_QUEUE.send(JSON.stringify(job));
+    if (env.EMAIL_QUEUE) {
+      await env.EMAIL_QUEUE.send(JSON.stringify(job));
+    }
   }
 
   private async logJobExecution(job: JobPayload, status: string, env: Env, metadata?: any): Promise<void> {

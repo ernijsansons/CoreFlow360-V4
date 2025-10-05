@@ -528,21 +528,9 @@ export default {
         const rateLimiter = new DistributedRateLimiter(env.KV_RATE_LIMIT_METRICS);
         const allowed = await rateLimiter.check(request);
 
-        const checkRequest = new Request(`http://localhost/check`, {
-          headers: {
-            'CF-Connecting-IP': request.headers.get('CF-Connecting-IP') || 'unknown',
-            'X-User-ID': request.headers.get('X-User-ID') || '',
-            'X-Endpoint': path
-          }
-        });
-
-        const rateLimitResponse = await rateLimiter.fetch(checkRequest);
-        const rateLimitData = await rateLimitResponse.json() as any;
-
-        if (!rateLimitData.allowed) {
+        if (!allowed) {
           return new Response(JSON.stringify({
-            error: 'Rate limit exceeded',
-            ...rateLimitData
+            error: 'Rate limit exceeded'
           }), {
             status: 429,
             headers: { 'Content-Type': 'application/json', ...corsHeaders }
