@@ -7,6 +7,16 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    // Brand primary colors used in login page
+    { pattern: /^(bg|text|from|to|via)-brand-primary-\d{1,3}$/ },
+    { pattern: /^(bg|text|from|to|via)-brand-accent-\d{1,3}$/ },
+    { pattern: /^(bg|text|from|to|via)-brand-teal-\d{1,3}$/ },
+    { pattern: /^(bg|text|from|to)-success-\d{1,3}$/ },
+    { pattern: /^(bg|text|from|to)-warning-\d{1,3}$/ },
+    { pattern: /^(from|to|via)-gray-\d{1,3}$/ },
+    'shadow-primary-lg',
+  ],
   theme: {
     container: {
       center: true,
