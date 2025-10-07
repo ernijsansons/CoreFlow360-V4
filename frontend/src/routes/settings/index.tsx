@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createFileRoute, Link, Outlet, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   User,
   CreditCard,
@@ -29,7 +29,6 @@ export const Route = createFileRoute('/settings/')({
 })
 
 function SettingsPage() {
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = React.useState('profile')
 
   const settingsSections = [

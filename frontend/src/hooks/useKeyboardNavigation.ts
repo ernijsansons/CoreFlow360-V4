@@ -28,7 +28,7 @@ export const useKeyboardNavigation = ({
     if (!isEnabled || itemCount === 0) return
 
     switch (event.key) {
-      case 'ArrowDown':
+      case 'ArrowDown': {
         event.preventDefault()
         const nextIndex = selectedIndex + 1
         if (nextIndex < itemCount) {
@@ -37,8 +37,9 @@ export const useKeyboardNavigation = ({
           onSelectionChange(0)
         }
         break
+      }
 
-      case 'ArrowUp':
+      case 'ArrowUp': {
         event.preventDefault()
         const prevIndex = selectedIndex - 1
         if (prevIndex >= 0) {
@@ -47,6 +48,7 @@ export const useKeyboardNavigation = ({
           onSelectionChange(itemCount - 1)
         }
         break
+      }
 
       case 'Enter':
         event.preventDefault()

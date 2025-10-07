@@ -1,53 +1,87 @@
-/* Fonts removed - use system fonts for better performance */
-@import '../../../design-system/tokens.css';
+/* Import CoreFlow360 V4 Premium Design System */
+@import '../../../design-system/design-tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /*
+    Shadcn/UI compatibility layer - mapped to CoreFlow360 Design System
+    These HSL values bridge shadcn components to our premium design tokens
+  */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Backgrounds - Clean, professional white */
+    --background: 0 0% 100%;        /* Maps to --neutral-0 / --bg-base */
+    --foreground: 220 13% 9%;       /* Maps to --gray-900 / --text-primary */
+
+    /* Cards - Elevated surfaces */
+    --card: 0 0% 100%;              /* Maps to --bg-surface */
+    --card-foreground: 220 13% 9%;  /* Maps to --text-primary */
+
+    /* Popovers - Elevated UI elements */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --popover-foreground: 220 13% 9%;
+
+    /* Primary - Brand Blue (Trust Blue #2563eb) */
+    --primary: 217 91% 60%;         /* Maps to --brand-primary-600 */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Subtle surfaces */
+    --secondary: 220 14% 96%;       /* Maps to --gray-100 */
+    --secondary-foreground: 220 13% 9%;
+
+    /* Muted - Backgrounds and disabled states */
+    --muted: 220 14% 96%;           /* Maps to --gray-100 */
+    --muted-foreground: 220 9% 46%; /* Maps to --gray-600 */
+
+    /* Accent - Innovation Purple */
+    --accent: 258 90% 66%;          /* Maps to --brand-accent-600 */
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive - Error Red */
+    --destructive: 0 84% 60%;       /* Maps to --semantic-error-500 */
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders and inputs */
+    --border: 220 13% 91%;          /* Maps to --gray-200 */
+    --input: 220 13% 91%;
+    --ring: 217 91% 60%;            /* Focus ring - brand primary */
+
+    /* Border radius from design tokens */
+    --radius: var(--radius-lg);     /* 0.5rem / 8px */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    /* Dark mode - Deep, premium backgrounds */
+    --background: 222 84% 5%;       /* Maps to --gray-950 */
+    --foreground: 220 9% 95%;       /* Maps to --gray-50 */
+
+    --card: 217 33% 17%;            /* Maps to --gray-800 */
+    --card-foreground: 220 9% 95%;
+
+    --popover: 217 33% 17%;
+    --popover-foreground: 220 9% 95%;
+
+    /* Primary - Brighter for dark backgrounds */
+    --primary: 217 91% 65%;         /* Maps to --brand-primary-400 */
+    --primary-foreground: 222 84% 5%;
+
+    --secondary: 217 33% 17%;       /* Maps to --gray-800 */
+    --secondary-foreground: 220 9% 95%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 258 90% 70%;          /* Brighter accent for dark */
+    --accent-foreground: 222 84% 5%;
+
+    --destructive: 0 63% 31%;       /* Darker destructive */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 217 91% 65%;
   }
 }
 
@@ -347,6 +381,74 @@
     }
   }
 
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(30px, -50px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+
+  @keyframes float-particle {
+    0% {
+      transform: translateY(0px) translateX(0px);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100vh) translateX(100px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
   .fade-in {
     animation: fade-in 0.3s ease-in;
   }
@@ -361,6 +463,83 @@
 
   .pulse-slow {
     animation: pulse-slow 2s ease-in-out infinite;
+  }
+
+  .animate-blob {
+    animation: blob 20s infinite;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  .animate-float-particle {
+    animation: float-particle 20s infinite linear;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  /* Glassmorphism effects */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .glass-card-strong {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+
+  /* Premium gradient backgrounds */
+  .gradient-premium {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .gradient-aurora {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .gradient-ocean {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+
+  /* 3D transform perspective */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .transform-3d {
+    transform-style: preserve-3d;
   }
 }
 

@@ -1,7 +1,7 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { Button, ButtonProps } from "./button"
-import { microInteractions, animationConfig } from "@/lib/animations"
+import { microInteractions } from "@/lib/animations"
 import { cn } from "@/lib/utils"
 
 export interface AnimatedButtonProps extends Omit<ButtonProps, 'asChild'> {

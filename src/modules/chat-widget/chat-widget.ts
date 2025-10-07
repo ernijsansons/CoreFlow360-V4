@@ -407,7 +407,7 @@ export class ChatWidget {
     bubble?.addEventListener('click', () => this.toggle());
     closeBtn?.addEventListener('click', () => this.close());
 
-    input?.addEventListener('keypress', (e) => {
+    input?.addEventListener('keypress', (e: KeyboardEvent) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         this.sendMessage();
@@ -655,23 +655,23 @@ export class ChatWidget {
 
   private trackEvent(event: string, data: any = {}): void {
     // Google Analytics
-    if (this.config.integrations.googleAnalytics && typeof gtag !== 'undefined') {
-      gtag('event', event, {
+    if (this.config.integrations.googleAnalytics && typeof (window as any).gtag !== 'undefined') {
+      (window as any).gtag('event', event, {
         custom_parameter: JSON.stringify(data)
       });
     }
 
     // Facebook Pixel
-    if (this.config.integrations.facebookPixel && typeof fbq !== 'undefined') {
-      fbq('track', 'CustomEvent', { event, data });
+    if (this.config.integrations.facebookPixel && typeof (window as any).fbq !== 'undefined') {
+      (window as any).fbq('track', 'CustomEvent', { event, data });
     }
 
     // Custom tracking
     if (this.config.integrations.customTracking) {
-      this.config.integrations.customTracking.forEach((tracker: any) => {
+      this.config.integrations.customTracking.forEach((tracker: string) => {
         // Call custom tracking functions
-        if (typeof window[tracker] === 'function') {
-          window[tracker](event, data);
+        if (typeof (window as any)[tracker] === 'function') {
+          (window as any)[tracker](event, data);
         }
       });
     }

@@ -17,6 +17,7 @@ import {
   IAgent,
   AgentResult,
   TaskConstraints,
+  MemoryContext,
   AGENT_CONSTANTS
 } from './types';
 import { AgentRegistry } from './registry';
@@ -184,17 +185,19 @@ export class AgentOrchestrator {
       // Validate other constraints
       const constraintValidation = await this.validateConstraints(task, agent);
       if (!constraintValidation.valid) {
+        const validationError = constraintValidation.reason || 'Constraint validation failed';
+
         // Release reservation if constraints fail
-        await this.costReservationManager.release(reservationId, 'Constraint validation failed');
+        await this.costReservationManager.release(reservationId, validationError);
 
         executionPath[executionPath.length - 1].endTime = Date.now();
         executionPath[executionPath.length - 1].success = false;
-        executionPath[executionPath.length - 1].error = constraintValidation.reason;
+        executionPath[executionPath.length - 1].error = validationError;
 
         return this.createErrorResult(
           task.id,
           executionId,
-          constraintValidation.reason,
+          validationError,
           executionPath,
           startTime
         );
@@ -296,18 +299,32 @@ export class AgentOrchestrator {
       executionPath[executionPath.length - 1].success = true;
 
       // Step 7: Save to memory
-      if (result.success) {
+      if (result.success && task.context.memory) {
         executionPath.push({
           step: 'memory_saving',
           startTime: Date.now(),
           agentId: selectedAgentId,
         });
 
-        await this.memory.save(
-          task.context.businessId,
-          task.context.sessionId || task.id,
-          result
-        );
+        // Update memory context with new conversation entry
+        const updatedMemory: MemoryContext = {
+          ...task.context.memory,
+          conversationHistory: [
+            ...task.context.memory.conversationHistory,
+            {
+              id: `${task.id}_${Date.now()}`,
+              taskId: task.id,
+              agentId: selectedAgentId,
+              input: task.input,
+              output: result.data,
+              timestamp: Date.now(),
+              success: result.success,
+              cost: result.metrics.cost,
+            }
+          ]
+        };
+
+        await this.memory.save(updatedMemory);
 
         executionPath[executionPath.length - 1].endTime = Date.now();
         executionPath[executionPath.length - 1].success = true;

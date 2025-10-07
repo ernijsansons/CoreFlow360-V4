@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../../shared/logger';
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database, D1PreparedStatement } from '@cloudflare/workers-types';
 
 export enum ErrorCategory {
   VALIDATION = 'VALIDATION',
@@ -559,7 +559,7 @@ export class ErrorSystem {
     this.errorBuffer = [];
 
     try {
-      const batch = this.db.batch([]);
+      const batch: D1PreparedStatement[] = [];
 
       for (const error of errors) {
         batch.push(

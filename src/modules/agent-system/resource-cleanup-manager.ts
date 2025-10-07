@@ -436,7 +436,9 @@ class ResourceCleanupManager {
       });
     }, this.config.cleanupInterval) as any;
 
-    this.registerInterval(this.cleanupInterval);
+    if (this.cleanupInterval) {
+      this.registerInterval(this.cleanupInterval);
+    }
   }
 
   /**

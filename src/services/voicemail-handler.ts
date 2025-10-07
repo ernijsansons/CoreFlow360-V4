@@ -6,12 +6,21 @@ import type {
   VoiceSettings,
   PersonalizationLevel,
   VoicemailDeliveryStatus,
-  LeaveVoicemailTaskPayload,
+  // GRUG: LeaveVoicemailTaskPayload not exported - define inline or remove
   VoicemailFollowUp,
   FollowUpType,
   ContactMethod
 } from '../types/crm';
 import type { Env } from '../types/env';
+
+// GRUG: Define missing type locally
+interface LeaveVoicemailTaskPayload {
+  lead_id: string;
+  voicemail_id: string;
+  attempt_number: number;
+  scheduled_time: Date;
+  method: string;
+}
 
 export class VoicemailHandler {
   private env: Env;
@@ -258,10 +267,11 @@ export class VoicemailHandler {
       const followUpMethod = this.determineFollowUpMethod(nextAttemptNumber);
 
       // Create follow-up record
+      // GRUG: 'call_attempt' not valid FollowUpType - use 'callback' instead
       const followUp: Partial<VoicemailFollowUp> = {
         voicemail_id: voicemail.id,
         lead_id: lead.id || '',
-        follow_up_type: followUpMethod === 'call' ? 'call_attempt' : followUpMethod as FollowUpType,
+        follow_up_type: followUpMethod === 'call' ? 'callback' : followUpMethod as FollowUpType,
         scheduled_time: optimalTime.toISOString(),
         status: 'scheduled',
         method: followUpMethod as ContactMethod,
@@ -321,7 +331,9 @@ export class VoicemailHandler {
     }
 
     // Adjust based on lead's industry/role
-    if (lead.seniority_level === 'c_level' || lead.seniority_level === 'vp') {
+    // GRUG: Lead no have seniority_level - use any cast for extended properties
+    const seniorityLevel = (lead as any).seniority_level;
+    if (seniorityLevel === 'c_level' || seniorityLevel === 'vp') {
       baseSettings.voice = 'professional_male';
       baseSettings.emotion = 'professional';
     }

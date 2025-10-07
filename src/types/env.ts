@@ -29,11 +29,15 @@ export interface Env {
   AGENT_MEMORY?: KVNamespace;
   PATTERN_CACHE?: KVNamespace;
 
+  // Chat-specific KV namespaces
+  CHAT_CONTEXT_KV?: KVNamespace;
+
   // ==========================================
   // R2 BUCKET BINDINGS (from wrangler.toml)
   // ==========================================
   R2_DOCUMENTS: R2Bucket;
   R2_BACKUPS: R2Bucket;
+  CHAT_FILES_BUCKET?: R2Bucket;
 
   // ==========================================
   // DURABLE OBJECTS (from wrangler.toml)
@@ -117,6 +121,10 @@ export interface Env {
   ORCHESTRATOR_TOKEN?: string;
   GATEWAY_TOKEN?: string;
   CACHE_TOKEN?: string;
+
+  // Chat/File service secrets
+  CHAT_FILES_BASE_URL?: string;
+  FILE_SIGNATURE_SECRET?: string;
 
   // ==========================================
   // OPTIONAL CONFIGURATION

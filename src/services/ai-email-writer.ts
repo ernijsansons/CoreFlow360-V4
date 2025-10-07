@@ -412,6 +412,10 @@ export class AIEmailWriter {
 
   private async generateWithAI(prompt: string): Promise<any> {
     try {
+      if (!this.env.ANTHROPIC_API_KEY) {
+        throw new Error('ANTHROPIC_API_KEY not configured');
+      }
+
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {

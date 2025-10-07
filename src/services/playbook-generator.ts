@@ -37,7 +37,8 @@ export class PlaybookGenerator {
   }
 
   private async analyzeSegmentSuccess(segment: CustomerSegment): Promise<any> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB || this.env.DB_MAIN;
+    if (!db) throw new Error('Database not configured');
 
     // Get successful deals for this segment
     const successfulDeals = await db.prepare(`
@@ -68,12 +69,9 @@ export class PlaybookGenerator {
       Analyze these successful deals for ${segment.name} segment to extract winning approaches:
 
       Segment Characteristics:
-      - Industry: ${segment.criteria.industry?.join(', ')}
-      - Company Size: ${segment.criteria.companySize}
-      - Typical Challenges: ${segment.characteristics.typicalChallenges.join(', ')}
-      - Decision Makers: ${segment.characteristics.decisionMakers.join(', ')}
-      - Preferred Channels: ${segment.characteristics.preferredChannels.join(', ')}
-      - Communication Style: ${segment.characteristics.communicationStyle}
+      - Industry: ${segment.criteria.industry || 'Not specified'}
+      - Company Size: ${segment.criteria.companySize || 'Not specified'}
+      - Description: ${segment.description || 'No description available'}
 
       Successful Deals Data:
       ${JSON.stringify(deals.slice(0, 20).map((deal: any) => ({
@@ -198,41 +196,36 @@ export class PlaybookGenerator {
 
       const playbook: Playbook = {
         id: playbookId,
+        business_id: segment.business_id,
         name: `${segment.name} Sales Playbook`,
         segment: segment.id,
         version: 1,
-        sections: {
-       
-    idealCustomerProfile: this.createSection('Ideal Customer Profile', playbookData.idealCustomerProfile, 'text', 'high'),
-       
-    qualifyingQuestions: this.createSection('Qualifying Questions', playbookData.qualifyingQuestions, 'list', 'high'),
-       
-    discoveryStructure: this.createSection('Discovery Call Structure', playbookData.discoveryStructure, 'script', 'high'),
-          commonObjections: this.createSection('Common Objections', playbookData.commonObjections, 'list', 'high'),
-          proofPoints: this.createSection('Proof Points', playbookData.proofPoints, 'list', 'medium'),
-          emailTemplates: this.createSection('Email Templates', playbookData.emailTemplates, 'template', 'high'),
-          callScripts: this.createSection('Call Scripts', playbookData.callScripts, 'script', 'high'),
-       
-    competitivePositioning: this.createSection('Competitive Positioning', playbookData.competitivePositioning, 'text', 'medium'),
-          pricingGuidance: this.createSection('Pricing Guidance', playbookData.pricingGuidance, 'text', 'medium'),
-          closeTechniques: this.createSection('Close Techniques', playbookData.closeTechniques, 'list', 'high')
-        },
+        sections: [
+          this.createSection('Ideal Customer Profile', playbookData.idealCustomerProfile, 'text', 'high'),
+          this.createSection('Qualifying Questions', playbookData.qualifyingQuestions, 'list', 'high'),
+          this.createSection('Discovery Call Structure', playbookData.discoveryStructure, 'script', 'high'),
+          this.createSection('Common Objections', playbookData.commonObjections, 'list', 'high'),
+          this.createSection('Proof Points', playbookData.proofPoints, 'list', 'medium'),
+          this.createSection('Email Templates', playbookData.emailTemplates, 'template', 'high'),
+          this.createSection('Call Scripts', playbookData.callScripts, 'script', 'high'),
+          this.createSection('Competitive Positioning', playbookData.competitivePositioning, 'text', 'medium'),
+          this.createSection('Pricing Guidance', playbookData.pricingGuidance, 'text', 'medium'),
+          this.createSection('Close Techniques', playbookData.closeTechniques, 'list', 'high')
+        ],
         performance: {
           adoptionRate: 0,
           winRate: 0,
+          avgDealSize: 0,
+          conversionRate: 0,
           averageDealSize: 0,
           salesCycle: 0,
           userFeedback: 0
         },
-        metadata: {
-          generatedBy: 'ai',
-          dataPoints: analysis.dataPoints || 50,
-          lastAnalysis: new Date().toISOString(),
-          confidence: analysis.confidence || 0.8
-        },
         active: false, // Will activate after testing
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       return playbook;
@@ -373,8 +366,10 @@ export class PlaybookGenerator {
       ...playbook.performance,
       winRate: testResults.winRate,
       avgDealSize: testResults.averageDealSize,
+      averageDealSize: testResults.averageDealSize,
       salesCycle: testResults.salesCycle,
-      adoptionRate: testResults.adoptionRate
+      adoptionRate: testResults.adoptionRate,
+      conversionRate: testResults.winRate / 100
     };
 
     // Activate if test results are positive
@@ -384,7 +379,8 @@ export class PlaybookGenerator {
   }
 
   private async getTestLeads(segmentId: string, count: number): Promise<any[]> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB || this.env.DB_MAIN;
+    if (!db) return [];
 
     const testLeads = await db.prepare(`
       SELECT * FROM leads
@@ -433,7 +429,8 @@ export class PlaybookGenerator {
   }
 
   private async updatePerformanceMetrics(playbook: Playbook): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB || this.env.DB_MAIN;
+    if (!db) return;
 
     // Get actual performance data
     const performanceData = await db.prepare(`
@@ -447,13 +444,15 @@ export class PlaybookGenerator {
       LEFT JOIN playbook_usage pb_usage ON l.id = pb_usage.lead_id AND pb_usage.playbook_id = ?
       WHERE l.segment = ?
         AND o.created_at >= datetime('now', '-90 days')
-    `).bind(playbook.id, playbook.segment).first();
+    `).bind(playbook.id, playbook.segment).first() as any;
 
     if (performanceData) {
       playbook.performance.winRate = Number(performanceData.win_rate) || 0;
       playbook.performance.avgDealSize = Number(performanceData.avg_deal_size) || 0;
-      playbook.performance.salesCycle = performanceData.avg_sales_cycle || 0;
+      playbook.performance.averageDealSize = Number(performanceData.avg_deal_size) || 0;
+      playbook.performance.salesCycle = Number(performanceData.avg_sales_cycle) || 0;
       playbook.performance.adoptionRate = (Number(performanceData.adoption_rate) || 0) * 100;
+      playbook.performance.conversionRate = Number(performanceData.win_rate) / 100 || 0;
     }
 
     // Get user feedback
@@ -462,10 +461,10 @@ export class PlaybookGenerator {
       FROM feedback
       WHERE playbook_id = ?
         AND created_at >= datetime('now', '-30 days')
-    `).bind(playbook.id).first();
+    `).bind(playbook.id).first() as any;
 
     if (feedbackData) {
-      playbook.performance.userFeedback = feedbackData.avg_rating || 0;
+      playbook.performance.userFeedback = Number(feedbackData.avg_rating) || 0;
     }
   }
 
@@ -560,8 +559,11 @@ export class PlaybookGenerator {
       .join(' ')
       .toLowerCase();
 
-    return allContent.includes(pattern.name.toLowerCase()) ||
-           (pattern.description && allContent.includes(pattern.description.toLowerCase()));
+    const patternName = pattern.name.toLowerCase();
+    const patternDesc = pattern.description?.toLowerCase() || '';
+
+    return allContent.includes(patternName) ||
+           (patternDesc.length > 0 && allContent.includes(patternDesc));
   }
 
   private async callAI(prompt: string): Promise<string> {
@@ -623,6 +625,7 @@ export class PlaybookGenerator {
 
     return {
       id: `playbook_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      business_id: segment.business_id,
       name: `${segment.name} Sales Playbook`,
       segment: segment.id,
       version: 1,
@@ -642,24 +645,23 @@ export class PlaybookGenerator {
         adoptionRate: 0,
         winRate: 0,
         avgDealSize: 0,
+        conversionRate: 0,
+        averageDealSize: 0,
         salesCycle: 0,
         userFeedback: 0
       },
-      metadata: {
-        generatedBy: 'ai',
-        dataPoints: 0,
-        lastAnalysis: new Date().toISOString(),
-        confidence: 0.5
-      },
       active: false,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
   }
 
   // Storage and loading methods
   private async storePlaybook(playbook: Playbook): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB || this.env.DB_MAIN;
+    if (!db) throw new Error('Database not configured');
 
     await db.prepare(`
       INSERT OR REPLACE INTO playbooks (
@@ -685,7 +687,8 @@ export class PlaybookGenerator {
   }
 
   private async loadPlaybooks(): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB || this.env.DB_MAIN;
+    if (!db) return;
 
     const playbooks = await db.prepare('SELECT * FROM playbooks').all();
 
@@ -697,7 +700,8 @@ export class PlaybookGenerator {
   }
 
   private async loadSegments(): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB || this.env.DB_MAIN;
+    if (!db) return;
 
     const segments = await db.prepare('SELECT * FROM customer_segments').all();
 
@@ -708,7 +712,8 @@ export class PlaybookGenerator {
   }
 
   private async loadPatterns(): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB || this.env.DB_MAIN;
+    if (!db) return;
 
     const patterns = await db.prepare('SELECT * FROM patterns').all();
 
@@ -758,7 +763,8 @@ export class PlaybookGenerator {
   }
 
   async recordPlaybookUsage(playbookId: string, userId: string, leadId: string, section: string): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB || this.env.DB_MAIN;
+    if (!db) return;
 
     await db.prepare(`
       INSERT INTO playbook_usage (
@@ -782,16 +788,21 @@ export class PlaybookGenerator {
   ): Promise<void> {
     const feedback: Feedback = {
       id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      playbookId,
+      business_id: 'default',
+      source: 'playbook_usage',
       type: 'usability',
+      content: comment,
       rating,
+      created_at: new Date().toISOString(),
+      playbookId,
       comment,
       category: section,
       userId,
       timestamp: new Date().toISOString()
     };
 
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB || this.env.DB_MAIN;
+    if (!db) return;
 
     await db.prepare(`
       INSERT INTO feedback (

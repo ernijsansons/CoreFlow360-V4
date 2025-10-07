@@ -1,35 +1,20 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import {
   Building2,
-  TrendingUp,
   Users,
   DollarSign,
-  Package,
   Bot,
   Brain,
   Activity,
-  Globe,
   ArrowUpRight,
   ArrowDownRight,
-  ChevronRight,
   Plus,
-  Settings,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Zap,
-  Shield,
-  Bell,
-  Search,
-  Filter,
   Calendar,
-  Download,
   RefreshCw,
   MoreVertical,
-  CheckCircle,
-  AlertCircle,
-  Clock
+  CheckCircle
 } from 'lucide-react';
 
 interface Business {
@@ -60,8 +45,7 @@ interface AIAgent {
 }
 
 export const MultiBusinessDashboard: React.FC = () => {
-  const [selectedBusiness, setSelectedBusiness] = useState<string>('all');
-  const [timeRange, setTimeRange] = useState<string>('7d');
+  const [, setSelectedBusiness] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Mock data for demonstration

@@ -752,7 +752,8 @@ export class AutomatedAIOptimizer {
       if (dryRun) {
         this.logger.info('Simulating optimization step', { stepId: step.id, action: step.action });
         // Simulate execution time
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // eslint-disable-next-line no-undef
+        await new Promise(resolve => (setTimeout as any)(resolve, 100));
         return { success: true };
       }
 
@@ -909,19 +910,22 @@ export class AutomatedAIOptimizer {
   private async deployCacheLayer(parameters: any): Promise<void> {
     // Simulate cache deployment
     this.logger.info('Deploying cache layer', parameters);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, 1000));
   }
 
   private async setupRequestBatching(parameters: any): Promise<void> {
     // Simulate batching setup
     this.logger.info('Setting up request batching', parameters);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, 500));
   }
 
   private async enableTokenCompression(parameters: any): Promise<void> {
     // Simulate token compression enablement
     this.logger.info('Enabling token compression', parameters);
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, 800));
   }
 
   private async getCurrentMetricValue(metric: string): Promise<number> {
@@ -940,6 +944,7 @@ export class AutomatedAIOptimizer {
 
   private async executeRollbackStep(step: string): Promise<void> {
     this.logger.info('Executing rollback step', { step });
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, 200));
   }
 }

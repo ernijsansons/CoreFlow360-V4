@@ -327,7 +327,7 @@ export class StreamingHandler {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
       } catch (error: any) {
-        this.logger.warn('External stream poll failed', error, { taskId, pollAttempts });
+        this.logger.warn('External stream poll failed', { taskId, pollAttempts, error: error.message });
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
@@ -389,7 +389,7 @@ export class StreamingHandler {
           metadata: { heartbeat: true },
         });
       } catch (error: any) {
-        this.logger.warn('Heartbeat failed', error, { agentId, taskId });
+        this.logger.warn('Heartbeat failed', { agentId, taskId, error: error.message });
       }
     }, this.config.heartbeatInterval);
   }
@@ -452,6 +452,6 @@ export class StreamingHandler {
    */
   updateConfig(newConfig: Partial<StreamingConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    this.logger.info('Streaming configuration updated', this.config);
+    this.logger.info('Streaming configuration updated', this.config as unknown as Record<string, unknown>);
   }
 }

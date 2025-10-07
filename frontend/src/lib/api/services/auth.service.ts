@@ -128,8 +128,8 @@ class AuthService {
     return apiClient.post<string[]>('/api/auth/mfa/backup-codes')
   }
 
-  async listSessions(): Promise<ApiResponse<any[]>> {
-    return apiClient.get<any[]>('/api/auth/sessions')
+  async listSessions(): Promise<ApiResponse<Array<Record<string, unknown>>>> {
+    return apiClient.get<Array<Record<string, unknown>>>('/api/auth/sessions')
   }
 
   async revokeSession(sessionId: string): Promise<ApiResponse<void>> {

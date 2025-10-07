@@ -218,7 +218,7 @@ class BankReconciliationService {
       // Get account information
       const account = await this.getBankAccount(accountId)
       if (!account) {
-        throw new AppError('Bank account not found', 'ACCOUNT_NOT_FOUND', 404)
+        throw new AppError('Bank account not found', 404, 'ACCOUNT_NOT_FOUND')
       }
 
       // Get starting balance
@@ -280,8 +280,9 @@ class BankReconciliationService {
 
       throw new AppError(
         'Failed to start reconciliation session',
-        'RECONCILIATION_START_ERROR',
         500,
+        'RECONCILIATION_START_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -734,9 +735,10 @@ class BankReconciliationService {
   }
 
   private calculateStringSimilarity(str1: string, str2: string): number {
-    // SUPERNOVA Optimized: O(n) string similarity using optimized algorithms
-    const { OptimizedStringSimilarity } = await import('../../performance/supernova-optimizations');
-    return OptimizedStringSimilarity.calculateSimilarity(str1, str2);
+    // Simple string similarity using Levenshtein distance
+    const distance = this.levenshteinDistance(str1.toLowerCase(), str2.toLowerCase())
+    const maxLength = Math.max(str1.length, str2.length)
+    return maxLength === 0 ? 1 : 1 - (distance / maxLength)
   }
 
   private levenshteinDistance(str1: string, str2: string): number {
@@ -820,7 +822,7 @@ class BankReconciliationService {
           minConfidenceScore: 95
         },
         autoApprove: true,
-        autoApprovalThreshold: 95
+        autoApproveThreshold: 95
       },
       {
         id: 'close-amount-date',
@@ -836,7 +838,7 @@ class BankReconciliationService {
           minConfidenceScore: 80
         },
         autoApprove: false,
-        autoApprovalThreshold: 90
+        autoApproveThreshold: 90
       },
       {
         id: 'payment-references',
@@ -852,7 +854,7 @@ class BankReconciliationService {
           minConfidenceScore: 70
         },
         autoApprove: false,
-        autoApprovalThreshold: 85
+        autoApproveThreshold: 85
       }
     ]
 

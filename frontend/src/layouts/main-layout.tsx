@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { useUIStore } from '@/stores'
-import { EntitySwitcher } from '@/components/entity-switcher'
 import { Sidebar } from '@/components/sidebar'
 import { Header } from '@/components/header'
 import { Breadcrumbs } from '@/components/breadcrumbs'

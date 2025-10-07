@@ -52,10 +52,14 @@ interface RelevantData {
 
 export // TODO: Consider splitting ChatContextService into smaller, focused classes
 class ChatContextService {
+  private readonly auditLogger: AuditLogger;
+
   constructor(
     private env: Env,
-    private auditLogger: AuditLogger
-  ) {}
+    auditLogger: AuditLogger
+  ) {
+    this.auditLogger = auditLogger;
+  }
 
   /**
    * Gather comprehensive context for chat interaction
@@ -127,9 +131,10 @@ class ChatContextService {
 
       throw new AppError(
         'Failed to gather chat context',
-        'CONTEXT_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'CONTEXT_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -142,7 +147,13 @@ class ChatContextService {
       SELECT id, name, email, role, permissions
       FROM users
       WHERE id = ?
-    `).bind(userId).first()
+    `).bind(userId).first() as {
+      id?: unknown;
+      name?: unknown;
+      email?: unknown;
+      role?: unknown;
+      permissions?: unknown;
+    } | undefined
 
     if (!user) {
       throw new AppError('User not found', 'USER_NOT_FOUND', 404)
@@ -153,7 +164,7 @@ class ChatContextService {
       name: user.name as string,
       email: user.email as string,
       role: user.role as string,
-      permissions: JSON.parse(user.permissions as string || '[]')
+      permissions: JSON.parse((user.permissions as string) || '[]')
     }
   }
 
@@ -165,7 +176,12 @@ class ChatContextService {
       SELECT id, name, industry, timezone
       FROM businesses
       WHERE id = ?
-    `).bind(businessId).first()
+    `).bind(businessId).first() as {
+      id?: unknown;
+      name?: unknown;
+      industry?: unknown;
+      timezone?: unknown;
+    } | undefined
 
     if (!business) {
       throw new AppError('Business not found', 'BUSINESS_NOT_FOUND', 404)
@@ -295,12 +311,16 @@ class ChatContextService {
       SELECT language, currency, timezone
       FROM user_preferences
       WHERE user_id = ?
-    `).bind(userId).first()
+    `).bind(userId).first() as {
+      language?: unknown;
+      currency?: unknown;
+      timezone?: unknown;
+    } | undefined
 
     return {
-      language: preferences?.language as string || 'en',
-      currency: preferences?.currency as string || 'USD',
-      timezone: preferences?.timezone as string || 'UTC'
+      language: (preferences?.language as string) || 'en',
+      currency: (preferences?.currency as string) || 'USD',
+      timezone: (preferences?.timezone as string) || 'UTC'
     }
   }
 
@@ -383,7 +403,7 @@ class ChatContextService {
       LIMIT ?
     `).bind(businessId, limit).all()
 
-    return products.results
+    return products?.results || []
   }
 
   /**

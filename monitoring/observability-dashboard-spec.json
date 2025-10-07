@@ -1,0 +1,750 @@
+{
+  "dashboard_specification": {
+    "version": "1.0.0",
+    "platform": "CoreFlow360 V4",
+    "description": "Real-time observability dashboards for production monitoring",
+    "refresh_rate_seconds": 30,
+    "time_zones": ["UTC", "America/New_York", "Europe/London", "Asia/Tokyo"],
+    "default_time_range": "1h"
+  },
+  "dashboards": {
+    "executive_overview": {
+      "id": "executive_overview",
+      "name": "Executive Overview - Production Health",
+      "description": "High-level overview of system health for executives",
+      "layout": "grid",
+      "refresh_interval": 60,
+      "access_level": "executive",
+      "panels": [
+        {
+          "id": "system_health_score",
+          "title": "Overall System Health Score",
+          "type": "gauge",
+          "position": {"row": 0, "col": 0, "width": 4, "height": 2},
+          "data_source": "calculated",
+          "calculation": {
+            "formula": "(availability * 0.4) + (performance * 0.3) + (error_rate * 0.3)",
+            "inputs": {
+              "availability": "avg(worker_health_status)",
+              "performance": "100 - (p95(api_response_time) / 10)",
+              "error_rate": "100 - (api_error_rate * 20)"
+            }
+          },
+          "visualization": {
+            "min": 0,
+            "max": 100,
+            "thresholds": [
+              {"value": 95, "color": "green", "label": "Excellent"},
+              {"value": 85, "color": "yellow", "label": "Good"},
+              {"value": 70, "color": "orange", "label": "Degraded"},
+              {"value": 0, "color": "red", "label": "Critical"}
+            ],
+            "unit": "%"
+          }
+        },
+        {
+          "id": "active_users_count",
+          "title": "Active Users (5min)",
+          "type": "stat",
+          "position": {"row": 0, "col": 4, "width": 2, "height": 1},
+          "data_source": "metrics",
+          "query": {
+            "metric": "active_users",
+            "aggregation": "sum",
+            "time_window": "5m"
+          },
+          "visualization": {
+            "format": "number",
+            "sparkline": true,
+            "trend": true
+          }
+        },
+        {
+          "id": "total_api_requests",
+          "title": "API Requests/sec",
+          "type": "stat",
+          "position": {"row": 0, "col": 6, "width": 2, "height": 1},
+          "data_source": "metrics",
+          "query": {
+            "metric": "api_request_rate",
+            "aggregation": "rate",
+            "time_window": "1m"
+          },
+          "visualization": {
+            "format": "number",
+            "decimals": 1,
+            "sparkline": true
+          }
+        },
+        {
+          "id": "error_rate_current",
+          "title": "Error Rate",
+          "type": "stat",
+          "position": {"row": 0, "col": 8, "width": 2, "height": 1},
+          "data_source": "metrics",
+          "query": {
+            "metric": "api_error_rate",
+            "aggregation": "avg",
+            "time_window": "5m"
+          },
+          "visualization": {
+            "format": "percent",
+            "decimals": 2,
+            "thresholds": [
+              {"value": 0, "color": "green"},
+              {"value": 1, "color": "yellow"},
+              {"value": 5, "color": "red"}
+            ]
+          }
+        },
+        {
+          "id": "daily_ai_cost",
+          "title": "AI Cost Today",
+          "type": "stat",
+          "position": {"row": 0, "col": 10, "width": 2, "height": 1},
+          "data_source": "metrics",
+          "query": {
+            "metric": "ai_agent_cost",
+            "aggregation": "sum",
+            "time_window": "24h"
+          },
+          "visualization": {
+            "format": "currency",
+            "currency": "USD",
+            "thresholds": [
+              {"value": 0, "color": "green"},
+              {"value": 80, "color": "yellow"},
+              {"value": 120, "color": "red"}
+            ]
+          }
+        },
+        {
+          "id": "active_alerts",
+          "title": "Active Alerts",
+          "type": "alert_list",
+          "position": {"row": 1, "col": 0, "width": 6, "height": 4},
+          "data_source": "alerts",
+          "query": {
+            "status": "firing",
+            "order_by": "severity",
+            "limit": 10
+          },
+          "visualization": {
+            "show_severity": true,
+            "show_duration": true,
+            "show_labels": true,
+            "group_by": "severity"
+          }
+        },
+        {
+          "id": "system_uptime",
+          "title": "Service Uptime (30d)",
+          "type": "table",
+          "position": {"row": 1, "col": 6, "width": 6, "height": 4},
+          "data_source": "calculated",
+          "columns": [
+            {"header": "Service", "field": "service_name"},
+            {"header": "Uptime", "field": "uptime_percent", "format": "percent"},
+            {"header": "Incidents", "field": "incident_count"},
+            {"header": "MTTR", "field": "mean_time_to_recovery", "format": "duration"}
+          ],
+          "visualization": {
+            "sortable": true,
+            "highlight_sla_violations": true
+          }
+        },
+        {
+          "id": "response_time_trend",
+          "title": "API Response Time Trend (P95)",
+          "type": "line_chart",
+          "position": {"row": 5, "col": 0, "width": 6, "height": 3},
+          "data_source": "metrics",
+          "query": {
+            "metric": "api_response_time",
+            "aggregation": "p95",
+            "time_window": "6h",
+            "interval": "5m"
+          },
+          "visualization": {
+            "yaxis": {"label": "Response Time (ms)", "min": 0},
+            "threshold_line": {"value": 300, "label": "SLA Target"},
+            "smoothing": true
+          }
+        },
+        {
+          "id": "traffic_volume_trend",
+          "title": "Traffic Volume Trend",
+          "type": "area_chart",
+          "position": {"row": 5, "col": 6, "width": 6, "height": 3},
+          "data_source": "metrics",
+          "query": {
+            "metric": "api_request_rate",
+            "aggregation": "sum",
+            "time_window": "6h",
+            "interval": "5m",
+            "group_by": "endpoint_group"
+          },
+          "visualization": {
+            "stacked": true,
+            "legend": true
+          }
+        }
+      ]
+    },
+    "operations_center": {
+      "id": "operations_center",
+      "name": "Operations Center - Detailed Monitoring",
+      "description": "Detailed real-time monitoring for ops team",
+      "layout": "grid",
+      "refresh_interval": 30,
+      "access_level": "operations",
+      "panels": [
+        {
+          "id": "api_response_times_detailed",
+          "title": "API Response Times by Endpoint",
+          "type": "heatmap",
+          "position": {"row": 0, "col": 0, "width": 6, "height": 4},
+          "data_source": "metrics",
+          "query": {
+            "metric": "api_response_time",
+            "aggregation": "p95",
+            "time_window": "1h",
+            "group_by": "endpoint"
+          },
+          "visualization": {
+            "color_scheme": "RdYlGn_r",
+            "cell_values": true,
+            "legend": true
+          }
+        },
+        {
+          "id": "error_distribution",
+          "title": "Errors by Type and Endpoint",
+          "type": "bar_chart",
+          "position": {"row": 0, "col": 6, "width": 6, "height": 4},
+          "data_source": "logs",
+          "query": {
+            "filter": "level=ERROR",
+            "time_window": "1h",
+            "group_by": ["error_type", "endpoint"]
+          },
+          "visualization": {
+            "orientation": "horizontal",
+            "stacked": true,
+            "show_values": true
+          }
+        },
+        {
+          "id": "worker_performance_grid",
+          "title": "Worker Performance Metrics",
+          "type": "table",
+          "position": {"row": 4, "col": 0, "width": 12, "height": 3},
+          "data_source": "metrics",
+          "query": {
+            "metrics": [
+              "worker_cpu_time",
+              "worker_memory_usage",
+              "cloudflare_worker_invocations",
+              "cloudflare_worker_errors"
+            ],
+            "time_window": "5m",
+            "group_by": "worker_name"
+          },
+          "columns": [
+            {"header": "Worker", "field": "worker_name"},
+            {"header": "Invocations/s", "field": "invocations_rate", "format": "rate"},
+            {"header": "CPU (ms)", "field": "cpu_time_avg", "format": "number"},
+            {"header": "Memory (MB)", "field": "memory_avg", "format": "number"},
+            {"header": "Errors", "field": "error_count", "format": "number"},
+            {"header": "Error Rate", "field": "error_rate", "format": "percent"}
+          ],
+          "visualization": {
+            "sortable": true,
+            "cell_coloring": {
+              "cpu_time_avg": {"thresholds": [50, 80, 100]},
+              "error_rate": {"thresholds": [1, 5, 10]}
+            }
+          }
+        },
+        {
+          "id": "database_query_performance",
+          "title": "Database Query Performance",
+          "type": "line_chart",
+          "position": {"row": 7, "col": 0, "width": 6, "height": 3},
+          "data_source": "metrics",
+          "query": {
+            "metric": "database_query_time",
+            "aggregations": ["p50", "p95", "p99"],
+            "time_window": "1h",
+            "interval": "1m"
+          },
+          "visualization": {
+            "multi_series": true,
+            "legend": true,
+            "yaxis": {"label": "Query Time (ms)", "log_scale": false}
+          }
+        },
+        {
+          "id": "cache_performance",
+          "title": "Cache Performance",
+          "type": "multi_stat",
+          "position": {"row": 7, "col": 6, "width": 3, "height": 3},
+          "data_source": "metrics",
+          "stats": [
+            {
+              "label": "Hit Rate",
+              "metric": "cache_hit_rate",
+              "aggregation": "avg",
+              "format": "percent"
+            },
+            {
+              "label": "Avg Latency",
+              "metric": "cache_latency",
+              "aggregation": "p50",
+              "format": "milliseconds"
+            },
+            {
+              "label": "Operations/s",
+              "metric": "kv_operations",
+              "aggregation": "rate",
+              "format": "rate"
+            }
+          ]
+        },
+        {
+          "id": "recent_errors_log",
+          "title": "Recent Errors",
+          "type": "logs_panel",
+          "position": {"row": 7, "col": 9, "width": 3, "height": 3},
+          "data_source": "logs",
+          "query": {
+            "filter": "level=ERROR",
+            "time_window": "15m",
+            "limit": 50,
+            "order_by": "timestamp DESC"
+          },
+          "visualization": {
+            "fields": ["timestamp", "module", "error_type", "error_message"],
+            "highlight_patterns": true,
+            "expandable": true
+          }
+        },
+        {
+          "id": "traffic_by_geography",
+          "title": "Traffic by Region",
+          "type": "world_map",
+          "position": {"row": 10, "col": 0, "width": 6, "height": 4},
+          "data_source": "cloudflare_analytics",
+          "query": {
+            "metric": "requests",
+            "time_window": "1h",
+            "group_by": "country"
+          },
+          "visualization": {
+            "color_scale": "linear",
+            "show_values": true
+          }
+        },
+        {
+          "id": "endpoint_latency_distribution",
+          "title": "Endpoint Latency Distribution",
+          "type": "histogram",
+          "position": {"row": 10, "col": 6, "width": 6, "height": 4},
+          "data_source": "metrics",
+          "query": {
+            "metric": "api_response_time",
+            "time_window": "1h",
+            "buckets": [10, 50, 100, 200, 500, 1000, 2000, 5000]
+          },
+          "visualization": {
+            "xaxis": {"label": "Response Time (ms)", "log_scale": true},
+            "yaxis": {"label": "Request Count"}
+          }
+        }
+      ]
+    },
+    "security_monitoring": {
+      "id": "security_monitoring",
+      "name": "Security Monitoring Dashboard",
+      "description": "Real-time security monitoring and threat detection",
+      "layout": "grid",
+      "refresh_interval": 30,
+      "access_level": "security",
+      "panels": [
+        {
+          "id": "security_threat_level",
+          "title": "Current Threat Level",
+          "type": "gauge",
+          "position": {"row": 0, "col": 0, "width": 3, "height": 2},
+          "data_source": "calculated",
+          "calculation": {
+            "formula": "security_score_algorithm",
+            "inputs": {
+              "auth_failures": "rate(authentication_failures)",
+              "rate_violations": "rate(rate_limit_violations)",
+              "suspicious_activity": "count(suspicious_activity)",
+              "waf_blocks": "rate(waf_blocks)"
+            }
+          },
+          "visualization": {
+            "levels": [
+              {"value": 0, "color": "green", "label": "Low"},
+              {"value": 30, "color": "yellow", "label": "Elevated"},
+              {"value": 60, "color": "orange", "label": "High"},
+              {"value": 80, "color": "red", "label": "Critical"}
+            ]
+          }
+        },
+        {
+          "id": "auth_failure_timeline",
+          "title": "Authentication Failures",
+          "type": "line_chart",
+          "position": {"row": 0, "col": 3, "width": 4, "height": 2},
+          "data_source": "metrics",
+          "query": {
+            "metric": "authentication_failures",
+            "aggregation": "sum",
+            "time_window": "1h",
+            "interval": "1m"
+          },
+          "visualization": {
+            "alert_threshold": 50,
+            "smoothing": false
+          }
+        },
+        {
+          "id": "failed_auth_by_reason",
+          "title": "Failed Auth by Reason",
+          "type": "pie_chart",
+          "position": {"row": 0, "col": 7, "width": 2, "height": 2},
+          "data_source": "metrics",
+          "query": {
+            "metric": "authentication_failures",
+            "aggregation": "sum",
+            "time_window": "1h",
+            "group_by": "reason"
+          },
+          "visualization": {
+            "show_legend": true,
+            "show_percentages": true
+          }
+        },
+        {
+          "id": "top_attacking_ips",
+          "title": "Top Attacking IPs",
+          "type": "table",
+          "position": {"row": 0, "col": 9, "width": 3, "height": 2},
+          "data_source": "logs",
+          "query": {
+            "filter": "level=WARN OR level=ERROR AND category=security",
+            "time_window": "1h",
+            "group_by": "ip_address",
+            "order_by": "count DESC",
+            "limit": 10
+          },
+          "columns": [
+            {"header": "IP Address", "field": "ip_address"},
+            {"header": "Attempts", "field": "count"},
+            {"header": "Location", "field": "geo_location"}
+          ]
+        },
+        {
+          "id": "rate_limit_violations_map",
+          "title": "Rate Limit Violations by Endpoint",
+          "type": "bar_chart",
+          "position": {"row": 2, "col": 0, "width": 6, "height": 3},
+          "data_source": "metrics",
+          "query": {
+            "metric": "rate_limit_violations",
+            "aggregation": "sum",
+            "time_window": "1h",
+            "group_by": "endpoint"
+          },
+          "visualization": {
+            "orientation": "horizontal",
+            "show_values": true
+          }
+        },
+        {
+          "id": "waf_activity",
+          "title": "WAF Activity",
+          "type": "area_chart",
+          "position": {"row": 2, "col": 6, "width": 6, "height": 3},
+          "data_source": "metrics",
+          "query": {
+            "metric": "waf_blocks",
+            "aggregation": "sum",
+            "time_window": "1h",
+            "interval": "1m",
+            "group_by": "action"
+          },
+          "visualization": {
+            "stacked": true
+          }
+        },
+        {
+          "id": "jwt_validation_errors",
+          "title": "JWT Validation Errors",
+          "type": "stat",
+          "position": {"row": 5, "col": 0, "width": 2, "height": 1},
+          "data_source": "metrics",
+          "query": {
+            "metric": "jwt_validation_errors",
+            "aggregation": "sum",
+            "time_window": "5m"
+          },
+          "visualization": {
+            "thresholds": [
+              {"value": 0, "color": "green"},
+              {"value": 10, "color": "red"}
+            ]
+          }
+        },
+        {
+          "id": "suspicious_activity_feed",
+          "title": "Suspicious Activity Feed",
+          "type": "event_feed",
+          "position": {"row": 5, "col": 2, "width": 10, "height": 4},
+          "data_source": "logs",
+          "query": {
+            "filter": "suspicious_activity=true",
+            "time_window": "1h",
+            "order_by": "severity DESC, timestamp DESC",
+            "limit": 20
+          },
+          "visualization": {
+            "show_details": true,
+            "color_by_severity": true
+          }
+        }
+      ]
+    },
+    "ai_cost_optimization": {
+      "id": "ai_cost_optimization",
+      "name": "AI Cost Optimization Dashboard",
+      "description": "Monitor and optimize AI agent costs",
+      "layout": "grid",
+      "refresh_interval": 300,
+      "access_level": "finance",
+      "panels": [
+        {
+          "id": "daily_ai_spend",
+          "title": "Daily AI Spend",
+          "type": "stat",
+          "position": {"row": 0, "col": 0, "width": 2, "height": 2},
+          "data_source": "metrics",
+          "query": {
+            "metric": "ai_agent_cost",
+            "aggregation": "sum",
+            "time_window": "24h"
+          },
+          "visualization": {
+            "format": "currency",
+            "comparison": {
+              "period": "previous_day",
+              "show_change": true
+            }
+          }
+        },
+        {
+          "id": "monthly_projection",
+          "title": "Monthly Projection",
+          "type": "stat",
+          "position": {"row": 0, "col": 2, "width": 2, "height": 2},
+          "data_source": "calculated",
+          "calculation": {
+            "formula": "(daily_spend / days_elapsed) * days_in_month",
+            "inputs": {
+              "daily_spend": "avg(ai_agent_cost, 7d)",
+              "days_elapsed": "day_of_month",
+              "days_in_month": "days_in_current_month"
+            }
+          },
+          "visualization": {
+            "format": "currency",
+            "budget_line": 3000
+          }
+        },
+        {
+          "id": "budget_utilization",
+          "title": "Budget Utilization",
+          "type": "gauge",
+          "position": {"row": 0, "col": 4, "width": 2, "height": 2},
+          "data_source": "calculated",
+          "calculation": {
+            "formula": "(mtd_spend / monthly_budget) * 100",
+            "inputs": {
+              "mtd_spend": "sum(ai_agent_cost, month_to_date)",
+              "monthly_budget": 3000
+            }
+          },
+          "visualization": {
+            "min": 0,
+            "max": 100,
+            "unit": "%",
+            "thresholds": [
+              {"value": 0, "color": "green"},
+              {"value": 80, "color": "yellow"},
+              {"value": 100, "color": "red"}
+            ]
+          }
+        },
+        {
+          "id": "cost_by_provider",
+          "title": "Cost by AI Provider",
+          "type": "pie_chart",
+          "position": {"row": 0, "col": 6, "width": 3, "height": 2},
+          "data_source": "metrics",
+          "query": {
+            "metric": "ai_agent_cost",
+            "aggregation": "sum",
+            "time_window": "24h",
+            "group_by": "provider"
+          },
+          "visualization": {
+            "show_legend": true,
+            "show_values": true,
+            "format": "currency"
+          }
+        },
+        {
+          "id": "cost_by_model",
+          "title": "Cost by Model",
+          "type": "bar_chart",
+          "position": {"row": 0, "col": 9, "width": 3, "height": 2},
+          "data_source": "metrics",
+          "query": {
+            "metric": "ai_agent_cost",
+            "aggregation": "sum",
+            "time_window": "24h",
+            "group_by": "model"
+          },
+          "visualization": {
+            "orientation": "horizontal",
+            "show_values": true,
+            "format": "currency"
+          }
+        },
+        {
+          "id": "cost_trend",
+          "title": "7-Day Cost Trend",
+          "type": "line_chart",
+          "position": {"row": 2, "col": 0, "width": 6, "height": 3},
+          "data_source": "metrics",
+          "query": {
+            "metric": "ai_agent_cost",
+            "aggregation": "sum",
+            "time_window": "7d",
+            "interval": "1h",
+            "group_by": "provider"
+          },
+          "visualization": {
+            "multi_series": true,
+            "legend": true,
+            "yaxis": {"label": "Cost ($)"}
+          }
+        },
+        {
+          "id": "usage_by_capability",
+          "title": "Usage by Capability",
+          "type": "stacked_bar_chart",
+          "position": {"row": 2, "col": 6, "width": 6, "height": 3},
+          "data_source": "metrics",
+          "query": {
+            "metric": "ai_agent_invocations",
+            "aggregation": "sum",
+            "time_window": "24h",
+            "group_by": "capability"
+          },
+          "visualization": {
+            "show_values": true
+          }
+        },
+        {
+          "id": "cost_efficiency_metrics",
+          "title": "Cost Efficiency Metrics",
+          "type": "table",
+          "position": {"row": 5, "col": 0, "width": 12, "height": 3},
+          "data_source": "calculated",
+          "columns": [
+            {"header": "Capability", "field": "capability"},
+            {"header": "Invocations", "field": "invocations", "format": "number"},
+            {"header": "Total Cost", "field": "total_cost", "format": "currency"},
+            {"header": "Cost/Invocation", "field": "cost_per_invocation", "format": "currency"},
+            {"header": "Avg Tokens", "field": "avg_tokens", "format": "number"},
+            {"header": "Efficiency Score", "field": "efficiency_score", "format": "number"}
+          ],
+          "visualization": {
+            "sortable": true,
+            "highlight_inefficient": true
+          }
+        }
+      ]
+    }
+  },
+  "visualization_library": {
+    "chart_types": {
+      "line_chart": {
+        "supports_multi_series": true,
+        "supports_thresholds": true,
+        "supports_annotations": true
+      },
+      "bar_chart": {
+        "orientations": ["vertical", "horizontal"],
+        "supports_stacking": true,
+        "supports_grouping": true
+      },
+      "gauge": {
+        "styles": ["arc", "horizontal", "vertical"],
+        "supports_thresholds": true,
+        "supports_ranges": true
+      },
+      "stat": {
+        "supports_sparkline": true,
+        "supports_comparison": true,
+        "supports_trends": true
+      },
+      "table": {
+        "supports_sorting": true,
+        "supports_filtering": true,
+        "supports_cell_coloring": true
+      },
+      "heatmap": {
+        "color_schemes": ["RdYlGn", "Blues", "Viridis"],
+        "supports_annotations": true
+      }
+    }
+  },
+  "real_time_features": {
+    "live_streaming": {
+      "enabled": true,
+      "websocket_endpoint": "wss://api.coreflow360.com/ws/metrics",
+      "fallback_polling_seconds": 30
+    },
+    "auto_refresh": {
+      "enabled": true,
+      "configurable_per_panel": true,
+      "min_interval_seconds": 10
+    },
+    "alert_notifications": {
+      "in_dashboard_alerts": true,
+      "sound_notifications": true,
+      "browser_notifications": true
+    }
+  },
+  "export_options": {
+    "formats": ["png", "pdf", "csv", "json"],
+    "scheduled_reports": {
+      "enabled": true,
+      "frequencies": ["hourly", "daily", "weekly", "monthly"],
+      "delivery_methods": ["email", "slack", "s3"]
+    }
+  },
+  "user_customization": {
+    "custom_dashboards": true,
+    "custom_panels": true,
+    "saved_queries": true,
+    "dashboard_templates": true,
+    "role_based_views": true
+  }
+}

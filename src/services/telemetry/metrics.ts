@@ -4,6 +4,8 @@ import { TelemetryCollector } from './collector';
 interface MetricOptions {
   tags?: Record<string, string>;
   timestamp?: number;
+  // Allow any string property for flexible metric tagging
+  [key: string]: string | number | Record<string, string> | undefined;
 }
 
 interface HistogramBucket {

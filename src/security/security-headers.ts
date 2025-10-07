@@ -105,7 +105,7 @@ export class SecurityHeaders {
     }
 
     // Security-specific headers
-    headers.set('X-Request-ID', context.correlationId || 'unknown');
+    headers.set('X-Request-ID', crypto.randomUUID());
     headers.set('X-Tenant-Isolated', 'true');
     headers.set('X-Security-Version', '1.0');
 
@@ -267,7 +267,7 @@ export class SecurityHeaders {
     const warnings: string[] = [];
 
     // Check for sensitive data in headers
-    for (const [name, value] of response.headers.entries()) {
+    for (const [name, value] of response.headers as any as Iterable<[string, string]>) {
       if (this.containsSensitiveData(name, value)) {
         issues.push({
           type: 'sensitive_data_exposure',

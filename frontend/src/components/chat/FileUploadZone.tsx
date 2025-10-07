@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { useFileUpload } from '@/hooks/useFileUpload'
-import type { FileAttachment, UploadProgress } from '@/types/chat'
+import type { FileAttachment } from '@/types/chat'
 
 export interface FileUploadZoneProps {
   onFileUpload: (files: FileAttachment[]) => void
@@ -71,7 +71,7 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
   const [isDragOver, setIsDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const { uploadFile, uploadProgress } = useFileUpload()
+  const { uploadFile } = useFileUpload()
 
   const validateFile = useCallback((file: File): string | null => {
     // Check file size
@@ -126,7 +126,7 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
       .filter(file => file.status === 'pending')
       .forEach(file => uploadFileWithProgress(file))
 
-  }, [files.length, maxFiles, validateFile])
+  }, [files.length, maxFiles, validateFile, uploadFileWithProgress])
 
   const uploadFileWithProgress = useCallback(async (file: FileWithProgress) => {
     try {

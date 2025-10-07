@@ -464,7 +464,7 @@ Be specific and actionable.
     }
 
     // Need analysis from news
-    if (data.news?.recent_news?.length > 0) {
+    if (data.news?.recent_news?.length && data.news.recent_news.length > 0) {
       need_indicators.push({
         category: 'growth',
         pain_point: 'Company growth and scaling challenges',

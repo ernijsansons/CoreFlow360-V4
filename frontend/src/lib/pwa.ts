@@ -5,9 +5,6 @@
 
 import * as React from 'react'
 
-// Dynamic imports for workbox when available
-type WorkboxModule = any
-
 // PWA configuration
 export interface PWAConfig {
   enableServiceWorker: boolean
@@ -238,13 +235,13 @@ export class OfflineManager {
 // Background sync manager
 export class BackgroundSyncManager {
   private registration: ServiceWorkerRegistration | null = null
-  private pendingRequests: Map<string, any> = new Map()
+  private pendingRequests: Map<string, unknown> = new Map()
 
   constructor(registration: ServiceWorkerRegistration | null) {
     this.registration = registration
   }
 
-  public async scheduleSync(tag: string, data?: any): Promise<void> {
+  public async scheduleSync(tag: string, data?: unknown): Promise<void> {
     if (!this.registration || !('sync' in window.ServiceWorkerRegistration.prototype)) {
       console.warn('Background sync not supported')
       return
@@ -264,7 +261,7 @@ export class BackgroundSyncManager {
     }
   }
 
-  public getPendingRequest(tag: string): any {
+  public getPendingRequest(tag: string): unknown {
     const stored = localStorage.getItem(`sync-${tag}`)
     return stored ? JSON.parse(stored) : this.pendingRequests.get(tag)
   }
@@ -446,7 +443,7 @@ export function usePWA() {
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault()
       setIsInstallable(true)
-      ;(window as any).deferredPrompt = event
+      ;(window as Record<string, unknown>).deferredPrompt = event
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -458,7 +455,7 @@ export function usePWA() {
   }, [])
 
   const installApp = async (): Promise<boolean> => {
-    const deferredPrompt = (window as any).deferredPrompt
+    const deferredPrompt = (window as Record<string, unknown>).deferredPrompt as { prompt: () => void; userChoice: Promise<{ outcome: string }> } | undefined
 
     if (!deferredPrompt) {
       return false
@@ -469,7 +466,7 @@ export function usePWA() {
 
     if (result.outcome === 'accepted') {
       setIsInstallable(false)
-      ;(window as any).deferredPrompt = null
+      ;(window as Record<string, unknown>).deferredPrompt = null
       return true
     }
 

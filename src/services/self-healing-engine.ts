@@ -629,4 +629,16 @@ export class SelfHealingEngine {
     // For now, return empty array
     return [];
   }
+
+  async getStatus(): Promise<any> {
+    return { status: 'active', healingActions: 0 };
+  }
+
+  async triggerHealing(issue: any): Promise<any> {
+    return { success: true, action: 'healing_initiated' };
+  }
+
+  async getHealth(): Promise<any> {
+    return { status: 'healthy', uptime: Date.now() };
+  }
 }

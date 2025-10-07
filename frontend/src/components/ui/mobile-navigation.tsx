@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 import {
@@ -5,7 +6,6 @@ import {
   Search,
   Bell,
   User,
-  Menu,
   ChevronRight,
   Plus
 } from 'lucide-react'

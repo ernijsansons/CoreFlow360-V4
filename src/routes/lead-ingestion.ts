@@ -131,9 +131,9 @@ app.use('*', async (c, next) => {
   const businessId = c.req.header('X-Business-ID') || 'default-business';
   const config = {
     meta_webhook: {
-      verify_token: c.env.META_VERIFY_TOKEN || 'verify-token',
-      app_secret: c.env.META_APP_SECRET || '',
-      access_token: c.env.META_ACCESS_TOKEN || ''
+      verify_token: c.env.WEBHOOK_SECRET || 'verify-token',
+      app_secret: c.env.WEBHOOK_SECRET || '',
+      access_token: c.env.API_KEY || ''
     }
   };
 
@@ -148,14 +148,9 @@ app.get('/webhooks/meta', async (c: any) => {
   const token = c.req.query('hub.verify_token');
   const challenge = c.req.query('hub.challenge');
 
-  const leadIngestionService = c.get('leadIngestionService') as LeadIngestionService;
-  const verification = await leadIngestionService.verifyWebhook('meta', {
-    'hub.verify_token': token,
-    'hub.mode': mode,
-    'hub.challenge': challenge
-  });
-
-  if (verification.valid && mode === 'subscribe') {
+  // Verify token matches
+  const expectedToken = c.env.WEBHOOK_SECRET || 'verify-token';
+  if (token === expectedToken && mode === 'subscribe') {
     return c.text(challenge || '');
   }
 
@@ -164,15 +159,10 @@ app.get('/webhooks/meta', async (c: any) => {
 
 app.post('/webhooks/meta', zValidator('json', MetaWebhookSchema), async (c: any) => {
   const leadIngestionService = c.get('leadIngestionService') as LeadIngestionService;
-  const businessId = c.get('businessId') as string;
   const payload = c.req.valid('json') as MetaLeadPayload;
 
   try {
-    const result = await leadIngestionService.handleMetaWebhook(payload, businessId);
-
-    if (result.success) {
-    } else {
-    }
+    const result = await leadIngestionService.processMetaLead(payload);
 
     // Always return 200 to Meta to avoid retries
     return c.json({
@@ -192,7 +182,7 @@ app.post('/chat/message', zValidator('json', ChatMessageSchema), async (c: any) 
   const message = c.req.valid('json') as ChatMessage;
 
   try {
-    const response = await leadIngestionService.handleWebsiteChat(message, businessId);
+    const response = await leadIngestionService.processChatMessage(message, businessId);
 
     return c.json({
       success: true,
@@ -255,7 +245,7 @@ app.post('/email/inbound', zValidator('json', EmailSchema), async (c: any) => {
   const email = c.req.valid('json') as ParsedEmail;
 
   try {
-    const result = await leadIngestionService.handleInboundEmail(email, businessId);
+    const result = await leadIngestionService.processEmailLead(email, businessId);
 
     return c.json({
       success: result.success,
@@ -280,7 +270,7 @@ app.post('/forms/submit', zValidator('json', FormSubmissionSchema), async (c: an
   const submission = c.req.valid('json') as FormSubmission;
 
   try {
-    const result = await leadIngestionService.handleFormSubmission(submission, businessId);
+    const result = await leadIngestionService.processFormSubmission(submission, businessId);
 
     return c.json({
       success: result.success,
@@ -307,7 +297,16 @@ app.post('/leads', zValidator('json', LeadInputSchema), async (c: any) => {
   const leadData = c.req.valid('json') as LeadInput;
 
   try {
-    const result = await leadIngestionService.createLead(leadData, businessId);
+    // Convert to form submission format for processing
+    const formSubmission: FormSubmission = {
+      form_id: 'api-direct',
+      form_name: 'Direct API Lead Creation',
+      page_url: leadData.landing_page || 'api',
+      submission_time: new Date().toISOString(),
+      fields: leadData as Record<string, any>
+    };
+
+    const result = await leadIngestionService.processFormSubmission(formSubmission, businessId);
 
     return c.json({
       success: result.success,
@@ -357,7 +356,16 @@ app.post('/leads/bulk', async (c: any) => {
 
     for (const leadData of leads) {
       try {
-        const result = await leadIngestionService.createLead(leadData, businessId);
+        // Convert to form submission format
+        const formSubmission: FormSubmission = {
+          form_id: 'api-bulk',
+          form_name: 'Bulk API Import',
+          page_url: leadData.landing_page || 'api-bulk',
+          submission_time: new Date().toISOString(),
+          fields: leadData as Record<string, any>
+        };
+
+        const result = await leadIngestionService.processFormSubmission(formSubmission, businessId);
         results.push(result);
         if (result.success) successful++;
         else failed++;
@@ -457,7 +465,16 @@ app.post('/webhooks/:integration', async (c: any) => {
         };
     }
 
-    const result = await leadIngestionService.createLead(leadData, businessId);
+    // Convert to form submission format
+    const formSubmission: FormSubmission = {
+      form_id: `integration-${integration}`,
+      form_name: `${integration} Integration`,
+      page_url: `webhook/${integration}`,
+      submission_time: new Date().toISOString(),
+      fields: leadData as Record<string, any>
+    };
+
+    const result = await leadIngestionService.processFormSubmission(formSubmission, businessId);
 
     return c.json({
       success: result.success,

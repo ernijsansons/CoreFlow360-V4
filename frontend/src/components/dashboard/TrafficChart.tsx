@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
   SelectContent,
@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import {
   BarChart3,
   LineChart,
@@ -23,7 +22,7 @@ import {
 
 export function TrafficChart() {
   const [chartType, setChartType] = React.useState('line')
-  const [metric, setMetric] = React.useState('users')
+  const [,] = React.useState('users')
   const [granularity, setGranularity] = React.useState('daily')
 
   const generateTrafficData = () => {

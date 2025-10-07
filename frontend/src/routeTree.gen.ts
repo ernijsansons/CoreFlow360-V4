@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TestRouteImport } from './routes/test'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LandingRouteImport } from './routes/landing'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as FinanceIndexRouteImport } from './routes/finance/index'
@@ -20,6 +22,7 @@ import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
 import { Route as ErrorErrorRouteImport } from './routes/error/error'
 import { Route as Error404RouteImport } from './routes/error/404'
+import { Route as DashboardPortfolioRouteImport } from './routes/dashboard/portfolio'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
@@ -27,9 +30,19 @@ import { Route as DashboardMigrationIndexRouteImport } from './routes/dashboard/
 import { Route as DashboardCrmIndexRouteImport } from './routes/dashboard/crm/index'
 import { Route as DashboardAnalyticsIndexRouteImport } from './routes/dashboard/analytics/index'
 
+const TestRoute = TestRouteImport.update({
+  id: '/test',
+  path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandingRoute = LandingRouteImport.update({
+  id: '/landing',
+  path: '/landing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -82,6 +95,11 @@ const Error404Route = Error404RouteImport.update({
   path: '/error/404',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardPortfolioRoute = DashboardPortfolioRouteImport.update({
+  id: '/dashboard/portfolio',
+  path: '/dashboard/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
   id: '/auth/reset-password',
   path: '/auth/reset-password',
@@ -115,10 +133,13 @@ const DashboardAnalyticsIndexRoute = DashboardAnalyticsIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
+  '/test': typeof TestRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/dashboard/portfolio': typeof DashboardPortfolioRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -134,10 +155,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
+  '/test': typeof TestRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/dashboard/portfolio': typeof DashboardPortfolioRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -154,10 +178,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
+  '/test': typeof TestRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/dashboard/portfolio': typeof DashboardPortfolioRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
   '/settings/billing': typeof SettingsBillingRoute
@@ -175,10 +202,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/landing'
     | '/login'
+    | '/test'
     | '/auth/forgot-password'
     | '/auth/register'
     | '/auth/reset-password'
+    | '/dashboard/portfolio'
     | '/error/404'
     | '/error/error'
     | '/settings/billing'
@@ -194,10 +224,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/landing'
     | '/login'
+    | '/test'
     | '/auth/forgot-password'
     | '/auth/register'
     | '/auth/reset-password'
+    | '/dashboard/portfolio'
     | '/error/404'
     | '/error/error'
     | '/settings/billing'
@@ -213,10 +246,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/landing'
     | '/login'
+    | '/test'
     | '/auth/forgot-password'
     | '/auth/register'
     | '/auth/reset-password'
+    | '/dashboard/portfolio'
     | '/error/404'
     | '/error/error'
     | '/settings/billing'
@@ -233,10 +269,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LandingRoute: typeof LandingRoute
   LoginRoute: typeof LoginRoute
+  TestRoute: typeof TestRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  DashboardPortfolioRoute: typeof DashboardPortfolioRoute
   Error404Route: typeof Error404Route
   ErrorErrorRoute: typeof ErrorErrorRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
@@ -253,11 +292,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/test': {
+      id: '/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landing': {
+      id: '/landing'
+      path: '/landing'
+      fullPath: '/landing'
+      preLoaderRoute: typeof LandingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -330,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Error404RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/portfolio': {
+      id: '/dashboard/portfolio'
+      path: '/dashboard/portfolio'
+      fullPath: '/dashboard/portfolio'
+      preLoaderRoute: typeof DashboardPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/reset-password': {
       id: '/auth/reset-password'
       path: '/auth/reset-password'
@@ -377,10 +437,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LandingRoute: LandingRoute,
   LoginRoute: LoginRoute,
+  TestRoute: TestRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthRegisterRoute: AuthRegisterRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
+  DashboardPortfolioRoute: DashboardPortfolioRoute,
   Error404Route: Error404Route,
   ErrorErrorRoute: ErrorErrorRoute,
   SettingsBillingRoute: SettingsBillingRoute,

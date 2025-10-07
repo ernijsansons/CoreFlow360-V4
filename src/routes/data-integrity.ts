@@ -1,20 +1,25 @@
 import { Hono } from 'hono';
+import type { Context } from 'hono';
 import { z } from 'zod';
 import type { Env } from '../types/env';
 import { QuantumDataAuditor } from '../data-integrity/quantum-data-auditor';
 import { AutomatedDataFixer } from '../data-integrity/automated-data-fixer';
 import { Logger } from '../shared/logger';
 import type {
-  DataAuditConfig,
   DataAuditReport,
-  DataIssue,
+  DataIssue as AuditorDataIssue
+} from '../data-integrity/quantum-data-auditor';
+import type {
   FixStrategy,
   FixPreview,
   FixExecution,
-  AutomatedDataFixerConfig
-} from '../data-integrity/quantum-data-auditor';
+  AutomatedDataFixerConfig,
+  DataIssue as FixerDataIssue
+} from '../data-integrity/automated-data-fixer';
 
-const app = new Hono<{ Bindings: Env }>();
+type AppContext = Context<{ Bindings: Env; Variables: { userId?: string; businessId?: string } }>;
+
+const app = new Hono<{ Bindings: Env; Variables: { userId?: string; businessId?: string } }>();
 const logger = new Logger();
 
 // Validation schemas
@@ -55,6 +60,23 @@ const FixerConfigSchema = z.object({
   concurrentFixesLimit: z.number().min(1).max(10).default(3)
 });
 
+// Helper function to convert AuditorDataIssue to FixerDataIssue
+function convertToFixerDataIssue(auditorIssue: AuditorDataIssue, businessId: string): FixerDataIssue {
+  return {
+    id: auditorIssue.id,
+    type: auditorIssue.type as any, // Type mapping
+    severity: auditorIssue.severity,
+    table: auditorIssue.location.table,
+    column: auditorIssue.location.column,
+    recordId: auditorIssue.location.recordId,
+    businessId,
+    description: auditorIssue.description,
+    detectedAt: new Date().toISOString(),
+    context: {},
+    autoFixable: auditorIssue.autoFixable
+  };
+}
+
 // Authentication middleware
 app.use('*', async (c, next) => {
   const authHeader = c.req.header('Authorization');
@@ -69,19 +91,16 @@ app.use('*', async (c, next) => {
   }
 
   // Set user context (mock implementation)
-  c.set('user', {
-    id: 'user-id',
-    businessId: 'business-id',
-    role: 'admin'
-  });
+  c.set('userId', 'user-id');
+  c.set('businessId', 'business-id');
 
   await next();
 });
 
 // Business isolation middleware
 app.use('*', async (c, next) => {
-  const user = c.get('user');
-  if (!user?.businessId) {
+  const businessId = c.get('businessId');
+  if (!businessId) {
     return c.json({ error: 'Business context required' }, 400);
   }
   await next();
@@ -90,13 +109,14 @@ app.use('*', async (c, next) => {
 /**
  * GET /audit - Trigger comprehensive data integrity audit
  */
-app.get('/audit', async (c: any) => {
+app.get('/audit', async (c: AppContext) => {
   try {
-    const user = c.get('user');
+    const userId = c.get('userId');
+    const businessId = c.get('businessId');
     const query = c.req.query();
 
     const config = AuditConfigSchema.parse({
-      businessId: user.businessId,
+      businessId,
       ...query,
       tables: query.tables ? query.tables.split(',') : undefined,
       includeRecommendations: query.includeRecommendations !== 'false',
@@ -105,16 +125,16 @@ app.get('/audit', async (c: any) => {
     logger.info('Starting data integrity audit', {
       businessId: config.businessId,
       scope: config.scope,
-      userId: user.id
+      userId
     });
 
-    const auditor = new QuantumDataAuditor(c.env, config);
+    const auditor = new QuantumDataAuditor(c);
     const report = await auditor.auditDataIntegrity();
 
     logger.info('Data integrity audit completed', {
       businessId: config.businessId,
-      issuesFound: report.summary.totalIssues,
-      duration: report.metadata.executionTime
+      issuesFound: report.summary.issuesFound,
+      duration: report.metrics.executionTime
     });
 
     return c.json({
@@ -143,23 +163,24 @@ app.get('/audit', async (c: any) => {
 /**
  * POST /audit - Trigger audit with detailed configuration
  */
-app.post('/audit', async (c: any) => {
+app.post('/audit', async (c: AppContext) => {
   try {
-    const user = c.get('user');
+    const userId = c.get('userId');
+    const businessId = c.get('businessId');
     const body = await c.req.json();
 
     const config = AuditConfigSchema.parse({
-      businessId: user.businessId,
+      businessId,
       ...body
     });
 
     logger.info('Starting configured data integrity audit', {
       businessId: config.businessId,
       config: config,
-      userId: user.id
+      userId
     });
 
-    const auditor = new QuantumDataAuditor(c.env, config);
+    const auditor = new QuantumDataAuditor(c);
     const report = await auditor.auditDataIntegrity();
 
     return c.json({
@@ -311,7 +332,7 @@ app.post('/issues/:issueId/strategies', async (c: any) => {
       return c.json({ error: 'Issue not found' }, 404);
     }
 
-    const issue = issueResult as DataIssue;
+    const issue = issueResult as AuditorDataIssue;
 
     // Initialize fixer with config
     const fixerConfig: AutomatedDataFixerConfig = {
@@ -326,7 +347,7 @@ app.post('/issues/:issueId/strategies', async (c: any) => {
     };
 
     const fixer = new AutomatedDataFixer(c.env, fixerConfig);
-    const strategies = await fixer.analyzeIssue(issue);
+    const strategies = await fixer.analyzeIssue(convertToFixerDataIssue(issue, businessId!));
 
     logger.info('Fix strategies generated', {
       issueId,
@@ -382,7 +403,7 @@ app.post('/issues/:issueId/preview', async (c: any) => {
       return c.json({ error: 'Issue not found' }, 404);
     }
 
-    const issue = issueResult as DataIssue;
+    const issue = issueResult as AuditorDataIssue;
 
     // Get the strategy (this would be stored in database in real implementation)
     const fixerConfig: AutomatedDataFixerConfig = {
@@ -397,7 +418,7 @@ app.post('/issues/:issueId/preview', async (c: any) => {
     };
 
     const fixer = new AutomatedDataFixer(c.env, fixerConfig);
-    const strategies = await fixer.analyzeIssue(issue);
+    const strategies = await fixer.analyzeIssue(convertToFixerDataIssue(issue, businessId!));
     const strategy = strategies.find(s => s.id === request.strategyId);
 
     if (!strategy) {
@@ -405,10 +426,10 @@ app.post('/issues/:issueId/preview', async (c: any) => {
     }
 
     // Generate preview
-    const preview = await fixer.generateFixPreview(issue, strategy);
+    const preview = await fixer.generateFixPreview(convertToFixerDataIssue(issue, businessId!), strategy);
 
     // Validate the fix
-    const validation = await fixer.validateFix(issue, strategy);
+    const validation = await fixer.validateFix(convertToFixerDataIssue(issue, businessId!), strategy);
 
     return c.json({
       success: true,
@@ -463,7 +484,7 @@ app.post('/issues/:issueId/fix', async (c: any) => {
       return c.json({ error: 'Issue not found' }, 404);
     }
 
-    const issue = issueResult as DataIssue;
+    const issue = issueResult as AuditorDataIssue;
 
     // Initialize fixer
     const fixerConfig: AutomatedDataFixerConfig = {
@@ -478,7 +499,7 @@ app.post('/issues/:issueId/fix', async (c: any) => {
     };
 
     const fixer = new AutomatedDataFixer(c.env, fixerConfig);
-    const strategies = await fixer.analyzeIssue(issue);
+    const strategies = await fixer.analyzeIssue(convertToFixerDataIssue(issue, businessId!));
     const strategy = strategies.find(s => s.id === request.strategyId);
 
     if (!strategy) {
@@ -487,7 +508,7 @@ app.post('/issues/:issueId/fix', async (c: any) => {
 
     // Validate before execution
     if (!request.skipValidation) {
-      const validation = await fixer.validateFix(issue, strategy);
+      const validation = await fixer.validateFix(convertToFixerDataIssue(issue, businessId!), strategy);
       if (!validation.valid) {
         return c.json({
           error: 'Fix validation failed',
@@ -497,7 +518,7 @@ app.post('/issues/:issueId/fix', async (c: any) => {
     }
 
     // Execute the fix
-    const execution = await fixer.executeFix(issue, strategy, request.approvedBy);
+    const execution = await fixer.executeFix(convertToFixerDataIssue(issue, businessId!), strategy, request.approvedBy);
 
     // Update issue status if fix was successful
     if (execution.status === 'completed') {
@@ -811,7 +832,7 @@ app.get('/dashboard', async (c: any) => {
 
     const dashboard = {
       summary: {
-        openIssues: severityStats.results?.reduce((sum, stat) => sum + (stat as any).count, 0) || 0,
+        openIssues: severityStats.results?.reduce((sum: number, stat: any) => sum + (stat as any).count, 0) || 0,
         criticalIssues: severityStats.results?.find((stat: any) => stat.severity === 'critical')?.count || 0,
         recentExecutions: recentExecutions.results?.length || 0
       },

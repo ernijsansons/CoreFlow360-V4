@@ -5,8 +5,8 @@
 
 import type { D1Database } from '@cloudflare/workers-types';
 import { z } from 'zod';
-import { auditLogger, type SecurityContext } from '../../shared/logger';
-import { PIIRedactor, InputValidator, SecurityError } from '../../shared/security-utils';
+import { auditLogger } from '../../shared/logger';
+import { PIIRedactor, InputValidator, SecurityError, type SecurityContext } from '../../shared/security-utils';
 
 /**
  * Audit event types
@@ -476,31 +476,23 @@ class AuditService {
       }
 
       // Log to structured logger as well
-      auditLogger.audit(
-        entry.operation,
-        entry.resource,
+      auditLogger.info(
+        `Audit: ${entry.operation}`,
         {
           auditId: entry.id,
+          resource: entry.resource,
           eventType: entry.eventType,
           severity: entry.severity,
           result: entry.result,
-          details: entry.details,
-        },
-        {
-          correlationId: entry.correlationId,
-          userId: entry.userId,
-          businessId: entry.businessId,
-          sessionId: entry.sessionId || '',
-          ipAddress: entry.ipAddress,
-          userAgent: entry.userAgent,
-          operation: entry.operation,
-          timestamp: Date.now(),
+          details: entry.details
         }
       );
 
+      // Security context logged above with main audit entry
+
     } catch (error: any) {
       this.stats.errors++;
-      auditLogger.error('Failed to write audit entry', error, { auditEntry: entry });
+      auditLogger.error('Failed to write audit entry', { error: error.message, auditEntry: entry });
       throw new SecurityError('Audit logging failed', {
         code: 'AUDIT_WRITE_FAILED',
         auditId: entry.id,
@@ -613,7 +605,7 @@ class AuditService {
 
     } catch (error: any) {
       this.stats.errors++;
-      auditLogger.error('Failed to flush audit batch', error, { batchSize: this.batchBuffer.length });
+      auditLogger.error('Failed to flush audit batch', { batchSize: this.batchBuffer.length, error: error.message });
       throw error;
     }
   }

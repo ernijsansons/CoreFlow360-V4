@@ -38,6 +38,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
     const interval = setInterval(refreshAgentStatus, 30000); // Refresh every 30 seconds
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initializeAgentSystem = async () => {
@@ -53,7 +54,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
       const statusData = await statusResponse.json();
 
       // Map capabilities to agent format
-      const agentList = capabilities.map((cap: any) => ({
+      const agentList = capabilities.map((cap: { id: string; name: string; type: Agent['type']; capabilities: string[] }) => ({
         id: cap.id,
         name: cap.name,
         type: cap.type,

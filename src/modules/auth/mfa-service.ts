@@ -37,9 +37,8 @@ class MFAService {
     authenticator.options = {
       window: [1, 1], // Allow 30s before and after current time
       step: 30, // 30-second time step
-      digits: 6, // 6-digit codes
-      algorithm: 'sha1', // SHA-1 for compatibility
-      encoding: 'base32'
+      digits: 6 // 6-digit codes
+      // Note: algorithm and encoding are set by default in otplib
     };
   }
 
@@ -79,8 +78,7 @@ class MFAService {
       );
 
       // Generate QR code data
-      const serviceName = `${appName}:${userEmail}`;
-      const qrCodeData = authenticator.keyuri(serviceName, appName, secret);
+      const qrCodeData = authenticator.keyuri(userEmail, appName, secret);
 
       this.logger.info('MFA setup initiated', {
         userId,
@@ -95,11 +93,8 @@ class MFAService {
       };
 
     } catch (error: any) {
-      this.logger.error('MFA setup failed', error, { userId, businessId });
-      throw new SecurityError('Failed to setup MFA', {
-        code: 'MFA_SETUP_FAILED',
-        userId
-      });
+      this.logger.error('MFA setup failed', { userId, businessId, error: error.message });
+      throw new SecurityError(`Failed to setup MFA for user ${userId}`);
     }
   }
 
@@ -120,7 +115,7 @@ class MFAService {
       // Verify the code
       const isValid = authenticator.verify({
         token: verificationCode,
-        secret: setupConfig.secret
+        secret: setupConfig.secret!
       });
 
       if (!isValid) {
@@ -161,11 +156,8 @@ class MFAService {
       return true;
 
     } catch (error: any) {
-      this.logger.error('MFA setup verification failed', error, { userId });
-      throw new SecurityError('Failed to verify MFA setup', {
-        code: 'MFA_SETUP_VERIFICATION_FAILED',
-        userId
-      });
+      this.logger.error('MFA setup verification failed', { userId, error: error.message });
+      throw new SecurityError(`Failed to verify MFA setup for user ${userId}`);
     }
   }
 
@@ -196,7 +188,7 @@ class MFAService {
       if (mfaConfig.type === 'totp') {
         const isValid = authenticator.verify({
           token: code,
-          secret: mfaConfig.secret
+          secret: mfaConfig.secret!
         });
 
         if (isValid) {
@@ -238,11 +230,8 @@ class MFAService {
       };
 
     } catch (error: any) {
-      this.logger.error('MFA verification error', error, { userId });
-      throw new SecurityError('MFA verification failed', {
-        code: 'MFA_VERIFICATION_FAILED',
-        userId
-      });
+      this.logger.error('MFA verification error', { userId, error: error.message });
+      throw new SecurityError(`MFA verification failed for user ${userId}`);
     }
   }
 
@@ -308,11 +297,8 @@ class MFAService {
       return newBackupCodes;
 
     } catch (error: any) {
-      this.logger.error('Failed to regenerate backup codes', error, { userId });
-      throw new SecurityError('Failed to regenerate backup codes', {
-        code: 'BACKUP_CODE_GENERATION_FAILED',
-        userId
-      });
+      this.logger.error('Failed to regenerate backup codes', { userId, error: error.message });
+      throw new SecurityError(`Failed to regenerate backup codes for user ${userId}`);
     }
   }
 
@@ -367,7 +353,7 @@ class MFAService {
         enabled: true,
         type: mfaConfig.type,
         backupCodesRemaining: mfaConfig.backupCodes.length,
-        lastUsedAt: mfaConfig.lastUsedAt
+        lastUsedAt: mfaConfig.lastUsedAt ?? undefined
       };
 
     } catch (error: any) {

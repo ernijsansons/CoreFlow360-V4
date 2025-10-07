@@ -6,12 +6,13 @@ import { PatternRecognition } from '../services/pattern-recognition';
 import { PlaybookGenerator } from '../services/playbook-generator';
 import type {
   Interaction,
-  Outcome,
+  OutcomeData,
   Pattern,
   Playbook,
   Feedback,
   CustomerSegment,
-  ExperimentResult
+  ExperimentResult,
+  ChannelType
 } from '../types/crm';
 
 const learningRoutes = new Hono<{ Bindings: Env }>();
@@ -52,7 +53,7 @@ learningRoutes.post('/outcomes', async (c: any) => {
       id: data.interactionId,
       leadId: data.leadId,
       type: data.type,
-      channel: data.channel,
+      channel: data.channel as ChannelType,
       strategy: data.strategy,
       variant: data.variant,
       content: data.content,
@@ -61,7 +62,7 @@ learningRoutes.post('/outcomes', async (c: any) => {
       timestamp: new Date().toISOString()
     };
 
-    const outcome: Outcome = {
+    const outcome: OutcomeData = {
       success: data.outcome.success,
       result: data.outcome.result,
       responseTime: data.outcome.responseTime,
@@ -117,7 +118,7 @@ learningRoutes.post('/patterns/analyze', async (c: any) => {
     const body = await c.req.json();
     const type = body.type || 'all';
 
-    const patternRecognition = new PatternRecognition(c.env);
+    const patternRecognition = new PatternRecognition(c.env, c.get('businessId') || '');
 
     let patterns: Pattern[] = [];
 
@@ -176,7 +177,7 @@ learningRoutes.post('/patterns/analyze', async (c: any) => {
 learningRoutes.get('/patterns/:type', async (c: any) => {
   try {
     const type = c.req.param('type');
-    const patternRecognition = new PatternRecognition(c.env);
+    const patternRecognition = new PatternRecognition(c.env, c.get('businessId') || '');
 
     const patterns = await patternRecognition.getPatternsByType(type);
 
@@ -197,7 +198,7 @@ learningRoutes.get('/patterns/:type', async (c: any) => {
 learningRoutes.get('/patterns/top/:limit?', async (c: any) => {
   try {
     const limit = parseInt(c.req.param('limit') || '10');
-    const patternRecognition = new PatternRecognition(c.env);
+    const patternRecognition = new PatternRecognition(c.env, c.get('businessId') || '');
 
     const patterns = await patternRecognition.getTopPerformingPatterns(limit);
 
@@ -218,7 +219,7 @@ learningRoutes.get('/patterns/top/:limit?', async (c: any) => {
 learningRoutes.post('/patterns/:id/validate', async (c: any) => {
   try {
     const patternId = c.req.param('id');
-    const patternRecognition = new PatternRecognition(c.env);
+    const patternRecognition = new PatternRecognition(c.env, c.get('businessId') || '');
 
     const isValid = await patternRecognition.validatePattern(patternId);
 
@@ -239,7 +240,7 @@ learningRoutes.post('/patterns/:id/validate', async (c: any) => {
 // Get pattern insights
 learningRoutes.get('/patterns/insights', async (c: any) => {
   try {
-    const patternRecognition = new PatternRecognition(c.env);
+    const patternRecognition = new PatternRecognition(c.env, c.get('businessId') || '');
     const insights = await patternRecognition.getPatternInsights();
 
     return c.json({
@@ -289,10 +290,17 @@ learningRoutes.post('/playbooks/generate', async (c: any) => {
 
     const segment: CustomerSegment = {
       id: data.segmentId,
+      business_id: c.get('businessId') || '',
       name: data.segmentName,
       criteria: data.criteria,
       characteristics: data.characteristics,
+      lead_count: 0,
       leadCount: 0,
+      performance_metrics: {
+        conversion_rate: 0,
+        avg_deal_size: 0,
+        sales_cycle_days: 0
+      },
       performance: {
         conversionRate: 0,
         averageDealSize: 0,
@@ -301,6 +309,8 @@ learningRoutes.post('/playbooks/generate', async (c: any) => {
       },
       strategies: [],
       patterns: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -351,12 +361,15 @@ learningRoutes.put('/playbooks/:id', async (c: any) => {
 
     const feedback: Feedback[] = data.feedback.map((f: any) => ({
       id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      business_id: c.get('businessId') || '',
+      source: 'user',
       playbookId,
       type: f.type,
+      content: f.comment,
       rating: f.rating,
       comment: f.comment,
       category: f.category,
-      suggestions: f.suggestions,
+      created_at: new Date().toISOString(),
       timestamp: new Date().toISOString()
     }));
 

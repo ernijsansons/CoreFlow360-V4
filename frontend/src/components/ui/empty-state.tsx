@@ -104,17 +104,17 @@ export function EmptyState({
             <Button
               onClick={action.onClick}
               variant={action.variant || 'default'}
-              size={sizes.button as any}
+              size={sizes.button as 'sm' | 'default' | 'lg' | 'icon'}
             >
               {action.label}
             </Button>
           )}
-          
+
           {secondaryAction && (
             <Button
               onClick={secondaryAction.onClick}
               variant="ghost"
-              size={sizes.button as any}
+              size={sizes.button as 'sm' | 'default' | 'lg' | 'icon'}
             >
               {secondaryAction.label}
             </Button>

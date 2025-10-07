@@ -1,9 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /**
  * Cache Client Service
  * Frontend interface for intelligent caching with request deduplication
  */
-
-import { toast } from 'sonner'
 
 export interface CacheOptions {
   ttl?: number
@@ -18,23 +17,23 @@ export interface CacheOptions {
 export interface CacheKey {
   widget_id?: string
   dashboard_id?: string
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
   date_range?: { from: Date; to: Date }
   aggregation?: string
   user_id?: string
-  [key: string]: any
+  [key: string]: unknown
 }
 
-interface RequestState {
-  promise: Promise<any>
+interface RequestState<T = unknown> {
+  promise: Promise<T>
   timestamp: number
-  subscribers: Array<(data: any) => void>
+  subscribers: Array<(data: T) => void>
 }
 
 export class CacheClient {
   private baseURL: string
   private authToken: string | null = null
-  private requestCache = new Map<string, any>()
+  private requestCache = new Map<string, unknown>()
   private requestQueue = new Map<string, RequestState>()
   private invalidationListeners = new Map<string, Set<() => void>>()
 
@@ -50,7 +49,7 @@ export class CacheClient {
   }
 
   // Main cache get method with intelligent features
-  async get<T = any>(
+  async get<T = unknown>(
     key: string | CacheKey,
     fetcher: () => Promise<T>,
     options: CacheOptions = {}
@@ -127,9 +126,9 @@ export class CacheClient {
   }
 
   // Specialized cache methods for common dashboard patterns
-  async getWidgetData<T = any>(
+  async getWidgetData<T = unknown>(
     widgetId: string,
-    filters: Record<string, any> = {},
+    filters: Record<string, unknown> = {},
     fetcher: () => Promise<T>,
     options: CacheOptions = {}
   ): Promise<T> {
@@ -148,7 +147,7 @@ export class CacheClient {
     })
   }
 
-  async getDashboardLayout<T = any>(
+  async getDashboardLayout<T = unknown>(
     dashboardId: string,
     fetcher: () => Promise<T>,
     options: CacheOptions = {}
@@ -166,11 +165,11 @@ export class CacheClient {
     })
   }
 
-  async getAggregatedData<T = any>(
+  async getAggregatedData<T = unknown>(
     dataSource: string,
     aggregation: string,
     dateRange: { from: Date; to: Date },
-    filters: Record<string, any>,
+    filters: Record<string, unknown>,
     fetcher: () => Promise<T>,
     options: CacheOptions = {}
   ): Promise<T> {
@@ -192,7 +191,7 @@ export class CacheClient {
     })
   }
 
-  async getUserPreferences<T = any>(
+  async getUserPreferences<T = unknown>(
     userId: string,
     fetcher: () => Promise<T>,
     options: CacheOptions = {}
@@ -254,7 +253,7 @@ export class CacheClient {
   }
 
   // Cache warming
-  async warmCache(keys: Array<{ key: CacheKey; fetcher: () => Promise<any>; options?: CacheOptions }>): Promise<void> {
+  async warmCache(keys: Array<{ key: CacheKey; fetcher: () => Promise<unknown>; options?: CacheOptions }>): Promise<void> {
     const promises = keys.map(({ key, fetcher, options }) =>
       this.get(key, fetcher, { ...options, background: true }).catch(console.error)
     )
@@ -288,7 +287,7 @@ export class CacheClient {
   }
 
   // Mutation with optimistic updates
-  async mutate<T = any>(
+  async mutate<T = unknown>(
     key: string | CacheKey,
     updater: (current: T) => T | Promise<T>,
     options: {
@@ -326,7 +325,7 @@ export class CacheClient {
     }
 
     // Regular mutation
-    const newData = current ? await updater(current.data) : await updater(null as any)
+    const newData = current ? await updater(current.data) : await updater(null as unknown as T)
 
     this.requestCache.set(cacheKey, {
       data: newData,
@@ -366,7 +365,7 @@ export class CacheClient {
   }
 
   // Get cache statistics
-  async getStats(): Promise<any> {
+  async getStats(): Promise<unknown> {
     try {
       const response = await fetch(`${this.baseURL}/cache/stats`, {
         headers: {
@@ -422,12 +421,12 @@ export class CacheClient {
     return parts.join('|')
   }
 
-  private isValidCache(cached: any, ttl?: number): boolean {
+  private isValidCache(cached: { timestamp: number; ttl?: number }, ttl?: number): boolean {
     const maxAge = ttl || cached.ttl || 300000
     return (Date.now() - cached.timestamp) < maxAge
   }
 
-  private shouldRevalidate(cached: any): boolean {
+  private shouldRevalidate(cached: { timestamp: number; ttl: number }): boolean {
     const age = Date.now() - cached.timestamp
     const halfLife = cached.ttl / 2
     return age > halfLife
@@ -454,7 +453,7 @@ export class CacheClient {
 
   private async revalidateInBackground(
     key: string,
-    fetcher: () => Promise<any>,
+    fetcher: () => Promise<unknown>,
     options: CacheOptions
   ): Promise<void> {
     try {
@@ -476,7 +475,7 @@ export class CacheClient {
 
   private async sendToServerCache(
     key: string,
-    data: any,
+    data: unknown,
     options: CacheOptions
   ): Promise<void> {
     try {
@@ -521,7 +520,7 @@ export class CacheClient {
     return key.includes(pattern)
   }
 
-  private notifySubscribers(key: string, data: any): void {
+  private notifySubscribers(key: string, data: unknown): void {
     // Emit custom event for React components to listen to
     window.dispatchEvent(new CustomEvent('cache-update', {
       detail: { key, data }
@@ -533,7 +532,7 @@ export class CacheClient {
     return localStorage.getItem('userId') || 'anonymous'
   }
 
-  private async getPrefetchPredictions(context: any): Promise<any[]> {
+  private async getPrefetchPredictions(context: unknown): Promise<unknown[]> {
     try {
       const response = await fetch(`${this.baseURL}/cache/predictions`, {
         method: 'POST',
@@ -582,7 +581,7 @@ export class CacheClient {
 export const cacheClient = new CacheClient()
 
 // React hook for cache integration
-export const useCache = <T = any>(
+export const useCache = <T = unknown>(
   key: string | CacheKey,
   fetcher: () => Promise<T>,
   options: CacheOptions = {}

@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../../shared/logger';
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database, D1PreparedStatement } from '@cloudflare/workers-types';
 
 export interface TraceContext {
   traceId: string;
@@ -386,7 +386,7 @@ class TracingService {
     }
 
     try {
-      const batch = this.db.batch([]);
+      const batch: D1PreparedStatement[] = [];
 
       for (const span of spansToExport) {
         batch.push(

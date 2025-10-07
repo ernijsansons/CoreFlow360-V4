@@ -42,7 +42,8 @@ export type XSSAttackType =
   | 'blind'
   | 'self_xss'
   | 'universal_xss'
-  | 'scriptless';
+  | 'scriptless'
+  | 'unknown';
 
 export interface XSSProtectionConfig {
   enabled: boolean;

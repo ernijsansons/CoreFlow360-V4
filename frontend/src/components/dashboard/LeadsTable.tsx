@@ -28,14 +28,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
-  User,
-  Mail,
-  Phone,
-  Building2,
-  Calendar,
   MoreHorizontal,
   Search,
-  Filter,
   UserPlus,
   Star,
   Edit,
@@ -215,7 +209,7 @@ export function LeadsTable() {
   }
 
   const getStatusBadge = (status: Lead['status']) => {
-    const variants: Record<Lead['status'], any> = {
+    const variants: Record<Lead['status'], { variant: string; label: string }> = {
       new: { variant: 'secondary', label: 'New' },
       contacted: { variant: 'outline', label: 'Contacted' },
       qualified: { variant: 'default', label: 'Qualified' },

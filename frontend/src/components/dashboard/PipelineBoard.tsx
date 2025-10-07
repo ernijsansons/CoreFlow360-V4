@@ -10,15 +10,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  DollarSign,
   User,
   Calendar,
   MoreVertical,
   Plus,
-  MoveRight,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
   TrendingUp
 } from 'lucide-react'
 

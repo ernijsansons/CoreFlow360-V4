@@ -39,7 +39,7 @@ export function formatRelativeTime(date: Date | string | number): string {
   return formatDate(target)
 }
 
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: never[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -51,7 +51,7 @@ export function debounce<T extends (...args: any[]) => any>(
   }
 }
 
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: never[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
@@ -166,7 +166,7 @@ export function formatNumber(
   return new Intl.NumberFormat('en-US', options).format(number)
 }
 
-export function parseJwt(token: string): any {
+export function parseJwt(token: string): Record<string, unknown> | null {
   try {
     const base64Url = token.split('.')[1]
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
@@ -176,7 +176,7 @@ export function parseJwt(token: string): any {
         .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     )
-    return JSON.parse(jsonPayload)
+    return JSON.parse(jsonPayload) as Record<string, unknown>
   } catch {
     return null
   }

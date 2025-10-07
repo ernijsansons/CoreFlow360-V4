@@ -95,15 +95,18 @@ export class EmailTemplateEngine {
 
     // Fetch from database
     const db = this.env.DB_CRM;
+    if (!db) return null;
+
     const result = await db.prepare(`
       SELECT * FROM email_templates WHERE id = ?
     `).bind(templateId).first();
 
     if (result) {
+      const dbResult = result as any;
       const template = {
         ...result,
-        variables: JSON.parse(result.variables as string),
-        performance: result.performance ? JSON.parse(result.performance as string) : undefined
+        variables: JSON.parse(dbResult.variables as string),
+        performance: dbResult.performance ? JSON.parse(dbResult.performance as string) : undefined
       } as EmailTemplate;
 
       this.templateCache.set(templateId, template);
@@ -115,6 +118,8 @@ export class EmailTemplateEngine {
 
   async getTemplatesByCategory(category: EmailTemplateCategory): Promise<EmailTemplate[]> {
     const db = this.env.DB_CRM;
+    if (!db) return [];
+
     const results = await db.prepare(`
       SELECT * FROM email_templates
       WHERE category = ? AND active = 1
@@ -506,7 +511,7 @@ Thanks so much!
     const companyData: any = {
       company_name: lead.company_name,
       industry: lead.industry,
-      company_size: lead.company_size
+      company_id: lead.company_id
     };
 
     return companyData[key] || this.getDefaultValue(key);
@@ -546,7 +551,7 @@ Thanks so much!
     return defaults[key] || '';
   }
 
-  private async selectBestVariation(variations: any[], performance: any): any {
+  private async selectBestVariation(variations: any[], performance: any): Promise<any> {
     // Simple selection based on performance
     // In production, use more sophisticated ML models
     return variations[0];
@@ -554,6 +559,7 @@ Thanks so much!
 
   private async saveTemplate(template: EmailTemplate): Promise<void> {
     const db = this.env.DB_CRM;
+    if (!db) return;
 
     await db.prepare(`
       INSERT INTO email_templates (
@@ -576,6 +582,7 @@ Thanks so much!
 
   private async updateTemplate(template: EmailTemplate): Promise<void> {
     const db = this.env.DB_CRM;
+    if (!db) return;
 
     await db.prepare(`
       UPDATE email_templates

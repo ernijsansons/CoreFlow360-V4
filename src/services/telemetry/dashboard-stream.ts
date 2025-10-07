@@ -234,7 +234,7 @@ export class DashboardStream {
 
     const data = hours.map((hour: any) =>
       paths.map((path: any) => {
-        const result = results.find(r => r.hour === hour && r.path === path);
+        const result = results.find((r: any) => r.hour === hour && r.path === path);
         return result ? result.avg_latency : 0;
       })
     );

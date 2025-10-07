@@ -304,6 +304,9 @@ export class PredictiveScoring {
 
   private async getEngagementMetrics(lead: LeadExtended): Promise<EngagementSignals> {
     const db = this.env.DB_CRM;
+    if (!db) {
+      return this.getDefaultEngagementSignals();
+    }
 
     // Get interaction data
     const result = await db.prepare(`
@@ -314,14 +317,14 @@ export class PredictiveScoring {
         MAX(created_at) as last_interaction
       FROM lead_activities
       WHERE lead_id = ?
-    `).bind(lead.id).first();
+    `).bind(lead.id).first() as Record<string, any> | null;
 
     // Calculate frequency
     const firstInteraction = await db.prepare(`
       SELECT MIN(created_at) as first_interaction
       FROM lead_activities
       WHERE lead_id = ?
-    `).bind(lead.id).first();
+    `).bind(lead.id).first() as Record<string, any> | null;
 
     const daysSinceFirst = firstInteraction?.first_interaction
       ? (Date.now() - new Date(firstInteraction.first_interaction as string).getTime()) / (1000 * 60 * 60 * 24)
@@ -337,7 +340,7 @@ export class PredictiveScoring {
         COUNT(CASE WHEN created_at >= datetime('now', '-7 days') THEN 1 END) as week2
       FROM lead_activities
       WHERE lead_id = ?
-    `).bind(lead.id).first();
+    `).bind(lead.id).first() as Record<string, any> | null;
 
     const week1 = trendResult?.week1 as number || 0;
     const week2 = trendResult?.week2 as number || 0;
@@ -354,8 +357,23 @@ export class PredictiveScoring {
     };
   }
 
+  private getDefaultEngagementSignals(): EngagementSignals {
+    return {
+      totalInteractions: 0,
+      recentInteractions: 0,
+      interactionFrequency: 0,
+      responseTime: 0,
+      engagementTrend: 'stable',
+      channelPreference: 'email',
+      peakEngagementTime: '10:00'
+    };
+  }
+
   private async getWebsiteActivity(lead: LeadExtended): Promise<WebActivitySignals> {
     const db = this.env.DB_CRM;
+    if (!db) {
+      return this.getDefaultWebActivitySignals();
+    }
 
     // In production, this would integrate with web analytics
     const result = await db.prepare(`
@@ -367,7 +385,7 @@ export class PredictiveScoring {
       FROM web_activities
       WHERE lead_id = ?
         AND created_at >= datetime('now', '-30 days')
-    `).bind(lead.id).first();
+    `).bind(lead.id).first() as Record<string, any> | null;
 
     // Identify high-value pages
     const highValuePages = ['pricing', 'demo', 'features', 'case-studies', 'contact'];
@@ -382,14 +400,30 @@ export class PredictiveScoring {
       avgSessionDuration: result?.avg_duration as number || 0,
       pagesPerSession: (result?.page_views as number || 0) / Math.max(result?.session_count as number || 1, 1),
       highValuePageViews,
-      returnVisitorRate: result?.session_count as number > 1 ? 0.5 : 0,
+      returnVisitorRate: (result?.session_count as number || 0) > 1 ? 0.5 : 0,
       conversionEvents: await this.getConversionEvents(lead),
       lastVisit: new Date().toISOString() // Would get from actual data
     };
   }
 
+  private getDefaultWebActivitySignals(): WebActivitySignals {
+    return {
+      pageViews: 0,
+      sessionCount: 0,
+      avgSessionDuration: 0,
+      pagesPerSession: 0,
+      highValuePageViews: [],
+      returnVisitorRate: 0,
+      conversionEvents: [],
+      lastVisit: new Date().toISOString()
+    };
+  }
+
   private async getEmailMetrics(lead: LeadExtended): Promise<EmailSignals> {
     const db = this.env.DB_CRM;
+    if (!db) {
+      return this.getDefaultEmailSignals();
+    }
 
     const result = await db.prepare(`
       SELECT
@@ -399,7 +433,7 @@ export class PredictiveScoring {
         COUNT(CASE WHEN replied_at IS NOT NULL THEN 1 END) as replied
       FROM channel_messages
       WHERE lead_id = ? AND channel = 'email'
-    `).bind(lead.id).first();
+    `).bind(lead.id).first() as Record<string, any> | null;
 
     const total = result?.total_sent as number || 1;
 
@@ -409,6 +443,18 @@ export class PredictiveScoring {
       replyRate: (result?.replied as number || 0) / total,
       forwardRate: 0, // Would track in production
       unsubscribed: false, // Would check opt-out status
+      bestPerformingContent: [],
+      engagementTrend: 'stable'
+    };
+  }
+
+  private getDefaultEmailSignals(): EmailSignals {
+    return {
+      openRate: 0,
+      clickRate: 0,
+      replyRate: 0,
+      forwardRate: 0,
+      unsubscribed: false,
       bestPerformingContent: [],
       engagementTrend: 'stable'
     };
@@ -573,6 +619,9 @@ export class PredictiveScoring {
     }
 
     const db = this.env.DB_CRM;
+    if (!db) {
+      return [];
+    }
 
     // Find similar successful deals
     const patterns = await db.prepare(`
@@ -921,6 +970,9 @@ export class PredictiveScoring {
 
   private async storePrediction(lead: LeadExtended, score: LeadScore): Promise<void> {
     const db = this.env.DB_CRM;
+    if (!db) {
+      return;
+    }
 
     await db.prepare(`
       INSERT INTO lead_scores (
@@ -955,6 +1007,9 @@ export class PredictiveScoring {
   private async getPreferredChannel(lead: LeadExtended): Promise<string> {
     // Analyze which channel has best engagement
     const db = this.env.DB_CRM;
+    if (!db) {
+      return 'email';
+    }
 
     const result = await db.prepare(`
       SELECT channel, COUNT(*) as count
@@ -963,7 +1018,7 @@ export class PredictiveScoring {
       GROUP BY channel
       ORDER BY count DESC
       LIMIT 1
-    `).bind(lead.id).first();
+    `).bind(lead.id).first() as Record<string, any> | null;
 
     return result?.channel as string || 'email';
   }
@@ -971,6 +1026,9 @@ export class PredictiveScoring {
   private async getPeakEngagementTime(lead: LeadExtended): Promise<string> {
     // Analyze when lead is most active
     const db = this.env.DB_CRM;
+    if (!db) {
+      return '10:00';
+    }
 
     const result = await db.prepare(`
       SELECT strftime('%H', created_at) as hour, COUNT(*) as count
@@ -979,7 +1037,7 @@ export class PredictiveScoring {
       GROUP BY hour
       ORDER BY count DESC
       LIMIT 1
-    `).bind(lead.id).first();
+    `).bind(lead.id).first() as Record<string, any> | null;
 
     const hour = result?.hour as string || '10';
     return `${hour}:00`;

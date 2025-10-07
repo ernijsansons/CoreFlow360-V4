@@ -143,10 +143,29 @@ export class ConversationalMessagingService {
     };
 
     try {
+      // Create minimal recipient object for channel send
+      const recipient: Contact = {
+        id: message.to,
+        business_id: 'default',
+        email: '',
+        phone: message.to,
+        verified_phone: false,
+        verified_email: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const content: import('../types/crm').ChannelContent = {
+        channel: message.channel as 'sms' | 'whatsapp',
+        body: fullMessage.body,
+        ai_generated: false,
+        tone: 'casual'
+      };
+
       if (message.channel === 'sms') {
-        await this.smsChannel.send(fullMessage);
+        await this.smsChannel.send(recipient, content);
       } else if (message.channel === 'whatsapp') {
-        await this.whatsappChannel.send(fullMessage);
+        await this.whatsappChannel.send(recipient, content);
       }
 
       fullMessage.status = 'delivered';
@@ -159,8 +178,11 @@ export class ConversationalMessagingService {
   }
 
   async receiveMessage(message: Message): Promise<void> {
+    // Extract leadId from message metadata or phone number
+    const leadId = (message.metadata as any)?.leadId || message.from;
+
     // Find or create conversation
-    const conversation = await this.getOrCreateConversation(message.leadId, message.channel);
+    const conversation = await this.getOrCreateConversation(leadId, message.channel);
     
     // Add message to conversation
     conversation.messages.push({
@@ -197,9 +219,10 @@ export class ConversationalMessagingService {
       // Default AI response
       const response = await this.generateAIResponse(conversation, message);
       if (response) {
+        const twilioPhone = (this.env as any).TWILIO_PHONE_NUMBER || '';
         await this.sendMessage({
           channel: conversation.channel,
-          from: this.env.TWILIO_PHONE_NUMBER || '',
+          from: twilioPhone,
           to: message.from,
           body: response,
           direction: 'outbound'
@@ -263,14 +286,15 @@ export class ConversationalMessagingService {
   }
 
   private async executeFlow(conversation: Conversation, flow: ConversationFlow, message: Message): Promise<void> {
-    let currentStep = flow.steps[0];
-    
+    let currentStep: FlowStep | null = flow.steps[0];
+
     while (currentStep) {
       await this.executeStep(conversation, currentStep, message);
-      
-      // Find next step
-      if (currentStep.nextStep) {
-        currentStep = flow.steps.find(step => step.id === currentStep.nextStep) || null;
+
+      // Find next step - need explicit check since currentStep might be reassigned
+      const nextStepId: string | undefined = currentStep.nextStep;
+      if (nextStepId) {
+        currentStep = flow.steps.find(step => step.id === nextStepId) || null;
       } else {
         break;
       }
@@ -282,22 +306,24 @@ export class ConversationalMessagingService {
       case 'message':
         if (step.content) {
           const processedContent = this.processTemplate(step.content, conversation.context);
+          const twilioPhone = (this.env as any).TWILIO_PHONE_NUMBER || '';
           await this.sendMessage({
             channel: conversation.channel,
-            from: this.env.TWILIO_PHONE_NUMBER || '',
+            from: twilioPhone,
             to: conversation.context.lead.phone || '',
             body: processedContent,
             direction: 'outbound'
           });
         }
         break;
-        
+
       case 'question':
         if (step.question) {
           const processedQuestion = this.processTemplate(step.question, conversation.context);
+          const twilioPhone = (this.env as any).TWILIO_PHONE_NUMBER || '';
           await this.sendMessage({
             channel: conversation.channel,
-            from: this.env.TWILIO_PHONE_NUMBER || '',
+            from: twilioPhone,
             to: conversation.context.lead.phone || '',
             body: processedQuestion,
             direction: 'outbound'
@@ -324,7 +350,17 @@ export class ConversationalMessagingService {
   private async executeAction(action: string, conversation: Conversation, message: Message): Promise<void> {
     switch (action) {
       case 'schedule_meeting':
-        await this.meetingBooker.scheduleMeeting(conversation.context.lead);
+        // Create minimal conversation object for meeting booking
+        const minimalConversation: import('../types/crm').Conversation = {
+          id: conversation.id,
+          business_id: conversation.context.lead.business_id,
+          type: 'inbound_call' as import('../types/crm').ConversationType,
+          direction: 'inbound' as import('../types/crm').ConversationDirection,
+          participant_type: 'prospect' as import('../types/crm').ParticipantType,
+          created_at: conversation.startedAt,
+          lead_id: conversation.context.lead.id
+        };
+        await this.meetingBooker.bookDuringCall(conversation.context.lead, minimalConversation);
         break;
         
       case 'send_demo_invite':
@@ -362,9 +398,12 @@ export class ConversationalMessagingService {
       processed = processed.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
     }
     
-    // Replace lead data
-    processed = processed.replace(/{{lead\.name}}/g, context.lead.name || '');
-    processed = processed.replace(/{{lead\.company}}/g, context.lead.company || '');
+    // Replace lead data - use first_name and last_name for name
+    const leadName = context.lead.first_name
+      ? `${context.lead.first_name} ${context.lead.last_name || ''}`.trim()
+      : '';
+    processed = processed.replace(/{{lead\.name}}/g, leadName);
+    processed = processed.replace(/{{lead\.company}}/g, context.lead.company_name || '');
     processed = processed.replace(/{{lead\.phone}}/g, context.lead.phone || '');
     processed = processed.replace(/{{lead\.email}}/g, context.lead.email || '');
     
@@ -379,7 +418,17 @@ export class ConversationalMessagingService {
       }
     }
 
-    // Create new conversation
+    // Create new conversation with minimal lead data
+    const minimalLead: import('../types/crm').Lead = {
+      id: leadId,
+      business_id: 'default',
+      source: 'conversational_messaging',
+      status: 'new' as import('../types/crm').LeadStatus,
+      assigned_type: 'unassigned' as import('../types/crm').AssignedType,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
     const conversation: Conversation = {
       id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       leadId,
@@ -387,7 +436,7 @@ export class ConversationalMessagingService {
       status: 'active',
       messages: [],
       context: {
-        lead: { id: leadId, name: '', email: '', phone: '', company: '' } as Lead,
+        lead: minimalLead,
         currentStep: 'greeting',
         variables: {},
         lastActivity: new Date().toISOString(),
@@ -556,14 +605,18 @@ export class ConversationalMessagingService {
     // Mock summary generation
     const messageCount = conversation.messages.length;
     const lastIntent = conversation.detectedIntents?.[conversation.detectedIntents.length - 1];
-    
-    let summary = `Conversation with ${conversation.context.lead.name} via ${conversation.channel}. `;
+
+    const leadName = conversation.context.lead.first_name
+      ? `${conversation.context.lead.first_name} ${conversation.context.lead.last_name || ''}`.trim()
+      : 'Unknown';
+
+    let summary = `Conversation with ${leadName} via ${conversation.channel}. `;
     summary += `${messageCount} messages exchanged. `;
-    
+
     if (lastIntent) {
       summary += `Last detected intent: ${lastIntent.intent}. `;
     }
-    
+
     summary += `Status: ${conversation.status}.`;
 
     conversation.aiSummary = summary;

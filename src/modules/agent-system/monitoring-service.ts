@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../../shared/logger';
-import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
+import type { KVNamespace, D1Database, D1PreparedStatement } from '@cloudflare/workers-types';
 
 export interface Metric {
   name: string;
@@ -568,7 +568,7 @@ class MonitoringService {
   private async exportMetrics(): Promise<void> {
     if (!this.db) return;
 
-    const batch = this.db.batch([]);
+    const batch: D1PreparedStatement[] = [];
     const now = Date.now();
 
     for (const [name, metrics] of this.metrics) {

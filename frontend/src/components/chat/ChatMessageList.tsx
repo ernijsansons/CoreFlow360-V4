@@ -116,7 +116,7 @@ const MessageItem: React.FC<{
   isLast: boolean
   onAction?: (messageId: string, action: string) => void
   onFilePreview?: (fileId: string) => void
-}> = ({ message, isLast, onAction, onFilePreview }) => {
+}> = ({ message, onAction, onFilePreview }) => {
   return (
     <motion.div
       className={cn(

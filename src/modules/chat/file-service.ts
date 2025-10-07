@@ -78,7 +78,7 @@ class ChatFileService {
       })
 
       if (!uploadResult) {
-        throw new AppError('Failed to upload file to storage', 'UPLOAD_FAILED')
+        throw new AppError('Failed to upload file to storage', 500, 'UPLOAD_FAILED')
       }
 
       // Generate URLs
@@ -140,9 +140,10 @@ class ChatFileService {
 
       throw new AppError(
         'Failed to upload file',
-        'UPLOAD_FAILED',
         500,
-        error instanceof Error ? error.message : undefined
+        'UPLOAD_FAILED',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -165,9 +166,10 @@ class ChatFileService {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve file metadata',
-        'DATABASE_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'DATABASE_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -188,9 +190,10 @@ class ChatFileService {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve conversation files',
-        'DATABASE_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'DATABASE_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -203,12 +206,12 @@ class ChatFileService {
       // Get file metadata
       const metadata = await this.getFileMetadata(fileId)
       if (!metadata) {
-        throw new AppError('File not found', 'FILE_NOT_FOUND', 404)
+        throw new AppError('File not found', 404, 'FILE_NOT_FOUND')
       }
 
       // Check permissions (only uploader can delete)
       if (metadata.uploadedBy !== userId) {
-        throw new AppError('Insufficient permissions', 'FORBIDDEN', 403)
+        throw new AppError('Insufficient permissions', 403, 'FORBIDDEN')
       }
 
       // Generate file key from metadata
@@ -248,9 +251,10 @@ class ChatFileService {
 
       throw new AppError(
         'Failed to delete file',
-        'DELETE_FAILED',
         500,
-        error instanceof Error ? error.message : undefined
+        'DELETE_FAILED',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }

@@ -47,7 +47,14 @@ export class AIVoiceAgent {
       const script = await this.scriptGenerator.generateScript({
         lead,
         call_type: request?.call_type || 'cold_outreach',
-        context: request?.context
+        context: request?.context ? {
+          previous_interactions: request.context.previous_interactions?.map(i =>
+            `${i.type} on ${i.date}: ${i.summary} - ${i.outcome}`
+          ),
+          urgency_reason: request.context.urgency_reason,
+          campaign_context: request.context.campaign_context,
+          referral_source: request.context.referral_source
+        } : undefined
       });
 
 
@@ -88,7 +95,7 @@ export class AIVoiceAgent {
           qualified: false
         },
         objections_encountered: [],
-        next_questions: script.opening.questions,
+        next_questions: script.script.opening.questions,
         call_start_time: new Date().toISOString(),
         last_activity_time: new Date().toISOString()
       };
@@ -158,7 +165,7 @@ export class AIVoiceAgent {
           return this.handleCallFailed(callState, webhookData);
 
         default:
-          return this.conversationHandler ? (this.conversationHandler as any).handleIncomingAudio?.(callSid, webhookData) : null;
+          return this.conversationHandler ? (this.conversationHandler as any).handleIncomingAudio?.(callSid, webhookData) || '' : '';
       }
 
     } catch (error: any) {
@@ -353,8 +360,9 @@ export class AIVoiceAgent {
       silence_periods: 0, // Would calculate from audio analysis
       average_response_time: 2.5, // Estimated
       audio_quality_score: 85, // Would get from Twilio
-      transcription_confidence: (callState.conversation_history.reduce((avg: any, turn: any) =>
-        avg + (turn.confidence || 0), 0) / (callState.conversation_history.length || 1)) || 0,
+      transcription_confidence: callState.conversation_history?.length
+        ? callState.conversation_history.reduce((avg: any, turn: any) => avg + (turn.confidence || 0), 0) / callState.conversation_history.length
+        : 0,
       conversation_flow_score: 80, // AI-calculated
       qualification_score: callState.qualification_progress.overall_score,
       interest_score: 70, // AI-calculated from sentiment

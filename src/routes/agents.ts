@@ -339,7 +339,7 @@ agents.get('/stream', async (c: any) => {
     const stream = new ReadableStream({
       start(controller) {
         // Subscribe to real-time updates
-        bridge.streamUpdates((update) => {
+        bridge.streamUpdates((update: any) => {
           const data = `data: ${JSON.stringify(update)}\n\n`;
           controller.enqueue(new TextEncoder().encode(data));
         });
@@ -405,7 +405,7 @@ agents.get('/ws', async (c: any) => {
           break;
 
         case 'subscribe':
-          connector.subscribeToAgentEvents(message.eventType, (event) => {
+          connector.subscribeToAgentEvents(message.eventType, (event: any) => {
             socket.send(JSON.stringify({ type: 'event', data: event }));
           });
           break;

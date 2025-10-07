@@ -16,9 +16,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Users,
   DollarSign,
-  TrendingUp,
   TrendingDown,
-  ShoppingCart,
   Activity,
   CreditCard,
   Package,

@@ -9,13 +9,12 @@ import type {
   VoiceAgentResponse,
   CallResult,
   RealTimeCallState,
-  CallQueueStats,
   VoiceAgentPerformance
 } from '../types/voice-agent';
 import type { Lead } from '../types/crm';
 import { AIVoiceAgent } from '../services/ai-voice-agent';
-import { CallOrchestrator, type CallOrchestratorConfig } from '../services/call-orchestrator';
-import { CallAnalyticsService } from '../services/call-analytics-service';
+import { CallOrchestrator, type CallOrchestratorConfig, type CallQueueStats } from '../services/call-orchestrator';
+import { CallAnalyticsService, type AnalyticsQuery } from '../services/call-analytics-service';
 import { CRMService } from '../services/crm-service';
 import { TwilioService } from '../services/twilio-service';
 
@@ -54,10 +53,18 @@ const AnalyticsQuerySchema = z.object({
   end_date: z.string().datetime(),
   lead_ids: z.array(z.string()).optional(),
   call_types: z.array(z.string()).optional(),
-  outcomes: z.array(z.string()).optional(),
+  outcomes: z.array(z.string()).optional(), // Cast to proper type in handler
   min_duration: z.number().optional(),
   max_duration: z.number().optional()
-});
+}) as z.ZodType<{
+  start_date: string;
+  end_date: string;
+  lead_ids?: string[];
+  call_types?: string[];
+  outcomes?: string[];
+  min_duration?: number;
+  max_duration?: number;
+}>;
 
 const TwilioWebhookSchema = z.object({
   CallSid: z.string(),
@@ -127,32 +134,32 @@ export function createVoiceAgentRoutes(
     zValidator('json', CallInitiationSchema),
     async (c: Context) => {
       try {
-        const request = c.req.valid('json') as CallInitiationRequest;
+        const body = await c.req.json();
+        const request = CallInitiationSchema.parse(body) as CallInitiationRequest;
 
         // Get lead data
-        const lead = await crmService.getLeadById(request.lead_id);
-        if (!lead) {
+        const leadResponse = await crmService.getLead(request.lead_id);
+        if (!leadResponse.success || !leadResponse.data) {
           return c.json({
             success: false,
             error: 'Lead not found'
           }, 404);
         }
 
-        // Queue call through orchestrator
-        const result = await callOrchestrator.queueCall(lead, request);
+        // Initiate call directly through orchestrator
+        const result = await callOrchestrator.initiateCall(request);
 
-        if (result.success) {
+        if (result.status !== 'failed') {
           return c.json({
             success: true,
-            message: 'Call queued successfully',
-            queue_item_id: result.queue_item_id,
-            estimated_wait_time: result.estimated_wait_time,
-            position: result.position
+            message: 'Call initiated successfully',
+            call_id: result.call_id,
+            status: result.status
           });
         } else {
           return c.json({
             success: false,
-            error: result.error
+            error: 'Call initiation failed'
           }, 400);
         }
 
@@ -170,15 +177,16 @@ export function createVoiceAgentRoutes(
     zValidator('json', BulkCallSchema),
     async (c: Context) => {
       try {
-        const request = c.req.valid('json');
-        const results = [];
+        const body = await c.req.json();
+        const requestData = BulkCallSchema.parse(body);
+        const results: Array<{ lead_id: string; success: boolean; call_id?: string; error?: string }> = [];
 
-        for (let i = 0; i < request.lead_ids.length; i++) {
-          const leadId = request.lead_ids[i];
+        for (let i = 0; i < requestData.lead_ids.length; i++) {
+          const leadId = requestData.lead_ids[i];
 
           // Get lead data
-          const lead = await crmService.getLeadById(leadId);
-          if (!lead) {
+          const leadResponse = await crmService.getLead(leadId);
+          if (!leadResponse.success || !leadResponse.data) {
             results.push({
               lead_id: leadId,
               success: false,
@@ -188,29 +196,30 @@ export function createVoiceAgentRoutes(
           }
 
           // Calculate staggered schedule time
-          const scheduledAt = request.scheduled_at
-            ? new Date(new Date(request.scheduled_at).getTime() + i * request.stagger_delay_minutes * 60000)
-            : new Date(Date.now() + i * request.stagger_delay_minutes * 60000);
+          const scheduledAt = requestData.scheduled_at
+            ? new Date(new Date(requestData.scheduled_at).getTime() + i * requestData.stagger_delay_minutes * 60000)
+            : new Date(Date.now() + i * requestData.stagger_delay_minutes * 60000);
 
-          // Queue call
-          const result = await callOrchestrator.queueCall(lead, {
+          // Initiate call
+          const result = await callOrchestrator.initiateCall({
             lead_id: leadId,
-            priority: request.priority,
-            call_type: request.call_type,
+            priority: requestData.priority,
+            call_type: requestData.call_type,
             scheduled_at: scheduledAt.toISOString()
           });
 
           results.push({
             lead_id: leadId,
-            ...result
+            success: result.status !== 'failed',
+            call_id: result.call_id
           });
         }
 
-        const successCount = results.filter((r: any) => r.success).length;
+        const successCount = results.filter(r => r.success).length;
 
         return c.json({
           success: true,
-          message: `Queued ${successCount}/${request.lead_ids.length} calls`,
+          message: `Queued ${successCount}/${requestData.lead_ids.length} calls`,
           results
         });
 
@@ -453,7 +462,9 @@ export function createVoiceAgentRoutes(
     zValidator('json', AnalyticsQuerySchema),
     async (c: Context) => {
       try {
-        const query = c.req.valid('json');
+        const body = await c.req.json();
+        const rawQuery = AnalyticsQuerySchema.parse(body);
+        const query: AnalyticsQuery = rawQuery as any; // Type assertion for outcomes
         const performance = await analyticsService.getPerformanceMetrics(query);
 
         return c.json({
@@ -506,7 +517,9 @@ export function createVoiceAgentRoutes(
     zValidator('json', AnalyticsQuerySchema),
     async (c: Context) => {
       try {
-        const query = c.req.valid('json');
+        const body = await c.req.json();
+        const rawQuery = AnalyticsQuerySchema.parse(body);
+        const query: AnalyticsQuery = rawQuery as any; // Type assertion for outcomes
         const costAnalysis = await analyticsService.getCostAnalysis(query);
 
         return c.json({
@@ -544,7 +557,9 @@ export function createVoiceAgentRoutes(
     zValidator('json', AnalyticsQuerySchema),
     async (c: Context) => {
       try {
-        const query = c.req.valid('json');
+        const body = await c.req.json();
+        const rawQuery = AnalyticsQuerySchema.parse(body);
+        const query: AnalyticsQuery = rawQuery as any; // Type assertion for outcomes
         const metrics = await analyticsService.getVoiceAgentMetrics(query);
 
         return c.json({
@@ -579,7 +594,7 @@ export function createVoiceAgentRoutes(
   app.get('/debug/active-calls', async (c: Context) => {
     try {
       // Get all active call states
-      const activeCalls = []; // Would get from orchestrator
+      const activeCalls: RealTimeCallState[] = []; // Would get from orchestrator
 
       return c.json({
         success: true,
@@ -648,3 +663,6 @@ export const defaultOrchestratorConfig: CallOrchestratorConfig = {
     per_day: 200
   }
 };
+
+// Default export for route integration
+export default createVoiceAgentRoutes;

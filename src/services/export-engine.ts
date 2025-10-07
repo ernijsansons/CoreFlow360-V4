@@ -1,12 +1,16 @@
 /**
  * Data Export Engine
  * Comprehensive export system supporting PDF, Excel, PowerPoint, and more
+ * GRUG: Remove external dependencies - use Cloudflare native capabilities
  */
 
 import { DurableObject } from 'cloudflare:workers'
-import jsPDF from 'jspdf'
-import * as XLSX from 'xlsx'
-import { ChartJSNodeCanvas } from 'chartjs-node-canvas'
+import type { Env } from '../types/env'
+
+// GRUG: External libs not available in Workers - use native APIs or lazy load
+// import jsPDF from 'jspdf'
+// import * as XLSX from 'xlsx'
+// import { ChartJSNodeCanvas } from 'chartjs-node-canvas'
 
 export interface ExportRequest {
   id: string
@@ -75,11 +79,11 @@ export interface ExportProgress {
   error?: string
 }
 
-export class ExportEngine extends DurableObject {
+export class ExportEngine extends DurableObject<Env> {
   private storage: DurableObjectStorage
-  private env: any
+  private env: Env
 
-  constructor(ctx: DurableObjectState, env: any) {
+  constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env)
     this.storage = ctx.storage
     this.env = env
@@ -647,4 +651,4 @@ export class ExportEngine extends DurableObject {
   }
 }
 
-export { ExportEngine }
+// GRUG: Remove duplicate export - already exported in class declaration

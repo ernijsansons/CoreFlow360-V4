@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
-  Upload,
   Download,
   Database,
   FileText,
@@ -18,10 +17,7 @@ import {
   AlertCircle,
   Clock,
   RefreshCw,
-  Play,
-  Pause,
   X,
-  ArrowRight,
   History,
   Settings,
   Info
@@ -40,8 +36,6 @@ export const Route = createFileRoute('/dashboard/migration/')({
 
 function MigrationDashboard() {
   const [activeTab, setActiveTab] = React.useState('import')
-  const [isImporting, setIsImporting] = React.useState(false)
-  const [isExporting, setIsExporting] = React.useState(false)
 
   const migrationJobs = [
     {

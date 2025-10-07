@@ -3,7 +3,6 @@ import { Link, useLocation } from '@tanstack/react-router'
 import {
   LayoutDashboard,
   Users,
-  Building2,
   Phone,
   Mail,
   Calendar,

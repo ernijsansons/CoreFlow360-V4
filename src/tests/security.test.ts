@@ -410,7 +410,7 @@ describe('MFA/TOTP Tests', () => {
   });
 
   it('should verify valid TOTP codes', () => {
-    const secret = 'JBSWY3DPEHPK3PXP';
+    const secret = process.env.TEST_TOTP_SECRET || crypto.randomUUID().replace(/-/g, '').substring(0, 16);
 
     // Generate a TOTP code (would need real implementation)
     // For testing, we'll mock the verification

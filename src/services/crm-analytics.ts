@@ -628,47 +628,51 @@ export class CRMAnalytics {
   }
 
   // Real-time streaming metrics
-  async streamMetrics(userId?: string): Promise<ReadableStream<MetricUpdate>> {
+  async streamMetrics(userId?: string): Promise<ReadableStream<Uint8Array>> {
     const encoder = new TextEncoder();
 
-    return new ReadableStream({
+    return new ReadableStream<Uint8Array>({
       start: (controller) => {
         // Subscribe to events
-        this.eventEmitter.addEventListener('lead_created', (event: any) => {
+        this.eventEmitter.addEventListener('lead_created', (event: Event) => {
+          const customEvent = event as CustomEvent;
           const update: MetricUpdate = {
             type: 'metric_update',
             metric: 'total_leads',
-            value: event.detail.count,
+            value: customEvent.detail.count,
             change: 1,
             timestamp: new Date().toISOString()
           };
           controller.enqueue(encoder.encode(JSON.stringify(update) + '\n'));
         });
 
-        this.eventEmitter.addEventListener('deal_won', (event: any) => {
+        this.eventEmitter.addEventListener('deal_won', (event: Event) => {
+          const customEvent = event as CustomEvent;
           const update: MetricUpdate = {
             type: 'celebration',
-            message: `🎉 ${event.detail.rep} just closed $${event.detail.value.toLocaleString()}!`,
+            message: `🎉 ${customEvent.detail.rep} just closed $${customEvent.detail.value.toLocaleString()}!`,
             severity: 'success',
             timestamp: new Date().toISOString()
           };
           controller.enqueue(encoder.encode(JSON.stringify(update) + '\n'));
         });
 
-        this.eventEmitter.addEventListener('deal_lost', (event: any) => {
+        this.eventEmitter.addEventListener('deal_lost', (event: Event) => {
+          const customEvent = event as CustomEvent;
           const update: MetricUpdate = {
             type: 'alert',
-            message: `Deal lost: ${event.detail.name} ($${event.detail.value.toLocaleString()})`,
+            message: `Deal lost: ${customEvent.detail.name} ($${customEvent.detail.value.toLocaleString()})`,
             severity: 'warning',
             timestamp: new Date().toISOString()
           };
           controller.enqueue(encoder.encode(JSON.stringify(update) + '\n'));
         });
 
-        this.eventEmitter.addEventListener('quota_achieved', (event: any) => {
+        this.eventEmitter.addEventListener('quota_achieved', (event: Event) => {
+          const customEvent = event as CustomEvent;
           const update: MetricUpdate = {
             type: 'celebration',
-            message: `🏆 ${event.detail.rep} hit ${event.detail.percentage}% of quota!`,
+            message: `🏆 ${customEvent.detail.rep} hit ${customEvent.detail.percentage}% of quota!`,
             severity: 'success',
             timestamp: new Date().toISOString()
           };
@@ -697,12 +701,16 @@ export class CRMAnalytics {
 
   // Data fetching methods
 
-  private async getCallsToday(userId?: string): Promise<any> {
+  private async getCallsToday(userId?: string): Promise<{
+    count: number;
+    trend: MetricTrend;
+    trendValue: number;
+  }> {
     const cacheKey = `calls_today_${userId || 'all'}`;
     const cached = this.getCachedValue(cacheKey);
     if (cached) return cached;
 
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
     const today = new Date().toISOString().split('T')[0];
 
     const query = userId
@@ -710,7 +718,7 @@ export class CRMAnalytics {
       : `SELECT COUNT(*) as count FROM calls WHERE business_id = ? AND date(created_at) = ?`;
 
     const params = userId ? [this.businessId, userId, today] : [this.businessId, today];
-    const result = await db.prepare(query).bind(...params).first();
+    const result = await db.prepare(query).bind(...params).first<{ count: number }>();
 
     const count = result?.count || 0;
 
@@ -721,12 +729,12 @@ export class CRMAnalytics {
       : `SELECT COUNT(*) as count FROM calls WHERE business_id = ? AND date(created_at) = date('now', '-1 day')`;
 
     const yesterdayParams = userId ? [this.businessId, userId] : [this.businessId];
-    const yesterdayResult = await db.prepare(yesterdayQuery).bind(...yesterdayParams).first();
+    const yesterdayResult = await db.prepare(yesterdayQuery).bind(...yesterdayParams).first<{ count: number }>();
     const yesterdayCount = yesterdayResult?.count || 0;
 
     const value = {
       count,
-      trend: count > yesterdayCount ? 'up' : count < yesterdayCount ? 'down' : 'stable',
+      trend: (count > yesterdayCount ? 'up' : count < yesterdayCount ? 'down' : 'stable') as MetricTrend,
       trendValue: yesterdayCount > 0 ? ((count - yesterdayCount) / yesterdayCount) * 100 : 0
     };
 
@@ -735,7 +743,7 @@ export class CRMAnalytics {
   }
 
   private async getEmailsSent(userId?: string): Promise<number> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
     const today = new Date().toISOString().split('T')[0];
 
     const query = userId
@@ -743,13 +751,13 @@ export class CRMAnalytics {
       : `SELECT COUNT(*) as count FROM emails WHERE business_id = ? AND date(sent_at) = ?`;
 
     const params = userId ? [this.businessId, userId, today] : [this.businessId, today];
-    const result = await db.prepare(query).bind(...params).first();
+    const result = await db.prepare(query).bind(...params).first<{ count: number }>();
 
     return result?.count || 0;
   }
 
   private async getMeetingsScheduled(userId?: string): Promise<number> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
     const today = new Date().toISOString().split('T')[0];
 
     const query = userId
@@ -757,13 +765,13 @@ export class CRMAnalytics {
       : `SELECT COUNT(*) as count FROM meetings WHERE business_id = ? AND date(scheduled_at) = ?`;
 
     const params = userId ? [this.businessId, userId, today] : [this.businessId, today];
-    const result = await db.prepare(query).bind(...params).first();
+    const result = await db.prepare(query).bind(...params).first<{ count: number }>();
 
     return result?.count || 0;
   }
 
   private async getQuotaAttainment(userId?: string): Promise<number> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
 
     const query = userId
       ? `SELECT SUM(value) as revenue FROM opportunities WHERE business_id =
@@ -772,7 +780,7 @@ export class CRMAnalytics {
   business_id = ? AND status = 'closed_won' AND date(close_date) >= date('now', 'start of month')`;
 
     const params = userId ? [this.businessId, userId] : [this.businessId];
-    const result = await db.prepare(query).bind(...params).first();
+    const result = await db.prepare(query).bind(...params).first<{ revenue: number }>();
     const revenue = result?.revenue || 0;
 
     // Get quota
@@ -781,14 +789,19 @@ export class CRMAnalytics {
       : `SELECT SUM(quota) as quota FROM users WHERE business_id = ?`;
 
     const quotaParams = userId ? [this.businessId, userId] : [this.businessId];
-    const quotaResult = await db.prepare(quotaQuery).bind(...quotaParams).first();
+    const quotaResult = await db.prepare(quotaQuery).bind(...quotaParams).first<{ quota: number }>();
     const quota = quotaResult?.quota || 100000;
 
     return (revenue / quota) * 100;
   }
 
-  private async getPersonalPipeline(userId?: string): Promise<any> {
-    const db = this.env.DB_CRM;
+  private async getPersonalPipeline(userId?: string): Promise<{
+    stages: PipelineStage[];
+    totalValue: number;
+    conversion: number;
+    velocity: number;
+  }> {
+    const db = this.env.DB_CRM || this.env.DB;
 
     const stages = ['prospecting', 'qualification', 'proposal', 'negotiation', 'closing'];
     const pipelineStages: PipelineStage[] = [];
@@ -801,7 +814,7 @@ export class CRMAnalytics {
   value FROM opportunities WHERE business_id = ? AND stage = ? AND status = 'open'`;
 
       const params = userId ? [this.businessId, userId, stage] : [this.businessId, stage];
-      const result = await db.prepare(query).bind(...params).first();
+      const result = await db.prepare(query).bind(...params).first<{ count: number; value: number }>();
 
       pipelineStages.push({
         name: stage.charAt(0).toUpperCase() + stage.slice(1),
@@ -861,7 +874,7 @@ export class CRMAnalytics {
   }
 
   private async getLeaderboard(metric: string = 'revenue'): Promise<LeaderboardEntry[]> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
 
     const query = `
       SELECT
@@ -878,21 +891,27 @@ export class CRMAnalytics {
       LIMIT 10
     `;
 
-    const result = await db.prepare(query).bind(this.businessId).all();
+    const result = await db.prepare(query).bind(this.businessId).all<{
+      name: string;
+      avatar: string;
+      revenue: number;
+      deals: number;
+      win_rate: number;
+    }>();
 
     return result.results.map((row, index) => ({
       rank: index + 1,
       previousRank: index + 1, // Would track historical ranks
-      name: (row as any).name as string,
-      avatar: (row as any).avatar as string,
-      value: (row as any).revenue as number,
+      name: row.name,
+      avatar: row.avatar,
+      value: row.revenue,
       change: 0, // Would calculate change
       percentOfTarget: 85 + Math.random() * 30 // Mock
     }));
   }
 
   private async getActivityFeed(userId?: string): Promise<any[]> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
 
     const query = userId
       ? `SELECT * FROM activity_log WHERE business_id = ? AND user_id = ? ORDER BY created_at DESC LIMIT 20`
@@ -936,8 +955,17 @@ export class CRMAnalytics {
 
   // Manager dashboard data methods
 
-  private async getTeamPerformance(): Promise<any> {
-    const db = this.env.DB_CRM;
+  private async getTeamPerformance(): Promise<{
+    revenue: number;
+    target: number;
+    trend: MetricTrend;
+    winRate: number;
+    previousWinRate: number;
+    avgDealSize: number;
+    dealSizeTrend: MetricTrend;
+    salesCycle: number;
+  }> {
+    const db = this.env.DB_CRM || this.env.DB;
 
     const currentMonth = await db.prepare(`
       SELECT
@@ -948,7 +976,13 @@ export class CRMAnalytics {
         AVG(julianday(close_date) - julianday(created_at)) as sales_cycle
       FROM opportunities
       WHERE business_id = ? AND close_date >= date('now', 'start of month')
-    `).bind(this.businessId).first();
+    `).bind(this.businessId).first<{
+      revenue: number;
+      deals: number;
+      win_rate: number;
+      avg_deal_size: number;
+      sales_cycle: number;
+    }>();
 
     const previousMonth = await db.prepare(`
       SELECT
@@ -957,7 +991,13 @@ export class CRMAnalytics {
       FROM opportunities
       WHERE business_id = ? AND close_date >= date('now', '-1 month', 'start of month')
         AND close_date < date('now', 'start of month')
-    `).bind(this.businessId).first();
+    `).bind(this.businessId).first<{
+      win_rate: number;
+      avg_deal_size: number;
+    }>();
+
+    const currentAvgDealSize = currentMonth?.avg_deal_size || 0;
+    const previousAvgDealSize = previousMonth?.avg_deal_size || 0;
 
     return {
       revenue: currentMonth?.revenue || 0,
@@ -965,8 +1005,8 @@ export class CRMAnalytics {
       trend: 'up' as MetricTrend,
       winRate: (currentMonth?.win_rate || 0) * 100,
       previousWinRate: (previousMonth?.win_rate || 0) * 100,
-      avgDealSize: currentMonth?.avg_deal_size || 0,
-      dealSizeTrend: currentMonth?.avg_deal_size > previousMonth?.avg_deal_size ? 'up' : 'down',
+      avgDealSize: currentAvgDealSize,
+      dealSizeTrend: (currentAvgDealSize > previousAvgDealSize ? 'up' : 'down') as MetricTrend,
       salesCycle: Math.round(currentMonth?.sales_cycle || 30)
     };
   }
@@ -1021,7 +1061,7 @@ export class CRMAnalytics {
   }
 
   private async getRepPerformance(): Promise<any[]> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
 
     const result = await db.prepare(`
       SELECT
@@ -1048,7 +1088,7 @@ export class CRMAnalytics {
   }
 
   private async getAtRiskDeals(): Promise<any[]> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
 
     const result = await db.prepare(`
       SELECT
@@ -1219,7 +1259,7 @@ export class CRMAnalytics {
   }
 
   private async getDataQuality(): Promise<number> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
 
     const result = await db.prepare(`
       SELECT
@@ -1227,7 +1267,10 @@ export class CRMAnalytics {
         COUNT(CASE WHEN email IS NOT NULL AND phone IS NOT NULL THEN 1 END) as complete
       FROM leads
       WHERE business_id = ?
-    `).bind(this.businessId).first();
+    `).bind(this.businessId).first<{
+      total: number;
+      complete: number;
+    }>();
 
     const total = result?.total || 1;
     const complete = result?.complete || 0;
@@ -1287,13 +1330,13 @@ export class CRMAnalytics {
   }
 
   private async getLeadsGenerated(): Promise<number> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
 
     const result = await db.prepare(`
       SELECT COUNT(*) as count
       FROM leads
       WHERE business_id = ? AND created_at >= date('now', 'start of month')
-    `).bind(this.businessId).first();
+    `).bind(this.businessId).first<{ count: number }>();
 
     return result?.count || 0;
   }

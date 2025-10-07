@@ -18,10 +18,10 @@ export interface ApiError {
   message: string
   code?: string
   status?: number
-  details?: any
+  details?: Record<string, unknown>
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: ApiError
@@ -70,7 +70,7 @@ class ApiClient {
       url,
       method: options.method || 'GET',
       headers: options.headers as Record<string, string>,
-      body: options.body as any,
+      body: options.body as unknown,
       timestamp: Date.now(),
       retryCount: 0,
     })
@@ -105,7 +105,7 @@ class ApiClient {
         this.abortControllers.delete(requestId)
         throw error
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (attempt < this.config.retryAttempts! && options.retryOnFailure !== false) {
         await new Promise(resolve =>
           setTimeout(resolve, this.config.retryDelay! * attempt)
@@ -116,8 +116,8 @@ class ApiClient {
     }
   }
 
-  private handleError(error: any, status?: number): ApiError {
-    if (error.name === 'AbortError') {
+  private handleError(error: unknown, status?: number): ApiError {
+    if (error instanceof Error && error.name === 'AbortError') {
       return {
         message: 'Request timeout',
         code: 'TIMEOUT',
@@ -148,7 +148,7 @@ class ApiClient {
     }
   }
 
-  async request<T = any>(
+  async request<T = unknown>(
     endpoint: string,
     options: ApiRequestOptions = {}
   ): Promise<ApiResponse<T>> {
@@ -189,7 +189,7 @@ class ApiClient {
           const text = await response.text()
           return {
             success: true,
-            data: text as any,
+            data: text as T,
           }
         }
         throw new Error(`Unexpected response type: ${contentType}`)
@@ -224,7 +224,7 @@ class ApiClient {
         data: data.data || data,
         metadata: data.metadata,
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const apiError = this.handleError(error)
 
       if (!options.skipErrorHandling) {
@@ -251,13 +251,13 @@ class ApiClient {
     }
   }
 
-  async get<T = any>(endpoint: string, options?: ApiRequestOptions): Promise<ApiResponse<T>> {
+  async get<T = unknown>(endpoint: string, options?: ApiRequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...options, method: 'GET' })
   }
 
-  async post<T = any>(
+  async post<T = unknown>(
     endpoint: string,
-    data?: any,
+    data?: unknown,
     options?: ApiRequestOptions
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
@@ -267,9 +267,9 @@ class ApiClient {
     })
   }
 
-  async put<T = any>(
+  async put<T = unknown>(
     endpoint: string,
-    data?: any,
+    data?: unknown,
     options?: ApiRequestOptions
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
@@ -279,9 +279,9 @@ class ApiClient {
     })
   }
 
-  async patch<T = any>(
+  async patch<T = unknown>(
     endpoint: string,
-    data?: any,
+    data?: unknown,
     options?: ApiRequestOptions
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
@@ -291,7 +291,7 @@ class ApiClient {
     })
   }
 
-  async delete<T = any>(
+  async delete<T = unknown>(
     endpoint: string,
     options?: ApiRequestOptions
   ): Promise<ApiResponse<T>> {

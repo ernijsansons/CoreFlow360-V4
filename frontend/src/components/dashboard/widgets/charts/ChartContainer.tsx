@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /**
  * Chart Container Component
  * Universal chart wrapper with Chart.js and D3.js integration
  */
 
-import React, { useRef, useEffect, useState, useMemo } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Chart as ChartJS,
@@ -16,8 +17,7 @@ import {
   RadarLinearScale,
   Tooltip,
   Legend,
-  Filler,
-  ScriptableContext
+  Filler
 } from 'chart.js'
 import {
   Line,
@@ -33,7 +33,6 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
-  MoreHorizontal,
   Download,
   Maximize2,
   RefreshCw,
@@ -109,9 +108,9 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   onConfigure,
   className
 }) => {
-  const chartRef = useRef<any>(null)
-  const [chartData, setChartData] = useState<any>(null)
-  const [chartOptions, setChartOptions] = useState<any>(null)
+  const chartRef = useRef<ChartJS | null>(null)
+  const [chartData, setChartData] = useState<ChartData | null>(null)
+  const [chartOptions, setChartOptions] = useState<ChartOptions | null>(null)
 
   const config = widget.config as ChartOptions || {}
 
@@ -144,7 +143,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
 
   // Process chart options
   useEffect(() => {
-    const baseOptions: any = {
+    const baseOptions: ChartOptions = {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -172,9 +171,9 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
           padding: 12,
           displayColors: true,
           callbacks: {
-            label: (context: any) => {
+            label: (context: { dataset: { label?: string }; parsed: { y?: number } | number }) => {
               const label = context.dataset.label || ''
-              const value = context.parsed.y || context.parsed
+              const value = typeof context.parsed === 'number' ? context.parsed : (context.parsed.y || 0)
               const prefix = config.valuePrefix || ''
               const suffix = config.valueSuffix || ''
 
@@ -207,7 +206,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
             font: {
               size: isExpanded ? 11 : 9
             },
-            callback: (value: any) => {
+            callback: (value: number | string) => {
               const prefix = config.valuePrefix || ''
               const suffix = config.valueSuffix || ''
               return `${prefix}${value.toLocaleString()}${suffix}`

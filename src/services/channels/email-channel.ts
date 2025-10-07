@@ -92,9 +92,11 @@ export class EmailChannel extends BaseChannel {
 
   async getStatus(messageId: string): Promise<MessageStatus> {
     const db = this.env.DB_CRM;
+    if (!db) return 'failed';
+
     const result = await db.prepare(
       'SELECT status FROM channel_messages WHERE id = ?'
-    ).bind(messageId).first();
+    ).bind(messageId).first<{ status: MessageStatus }>();
 
     return result?.status || 'failed';
   }
@@ -116,11 +118,12 @@ export class EmailChannel extends BaseChannel {
   }
 
   async getQuotaStatus(): Promise<{ used: number; limit: number; remaining: number }> {
+    const kv = this.env.KV_CACHE || this.env.KV_RATE_LIMIT_METRICS;
     const hourKey = `quota:email:hour:${new Date().getHours()}`;
     const dayKey = `quota:email:day:${new Date().toISOString().split('T')[0]}`;
 
-    const hourUsed = await this.env.KV.get(hourKey) || '0';
-    const dayUsed = await this.env.KV.get(dayKey) || '0';
+    const hourUsed = (kv ? await kv.get(hourKey) : null) || '0';
+    const dayUsed = (kv ? await kv.get(dayKey) : null) || '0';
 
     const hourlyUsed = parseInt(hourUsed);
     const dailyUsed = parseInt(dayUsed);
@@ -147,8 +150,9 @@ export class EmailChannel extends BaseChannel {
     const trackingPixel = `<img src="${this.getTrackingUrl(content, recipient)}" width="1" height="1" />`;
 
     // Add unsubscribe link
+    const recipientEmail = ('email' in recipient ? recipient.email : recipient.email) || '';
     const unsubscribeLink = this.config.unsubscribe_url ||
-      `https://example.com/unsubscribe?email=${encodeURIComponent(recipient.email)}`;
+      `https://example.com/unsubscribe?email=${encodeURIComponent(recipientEmail)}`;
 
     // Build complete HTML email
     return `
@@ -291,10 +295,11 @@ export class EmailChannel extends BaseChannel {
     content: ChannelContent,
     formattedBody: string
   ): Promise<void> {
+    const apiKey = (this.env as any).RESEND_API_KEY || this.env.EMAIL_API_KEY;
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${this.env.RESEND_API_KEY}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

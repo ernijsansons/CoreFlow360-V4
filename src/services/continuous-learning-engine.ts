@@ -1,7 +1,7 @@
 import type { Env } from '../types/env';
 import type {
   Interaction,
-  Outcome,
+  OutcomeData,
   Strategy,
   PromptVariant,
   Pattern,
@@ -15,45 +15,44 @@ import type {
 
 export class ContinuousLearningEngine {
   private env: Env;
-  private businessId: string;
+  private businessId?: string;
   private strategies = new Map<string, Strategy>();
   private variants = new Map<string, PromptVariant>();
   private patterns = new Map<string, Pattern>();
   private segments = new Map<string, CustomerSegment>();
-  private learningQueue: Array<{ interaction: Interaction; outcome: Outcome}> = [];
+  private learningQueue: Array<{ interaction: Interaction; outcome: OutcomeData }> = [];
   private experimentTracker = new Map<string, ExperimentResult>();
 
-  constructor(env: Env, businessId: string) {
+  constructor(env: Env, businessId?: string) {
     this.env = env;
     this.businessId = businessId;
-    this.initializeLearning();
   }
 
-  async learnFromOutcome(interaction: Interaction, outcome: Outcome): Promise<void> {
+  async learnFromOutcome(interaction: Interaction, outcome: OutcomeData): Promise<void> {
     // Add to learning queue for batch processing
     this.learningQueue.push({ interaction, outcome });
-    
+
     // Immediate learning for critical outcomes
     if (this.isCriticalOutcome(outcome)) {
       await this.processLearning(interaction, outcome);
     }
-    
+
     // Batch process if queue is full
     if (this.learningQueue.length >= 10) {
       await this.processBatchLearning();
     }
   }
 
-  private async processLearning(interaction: Interaction, outcome: Outcome): Promise<void> {
+  private async processLearning(interaction: Interaction, outcome: OutcomeData): Promise<void> {
     // Analyze what worked or didn't
     const analysis = await this.analyzeOutcome(interaction, outcome);
-    
+
     // Update strategies based on analysis
     await this.updateStrategies(analysis);
-    
+
     // Update patterns
     await this.updatePatterns(interaction, outcome);
-    
+
     // Update customer segments
     await this.updateSegments(interaction, outcome);
   }
@@ -66,7 +65,7 @@ export class ContinuousLearningEngine {
     }
   }
 
-  private async analyzeOutcome(interaction: Interaction, outcome: Outcome): Promise<{
+  private async analyzeOutcome(interaction: Interaction, outcome: OutcomeData): Promise<{
     success: boolean;
     factors: string[];
     recommendations: string[];
@@ -79,23 +78,29 @@ export class ContinuousLearningEngine {
     };
   }
 
-  private async updateStrategies(analysis: any): Promise<void> {
+  private async updateStrategies(analysis: { success: boolean; factors: string[]; recommendations: string[] }): Promise<void> {
     // Update strategy effectiveness based on analysis
     for (const [id, strategy] of this.strategies) {
-      if (analysis.factors.includes(strategy.type)) {
-        strategy.effectiveness = Math.min(1, strategy.effectiveness + 0.1);
+      const strategyType = strategy.type || strategy.strategy_type;
+      if (analysis.factors.includes(strategyType)) {
+        const currentEffectiveness = strategy.effectiveness ?? strategy.effectiveness_score;
+        const newEffectiveness = Math.min(1, currentEffectiveness + 0.1);
+        strategy.effectiveness = newEffectiveness;
+        strategy.effectiveness_score = newEffectiveness;
       }
     }
   }
 
-  private async updatePatterns(interaction: Interaction, outcome: Outcome): Promise<void> {
+  private async updatePatterns(interaction: Interaction, outcome: OutcomeData): Promise<void> {
     // Identify and update patterns
     const patternKey = this.generatePatternKey(interaction);
     const existingPattern = this.patterns.get(patternKey);
-    
+
     if (existingPattern) {
-      existingPattern.frequency++;
-      existingPattern.successRate = (existingPattern.successRate + (outcome.success ? 1 : 0)) / 2;
+      const currentFrequency = existingPattern.frequency ?? 0;
+      existingPattern.frequency = currentFrequency + 1;
+      const currentSuccessRate = existingPattern.successRate ?? 0;
+      existingPattern.successRate = (currentSuccessRate + (outcome.success ? 1 : 0)) / 2;
     } else {
       this.patterns.set(patternKey, {
         id: patternKey,
@@ -107,14 +112,16 @@ export class ContinuousLearningEngine {
     }
   }
 
-  private async updateSegments(interaction: Interaction, outcome: Outcome): Promise<void> {
+  private async updateSegments(interaction: Interaction, outcome: OutcomeData): Promise<void> {
     // Update customer segment characteristics
     const segmentId = this.identifySegment(interaction);
     const segment = this.segments.get(segmentId);
-    
+
     if (segment) {
-      segment.interactionCount++;
-      segment.successRate = (segment.successRate + (outcome.success ? 1 : 0)) / 2;
+      const currentInteractionCount = segment.interactionCount ?? 0;
+      segment.interactionCount = currentInteractionCount + 1;
+      const currentSuccessRate = segment.successRate ?? 0;
+      segment.successRate = (currentSuccessRate + (outcome.success ? 1 : 0)) / 2;
     }
   }
 
@@ -127,8 +134,8 @@ export class ContinuousLearningEngine {
     return 'segment_1';
   }
 
-  private isCriticalOutcome(outcome: Outcome): boolean {
-    return outcome.success && outcome.value > 1000;
+  private isCriticalOutcome(outcome: OutcomeData): boolean {
+    return outcome.success && (outcome.value ?? 0) > 1000;
   }
 
   async createExperiment(strategy: Strategy, variants: PromptVariant[]): Promise<string> {
@@ -148,16 +155,16 @@ export class ContinuousLearningEngine {
     return experimentId;
   }
 
-  async recordExperimentResult(experimentId: string, variantId: string, outcome: Outcome): Promise<void> {
+  async recordExperimentResult(experimentId: string, variantId: string, outcome: OutcomeData): Promise<void> {
     const experiment = this.experimentTracker.get(experimentId);
     if (!experiment) return;
-    
+
     experiment.results.push({
       variantId,
       outcome,
       timestamp: new Date()
     });
-    
+
     // Check if experiment should conclude
     if (experiment.results.length >= 100) {
       await this.concludeExperiment(experimentId);
@@ -195,15 +202,15 @@ export class ContinuousLearningEngine {
   }
 
   async getLearningMetrics(): Promise<LearningMetrics> {
-    const totalInteractions = this.learningQueue.length + Array.from(this.patterns.values()).reduce((sum, p) => sum + p.frequency, 0);
-    const successfulInteractions = Array.from(this.patterns.values()).reduce((sum, p) => sum + (p.frequency * p.successRate), 0);
-    
+    const totalInteractions = this.learningQueue.length + Array.from(this.patterns.values()).reduce((sum, p) => sum + (p.frequency ?? 0), 0);
+    const successfulInteractions = Array.from(this.patterns.values()).reduce((sum, p) => sum + ((p.frequency ?? 0) * (p.successRate ?? 0)), 0);
+
     return {
       totalInteractions,
       successfulInteractions,
       successRate: totalInteractions > 0 ? successfulInteractions / totalInteractions : 0,
-      activeExperiments: Array.from(this.experimentTracker.values()).filter((e: any) => e.status === 'running').length,
-      completedExperiments: Array.from(this.experimentTracker.values()).filter((e: any) => e.status === 'completed').length,
+      activeExperiments: Array.from(this.experimentTracker.values()).filter((e) => e.status === 'running').length,
+      completedExperiments: Array.from(this.experimentTracker.values()).filter((e) => e.status === 'completed').length,
       patternsDiscovered: this.patterns.size,
       strategiesOptimized: this.strategies.size,
       lastLearningUpdate: new Date()
@@ -212,19 +219,21 @@ export class ContinuousLearningEngine {
 
   async getRecommendations(): Promise<StrategyUpdate[]> {
     const recommendations: StrategyUpdate[] = [];
-    
+
     // Analyze patterns for recommendations
     for (const [id, pattern] of this.patterns) {
-      if (pattern.successRate > 0.8 && pattern.frequency > 5) {
+      const successRate = pattern.successRate ?? 0;
+      const frequency = pattern.frequency ?? 0;
+      if (successRate > 0.8 && frequency > 5) {
         recommendations.push({
           strategyId: id,
           type: 'increase_usage',
           reason: 'High success rate pattern',
-          confidence: pattern.successRate
+          confidence: successRate
         });
       }
     }
-    
+
     return recommendations;
   }
 
@@ -281,6 +290,25 @@ export class ContinuousLearningEngine {
         timestamp: new Date().toISOString()
       };
     }
+  }
+
+  // Additional methods required by learning routes
+  async getMetrics(timeframe: string): Promise<LearningMetrics> {
+    // For now, return the same as getLearningMetrics
+    // In production, this would filter by timeframe
+    return this.getLearningMetrics();
+  }
+
+  async getActiveExperiments(): Promise<ExperimentResult[]> {
+    return Array.from(this.experimentTracker.values()).filter(e => e.status === 'running');
+  }
+
+  async getStrategy(strategyId: string): Promise<Strategy | null> {
+    return this.strategies.get(strategyId) ?? null;
+  }
+
+  async getActiveVariants(strategyId: string): Promise<PromptVariant[]> {
+    return Array.from(this.variants.values()).filter(v => v.strategyId === strategyId);
   }
 }
 

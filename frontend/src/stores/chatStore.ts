@@ -6,7 +6,7 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { persist } from 'zustand/middleware'
-import type { ChatMessage, Conversation } from '@/types/chat'
+import type { ChatMessage, Conversation, FileAttachment } from '@/types/chat'
 
 interface ChatState {
   // Connection state
@@ -44,7 +44,7 @@ interface ChatActions {
   setPanelPosition: (position: ChatState['panelPosition']) => void
 
   // Message actions
-  sendMessage: (content: string, attachments?: any[]) => Promise<void>
+  sendMessage: (content: string, attachments?: FileAttachment[]) => Promise<void>
   addMessage: (message: ChatMessage) => void
   updateMessage: (messageId: string, updates: Partial<ChatMessage>) => void
   clearMessages: () => void

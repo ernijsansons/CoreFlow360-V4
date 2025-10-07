@@ -24,8 +24,7 @@ import {
   BarChart3,
   AlertCircle,
   CheckCircle,
-  Play,
-  Pause
+  Play
 } from 'lucide-react';
 
 interface AIAgentNodeData {
@@ -115,7 +114,7 @@ export const AIAgentNode = memo(({ data, selected }: NodeProps<AIAgentNodeData>)
     }
   };
 
-  const handleConfigChange = (field: string, value: any) => {
+  const handleConfigChange = (field: string, value: unknown) => {
     const newData = { ...localData, [field]: value };
     setLocalData(newData);
     // In real implementation, this would update the node data

@@ -50,6 +50,7 @@
     "**/*.spec.ts",
     "**/integration-tests.ts",
     "**/performance-benchmarks.ts",
-    "**/test-*.ts"
+    "**/test-*.ts",
+    "src/modules/chat-widget/**/*"
   ]
 }

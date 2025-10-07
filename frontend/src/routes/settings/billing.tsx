@@ -12,10 +12,7 @@ import {
   Download,
   FileText,
   TrendingUp,
-  AlertCircle,
-  CheckCircle2,
-  Calendar,
-  DollarSign
+  CheckCircle2
 } from 'lucide-react'
 import { useUIStore } from '@/stores'
 

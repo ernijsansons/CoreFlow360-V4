@@ -14,7 +14,6 @@ import {
   MicOff,
   Wifi,
   WifiOff,
-  MessageSquare,
   Brain
 } from 'lucide-react'
 import { cn } from '@/lib/utils'

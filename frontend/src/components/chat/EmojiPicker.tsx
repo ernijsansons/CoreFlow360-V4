@@ -25,7 +25,6 @@ const emojiCategories = {
 
 export const EmojiPicker: React.FC<EmojiPickerProps> = ({
   onEmojiSelect,
-  onClose,
   className
 }) => {
   const [selectedCategory, setSelectedCategory] = useState('Frequently Used')

@@ -15,8 +15,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from '@/components/ui/alert'
-import { useAuthStore } from '@/stores'
-import { cn } from '@/lib/utils'
 
 // Validation schema
 const registerSchema = z.object({
@@ -63,7 +61,7 @@ function RegisterPage() {
     }
   })
 
-  const onSubmit = async (data: RegisterForm) => {
+  const onSubmit = async () => {
     setIsLoading(true)
     setError(null)
 

@@ -83,7 +83,7 @@ export class QualificationAgent implements IAgent {
       // Validate the task
       const validation = await this.validateInput(task.input, task.capability);
       if (!validation.valid) {
-        return this.createErrorResult(task.id, 'VALIDATION_ERROR', 'Invalid input', validation.errors, startTime);
+        return this.createErrorResult(task.id, 'VALIDATION_ERROR', 'Invalid input', validation.errors || [], startTime);
       }
 
       let result: any;

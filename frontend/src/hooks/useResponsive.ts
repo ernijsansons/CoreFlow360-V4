@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /**
  * Responsive Hook
  * Handles responsive behavior and adaptive layouts for dashboard components
@@ -130,7 +131,8 @@ export const useResponsive = (config: Partial<ResponsiveConfig> = {}) => {
 
   // Get adaptive layout configuration
   const getAdaptiveLayout = useCallback((
-    baseColumns = 12,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _baseColumns = 12,
     baseRowHeight = 60
   ): AdaptiveLayout => {
     const { breakpoint, deviceType, orientation } = viewport
@@ -201,7 +203,7 @@ export const useResponsive = (config: Partial<ResponsiveConfig> = {}) => {
 
     return firstBreakpoint
       ? (values as Record<Breakpoint, T>)[firstBreakpoint]
-      : (values as any)
+      : (values as T)
   }, [viewport.breakpoint, mergedConfig.breakpoints])
 
   // Check if current breakpoint matches query
@@ -322,6 +324,7 @@ function getViewportInfo(breakpoints: Record<Breakpoint, number>): ViewportInfo 
   // Determine breakpoint
   const breakpoint = Object.entries(breakpoints)
     .reverse()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .find(([_, minWidth]) => width >= minWidth)?.[0] as Breakpoint || 'xs'
 
   // Determine orientation

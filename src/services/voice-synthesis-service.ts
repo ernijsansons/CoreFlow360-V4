@@ -69,10 +69,12 @@ export class VoiceSynthesisService {
         case 'aws_polly':
           response = await this.synthesizeWithAWSPolly(text, config);
           break;
-        case 'azure':
+        // GRUG: Provider type uses 'azure_tts' not 'azure'
+        case 'azure_tts':
           response = await this.synthesizeWithAzure(text, config);
           break;
-        case 'google':
+        // GRUG: Provider type uses 'google_tts' not 'google'
+        case 'google_tts':
           response = await this.synthesizeWithGoogle(text, config);
           break;
         default:
@@ -197,10 +199,12 @@ export class VoiceSynthesisService {
         case 'aws_polly':
           response = await this.synthesizeSSMLWithAWSPolly(ssml, config);
           break;
-        case 'azure':
+        // GRUG: Provider type uses 'azure_tts' not 'azure'
+        case 'azure_tts':
           response = await this.synthesizeSSMLWithAzure(ssml, config);
           break;
-        case 'google':
+        // GRUG: Provider type uses 'google_tts' not 'google'
+        case 'google_tts':
           response = await this.synthesizeSSMLWithGoogle(ssml, config);
           break;
         default:

@@ -329,7 +329,7 @@ class ExportIntegrationService {
     // This would require proper AWS signature v4 - simplified for example
     const response = await fetch(url, {
       method: 'PUT',
-      body: data,
+      body: typeof data === 'string' ? data : new Uint8Array(data),
       headers: {
         'Content-Type': this.getContentType(config.format)
       }

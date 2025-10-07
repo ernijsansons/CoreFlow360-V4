@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * Form Component
  * Advanced form with validation, error handling, and accessibility
@@ -103,7 +104,7 @@ export const FormControl: React.FC<FormControlProps> = ({ children }) => {
 }
 
 // Form Description Component
-export interface FormDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+export type FormDescriptionProps = React.HTMLAttributes<HTMLParagraphElement>
 
 export const FormDescription: React.FC<FormDescriptionProps> = ({
   className,
@@ -251,7 +252,7 @@ export const FormGrid: React.FC<FormGridProps> = ({
 }
 
 // Validation Helpers
-export const validateRequired = (value: any, fieldName: string) => {
+export const validateRequired = (value: unknown, fieldName: string) => {
   if (!value || (typeof value === 'string' && value.trim() === '')) {
     return `${fieldName} is required`
   }
@@ -304,7 +305,7 @@ export interface ValidationRule {
   min?: number
   max?: number
   email?: boolean
-  custom?: (value: any) => string | null
+  custom?: (value: unknown) => string | null
 }
 
 export interface ValidationRules {
@@ -312,7 +313,7 @@ export interface ValidationRules {
 }
 
 export const useFormValidation = (rules: ValidationRules) => {
-  const validateField = (name: string, value: any): string | null => {
+  const validateField = (name: string, value: unknown): string | null => {
     const rule = rules[name]
     if (!rule) return null
 
@@ -365,7 +366,7 @@ export const useFormValidation = (rules: ValidationRules) => {
     return null
   }
 
-  const validateForm = (formData: Record<string, any>): Record<string, string> => {
+  const validateForm = (formData: Record<string, unknown>): Record<string, string> => {
     const errors: Record<string, string> = {}
 
     Object.keys(rules).forEach(fieldName => {

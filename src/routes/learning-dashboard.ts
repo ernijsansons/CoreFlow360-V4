@@ -1,8 +1,11 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import type { Env } from '../types/env';
 import { ContinuousLearningEngine } from '../services/continuous-learning-engine';
 import { PatternRecognition } from '../services/pattern-recognition';
 import { PlaybookGenerator } from '../services/playbook-generator';
+
+// Type for route handler context
+type AppContext = Context<{ Bindings: Env }>;
 
 const dashboardRoutes = new Hono<{ Bindings: Env }>();
 
@@ -10,12 +13,12 @@ const dashboardRoutes = new Hono<{ Bindings: Env }>();
 // DASHBOARD OVERVIEW
 // =====================================================
 
-dashboardRoutes.get('/overview', async (c: any) => {
+dashboardRoutes.get('/overview', async (c: AppContext) => {
   try {
     const learningEngine = new ContinuousLearningEngine(c.env);
     const patternRecognition = new PatternRecognition(c.env);
     const playbookGenerator = new PlaybookGenerator(c.env);
-    const db = c.env.DB_CRM;
+    const db = c.env.DB_CRM || c.env.DB;
 
     // Get overall metrics
     const metrics = await learningEngine.getMetrics('30d');
@@ -52,7 +55,7 @@ dashboardRoutes.get('/overview', async (c: any) => {
     `).all();
 
     // Get system health
-    const systemHealth = await this.getSystemHealth(c.env);
+    const systemHealth = await getSystemHealth(c.env);
 
     return c.json({
       success: true,
@@ -77,9 +80,9 @@ dashboardRoutes.get('/overview', async (c: any) => {
 // PERFORMANCE METRICS
 // =====================================================
 
-dashboardRoutes.get('/performance', async (c: any) => {
+dashboardRoutes.get('/performance', async (c: AppContext) => {
   try {
-    const db = c.env.DB_CRM;
+    const db = c.env.DB_CRM || c.env.DB;
     const timeframe = c.req.query('timeframe') || '30d';
 
     // Parse timeframe
@@ -175,9 +178,9 @@ dashboardRoutes.get('/performance', async (c: any) => {
 // LEARNING INSIGHTS
 // =====================================================
 
-dashboardRoutes.get('/insights', async (c: any) => {
+dashboardRoutes.get('/insights', async (c: AppContext) => {
   try {
-    const db = c.env.DB_CRM;
+    const db = c.env.DB_CRM || c.env.DB;
     const learningEngine = new ContinuousLearningEngine(c.env);
     const patternRecognition = new PatternRecognition(c.env);
 
@@ -202,10 +205,10 @@ dashboardRoutes.get('/insights', async (c: any) => {
     `).all();
 
     // Get improvement opportunities
-    const improvements = await this.identifyImprovements(c.env);
+    const improvements = await identifyImprovements(c.env);
 
     // Get anomalies
-    const anomalies = await this.detectAnomalies(c.env);
+    const anomalies = await detectAnomalies(c.env);
 
     return c.json({
       success: true,
@@ -230,9 +233,9 @@ dashboardRoutes.get('/insights', async (c: any) => {
 // EXPERIMENT MONITORING
 // =====================================================
 
-dashboardRoutes.get('/experiments/monitoring', async (c: any) => {
+dashboardRoutes.get('/experiments/monitoring', async (c: AppContext) => {
   try {
-    const db = c.env.DB_CRM;
+    const db = c.env.DB_CRM || c.env.DB;
 
     // Get all experiments with detailed stats
     const experiments = await db.prepare(`
@@ -269,7 +272,7 @@ dashboardRoutes.get('/experiments/monitoring', async (c: any) => {
           const end = new Date(e.end_date);
           return (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24); // Days
         });
-        stats.avgDuration = durations.reduce((a, b) => a + b, 0) / durations.length;
+        stats.avgDuration = durations.reduce((a: number, b: number) => a + b, 0) / durations.length;
       }
 
       stats.avgInteractions = experiments.results.reduce((sum: number, e: any) =>
@@ -298,9 +301,9 @@ dashboardRoutes.get('/experiments/monitoring', async (c: any) => {
 // PATTERN ANALYTICS
 // =====================================================
 
-dashboardRoutes.get('/patterns/analytics', async (c: any) => {
+dashboardRoutes.get('/patterns/analytics', async (c: AppContext) => {
   try {
-    const db = c.env.DB_CRM;
+    const db = c.env.DB_CRM || c.env.DB;
 
     // Get pattern distribution
     const patternDistribution = await db.prepare(`
@@ -362,9 +365,9 @@ dashboardRoutes.get('/patterns/analytics', async (c: any) => {
 // PLAYBOOK ANALYTICS
 // =====================================================
 
-dashboardRoutes.get('/playbooks/analytics', async (c: any) => {
+dashboardRoutes.get('/playbooks/analytics', async (c: AppContext) => {
   try {
-    const db = c.env.DB_CRM;
+    const db = c.env.DB_CRM || c.env.DB;
 
     // Get playbook usage statistics
     const usageStats = await db.prepare(`
@@ -431,8 +434,8 @@ dashboardRoutes.get('/playbooks/analytics', async (c: any) => {
 // HELPER FUNCTIONS
 // =====================================================
 
-async function getSystemHealth(this: any, env: Env): Promise<any> {
-  const db = env.DB_CRM;
+async function getSystemHealth(env: Env): Promise<any> {
+  const db = env.DB_CRM || env.DB;
 
   try {
     // Check database connectivity
@@ -474,8 +477,8 @@ async function getSystemHealth(this: any, env: Env): Promise<any> {
   }
 }
 
-async function identifyImprovements(this: any, env: Env): Promise<any[]> {
-  const db = env.DB_CRM;
+async function identifyImprovements(env: Env): Promise<any[]> {
+  const db = env.DB_CRM || env.DB;
 
   const improvements = [];
 
@@ -544,8 +547,8 @@ async function identifyImprovements(this: any, env: Env): Promise<any[]> {
   return improvements;
 }
 
-async function detectAnomalies(this: any, env: Env): Promise<any[]> {
-  const db = env.DB_CRM;
+async function detectAnomalies(env: Env): Promise<any[]> {
+  const db = env.DB_CRM || env.DB;
   const anomalies = [];
 
   try {

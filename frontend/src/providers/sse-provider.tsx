@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components, react-hooks/exhaustive-deps */
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react'
 import { useAuthStore } from '@/stores'
 import { useToast } from '@/hooks/use-toast'
@@ -5,15 +6,15 @@ import { useToast } from '@/hooks/use-toast'
 interface SSEMessage {
   id?: string
   event?: string
-  data: any
+  data: unknown
   timestamp: number
 }
 
 interface SSEContextValue {
   isConnected: boolean
   lastMessage: SSEMessage | null
-  subscribe: (event: string, handler: (data: any) => void) => () => void
-  send: (event: string, data: any) => void
+  subscribe: (event: string, handler: (data: unknown) => void) => () => void
+  send: (event: string, data: unknown) => void
   reconnect: () => void
 }
 
@@ -26,7 +27,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast()
 
   const eventSourceRef = useRef<EventSource | null>(null)
-  const listenersRef = useRef<Map<string, Set<(data: any) => void>>>(new Map())
+  const listenersRef = useRef<Map<string, Set<(data: unknown) => void>>>(new Map())
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
   const reconnectAttemptsRef = useRef(0)
 
@@ -166,7 +167,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // Subscribe to events
-  const subscribe = useCallback((event: string, handler: (data: any) => void) => {
+  const subscribe = useCallback((event: string, handler: (data: unknown) => void) => {
     if (!listenersRef.current.has(event)) {
       listenersRef.current.set(event, new Set())
     }
@@ -185,7 +186,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   // Send message (for bidirectional communication if needed)
-  const send = useCallback((event: string, data: any) => {
+  const send = useCallback((event: string, data: unknown) => {
     // SSE is typically unidirectional, but we can send via regular API
     // This is a placeholder for future WebSocket upgrade
     console.log('SSE: Send not implemented (SSE is receive-only)', { event, data })
@@ -199,7 +200,7 @@ export function SSEProvider({ children }: { children: React.ReactNode }) {
   }, [connect, disconnect])
 
   // Handle specific event notifications
-  const handleEventNotification = (eventType: string, data: any) => {
+  const handleEventNotification = (eventType: string, data: unknown) => {
     switch (eventType) {
       case 'payment-received':
         toast({
@@ -295,7 +296,7 @@ export function useSSE() {
 // Hook for subscribing to specific SSE events
 export function useSSESubscription(
   event: string,
-  handler: (data: any) => void,
+  handler: (data: unknown) => void,
   deps: React.DependencyList = []
 ) {
   const { subscribe } = useSSE()
@@ -303,5 +304,5 @@ export function useSSESubscription(
   useEffect(() => {
     const unsubscribe = subscribe(event, handler)
     return unsubscribe
-  }, [event, ...deps]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [event, ...deps])
 }

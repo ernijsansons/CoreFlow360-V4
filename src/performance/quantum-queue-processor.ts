@@ -804,7 +804,7 @@ export class QuantumQueueProcessor {
     while (sorted.length < jobs.length) {
       const ready = jobs.filter((job: any) =>
         !sorted.includes(job) &&
-        job.dependencies.every(dep => resolved.has(dep))
+        job.dependencies.every((dep: string) => resolved.has(dep))
       );
 
       if (ready.length === 0) {

@@ -1,8 +1,6 @@
 import * as React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import {
-  TrendingUp,
-  TrendingDown,
   DollarSign,
   Users,
   ShoppingCart,

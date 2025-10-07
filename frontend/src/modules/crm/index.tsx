@@ -7,8 +7,7 @@ import {
   DollarSign,
   Activity,
   Target,
-  Calendar,
-  MessageSquare
+  Calendar
 } from 'lucide-react'
 
 export function CRMDashboard() {

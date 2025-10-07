@@ -277,12 +277,12 @@ export class JWTRotation {
    * Generate cryptographically secure secret
    */
   private async generateSecureSecret(): Promise<string> {
-    const length = Math.max(this.constructor.MIN_SECRET_LENGTH, 64);
+    const length = Math.max(JWTRotation.MIN_SECRET_LENGTH, 64);
     const randomBytes = new Uint8Array(length);
     crypto.getRandomValues(randomBytes);
 
     let secret = '';
-    const charset = this.constructor.SECRET_CHARSET;
+    const charset = JWTRotation.SECRET_CHARSET;
 
     for (let i = 0; i < length; i++) {
       secret += charset[randomBytes[i] % charset.length];
@@ -308,13 +308,13 @@ export class JWTRotation {
     };
 
     // Check minimum length
-    const minLength = emergency ? 80 : this.constructor.MIN_SECRET_LENGTH;
+    const minLength = emergency ? 80 : JWTRotation.MIN_SECRET_LENGTH;
     if (secret.length < minLength) {
       validation.errors.push(`Secret must be at least ${minLength} characters (current: ${secret.length})`);
     }
 
     // Check against blacklist patterns
-    for (const pattern of this.constructor.BLACKLISTED_PATTERNS) {
+    for (const pattern of JWTRotation.BLACKLISTED_PATTERNS) {
       if (pattern.test(secret)) {
         validation.errors.push(`Secret matches blacklisted pattern: ${pattern}`);
       }
@@ -322,7 +322,7 @@ export class JWTRotation {
 
     // Calculate entropy
     validation.entropy = this.calculateEntropy(secret);
-    const minEntropy = emergency ? 300 : this.constructor.MIN_ENTROPY_BITS;
+    const minEntropy = emergency ? 300 : JWTRotation.MIN_ENTROPY_BITS;
 
     if (validation.entropy < minEntropy) {
       validation.errors.push(`Insufficient entropy: ${validation.entropy.toFixed(2)} bits (minimum: ${minEntropy})`);

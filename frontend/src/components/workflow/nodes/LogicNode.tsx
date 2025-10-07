@@ -19,11 +19,7 @@ import {
   GitBranch,
   RotateCcw,
   Zap,
-  Clock,
   Settings,
-  Play,
-  Pause,
-  Square,
   CheckCircle,
   AlertCircle,
   ArrowUpDown,
@@ -52,7 +48,7 @@ interface LogicCondition {
   id: string;
   field: string;
   operator: 'equals' | 'not_equals' | 'greater_than' | 'less_than' | 'contains' | 'regex' | 'exists';
-  value: any;
+  value: unknown;
   dataType: 'string' | 'number' | 'boolean' | 'array' | 'object';
 }
 
@@ -101,7 +97,7 @@ interface ErrorConfig {
   retryAttempts: number;
   retryDelay: number;
   fallbackAction: 'fail' | 'skip' | 'default_value' | 'alternative_path';
-  fallbackValue?: any;
+  fallbackValue?: unknown;
   errorHandlers: {
     errorType: string;
     action: string;
@@ -196,7 +192,7 @@ export const LogicNode = memo(({ data, selected }: NodeProps<LogicNodeData>) => 
     }
   };
 
-  const handleConfigChange = (field: string, value: any) => {
+  const handleConfigChange = (field: string, value: unknown) => {
     const newData = { ...localData, [field]: value };
     setLocalData(newData);
   };
@@ -295,7 +291,7 @@ export const LogicNode = memo(({ data, selected }: NodeProps<LogicNodeData>) => 
                   <Label className="text-xs">Operator</Label>
                   <Select
                     value={condition.operator}
-                    onValueChange={(value) => updateCondition(condition.id, { operator: value as any })}
+                    onValueChange={(value) => updateCondition(condition.id, { operator: value as LogicCondition['operator'] })}
                   >
                     <SelectTrigger className="text-sm">
                       <SelectValue />
@@ -328,7 +324,7 @@ export const LogicNode = memo(({ data, selected }: NodeProps<LogicNodeData>) => 
                 <Label className="text-xs">Data Type</Label>
                 <Select
                   value={condition.dataType}
-                  onValueChange={(value) => updateCondition(condition.id, { dataType: value as any })}
+                  onValueChange={(value) => updateCondition(condition.id, { dataType: value as LogicCondition['dataType'] })}
                 >
                   <SelectTrigger className="text-sm">
                     <SelectValue />

@@ -189,7 +189,7 @@ export class SafeExecutor {
       // Execute all in parallel
       return Promise.all(
         tasks.map((task: any) => this.execute(task, executorConfig))
-      );
+      ) as Promise<Array<ExecutionResult<T>>>;
     }
 
     // Execute with limited concurrency
@@ -507,7 +507,7 @@ export class PromiseUtils {
       this.withTimeout(p, timeout).catch((error: any) => Promise.reject(error))
     );
 
-    return Promise.allSettled(wrappedPromises);
+    return Promise.allSettled(wrappedPromises) as Promise<Array<PromiseSettledResult<T>>>;
   }
 
   /**

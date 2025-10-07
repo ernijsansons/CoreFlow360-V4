@@ -96,7 +96,7 @@ export class EnhancedRateLimiter {
 
   constructor(env: Env) {
     this.kvNamespace = env.KV_RATE_LIMIT || env.KV_CACHE;
-    this.durableObject = env.RATE_LIMITER as DurableObjectNamespace;
+    this.durableObject = env.RATE_LIMITER_DO as DurableObjectNamespace;
   }
 
   /**
@@ -314,7 +314,7 @@ export class EnhancedRateLimiter {
    * Detect bypass attempts
    */
   async detectBypassAttempt(request: Request): Promise<boolean> {
-    const headers = Array.from(request.headers.entries());
+    const headers = Array.from(request.headers as any as Iterable<[string, string]>);
 
     // Check for header manipulation
     const suspiciousHeaders = [
@@ -397,7 +397,7 @@ export class EnhancedRateLimiter {
     // Bot patterns in user agent
     if (clientInfo.userAgent) {
       const botPatterns = [/bot/i, /crawler/i, /spider/i, /scraper/i, /curl/i, /wget/i];
-      if (botPatterns.some(p => p.test(clientInfo.userAgent))) {
+      if (botPatterns.some(p => p.test(clientInfo.userAgent!))) {
         riskScore += 0.2;
         factors++;
       }

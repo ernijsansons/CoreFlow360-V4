@@ -9,7 +9,7 @@ import type { SmartSuggestion } from '@/types/chat'
 interface SmartSuggestionsOptions {
   userId: string
   businessId: string
-  context?: any
+  context?: Record<string, unknown>
   refreshInterval?: number
 }
 

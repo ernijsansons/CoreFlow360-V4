@@ -5,9 +5,11 @@
 
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
-import { AgentTask, TaskPriority, BusinessContext } from './types';
+import { AgentTask, BusinessContext } from './types';
 import { generateSecureToken, sanitizeBusinessId } from './security-utils';
 import { AuditLogger, AuditEventType } from './audit-logger';
+
+export type TaskPriority = 'low' | 'normal' | 'high' | 'critical';
 
 export interface QueuedTask {
   id: string;
@@ -126,7 +128,7 @@ class TaskQueueManager {
         const deferralTime = this.backpressureStrategy.getDeferralTime(this.metrics);
 
         await this.auditLogger.log(
-          AuditEventType.TASK_REJECTED,
+          AuditEventType.TASK_FAILED,
           'medium',
           safeBusinessId,
           task.context.userId,
@@ -167,7 +169,7 @@ class TaskQueueManager {
       const queuedTask: QueuedTask = {
         id: queueId,
         task,
-        priority: task.priority,
+        priority: task.priority || 'normal',
         businessId: safeBusinessId,
         userId: task.context.userId,
         enqueuedAt: Date.now(),
@@ -398,7 +400,7 @@ class TaskQueueManager {
     const scores: Record<TaskPriority, number> = {
       critical: 1000,
       high: 100,
-      medium: 10,
+      normal: 10,
       low: 1
     };
     return scores[priority] || 1;
@@ -666,9 +668,10 @@ class AdaptiveBackpressureStrategy implements BackpressureStrategy {
     const utilization = metrics.queueDepth / this.config.maxQueueDepth;
 
     // Graduated acceptance based on priority and utilization
-    if (task.priority === 'high') {
+    const priority = task.priority || 'normal';
+    if (priority === 'high' || priority === 'critical') {
       return utilization < 0.95;
-    } else if (task.priority === 'medium') {
+    } else if (priority === 'normal') {
       return utilization < 0.8;
     } else {
       return utilization < 0.6;

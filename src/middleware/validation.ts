@@ -547,7 +547,7 @@ export function validateInput(
 
   } else if (typeof data === 'object' && data !== null) {
     // Recursively validate object properties
-    const result = {};
+    const result: Record<string, any> = {};
     for (const [key, value] of Object.entries(data)) {
       const fieldResult = validateInput(value, config);
       errors.push(...fieldResult.errors.map(error => ({

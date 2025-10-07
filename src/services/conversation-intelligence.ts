@@ -1,9 +1,9 @@
 import type { Env } from '../types/env';
+import type { Participant } from '../types/crm';
 import type {
   AudioStream,
   Transcript,
   TranscriptSegment,
-  Participant,
   ConversationAnalysis,
   SentimentAnalysis,
   TopicAnalysis,
@@ -25,7 +25,7 @@ import type {
   ObjectionResponse,
   EmotionalState,
   EngagementMetrics
-} from '../types/crm';
+} from '../types/conversation-intelligence';
 
 export class ConversationIntelligence {
   private env: Env;
@@ -44,8 +44,8 @@ export class ConversationIntelligence {
   ): Promise<ConversationAnalysis> {
     const startTime = Date.now();
 
-    // Real-time transcription if audio
-    const transcript = recording instanceof AudioStream || 'stream' in recording
+    // Real-time transcription if audio (check for stream property to identify AudioStream)
+    const transcript = 'stream' in recording && recording.stream
       ? await this.transcribe(recording as AudioStream)
       : recording as Transcript;
 

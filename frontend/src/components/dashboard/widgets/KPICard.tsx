@@ -9,7 +9,6 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
-  Target,
   AlertTriangle,
   CheckCircle,
   Circle

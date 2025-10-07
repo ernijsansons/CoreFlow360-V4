@@ -11,8 +11,6 @@ import {
   Filter,
   Settings,
   MoreVertical,
-  ChevronDown,
-  ChevronRight,
   Grid,
   List,
   Maximize2,
@@ -31,42 +29,34 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { KPICard } from './widgets/KPICard'
 import { ChartContainer } from './widgets/charts/ChartContainer'
 import { DataTable } from './widgets/DataTable'
 import { QuickActions } from './QuickActions'
-import { useDrillDown } from '@/hooks/useDrillDown'
-import { useCache } from '@/services/cache-client'
 import type { Widget, Dashboard } from '@/types/dashboard'
 
 export interface MobileDashboardProps {
   dashboard: Dashboard
   widgets: Widget[]
   onWidgetUpdate?: (widget: Widget) => void
-  onLayoutChange?: (layout: any) => void
-  onFilterChange?: (filters: Record<string, any>) => void
+  onLayoutChange?: (layout: unknown) => void
+  onFilterChange?: (filters: Record<string, unknown>) => void
   className?: string
 }
 
 type ViewMode = 'cards' | 'list' | 'carousel'
-type LayoutMode = 'stack' | 'grid' | 'tabs'
 
 export const MobileDashboard: React.FC<MobileDashboardProps> = ({
   dashboard,
   widgets,
-  onWidgetUpdate,
-  onLayoutChange,
-  onFilterChange,
   className
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('cards')
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('stack')
   const [selectedWidget, setSelectedWidget] = useState<Widget | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState<Record<string, any>>({})
+  const [filters, setFilters] = useState<Record<string, unknown>>({})
   const [refreshing, setRefreshing] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -151,7 +141,7 @@ export const MobileDashboard: React.FC<MobileDashboardProps> = ({
   }, [widgets])
 
   // Handle swipe gestures for carousel mode
-  const handleSwipe = useCallback((event: any, info: PanInfo) => {
+  const handleSwipe = useCallback((_event: unknown, info: PanInfo) => {
     if (viewMode !== 'carousel') return
 
     const threshold = 50

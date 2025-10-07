@@ -11,11 +11,9 @@ import {
   Smile,
   Command,
   Mic,
-  MicOff,
   X,
   Image,
-  FileText,
-  Plus
+  FileText
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -57,7 +55,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const {
-    handleKeyDown,
     adjustTextareaHeight,
     insertText,
     focusInput
@@ -124,8 +121,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     e.preventDefault()
     setIsDragOver(false)
 
-    const files = Array.from(e.dataTransfer.files)
-    // Handle file upload logic here
+    // const files = Array.from(e.dataTransfer.files)
+    // TODO: Handle file upload logic here
   }, [])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -357,8 +354,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         className="hidden"
         accept="image/*,application/pdf,text/*,.json,.csv"
         onChange={(e) => {
-          const files = Array.from(e.target.files || [])
-          // Handle file upload logic here
+          // const files = Array.from(e.target.files || [])
+          // TODO: Handle file upload logic here
+          void e
         }}
       />
     </div>

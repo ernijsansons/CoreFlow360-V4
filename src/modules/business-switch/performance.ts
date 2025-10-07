@@ -268,7 +268,7 @@ export class PerformanceMonitor {
   /**
    * Import metrics data
    */
-  importMetrics(data: {
+  importMetrics(metricsData: {
     timestamp: number;
     metrics: Record<string, {
       samples: number[];
@@ -283,7 +283,7 @@ export class PerformanceMonitor {
       };
     }>;
   }): void {
-    for (const [operation, data] of Object.entries(data.metrics)) {
+    for (const [operation, data] of Object.entries(metricsData.metrics)) {
       this.metrics.set(operation, [...data.samples]);
     }
   }
@@ -349,5 +349,45 @@ export class PerformanceMonitor {
   reset(): void {
     this.metrics.clear();
   }
+
+  /**
+   * Track a business switch operation
+   */
+  trackSwitch(userId: string, fromBusinessId: string, toBusinessId: string): {
+    recordStep: (stepName: string) => () => void;
+    complete: () => void;
+  } {
+    const operationId = `switch_${userId}_${Date.now()}`;
+    const startTime = performance.now();
+
+    return {
+      recordStep: (stepName: string) => {
+        const timer = this.startTimer(`${operationId}_${stepName}`);
+        return timer;
+      },
+      complete: () => {
+        const duration = performance.now() - startTime;
+        this.recordMetric(`complete_switch_${userId}`, duration);
+      }
+    };
+  }
+
+  /**
+   * Get overall statistics
+   */
+  getStatistics(): Record<string, any> {
+    const allStats: Record<string, any> = {};
+
+    for (const [operation, _samples] of this.metrics) {
+      const stats = this.getStats(operation);
+      if (stats) {
+        allStats[operation] = stats;
+      }
+    }
+
+    return allStats;
+  }
 }
 
+// Export singleton instance for business switch tracking
+export const switchPerformanceTracker = new PerformanceMonitor();

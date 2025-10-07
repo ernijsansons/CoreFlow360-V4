@@ -63,7 +63,7 @@ const ExportRequestSchema = z.object({
 })
 
 // POST /api/export - Create export request
-router.post('/', async (req, res) => {
+router.post('/', async (req: any, res: any) => {
   try {
     const validatedData = ExportRequestSchema.parse(req.body)
 
@@ -112,7 +112,7 @@ router.post('/', async (req, res) => {
 })
 
 // GET /api/export/:id/progress - Get export progress
-router.get('/:id/progress', async (req, res) => {
+router.get('/:id/progress', async (req: any, res: any) => {
   try {
     const { id } = req.params
 
@@ -145,7 +145,7 @@ router.get('/:id/progress', async (req, res) => {
 })
 
 // WebSocket endpoint for real-time progress updates
-router.get('/:id/progress/ws', async (req, res) => {
+router.get('/:id/progress/ws', async (req: any, res: any) => {
   try {
     const { id } = req.params
 
@@ -175,7 +175,7 @@ router.get('/:id/progress/ws', async (req, res) => {
 })
 
 // GET /api/export/:id/download - Download completed export
-router.get('/:id/download', async (req, res) => {
+router.get('/:id/download', async (req: any, res: any) => {
   try {
     const { id } = req.params
 
@@ -215,7 +215,7 @@ router.get('/:id/download', async (req, res) => {
 })
 
 // DELETE /api/export/:id - Delete export file
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: any, res: any) => {
   try {
     const { id } = req.params
 
@@ -258,7 +258,7 @@ router.delete('/:id', async (req, res) => {
 })
 
 // GET /api/export/history - Get user's export history
-router.get('/history', async (req, res) => {
+router.get('/history', async (req: any, res: any) => {
   try {
     const userId = req.user?.id
     const page = parseInt(req.query.page as string) || 1
@@ -316,7 +316,7 @@ router.get('/history', async (req, res) => {
 })
 
 // POST /api/export/batch - Batch export multiple dashboards/widgets
-router.post('/batch', async (req, res) => {
+router.post('/batch', async (req: any, res: any) => {
   try {
     const { exports, options = {} } = req.body
 
@@ -385,7 +385,7 @@ router.post('/batch', async (req, res) => {
 })
 
 // GET /api/export/templates - Get available export templates
-router.get('/templates', async (req, res) => {
+router.get('/templates', async (req: any, res: any) => {
   try {
     const templates = [
       {

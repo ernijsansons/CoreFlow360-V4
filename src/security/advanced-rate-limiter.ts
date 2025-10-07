@@ -518,7 +518,7 @@ export const RateLimitConfigs = {
     algorithm: 'token_bucket' as const,
     customRules: [
       {
-        condition: (id, ctx) => ctx?.businessId === 'premium_tier',
+        condition: (id: string, ctx: any) => ctx?.businessId === 'premium_tier',
         config: { maxRequests: 50 }
       }
     ]

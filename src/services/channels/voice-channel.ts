@@ -48,9 +48,10 @@ export class VoiceChannel extends BaseChannel {
 
       await voicemailHandler.leaveVoicemail(
         recipient as Lead,
-        content.metadata?.attempt_number || 1,
-        content.metadata?.scenario || 'follow_up',
-        content.body
+        (content.metadata?.attempt_number as number) || 1,
+        {
+          voicemailType: (content.metadata?.scenario as any) || 'follow_up'
+        }
       );
 
       message.status = 'sent';
@@ -63,9 +64,10 @@ export class VoiceChannel extends BaseChannel {
 
   async getStatus(messageId: string): Promise<MessageStatus> {
     const db = this.env.DB_CRM;
+    if (!db) return 'failed';
     const result = await db.prepare(
       'SELECT status FROM channel_messages WHERE id = ?'
-    ).bind(messageId).first();
+    ).bind(messageId).first<{ status: MessageStatus }>();
 
     return result?.status || 'failed';
   }
@@ -75,8 +77,9 @@ export class VoiceChannel extends BaseChannel {
   }
 
   async getQuotaStatus(): Promise<{ used: number; limit: number; remaining: number }> {
+    const kv = this.env.KV_CACHE || this.env.KV_RATE_LIMIT_METRICS;
     const dayKey = `quota:call:day:${new Date().toISOString().split('T')[0]}`;
-    const used = await this.env.KV.get(dayKey) || '0';
+    const used = (kv ? await kv.get(dayKey) : null) || '0';
     const dailyUsed = parseInt(used);
     const limit = 200; // Daily call limit
 

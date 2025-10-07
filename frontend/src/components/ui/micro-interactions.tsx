@@ -1,7 +1,7 @@
 import * as React from "react"
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { microInteractions, animationConfig } from "@/lib/animations"
+import { animationConfig } from "@/lib/animations"
 
 // Hover lift effect
 export interface HoverLiftProps {
@@ -325,7 +325,6 @@ export interface NumberCounterProps {
 export const NumberCounter: React.FC<NumberCounterProps> = ({
   value,
   className,
-  duration = 1,
   prefix = '',
   suffix = '',
   decimals = 0

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components, react-hooks/exhaustive-deps */
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { X, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react'
@@ -16,7 +17,6 @@ export interface ToastProps {
 }
 
 export function Toast({
-  id,
   title,
   description,
   type = 'default',
@@ -172,13 +172,7 @@ function ToastContainer({ toasts, removeToast }: ToastContainerProps) {
 }
 
 // Convenience functions for common toast types
-export function showToast({
-  title,
-  description,
-  type = 'default',
-  duration,
-  action
-}: Omit<ToastProps, 'id' | 'onClose'>) {
+export function showToast() {
   // This would be called from within components that have access to useToast
   console.warn('showToast should be called through the useToast hook')
 }

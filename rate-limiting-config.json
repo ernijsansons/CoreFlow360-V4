@@ -1,0 +1,284 @@
+{
+  "rate_limiting_configuration": {
+    "description": "CoreFlow360 V4 Advanced Rate Limiting",
+    "version": "1.0",
+    "strategy": "adaptive_tiered",
+    "rules": [
+      {
+        "name": "Global API Rate Limit",
+        "endpoint_pattern": "/api/*",
+        "tiers": {
+          "unauthenticated": {
+            "requests_per_minute": 30,
+            "burst_allowance": 10,
+            "action": "block",
+            "response_code": 429,
+            "retry_after": 60
+          },
+          "authenticated": {
+            "requests_per_minute": 100,
+            "burst_allowance": 20,
+            "action": "challenge",
+            "response_code": 429,
+            "retry_after": 30
+          },
+          "premium": {
+            "requests_per_minute": 500,
+            "burst_allowance": 50,
+            "action": "log",
+            "response_code": 429,
+            "retry_after": 10
+          }
+        },
+        "enabled": true,
+        "priority": 1
+      },
+      {
+        "name": "Authentication Endpoints (Strict)",
+        "endpoint_pattern": "/api/auth/*",
+        "limits": {
+          "login_attempts": {
+            "window": "15_minutes",
+            "max_attempts": 5,
+            "action": "block_30_minutes",
+            "response": {
+              "error": "Too many login attempts",
+              "message": "Account temporarily locked for security",
+              "retry_after_seconds": 1800
+            }
+          },
+          "registration": {
+            "window": "1_hour",
+            "max_attempts": 3,
+            "action": "challenge",
+            "response": {
+              "error": "Registration rate limit exceeded",
+              "retry_after_seconds": 3600
+            }
+          },
+          "password_reset": {
+            "window": "1_hour",
+            "max_attempts": 3,
+            "action": "block",
+            "response": {
+              "error": "Too many password reset requests",
+              "retry_after_seconds": 3600
+            }
+          }
+        },
+        "enabled": true,
+        "priority": 2
+      },
+      {
+        "name": "AI Agent Endpoints (Cost Protection)",
+        "endpoint_pattern": "/api/agents/*",
+        "limits": {
+          "per_user": {
+            "requests_per_minute": 20,
+            "requests_per_hour": 500,
+            "burst_allowance": 5,
+            "action": "block",
+            "cost_tracking": true
+          },
+          "per_business": {
+            "requests_per_minute": 100,
+            "requests_per_hour": 2000,
+            "action": "throttle",
+            "cost_tracking": true
+          }
+        },
+        "enabled": true,
+        "priority": 3
+      },
+      {
+        "name": "Database Query Endpoints",
+        "endpoint_pattern": "/api/data/*",
+        "limits": {
+          "read_operations": {
+            "requests_per_minute": 100,
+            "burst_allowance": 20,
+            "action": "throttle"
+          },
+          "write_operations": {
+            "requests_per_minute": 30,
+            "burst_allowance": 5,
+            "action": "block"
+          },
+          "bulk_operations": {
+            "requests_per_hour": 10,
+            "action": "challenge"
+          }
+        },
+        "enabled": true,
+        "priority": 4
+      },
+      {
+        "name": "File Upload Endpoints",
+        "endpoint_pattern": "/api/upload/*",
+        "limits": {
+          "uploads_per_minute": 10,
+          "uploads_per_hour": 100,
+          "max_file_size_mb": 10,
+          "total_bandwidth_mb_per_hour": 500,
+          "action": "block",
+          "response": {
+            "error": "Upload rate limit exceeded",
+            "limits": {
+              "current": "{{current_count}}",
+              "maximum": "{{limit}}",
+              "retry_after": "{{retry_after}}"
+            }
+          }
+        },
+        "enabled": true,
+        "priority": 5
+      },
+      {
+        "name": "Search Endpoints (Expensive Queries)",
+        "endpoint_pattern": "/api/search/*",
+        "limits": {
+          "searches_per_minute": 20,
+          "complex_queries_per_minute": 5,
+          "burst_allowance": 3,
+          "action": "throttle",
+          "queue_overflow": "reject"
+        },
+        "enabled": true,
+        "priority": 6
+      }
+    ],
+    "adaptive_features": {
+      "threat_based_adjustment": {
+        "enabled": true,
+        "description": "Automatically tighten limits based on threat score",
+        "rules": [
+          {
+            "condition": "threat_score > 50",
+            "action": "reduce_limits_by_50_percent"
+          },
+          {
+            "condition": "threat_score > 80",
+            "action": "block_immediately"
+          }
+        ]
+      },
+      "load_based_adjustment": {
+        "enabled": true,
+        "description": "Adjust limits based on system load",
+        "thresholds": {
+          "high_load": {
+            "cpu_percent": 80,
+            "memory_percent": 85,
+            "action": "reduce_limits_by_25_percent"
+          },
+          "critical_load": {
+            "cpu_percent": 95,
+            "memory_percent": 95,
+            "action": "emergency_rate_limit"
+          }
+        }
+      },
+      "user_behavior_learning": {
+        "enabled": true,
+        "description": "Learn normal user patterns and adjust limits",
+        "learning_period_days": 7,
+        "anomaly_detection": true,
+        "auto_whitelist_good_actors": true
+      }
+    },
+    "exemptions": {
+      "health_checks": {
+        "paths": ["/health", "/api/status", "/ping"],
+        "rate_limit": "none"
+      },
+      "internal_services": {
+        "ip_ranges": ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"],
+        "rate_limit": "relaxed"
+      },
+      "trusted_partners": {
+        "api_keys": ["configured_via_wrangler_secrets"],
+        "rate_limit": "premium"
+      }
+    },
+    "monitoring": {
+      "metrics": [
+        "requests_blocked_per_minute",
+        "requests_throttled_per_minute",
+        "average_request_rate_per_user",
+        "top_rate_limited_ips",
+        "top_rate_limited_endpoints",
+        "false_positive_rate"
+      ],
+      "alerts": {
+        "high_block_rate": {
+          "threshold": "100_blocks_per_minute",
+          "action": "notify_ops_team"
+        },
+        "unusual_pattern": {
+          "threshold": "500%_increase_over_baseline",
+          "action": "investigate_and_alert"
+        }
+      },
+      "logging": {
+        "log_all_blocks": true,
+        "log_throttles": false,
+        "log_sampling_rate": 0.1,
+        "retention_days": 30
+      }
+    },
+    "response_templates": {
+      "rate_limit_exceeded": {
+        "status": 429,
+        "headers": {
+          "X-RateLimit-Limit": "{{limit}}",
+          "X-RateLimit-Remaining": "{{remaining}}",
+          "X-RateLimit-Reset": "{{reset_timestamp}}",
+          "Retry-After": "{{retry_after_seconds}}"
+        },
+        "body": {
+          "error": "Rate limit exceeded",
+          "message": "Too many requests. Please try again later.",
+          "details": {
+            "limit": "{{limit}}",
+            "window": "{{window}}",
+            "retry_after": "{{retry_after_seconds}} seconds"
+          },
+          "documentation": "https://docs.coreflow360.com/rate-limits"
+        }
+      }
+    },
+    "implementation": {
+      "backend": {
+        "durable_objects": "AdvancedRateLimiterDO",
+        "kv_namespace": "KV_RATE_LIMIT_METRICS",
+        "algorithm": "token_bucket_with_sliding_window",
+        "distributed": true,
+        "edge_caching": true
+      },
+      "cloudflare_integration": {
+        "use_cloudflare_rate_limiting": true,
+        "use_workers_rate_limiting": true,
+        "hybrid_approach": "cloudflare_primary_workers_fallback"
+      }
+    }
+  },
+  "testing": {
+    "test_scenarios": [
+      {
+        "name": "Burst Traffic Test",
+        "description": "Send 50 requests in 10 seconds",
+        "expected": "First 30 pass, rest blocked with 429"
+      },
+      {
+        "name": "Sustained Load Test",
+        "description": "Send 100 req/min for 5 minutes",
+        "expected": "Authenticated users pass, unauth blocked"
+      },
+      {
+        "name": "Login Brute Force Test",
+        "description": "Attempt 10 failed logins",
+        "expected": "Block after 5 attempts for 30 minutes"
+      }
+    ]
+  }
+}

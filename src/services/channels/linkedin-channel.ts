@@ -30,13 +30,14 @@ export class LinkedInChannel extends BaseChannel {
       throw new Error('Invalid LinkedIn content');
     }
 
-    // Check if recipient has LinkedIn URL
-    if (!recipient.linkedin_url) {
+    // Check if recipient has LinkedIn URL - Contact always has it, Lead might have as joined field
+    const linkedinUrl = 'linkedin_url' in recipient ? recipient.linkedin_url : undefined;
+    if (!linkedinUrl) {
       throw new Error('Recipient does not have a LinkedIn profile');
     }
 
     // Check connection status with recipient
-    const isConnected = await this.checkConnection(recipient.linkedin_url);
+    const isConnected = await this.checkConnection(linkedinUrl);
     if (!isConnected && content.metadata?.requireConnection !== false) {
       throw new Error('Not connected with recipient on LinkedIn');
     }
@@ -63,7 +64,7 @@ export class LinkedInChannel extends BaseChannel {
       content: {
         body: formattedBody,
         metadata: {
-          profile_url: recipient.linkedin_url,
+          profile_url: linkedinUrl,
           is_inmail: !isConnected,
           used_sales_navigator: this.config.use_sales_navigator
         }
@@ -88,7 +89,7 @@ export class LinkedInChannel extends BaseChannel {
 
       // Track profile view if enabled
       if (this.config.profile_views_enabled) {
-        await this.trackProfileView(recipient.linkedin_url);
+        await this.trackProfileView(linkedinUrl);
       }
 
     } catch (error: any) {
@@ -105,9 +106,11 @@ export class LinkedInChannel extends BaseChannel {
 
   async getStatus(messageId: string): Promise<MessageStatus> {
     const db = this.env.DB_CRM;
+    if (!db) return 'failed';
+
     const result = await db.prepare(
       'SELECT status FROM channel_messages WHERE id = ?'
-    ).bind(messageId).first();
+    ).bind(messageId).first<{ status: MessageStatus }>();
 
     return result?.status || 'failed';
   }
@@ -128,7 +131,8 @@ export class LinkedInChannel extends BaseChannel {
 
   async getQuotaStatus(): Promise<{ used: number; limit: number; remaining: number }> {
     const dayKey = `quota:linkedin:day:${new Date().toISOString().split('T')[0]}`;
-    const used = await this.env.KV.get(dayKey) || '0';
+    const kv = this.env.KV_CACHE || this.env.KV_RATE_LIMIT_METRICS;
+    const used = (kv ? await kv.get(dayKey) : null) || '0';
     const dailyUsed = parseInt(used);
 
     return {
@@ -171,10 +175,12 @@ export class LinkedInChannel extends BaseChannel {
   private async checkConnection(linkedinUrl: string): Promise<boolean> {
     // Check if we have a connection record
     const db = this.env.DB_CRM;
+    if (!db) return false;
+
     const result = await db.prepare(`
       SELECT connected FROM linkedin_connections
       WHERE profile_url = ?
-    `).bind(linkedinUrl).first();
+    `).bind(linkedinUrl).first<{ connected: number }>();
 
     return result?.connected === 1;
   }
@@ -194,11 +200,14 @@ export class LinkedInChannel extends BaseChannel {
     // For now, simulate sending
 
     // Update quota
-    const dayKey = `quota:linkedin:day:${new Date().toISOString().split('T')[0]}`;
-    const current = await this.env.KV.get(dayKey) || '0';
-    await this.env.KV.put(dayKey, String(parseInt(current) + 1), {
-      expirationTtl: 86400 // 24 hours
-    });
+    const kv = this.env.KV_CACHE || this.env.KV_RATE_LIMIT_METRICS;
+    if (kv) {
+      const dayKey = `quota:linkedin:day:${new Date().toISOString().split('T')[0]}`;
+      const current = await kv.get(dayKey) || '0';
+      await kv.put(dayKey, String(parseInt(current) + 1), {
+        expirationTtl: 86400 // 24 hours
+      });
+    }
 
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -206,6 +215,9 @@ export class LinkedInChannel extends BaseChannel {
 
   private async queueForManualSending(recipient: Lead | Contact, message: string): Promise<void> {
     const db = this.env.DB_CRM;
+    if (!db) return;
+
+    const linkedinUrl = 'linkedin_url' in recipient ? recipient.linkedin_url : undefined;
     await db.prepare(`
       INSERT INTO linkedin_message_queue (
         recipient_id, recipient_name, linkedin_url, message, status, created_at
@@ -213,7 +225,7 @@ export class LinkedInChannel extends BaseChannel {
     `).bind(
       recipient.id,
       `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim(),
-      recipient.linkedin_url,
+      linkedinUrl || '',
       message,
       'queued',
       new Date().toISOString()
@@ -222,6 +234,8 @@ export class LinkedInChannel extends BaseChannel {
 
   private async trackProfileView(linkedinUrl: string): Promise<void> {
     const db = this.env.DB_CRM;
+    if (!db) return;
+
     await db.prepare(`
       INSERT INTO linkedin_profile_views (
         profile_url, viewed_at
@@ -252,31 +266,41 @@ export class LinkedInChannel extends BaseChannel {
     recipient: Lead | Contact,
     note?: string
   ): Promise<void> {
+    const kv = this.env.KV_CACHE || this.env.KV_RATE_LIMIT_METRICS;
+    if (!kv) throw new Error('KV storage not available');
+
     // Check daily connection limit
     const dayKey = `quota:linkedin:connections:${new Date().toISOString().split('T')[0]}`;
-    const current = await this.env.KV.get(dayKey) || '0';
+    const current = await kv.get(dayKey) || '0';
     const dailyUsed = parseInt(current);
 
     if (dailyUsed >= this.config.daily_connection_limit) {
       throw new Error('Daily LinkedIn connection limit exceeded');
     }
 
+    const linkedinUrl = 'linkedin_url' in recipient ? recipient.linkedin_url : undefined;
+    if (!linkedinUrl) {
+      throw new Error('Recipient does not have a LinkedIn profile');
+    }
+
     // Queue connection request
     const db = this.env.DB_CRM;
-    await db.prepare(`
-      INSERT INTO linkedin_connection_requests (
-        recipient_id, linkedin_url, note, status, created_at
-      ) VALUES (?, ?, ?, ?, ?)
-    `).bind(
-      recipient.id,
-      recipient.linkedin_url,
-      note || '',
-      'pending',
-      new Date().toISOString()
-    ).run();
+    if (db) {
+      await db.prepare(`
+        INSERT INTO linkedin_connection_requests (
+          recipient_id, linkedin_url, note, status, created_at
+        ) VALUES (?, ?, ?, ?, ?)
+      `).bind(
+        recipient.id,
+        linkedinUrl,
+        note || '',
+        'pending',
+        new Date().toISOString()
+      ).run();
+    }
 
     // Update quota
-    await this.env.KV.put(dayKey, String(dailyUsed + 1), {
+    await kv.put(dayKey, String(dailyUsed + 1), {
       expirationTtl: 86400
     });
   }

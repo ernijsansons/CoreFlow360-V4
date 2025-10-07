@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { Workbox } from 'workbox-window'
 import { useUIStore } from '@/stores'
@@ -188,7 +189,7 @@ export function useServiceWorker() {
 
 // Hook for PWA install prompt
 export function usePWAInstall() {
-  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null)
+  const [deferredPrompt, setDeferredPrompt] = React.useState<{ prompt: () => Promise<{ userChoice: Promise<{ outcome: string }> }>} | null>(null)
   const [canInstall, setCanInstall] = React.useState(false)
 
   React.useEffect(() => {
@@ -261,7 +262,7 @@ export function useIsPWA() {
   React.useEffect(() => {
     const checkPWA = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone ||
+        (window.navigator as { standalone?: boolean }).standalone ||
         document.referrer.includes('android-app://')
 
       setIsPWA(isStandalone)

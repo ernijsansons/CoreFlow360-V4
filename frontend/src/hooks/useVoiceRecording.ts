@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /**
  * Voice Recording Hook
  * Handles speech-to-text and text-to-speech functionality
@@ -12,7 +13,7 @@ interface VoiceRecordingOptions {
   maxAlternatives?: number
 }
 
-interface VoiceRecordingResult {
+export interface VoiceRecordingResult {
   transcript: string
   confidence: number
   isFinal: boolean

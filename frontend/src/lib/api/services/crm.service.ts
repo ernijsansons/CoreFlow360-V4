@@ -17,7 +17,7 @@ export interface UpdateLeadRequest {
   assignedTo?: string
   tags?: string[]
   notes?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface LeadQualificationRequest {
@@ -78,7 +78,7 @@ class CRMService {
   async convertLead(data: ConvertLeadRequest): Promise<ApiResponse<{
     company?: Company
     contact?: Contact
-    opportunity?: any
+    opportunity?: Record<string, unknown>
   }>> {
     return apiClient.post(`/api/crm/leads/${data.leadId}/convert`, data)
   }
@@ -181,14 +181,14 @@ class CRMService {
     userId?: string
     startDate?: string
     endDate?: string
-  }): Promise<ApiResponse<any[]>> {
+  }): Promise<ApiResponse<Array<Record<string, unknown>>>> {
     const query = new URLSearchParams()
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined) query.append(key, String(value))
       })
     }
-    return apiClient.get<any[]>(`/api/crm/activities?${query}`)
+    return apiClient.get<Array<Record<string, unknown>>>(`/api/crm/activities?${query}`)
   }
 
   async createActivity(data: {
@@ -199,24 +199,24 @@ class CRMService {
     description?: string
     dueDate?: string
     assignedTo?: string
-  }): Promise<ApiResponse<any>> {
+  }): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.post('/api/crm/activities', data)
   }
 
-  async updateActivity(id: string, data: any): Promise<ApiResponse<any>> {
+  async updateActivity(id: string, data: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.patch(`/api/crm/activities/${id}`, data)
   }
 
-  async completeActivity(id: string): Promise<ApiResponse<any>> {
+  async completeActivity(id: string): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.post(`/api/crm/activities/${id}/complete`)
   }
 
   // Pipeline Management
-  async getPipelines(): Promise<ApiResponse<any[]>> {
+  async getPipelines(): Promise<ApiResponse<Array<Record<string, unknown>>>> {
     return apiClient.get('/api/crm/pipelines')
   }
 
-  async getPipelineStages(pipelineId: string): Promise<ApiResponse<any[]>> {
+  async getPipelineStages(pipelineId: string): Promise<ApiResponse<Array<Record<string, unknown>>>> {
     return apiClient.get(`/api/crm/pipelines/${pipelineId}/stages`)
   }
 
@@ -234,7 +234,7 @@ class CRMService {
     startDate?: string
     endDate?: string
     groupBy?: 'source' | 'status' | 'assignee'
-  }): Promise<ApiResponse<any>> {
+  }): Promise<ApiResponse<Record<string, unknown>>> {
     const query = new URLSearchParams()
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -247,7 +247,7 @@ class CRMService {
   async getConversionRates(params?: {
     startDate?: string
     endDate?: string
-  }): Promise<ApiResponse<any>> {
+  }): Promise<ApiResponse<Record<string, unknown>>> {
     const query = new URLSearchParams()
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -259,7 +259,7 @@ class CRMService {
 
   async getSalesForcast(params?: {
     period?: 'month' | 'quarter' | 'year'
-  }): Promise<ApiResponse<any>> {
+  }): Promise<ApiResponse<Record<string, unknown>>> {
     const query = new URLSearchParams()
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -273,7 +273,7 @@ class CRMService {
   async importContacts(file: File): Promise<ApiResponse<{
     imported: number
     failed: number
-    errors?: any[]
+    errors?: Array<Record<string, unknown>>
   }>> {
     const formData = new FormData()
     formData.append('file', file)

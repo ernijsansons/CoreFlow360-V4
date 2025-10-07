@@ -750,8 +750,8 @@ describe('InvoiceManager', () => {
 
   describe('Error Handling and Edge Cases', () => {
     it('should handle invalid business ID', async () => {
-      const validateBusinessId = require('../../../modules/finance/utils').validateBusinessId;
-      validateBusinessId.mockImplementation(() => {
+      const utils = await import('../../../modules/finance/utils');
+      vi.spyOn(utils, 'validateBusinessId').mockImplementation(() => {
         throw new Error('Invalid business ID');
       });
 

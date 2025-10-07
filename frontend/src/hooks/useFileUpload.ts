@@ -100,6 +100,7 @@ export const useFileUpload = () => {
       // Clean up progress after delay
       setTimeout(() => {
         setUploadProgress(prev => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [fileId]: _, ...rest } = prev
           return rest
         })

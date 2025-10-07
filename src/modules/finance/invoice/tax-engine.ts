@@ -109,7 +109,7 @@ export class TaxCalculationEngine {
         lineItems: calculatedLineItems,
         totalTax,
         taxSummary,
-        exemptionsApplied: exemptionsApplied.map((e: any) => e.exemptionType)
+        exemptionsApplied: (exemptionsApplied || []).map((e: any) => e.exemptionType)
       }
 
       auditLogger.log({
@@ -117,7 +117,7 @@ export class TaxCalculationEngine {
         metadata: {
           totalTax,
           jurisdictionCount: applicableJurisdictions.length,
-          exemptionCount: exemptionsApplied.length
+          exemptionCount: (exemptionsApplied || []).length
         }
       })
 

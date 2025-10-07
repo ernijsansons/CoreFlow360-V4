@@ -761,8 +761,8 @@ class ApprovalWorkflowService {
       if (filters.userId) {
         requests = requests.filter((r: any) =>
           r.requestedBy === filters.userId ||
-          r.approvals.some(a => a.userId === filters.userId) ||
-          r.rule.approvers.some(a => a.userId === filters.userId)
+          r.approvals.some((a: any) => a.userId === filters.userId) ||
+          r.rule.approvers.some((a: any) => a.userId === filters.userId)
         )
       }
       if (filters.status) {

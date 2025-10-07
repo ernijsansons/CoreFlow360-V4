@@ -4,7 +4,7 @@ interface ConnectionConfig {
   id: string;
   type: string;
   name: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
 }
 
 interface MigrationWizardProps {
@@ -30,7 +30,7 @@ export const MigrationWizard: React.FC<MigrationWizardProps> = ({ onComplete, on
   const [currentStep, setCurrentStep] = useState(0);
   const [sourceConfig, setSourceConfig] = useState<ConnectionConfig | null>(null);
   const [targetConfig, setTargetConfig] = useState<ConnectionConfig | null>(null);
-  const [schemaMapping, setSchemaMapping] = useState<any>(null);
+  const [schemaMapping, setSchemaMapping] = useState<Record<string, unknown> | null>(null);
   const [migrationOptions, setMigrationOptions] = useState({
     name: '',
     batchSize: 1000,
@@ -407,7 +407,7 @@ const SourceConnectionStep: React.FC<{
 const TargetConnectionStep: React.FC<{
   config: ConnectionConfig | null;
   onChange: (config: ConnectionConfig | null) => void;
-}> = ({ config, onChange }) => {
+}> = () => {
   // Similar implementation to SourceConnectionStep
   return <div>Target Connection Step - Implementation similar to Source</div>;
 };
@@ -415,16 +415,26 @@ const TargetConnectionStep: React.FC<{
 const SchemaMappingStep: React.FC<{
   sourceConfig: ConnectionConfig | null;
   targetConfig: ConnectionConfig | null;
-  mapping: any;
-  onChange: (mapping: any) => void;
-}> = ({ sourceConfig, targetConfig, mapping, onChange }) => {
+  mapping: Record<string, unknown> | null;
+  onChange: (mapping: Record<string, unknown> | null) => void;
+}> = () => {
   // Implementation for schema mapping
   return <div>Schema Mapping Step - AI-powered field mapping interface</div>;
 };
 
+interface MigrationOptions {
+  name: string;
+  batchSize: number;
+  parallelism: number;
+  mode: string;
+  schedule: string | null;
+  validateData: boolean;
+  createSnapshots: boolean;
+}
+
 const MigrationOptionsStep: React.FC<{
-  options: any;
-  onChange: (options: any) => void;
+  options: MigrationOptions;
+  onChange: (options: MigrationOptions) => void;
 }> = ({ options, onChange }) => {
   return (
     <div className="space-y-6">
@@ -493,9 +503,9 @@ const MigrationOptionsStep: React.FC<{
 const ReviewStep: React.FC<{
   sourceConfig: ConnectionConfig | null;
   targetConfig: ConnectionConfig | null;
-  schemaMapping: any;
-  options: any;
-}> = ({ sourceConfig, targetConfig, schemaMapping, options }) => {
+  schemaMapping: Record<string, unknown> | null;
+  options: MigrationOptions;
+}> = ({ sourceConfig, targetConfig, options }) => {
   return (
     <div className="space-y-6">
       <h3 className="text-lg font-medium text-gray-900">Review Migration</h3>

@@ -5,9 +5,13 @@ import type {
   ConversationState,
   RealTimeCallState,
   ConversationSummary,
+  ConversationOutcome,
   Objection,
+  ObjectionType,
   QualificationStatus,
+  QualificationLevel,
   ExtractedEntity,
+  EntityType,
   VoiceAgentConfig
 } from '../types/voice-agent';
 import type { Lead } from '../types/crm';
@@ -17,16 +21,66 @@ export interface ConversationHandlerEvents {
   silence: (duration: number) => void;
   interruption: () => void;
   objection: (objection: Objection) => void;
-  qualification_update: (status: QualificationStatus) => void;
+  qualification_update: (status: Partial<QualificationStatus>) => void;
   meeting_request: (details: any) => void;
-  call_ended: (summary: ConversationSummary) => void;
+  call_ended: (summary: ExtendedConversationSummary) => void;
   error: (error: Error) => void;
+}
+
+// Extended types for internal conversation tracking
+interface ExtendedConversationSummary {
+  // ConversationSummary required fields
+  outcome: ConversationOutcome;
+  key_points: string[];
+  objections_raised: Objection[];
+  interest_level: 'low' | 'medium' | 'high';
+  qualification_status: QualificationStatus;
+  next_meeting_scheduled?: any;
+  follow_up_required: boolean;
+  follow_up_timing?: string;
+  sentiment: 'positive' | 'neutral' | 'negative';
+  lead_quality_score: number;
+
+  // Extended fields for internal tracking
+  call_id: string;
+  lead_id: string;
+  duration: number;
+  turns: number;
+  intent: string;
+  objections: ExtendedObjection[];
+  entities: ExtractedEntity[];
+  meeting_requested: boolean;
+  ai_confidence: number;
+  error_count: number;
+  interruption_count: number;
+  end_reason: 'completed' | 'timeout' | 'error' | 'user_ended';
+  transcript: ConversationTurn[];
+  summary: string;
+  timestamp: string;
+}
+
+interface ExtendedObjection extends Objection {
+  id: string;
+  severity: 'low' | 'medium' | 'high';
+  timestamp: string;
+  text: string;
+  handled: boolean;
+}
+
+// Extended call state for internal tracking
+interface ExtendedCallState extends RealTimeCallState {
+  call_duration: number;
+  ai_confidence: number;
+  error_count: number;
+  interruption_count: number;
+  meeting_requested: boolean;
+  objections: ExtendedObjection[];
 }
 
 export class ConversationHandler {
   private env: Env;
   private lead: Lead;
-  private callState: RealTimeCallState;
+  private callState: ExtendedCallState;
   private config: VoiceAgentConfig;
   private eventListeners: Partial<ConversationHandlerEvents> = {};
   private conversationTimeout: NodeJS.Timeout | null = null;
@@ -53,12 +107,15 @@ export class ConversationHandler {
         need: 'unknown',
         timeline: 'unknown'
       },
+      objections_encountered: [],
+      next_questions: [],
+      call_start_time: new Date().toISOString(),
+      last_activity_time: new Date().toISOString(),
+      // Extended fields
       objections: [],
       meeting_requested: false,
       call_duration: 0,
-      last_activity: new Date().toISOString(),
       ai_confidence: 0.0,
-      next_action: 'greet',
       error_count: 0,
       interruption_count: 0
     };
@@ -83,13 +140,13 @@ export class ConversationHandler {
   // Conversation Management
   async startConversation(): Promise<void> {
     this.isActive = true;
-    this.callState.status = 'active';
+    this.callState.status = 'answered';
     this.callState.state = 'greeting';
-    
+
     // Start conversation timeout
     this.conversationTimeout = setTimeout(() => {
       this.endConversation('timeout');
-    }, this.config.max_call_duration * 1000);
+    }, this.config.call_settings.max_call_duration * 1000);
 
     // Begin with greeting
     await this.processTurn('greeting', 'Hello! Thank you for taking my call. How are you today?');
@@ -104,7 +161,7 @@ export class ConversationHandler {
       const confidence = 0.85; // Mock confidence score
 
       this.callState.transcript_buffer += transcript + ' ';
-      this.callState.last_activity = new Date().toISOString();
+      this.callState.last_activity_time = new Date().toISOString();
 
       // Emit speech event
       this.emit('speech', transcript, confidence);
@@ -123,12 +180,13 @@ export class ConversationHandler {
 
     this.emit('silence', duration);
 
-    // Handle long silence
-    if (duration > this.config.silence_threshold) {
+    // Handle long silence - using AI config timeout
+    const silenceThreshold = this.config.ai_config.conversation_timeout || 30;
+    if (duration > silenceThreshold) {
       if (this.silenceTimeout) {
         clearTimeout(this.silenceTimeout);
       }
-      
+
       this.silenceTimeout = setTimeout(() => {
         this.handleLongSilence();
       }, 5000);
@@ -151,10 +209,11 @@ export class ConversationHandler {
   private async processTurn(type: 'greeting' | 'speech', content: string): Promise<void> {
     const turn: ConversationTurn = {
       id: `turn_${Date.now()}`,
-      type: type === 'greeting' ? 'ai' : 'human',
-      content,
+      speaker: type === 'greeting' ? 'ai' : 'human',
+      text: content,
       timestamp: new Date().toISOString(),
       confidence: type === 'greeting' ? 1.0 : 0.85,
+      duration_ms: 0,
       entities: [],
       intent: type === 'greeting' ? 'greeting' : await this.detectIntent(content),
       sentiment: await this.analyzeSentiment(content)
@@ -164,7 +223,7 @@ export class ConversationHandler {
     this.callState.conversation_history.push(turn);
 
     // Process based on turn type
-    if (turn.type === 'human') {
+    if (turn.speaker === 'human') {
       await this.processHumanTurn(turn);
     } else {
       await this.processAITurn(turn);
@@ -173,12 +232,12 @@ export class ConversationHandler {
 
   private async processHumanTurn(turn: ConversationTurn): Promise<void> {
     // Extract entities
-    const entities = await this.extractEntities(turn.content);
+    const entities = await this.extractEntities(turn.text);
     turn.entities = entities;
     this.callState.detected_entities.push(...entities);
 
     // Detect objections
-    const objections = await this.detectObjections(turn.content);
+    const objections = await this.detectObjections(turn.text);
     for (const objection of objections) {
       this.callState.objections.push(objection);
       this.emit('objection', objection);
@@ -188,7 +247,7 @@ export class ConversationHandler {
     await this.updateQualificationProgress(turn);
 
     // Detect meeting requests
-    if (await this.detectMeetingRequest(turn.content)) {
+    if (await this.detectMeetingRequest(turn.text)) {
       this.callState.meeting_requested = true;
       this.emit('meeting_request', { lead: this.lead, turn });
     }
@@ -202,7 +261,7 @@ export class ConversationHandler {
 
   private async processAITurn(turn: ConversationTurn): Promise<void> {
     // Convert text to speech and play
-    await this.speak(turn.content);
+    await this.speak(turn.text);
   }
 
   // Speech Processing
@@ -261,44 +320,53 @@ export class ConversationHandler {
     // Mock entity extraction - would use AI in production
     const entities: ExtractedEntity[] = [];
 
-    // Extract numbers (budget, timeline)
-    const numbers = text.match(/\d+/g);
-    if (numbers) {
-      for (const number of numbers) {
-        const num = parseInt(number);
-        if (num > 1000) {
-          entities.push({
-            type: 'budget',
-            value: num,
-            confidence: 0.8,
-            text: number
-          });
-        } else if (num <= 12) {
-          entities.push({
-            type: 'timeline',
-            value: num,
-            confidence: 0.7,
-            text: number
-          });
-        }
+    // Extract numbers (budget as money)
+    const moneyPattern = /\$?\d{1,3}(,?\d{3})*(\.\d{2})?/g;
+    const moneyMatches = text.matchAll(moneyPattern);
+    for (const match of moneyMatches) {
+      if (match.index !== undefined) {
+        entities.push({
+          type: 'money',
+          value: match[0],
+          confidence: 0.8,
+          start_pos: match.index,
+          end_pos: match.index + match[0].length
+        });
       }
     }
 
     // Extract time references
     const timePatterns = [
-      { pattern: /next week|this week/i, value: 1, type: 'timeline' },
-      { pattern: /next month|this month/i, value: 4, type: 'timeline' },
-      { pattern: /quarter|3 months/i, value: 12, type: 'timeline' },
-      { pattern: /year|12 months/i, value: 52, type: 'timeline' }
+      { pattern: /next week|this week/i, type: 'time' as EntityType },
+      { pattern: /next month|this month/i, type: 'time' as EntityType },
+      { pattern: /quarter|3 months/i, type: 'time' as EntityType },
+      { pattern: /year|12 months/i, type: 'time' as EntityType }
     ];
 
-    for (const { pattern, value, type } of timePatterns) {
-      if (pattern.test(text)) {
+    for (const { pattern, type } of timePatterns) {
+      const match = text.match(pattern);
+      if (match && match.index !== undefined) {
         entities.push({
-          type: type as 'timeline',
-          value,
+          type,
+          value: match[0],
           confidence: 0.9,
-          text: text.match(pattern)?.[0] || ''
+          start_pos: match.index,
+          end_pos: match.index + match[0].length
+        });
+      }
+    }
+
+    // Extract dates
+    const datePattern = /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/g;
+    const dateMatches = text.matchAll(datePattern);
+    for (const match of dateMatches) {
+      if (match.index !== undefined) {
+        entities.push({
+          type: 'date',
+          value: match[0],
+          confidence: 0.95,
+          start_pos: match.index,
+          end_pos: match.index + match[0].length
         });
       }
     }
@@ -307,27 +375,37 @@ export class ConversationHandler {
   }
 
   // Objection Detection
-  private async detectObjections(text: string): Promise<Objection[]> {
+  private async detectObjections(text: string): Promise<ExtendedObjection[]> {
     // Mock objection detection - would use AI in production
-    const objections: Objection[] = [];
+    const objections: ExtendedObjection[] = [];
 
-    const objectionPatterns = [
-      { pattern: /too expensive|cost too much|budget/i, type: 'price', severity: 'high' },
+    const objectionPatterns: Array<{
+      pattern: RegExp;
+      type: ObjectionType;
+      severity: 'low' | 'medium' | 'high';
+    }> = [
+      { pattern: /too expensive|cost too much/i, type: 'price', severity: 'high' },
+      { pattern: /budget concerns/i, type: 'budget', severity: 'high' },
       { pattern: /not interested|not right time|busy/i, type: 'timing', severity: 'medium' },
       { pattern: /don't need|not necessary|happy with current/i, type: 'need', severity: 'high' },
       { pattern: /need to think|discuss with team|get approval/i, type: 'authority', severity: 'medium' },
-      { pattern: /competitor|other solution|already using/i, type: 'competition', severity: 'medium' }
+      { pattern: /competitor|other solution|already using/i, type: 'competitor', severity: 'medium' }
     ];
 
     for (const { pattern, type, severity } of objectionPatterns) {
       if (pattern.test(text)) {
+        const matchText = text.match(pattern)?.[0] || '';
         objections.push({
           id: `objection_${Date.now()}`,
           type,
           severity,
-          text: text.match(pattern)?.[0] || '',
+          text: matchText,
           timestamp: new Date().toISOString(),
-          handled: false
+          handled: false,
+          objection: matchText,
+          response_given: '',
+          resolved: false,
+          follow_up_needed: true
         });
       }
     }
@@ -339,47 +417,48 @@ export class ConversationHandler {
   private async updateQualificationProgress(turn: ConversationTurn): Promise<void> {
     const progress = this.callState.qualification_progress;
     let updated = false;
+    const lowerText = turn.text.toLowerCase();
 
     // Check for budget indicators
-    if (turn.entities.some(e => e.type === 'budget') || 
-        turn.content.toLowerCase().includes('budget') ||
-        turn.content.toLowerCase().includes('cost') ||
-        turn.content.toLowerCase().includes('price')) {
+    if ((turn.entities && turn.entities.some(e => e.type === 'money')) ||
+        lowerText.includes('budget') ||
+        lowerText.includes('cost') ||
+        lowerText.includes('price')) {
       if (progress.budget === 'unknown') {
-        progress.budget = 'discussed';
+        progress.budget = 'low';
         updated = true;
       }
     }
 
     // Check for authority indicators
-    if (turn.content.toLowerCase().includes('decision') ||
-        turn.content.toLowerCase().includes('approve') ||
-        turn.content.toLowerCase().includes('team') ||
-        turn.content.toLowerCase().includes('manager')) {
+    if (lowerText.includes('decision') ||
+        lowerText.includes('approve') ||
+        lowerText.includes('team') ||
+        lowerText.includes('manager')) {
       if (progress.authority === 'unknown') {
-        progress.authority = 'discussed';
+        progress.authority = 'low';
         updated = true;
       }
     }
 
     // Check for need indicators
-    if (turn.content.toLowerCase().includes('need') ||
-        turn.content.toLowerCase().includes('problem') ||
-        turn.content.toLowerCase().includes('challenge') ||
-        turn.content.toLowerCase().includes('issue')) {
+    if (lowerText.includes('need') ||
+        lowerText.includes('problem') ||
+        lowerText.includes('challenge') ||
+        lowerText.includes('issue')) {
       if (progress.need === 'unknown') {
-        progress.need = 'discussed';
+        progress.need = 'low';
         updated = true;
       }
     }
 
     // Check for timeline indicators
-    if (turn.entities.some(e => e.type === 'timeline') ||
-        turn.content.toLowerCase().includes('when') ||
-        turn.content.toLowerCase().includes('timeline') ||
-        turn.content.toLowerCase().includes('schedule')) {
+    if ((turn.entities && turn.entities.some(e => e.type === 'time' || e.type === 'date')) ||
+        lowerText.includes('when') ||
+        lowerText.includes('timeline') ||
+        lowerText.includes('schedule')) {
       if (progress.timeline === 'unknown') {
-        progress.timeline = 'discussed';
+        progress.timeline = 'low';
         updated = true;
       }
     }
@@ -420,7 +499,8 @@ export class ConversationHandler {
       'general_inquiry': "I'd be happy to help you with that. Could you tell me more about your needs?"
     };
 
-    return responses[turn.intent] || responses['general_inquiry'];
+    const intent = turn.intent || 'general_inquiry';
+    return responses[intent] || responses['general_inquiry'];
   }
 
   // Silence Handling
@@ -440,9 +520,9 @@ export class ConversationHandler {
   }
 
   // Conversation End
-  async endConversation(reason: 'completed' | 'timeout' | 'error' | 'user_ended'): Promise<ConversationSummary> {
+  async endConversation(reason: 'completed' | 'timeout' | 'error' | 'user_ended'): Promise<ExtendedConversationSummary> {
     this.isActive = false;
-    this.callState.status = 'ended';
+    this.callState.status = 'completed';
 
     // Clear timeouts
     if (this.conversationTimeout) {
@@ -455,13 +535,23 @@ export class ConversationHandler {
     }
 
     // Generate summary
-    const summary: ConversationSummary = {
+    const summary: ExtendedConversationSummary = {
+      // Required ConversationSummary fields
+      outcome: this.determineOutcome(),
+      key_points: this.extractKeyPoints(),
+      objections_raised: this.callState.objections,
+      interest_level: this.determineInterestLevel(),
+      qualification_status: this.buildQualificationStatus(),
+      follow_up_required: this.callState.meeting_requested || this.callState.objections.length > 0,
+      sentiment: this.calculateOverallSentiment(),
+      lead_quality_score: this.calculateLeadScore(),
+
+      // Extended fields
       call_id: this.callState.call_id,
       lead_id: this.callState.lead_id,
       duration: this.callState.call_duration,
       turns: this.callState.conversation_history.length,
       intent: this.callState.current_intent,
-      qualification_status: this.callState.qualification_progress,
       objections: this.callState.objections,
       entities: this.callState.detected_entities,
       meeting_requested: this.callState.meeting_requested,
@@ -478,23 +568,101 @@ export class ConversationHandler {
     return summary;
   }
 
+  private determineOutcome(): ConversationOutcome {
+    if (this.callState.meeting_requested) return 'meeting_scheduled';
+    if (this.callState.objections.some(o => o.type === 'need')) return 'not_interested';
+    if (this.calculateLeadScore() > 70) return 'qualified';
+    return 'interested_follow_up';
+  }
+
+  private extractKeyPoints(): string[] {
+    const points: string[] = [];
+    if (this.callState.meeting_requested) {
+      points.push('Meeting requested');
+    }
+    if (this.callState.objections.length > 0) {
+      points.push(`${this.callState.objections.length} objections raised`);
+    }
+    return points;
+  }
+
+  private determineInterestLevel(): 'low' | 'medium' | 'high' {
+    const score = this.calculateLeadScore();
+    if (score >= 70) return 'high';
+    if (score >= 40) return 'medium';
+    return 'low';
+  }
+
+  private buildQualificationStatus(): QualificationStatus {
+    const progress = this.callState.qualification_progress;
+    const qualified = Object.values(progress).filter(v => v && v !== 'unknown').length >= 3;
+
+    return {
+      budget: progress.budget || 'unknown',
+      authority: progress.authority || 'unknown',
+      need: progress.need || 'unknown',
+      timeline: progress.timeline || 'unknown',
+      overall_score: this.calculateLeadScore(),
+      qualified
+    };
+  }
+
+  private calculateOverallSentiment(): 'positive' | 'neutral' | 'negative' {
+    const sentiments = this.callState.conversation_history
+      .filter(t => t.sentiment)
+      .map(t => t.sentiment);
+
+    if (sentiments.length === 0) return 'neutral';
+
+    const positiveCount = sentiments.filter(s => s === 'positive').length;
+    const negativeCount = sentiments.filter(s => s === 'negative').length;
+
+    if (positiveCount > negativeCount) return 'positive';
+    if (negativeCount > positiveCount) return 'negative';
+    return 'neutral';
+  }
+
+  private calculateLeadScore(): number {
+    let score = 50; // Base score
+
+    // Qualification progress
+    const progress = this.callState.qualification_progress;
+    const qualifiedAreas = Object.values(progress).filter(v => v && v !== 'unknown').length;
+    score += qualifiedAreas * 10;
+
+    // Meeting requested
+    if (this.callState.meeting_requested) {
+      score += 20;
+    }
+
+    // Objections
+    score -= this.callState.objections.length * 5;
+
+    // Sentiment
+    const sentiment = this.calculateOverallSentiment();
+    if (sentiment === 'positive') score += 10;
+    if (sentiment === 'negative') score -= 10;
+
+    return Math.max(0, Math.min(100, score));
+  }
+
   private generateConversationSummary(): string {
     const turns = this.callState.conversation_history.length;
     const objections = this.callState.objections.length;
     const meetingRequested = this.callState.meeting_requested;
     const qualification = this.callState.qualification_progress;
 
-    let summary = `Conversation with ${this.lead.name} lasted ${this.callState.call_duration} minutes. `;
+    let summary = `Conversation with lead ${this.lead.id} lasted ${this.callState.call_duration} minutes. `;
     summary += `${turns} turns exchanged. `;
-    
+
     if (objections > 0) {
       summary += `${objections} objections raised. `;
     }
-    
+
     if (meetingRequested) {
       summary += 'Meeting requested. ';
     }
-    
+
     const qualifiedAreas = Object.values(qualification).filter((status: any) => status !== 'unknown').length;
     summary += `${qualifiedAreas}/4 qualification areas discussed.`;
 

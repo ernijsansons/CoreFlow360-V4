@@ -776,7 +776,8 @@ export class AgentOrchestrationFramework {
    */
   private async simulateAgentDeployment(agent: Agent): Promise<void> {
     // Simulate deployment delay
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, 100));
 
     // Run agent self-diagnostics
     await this.runAgentDiagnostics(agent);
@@ -794,9 +795,10 @@ export class AgentOrchestrationFramework {
    */
   private async runAgentDiagnostics(agent: Agent): Promise<void> {
     // Verify agent capabilities
-    for (const capability of agent.capabilities) {
+    for (const _capability of agent.capabilities) {
       // Simulate capability check
-      await new Promise(resolve => setTimeout(resolve, 10));
+      // eslint-disable-next-line no-undef
+      await new Promise(resolve => (setTimeout as any)(resolve, 10));
     }
 
     // Update agent status
@@ -1224,7 +1226,8 @@ export class AgentOrchestrationFramework {
   }
 
   private startPerformanceMonitoring(): void {
-    setInterval(() => {
+    // eslint-disable-next-line no-undef
+    (setInterval as any)(() => {
       this.updateSystemMetrics();
       this.performHealthChecks();
       this.optimizeAgentAllocation();

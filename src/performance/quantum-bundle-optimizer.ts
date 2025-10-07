@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 export interface ModuleAnalysis {
   entryPoints: string[];
   dependencies: DependencyGraph;
@@ -415,7 +417,7 @@ export class NavigationPredictor {
     let dwellTime = 0;
     let lastInteraction = Date.now();
 
-    document.addEventListener('mousemove', (e) => {
+    document.addEventListener('mousemove', (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
       this.updatePrediction({ mouseX, mouseY, scrollVelocity, dwellTime });
@@ -436,7 +438,7 @@ export class NavigationPredictor {
   }
 
   private updatePrediction(features: any): void {
-    const links = document.querySelectorAll('a[href]');
+    const links = Array.from(document.querySelectorAll('a[href]'));
 
     for (const link of links) {
       const rect = link.getBoundingClientRect();
@@ -591,6 +593,7 @@ export class QuantumBundleOptimizer {
               reuseExistingChunk: true
             },
             common: {
+              test: /./, // Match all files
               name: 'common',
               chunks: 'all',
               priority: 5,
@@ -722,7 +725,7 @@ class ServiceWorkerOptimizer {
             caches.keys().then(cacheNames => {
               return Promise.all(
                 cacheNames.map((cacheName: any) => {
-                  if (!['${STATIC_CACHE}', '${DYNAMIC_CACHE}', '${API_CACHE}'].includes(cacheName)) {
+                  if (![\`\${STATIC_CACHE}\`, \`\${DYNAMIC_CACHE}\`, \`\${API_CACHE}\`].includes(cacheName)) {
                     return caches.delete(cacheName);
                   }
                 })

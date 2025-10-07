@@ -1,11 +1,18 @@
+/* eslint-disable react-refresh/only-export-components, react-hooks/exhaustive-deps */
 import React, { createContext, useContext, useEffect } from 'react'
 import { useAuthStore } from '@/stores'
 import { useNavigate } from '@tanstack/react-router'
 
+interface User {
+  id: string
+  email: string
+  name?: string
+}
+
 interface AuthContextValue {
   isAuthenticated: boolean
   isLoading: boolean
-  user: any | null
+  user: User | null
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   checkAuth: () => Promise<boolean>
@@ -74,9 +81,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Redirect to dashboard after successful login
       navigate({ to: '/dashboard' })
-    } catch (error) {
-      // Error handling is done in the store
-      throw error
     } finally {
       setLoading(false)
     }

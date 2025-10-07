@@ -328,7 +328,8 @@ export class HallucinationDetector {
     evidence: string;
   }> {
     // Simulate external fact-checking API call
-    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate API delay
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, 100)); // Simulate API delay
 
     const confidence = Math.random() * 0.4 + 0.6; // 60-100% confidence
     const isFactual = confidence > 0.75 && Math.random() > 0.15; // 85% accuracy rate

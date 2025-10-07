@@ -12,15 +12,15 @@ export interface ActionContext {
   dashboardId: string
   userId: string
   userRole: string
-  currentFilters?: Record<string, any>
-  drillDownPath?: any[]
-  selectedData?: any
+  currentFilters?: Record<string, unknown>
+  drillDownPath?: Array<Record<string, unknown>>
+  selectedData?: unknown
 }
 
 export interface ActionResult {
   success: boolean
   message?: string
-  data?: any
+  data?: unknown
   redirectTo?: string
 }
 
@@ -31,7 +31,7 @@ export interface ExportOptions {
   highResolution?: boolean
   backgroundColor?: string
   dateRange?: { from: Date; to: Date }
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 }
 
 export interface ShareOptions {
@@ -75,7 +75,7 @@ class ActionDispatcherService {
     action: QuickAction,
     widget: Widget,
     context: ActionContext,
-    options?: any
+    options?: unknown
   ): Promise<ActionResult> {
     try {
       switch (action.id) {
@@ -159,7 +159,7 @@ class ActionDispatcherService {
   private async applyFilter(
     widget: Widget,
     context: ActionContext,
-    filters: Record<string, any>
+    filters: Record<string, unknown>
   ): Promise<ActionResult> {
     toast.loading('Applying filters...', { id: `filter-${widget.id}` })
 
@@ -313,7 +313,8 @@ class ActionDispatcherService {
     }
   }
 
-  private async deleteWidget(widget: Widget, context: ActionContext): Promise<ActionResult> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private async deleteWidget(widget: Widget, _context: ActionContext): Promise<ActionResult> {
     // Show confirmation dialog first
     const confirmed = confirm(`Are you sure you want to delete "${widget.title}"? This action cannot be undone.`)
 
@@ -347,7 +348,7 @@ class ActionDispatcherService {
     widget: Widget,
     context: ActionContext,
     drillType: string,
-    options?: any
+    options?: unknown
   ): Promise<ActionResult> {
     toast.loading('Loading drill-down data...', { id: `drill-${widget.id}` })
 
@@ -379,7 +380,7 @@ class ActionDispatcherService {
     action: QuickAction,
     widget: Widget,
     context: ActionContext,
-    options?: any
+    options?: unknown
   ): Promise<ActionResult> {
     // Handle custom actions defined by plugins or extensions
     toast.loading(`Executing ${action.label}...`, { id: `custom-${widget.id}` })
@@ -412,7 +413,7 @@ class ActionDispatcherService {
     action: QuickAction,
     widgets: Widget[],
     context: ActionContext,
-    options?: any
+    options?: unknown
   ): Promise<ActionResult[]> {
     toast.loading(`Executing ${action.label} on ${widgets.length} widgets...`)
 

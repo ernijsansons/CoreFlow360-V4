@@ -1,0 +1,159 @@
+{
+  "waf_configuration": {
+    "description": "CoreFlow360 V4 Production WAF Rules",
+    "version": "1.0",
+    "enabled": true,
+    "rules": [
+      {
+        "name": "Block SQL Injection Attempts",
+        "action": "block",
+        "priority": 1,
+        "enabled": true,
+        "description": "Block common SQL injection patterns",
+        "expression": "(http.request.uri.query contains \"UNION SELECT\") or (http.request.uri.query contains \"' OR '1'='1\") or (http.request.uri.query contains \"DROP TABLE\") or (http.request.uri.query contains \"--\") or (http.request.body contains \"UNION SELECT\") or (http.request.body contains \"DROP TABLE\")"
+      },
+      {
+        "name": "Block XSS Attempts",
+        "action": "block",
+        "priority": 2,
+        "enabled": true,
+        "description": "Block cross-site scripting attempts",
+        "expression": "(http.request.uri.query contains \"<script\") or (http.request.uri.query contains \"javascript:\") or (http.request.uri.query contains \"onerror=\") or (http.request.uri.query contains \"onload=\") or (http.request.body contains \"<script\") or (http.request.body contains \"javascript:\")"
+      },
+      {
+        "name": "Block Path Traversal",
+        "action": "block",
+        "priority": 3,
+        "enabled": true,
+        "description": "Block directory traversal attempts",
+        "expression": "(http.request.uri.path contains \"../\") or (http.request.uri.path contains \"..%2F\") or (http.request.uri.path contains \"%2e%2e/\") or (http.request.uri.path contains \"..\\\\\")"
+      },
+      {
+        "name": "Block Command Injection",
+        "action": "block",
+        "priority": 4,
+        "enabled": true,
+        "description": "Block OS command injection attempts",
+        "expression": "(http.request.uri.query contains \"; ls\") or (http.request.uri.query contains \"| cat\") or (http.request.uri.query contains \"&& whoami\") or (http.request.body contains \"; ls\") or (http.request.body contains \"| cat\")"
+      },
+      {
+        "name": "Block Suspicious User Agents",
+        "action": "challenge",
+        "priority": 5,
+        "enabled": true,
+        "description": "Challenge requests from suspicious user agents",
+        "expression": "(http.user_agent contains \"sqlmap\") or (http.user_agent contains \"nikto\") or (http.user_agent contains \"nmap\") or (http.user_agent contains \"masscan\") or (http.user_agent contains \"metasploit\")"
+      },
+      {
+        "name": "Rate Limit API Endpoints",
+        "action": "challenge",
+        "priority": 6,
+        "enabled": true,
+        "description": "Challenge high-frequency API requests",
+        "expression": "(http.request.uri.path contains \"/api/\") and (rate(10s) > 100)"
+      },
+      {
+        "name": "Block Known Malicious IPs",
+        "action": "block",
+        "priority": 7,
+        "enabled": true,
+        "description": "Block IPs from threat intelligence feeds",
+        "expression": "ip.geoip.country in {\"CN\" \"RU\" \"KP\"} and (http.request.uri.path contains \"/api/auth/\")"
+      },
+      {
+        "name": "Protect Admin Endpoints",
+        "action": "managed_challenge",
+        "priority": 8,
+        "enabled": true,
+        "description": "Extra protection for admin routes",
+        "expression": "(http.request.uri.path contains \"/admin\") or (http.request.uri.path contains \"/api/admin\")"
+      },
+      {
+        "name": "Block Empty User Agent",
+        "action": "block",
+        "priority": 9,
+        "enabled": true,
+        "description": "Block requests with no user agent",
+        "expression": "(http.user_agent eq \"\")"
+      },
+      {
+        "name": "OWASP ModSecurity Core Rule Set",
+        "action": "managed_challenge",
+        "priority": 10,
+        "enabled": true,
+        "description": "Enable OWASP CRS managed ruleset",
+        "managed_ruleset": "cloudflare_owasp_core_ruleset"
+      }
+    ],
+    "rate_limiting": {
+      "api_endpoints": {
+        "path_pattern": "/api/*",
+        "requests_per_minute": 100,
+        "burst": 20,
+        "action": "challenge"
+      },
+      "authentication": {
+        "path_pattern": "/api/auth/*",
+        "requests_per_minute": 10,
+        "burst": 5,
+        "action": "block"
+      },
+      "ai_endpoints": {
+        "path_pattern": "/api/agents/*",
+        "requests_per_minute": 20,
+        "burst": 5,
+        "action": "challenge"
+      }
+    },
+    "security_level": "high",
+    "challenge_passage": 900,
+    "browser_integrity_check": true,
+    "bot_fight_mode": true,
+    "custom_rules": [
+      {
+        "name": "Allow Health Checks",
+        "action": "allow",
+        "priority": 0,
+        "enabled": true,
+        "description": "Always allow health check endpoints",
+        "expression": "(http.request.uri.path eq \"/health\") or (http.request.uri.path eq \"/api/status\")"
+      },
+      {
+        "name": "Log Suspicious Activity",
+        "action": "log",
+        "priority": 100,
+        "enabled": true,
+        "description": "Log all suspicious activity for analysis",
+        "expression": "(cf.threat_score > 10)"
+      }
+    ]
+  },
+  "deployment_instructions": {
+    "step_1": "Navigate to Cloudflare Dashboard > Security > WAF",
+    "step_2": "Select your zone: ernijs-ansons.workers.dev",
+    "step_3": "Enable Managed Rules > OWASP Core Ruleset",
+    "step_4": "Create Custom Rules using expressions above",
+    "step_5": "Configure Rate Limiting rules",
+    "step_6": "Enable Bot Fight Mode",
+    "step_7": "Set Security Level to 'High'",
+    "step_8": "Test with staging environment first",
+    "step_9": "Monitor WAF Analytics dashboard",
+    "step_10": "Fine-tune rules based on false positives"
+  },
+  "monitoring": {
+    "dashboard_url": "https://dash.cloudflare.com/waf/analytics",
+    "metrics_to_track": [
+      "Blocked requests per hour",
+      "Challenged requests per hour",
+      "Top attack vectors",
+      "Geographic distribution of threats",
+      "User agent patterns",
+      "False positive rate"
+    ],
+    "alert_thresholds": {
+      "blocked_requests_per_minute": 50,
+      "challenge_failure_rate": 0.8,
+      "attack_spike": "200% increase over baseline"
+    }
+  }
+}

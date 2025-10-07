@@ -55,143 +55,195 @@ export class OmnichannelOrchestrator {
     // Mock AI strategy determination - would use real AI in production
     const strategies: ChannelStrategy[] = [
       {
-        id: 'email_first',
-        name: 'Email First Strategy',
-        channels: ['email', 'sms', 'call'],
+        primary_channel: 'email',
         sequence: [
-          { channel: 'email', delay: 0, priority: 1 },
-          { channel: 'sms', delay: 24, priority: 2 },
-          { channel: 'call', delay: 72, priority: 3 }
+          {
+            channel: 'email',
+            delay_hours: 0,
+            personalization_level: 'high'
+          },
+          {
+            channel: 'sms',
+            delay_hours: 24,
+            personalization_level: 'medium'
+          },
+          {
+            channel: 'call',
+            delay_hours: 72,
+            personalization_level: 'high'
+          }
         ],
-        personalization: {
-          tone: 'professional',
-          frequency: 'moderate',
-          timing: 'business_hours'
-        }
+        fallback_channels: ['sms', 'call'],
+        timing: {
+          timezone: 'America/New_York',
+          avoid_weekends: true,
+          optimal_send_times: {
+            email: ['09:00', '14:00'],
+            sms: ['10:00', '15:00'],
+            call: ['10:00', '14:00'],
+            linkedin: ['09:00', '17:00'],
+            whatsapp: ['10:00', '16:00']
+          }
+        },
+        ai_reasoning: 'Professional email-first approach for business leads',
+        predicted_response_rate: 0.25,
+        urgency_level: 'medium'
       },
       {
-        id: 'social_first',
-        name: 'Social First Strategy',
-        channels: ['linkedin', 'email', 'whatsapp'],
+        primary_channel: 'linkedin',
         sequence: [
-          { channel: 'linkedin', delay: 0, priority: 1 },
-          { channel: 'email', delay: 48, priority: 2 },
-          { channel: 'whatsapp', delay: 120, priority: 3 }
+          {
+            channel: 'linkedin',
+            delay_hours: 0,
+            personalization_level: 'hyper_personalized'
+          },
+          {
+            channel: 'email',
+            delay_hours: 48,
+            personalization_level: 'high'
+          },
+          {
+            channel: 'whatsapp',
+            delay_hours: 120,
+            personalization_level: 'medium'
+          }
         ],
-        personalization: {
-          tone: 'casual',
-          frequency: 'high',
-          timing: 'anytime'
-        }
+        fallback_channels: ['email', 'whatsapp'],
+        timing: {
+          timezone: 'America/New_York',
+          avoid_weekends: false,
+          optimal_send_times: {
+            email: ['09:00', '14:00'],
+            sms: ['10:00', '15:00'],
+            call: ['10:00', '14:00'],
+            linkedin: ['09:00', '17:00'],
+            whatsapp: ['10:00', '16:00']
+          }
+        },
+        ai_reasoning: 'Social-first approach for tech companies',
+        predicted_response_rate: 0.35,
+        urgency_level: 'medium'
       }
     ];
 
     // Select strategy based on lead characteristics
-    if (lead.company && lead.company.includes('tech')) {
+    const companyName = lead.company_name || '';
+    if (companyName.toLowerCase().includes('tech')) {
       return strategies[1]; // Social first for tech companies
     }
-    
+
     return strategies[0]; // Email first for others
   }
 
-  private async generateMultiChannelContent(lead: Lead, strategy: ChannelStrategy): Promise<ChannelContent> {
-    const content: ChannelContent = {
+  private async generateMultiChannelContent(lead: Lead, strategy: ChannelStrategy): Promise<ChannelContent[]> {
+    const leadName = lead.first_name || 'there';
+    const companyName = lead.company_name || 'your company';
+
+    const contentMap: Record<string, ChannelContent> = {
       email: {
-        subject: `Hi ${lead.name}, let's discuss ${lead.company}'s growth`,
-        body: `Hi ${lead.name},\n\nI noticed ${lead.company} is growing rapidly. I'd love to discuss how we can help accelerate that growth.\n\nBest regards,\nSales Team`,
-        htmlBody: `<p>Hi ${lead.name},</p><p>I noticed ${lead.company} is growing rapidly. I'd love to discuss how we can help accelerate that growth.</p><p>Best regards,<br>Sales Team</p>`
+        channel: 'email',
+        subject: `Hi ${leadName}, let's discuss ${companyName}'s growth`,
+        body: `Hi ${leadName},\n\nI noticed ${companyName} is growing rapidly. I'd love to discuss how we can help accelerate that growth.\n\nBest regards,\nSales Team`,
+        ai_generated: true,
+        tone: 'formal'
       },
       sms: {
-        body: `Hi ${lead.name}! Quick question about ${lead.company}'s growth plans. Got 2 minutes for a quick call?`
+        channel: 'sms',
+        body: `Hi ${leadName}! Quick question about ${companyName}'s growth plans. Got 2 minutes for a quick call?`,
+        ai_generated: true,
+        tone: 'friendly'
       },
       linkedin: {
-        message: `Hi ${lead.name}, I see ${lead.company} is expanding. Would love to connect and discuss potential opportunities.`
+        channel: 'linkedin',
+        body: `Hi ${leadName}, I see ${companyName} is expanding. Would love to connect and discuss potential opportunities.`,
+        ai_generated: true,
+        tone: 'formal'
       },
       call: {
-        script: `Hi ${lead.name}, this is [Name] from [Company]. I'm reaching out because I noticed ${lead.company} is growing and I thought we might be able to help. Do you have a few minutes to chat?`
+        channel: 'call',
+        body: `Hi ${leadName}, this is [Name] from [Company]. I'm reaching out because I noticed ${companyName} is growing and I thought we might be able to help. Do you have a few minutes to chat?`,
+        ai_generated: true,
+        tone: 'friendly'
       },
       whatsapp: {
-        message: `Hi ${lead.name}! 👋 I saw ${lead.company} is doing great things. Would love to chat about how we might help!`
+        channel: 'whatsapp',
+        body: `Hi ${leadName}! 👋 I saw ${companyName} is doing great things. Would love to chat about how we might help!`,
+        ai_generated: true,
+        tone: 'casual'
       }
     };
 
-    return content;
+    // Return content for channels in strategy
+    return strategy.sequence.map(step => contentMap[step.channel]).filter(Boolean);
   }
 
   private async buildCampaign(
-    strategy: ChannelStrategy, 
-    content: ChannelContent, 
+    strategy: ChannelStrategy,
+    content: ChannelContent[],
     leads: Lead[]
   ): Promise<OmnichannelCampaign> {
     const campaign: OmnichannelCampaign = {
       id: `campaign_${Date.now()}`,
+      business_id: leads[0]?.business_id || 'default',
       name: `Personalized Campaign for ${leads.length} leads`,
       strategy,
+      target_audience: {
+        lead_ids: leads.map(l => l.id),
+        total_recipients: leads.length
+      },
       content,
-      leads: leads.map((lead: any) => ({ leadId: lead.id, status: 'pending' })),
       status: 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      scheduledAt: new Date().toISOString(),
-      steps: this.buildCampaignSteps(strategy, content)
+      scheduled_start: new Date().toISOString(),
+      metrics: {
+        total_sent: 0,
+        total_delivered: 0,
+        total_opened: 0,
+        total_clicked: 0,
+        total_replied: 0,
+        total_converted: 0,
+        by_channel: {
+          email: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          sms: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          linkedin: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          call: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          whatsapp: { sent: 0, delivered: 0, replied: 0, bounced: 0 }
+        },
+        engagement_score: 0
+      },
+      ai_optimization_enabled: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     return campaign;
   }
 
-  private buildCampaignSteps(strategy: ChannelStrategy, content: ChannelContent): ChannelStep[] {
-    const steps: ChannelStep[] = [];
-
-    for (const sequenceItem of strategy.sequence) {
-      const channelContent = content[sequenceItem.channel as keyof ChannelContent];
-      if (channelContent) {
-        steps.push({
-          id: `step_${sequenceItem.channel}_${sequenceItem.priority}`,
-          channel: sequenceItem.channel as ChannelType,
-          delay: sequenceItem.delay,
-          priority: sequenceItem.priority,
-          content: channelContent,
-          status: 'pending',
-          scheduledAt: new Date(Date.now() + sequenceItem.delay * 60 * 60 * 1000).toISOString()
-        });
-      }
-    }
-
-    return steps;
-  }
-
   private async scheduleCampaign(campaign: OmnichannelCampaign): Promise<void> {
     // Mock campaign scheduling - would integrate with job queue in production
-    console.log(`Scheduling campaign ${campaign.id} with ${campaign.steps.length} steps`);
-    
-    for (const step of campaign.steps) {
-      // Schedule each step
+    console.log(`Scheduling campaign ${campaign.id} with ${campaign.content.length} content items`);
+
+    for (const contentItem of campaign.content) {
+      // Schedule each content item
       setTimeout(() => {
-        this.executeStep(step, campaign.leads);
-      }, step.delay * 60 * 60 * 1000);
+        this.executeContentDelivery(contentItem, campaign.target_audience.lead_ids || []);
+      }, 1000); // Immediate for demo
     }
   }
 
-  private async executeStep(step: ChannelStep, leads: Array<{ leadId: string; status: string }>): Promise<void> {
+  private async executeContentDelivery(content: ChannelContent, leadIds: string[]): Promise<void> {
     try {
-      const channel = this.channels[step.channel];
+      const channel = this.channels[content.channel];
       if (!channel) {
-        console.error(`Channel ${step.channel} not available`);
+        console.error(`Channel ${content.channel} not available`);
         return;
       }
 
-      // Execute step for all leads
-      for (const leadRef of leads) {
-        if (leadRef.status === 'pending') {
-          await this.sendMessage(step.channel, leadRef.leadId, step.content);
-          leadRef.status = 'sent';
-        }
+      // Execute delivery for all leads
+      for (const leadId of leadIds) {
+        await this.sendMessage(content.channel, leadId, content);
       }
-
-      step.status = 'completed';
-    } catch (error: any) {
-      console.error(`Failed to execute step ${step.id}:`, error);
-      step.status = 'failed';
+    } catch (error: unknown) {
+      console.error(`Failed to execute content delivery for channel ${content.channel}:`, error);
     }
   }
 
@@ -209,24 +261,72 @@ export class OmnichannelOrchestrator {
       await new Promise(resolve => setTimeout(resolve, 100));
       
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Failed to send ${channel} message to lead ${leadId}:`, error);
       return false;
     }
   }
 
   async createCampaign(request: CreateCampaignRequest): Promise<OmnichannelCampaign> {
+    // Build default strategy if not provided
+    const defaultStrategy: ChannelStrategy = {
+      primary_channel: 'email',
+      sequence: request.channels?.map((ch, idx) => ({
+        channel: ch,
+        delay_hours: idx * 24,
+        personalization_level: 'medium' as const
+      })) || [],
+      fallback_channels: [],
+      timing: {
+        timezone: 'America/New_York',
+        avoid_weekends: true,
+        optimal_send_times: {
+          email: ['09:00'],
+          sms: ['10:00'],
+          linkedin: ['09:00'],
+          call: ['10:00'],
+          whatsapp: ['10:00']
+        }
+      },
+      ai_reasoning: 'User-created campaign',
+      predicted_response_rate: 0.2,
+      urgency_level: 'medium'
+    };
+
     const campaign: OmnichannelCampaign = {
       id: `campaign_${Date.now()}`,
+      business_id: 'default',
       name: request.name,
-      strategy: request.strategy,
-      content: request.content,
-      leads: request.leadIds.map((leadId: any) => ({ leadId, status: 'pending' })),
+      strategy: defaultStrategy,
+      target_audience: {
+        lead_ids: request.lead_ids,
+        segment_id: request.segment_id,
+        filters: request.filters,
+        total_recipients: request.lead_ids?.length || 0
+      },
+      content: request.custom_content || [],
       status: 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      scheduledAt: request.scheduledAt || new Date().toISOString(),
-      steps: this.buildCampaignSteps(request.strategy, request.content)
+      scheduled_start: request.scheduled_start || new Date().toISOString(),
+      metrics: {
+        total_sent: 0,
+        total_delivered: 0,
+        total_opened: 0,
+        total_clicked: 0,
+        total_replied: 0,
+        total_converted: 0,
+        by_channel: {
+          email: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          sms: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          linkedin: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          call: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          whatsapp: { sent: 0, delivered: 0, replied: 0, bounced: 0 }
+        },
+        engagement_score: 0
+      },
+      ai_optimization_enabled: request.ai_optimization || false,
+      ab_testing: request.ab_testing,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     return campaign;
@@ -234,17 +334,54 @@ export class OmnichannelOrchestrator {
 
   async updateCampaign(campaignId: string, updates: Partial<OmnichannelCampaign>): Promise<OmnichannelCampaign> {
     // Mock campaign update - would update in database in production
+    const defaultStrategy: ChannelStrategy = {
+      primary_channel: 'email',
+      sequence: [],
+      fallback_channels: [],
+      timing: {
+        timezone: 'America/New_York',
+        avoid_weekends: true,
+        optimal_send_times: {
+          email: ['09:00'],
+          sms: ['10:00'],
+          linkedin: ['09:00'],
+          call: ['10:00'],
+          whatsapp: ['10:00']
+        }
+      },
+      ai_reasoning: 'Default strategy',
+      predicted_response_rate: 0.2,
+      urgency_level: 'medium'
+    };
+
     const campaign: OmnichannelCampaign = {
       id: campaignId,
+      business_id: updates.business_id || 'default',
       name: updates.name || 'Updated Campaign',
-      strategy: updates.strategy || { id: 'default', name: 'Default Strategy', channels: [], sequence: [], personalization: { tone: 'professional', frequency: 'moderate', timing: 'business_hours' } },
-      content: updates.content || {},
-      leads: updates.leads || [],
+      strategy: updates.strategy || defaultStrategy,
+      target_audience: updates.target_audience || { total_recipients: 0 },
+      content: updates.content || [],
       status: updates.status || 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      scheduledAt: updates.scheduledAt || new Date().toISOString(),
-      steps: updates.steps || []
+      scheduled_start: updates.scheduled_start,
+      metrics: updates.metrics || {
+        total_sent: 0,
+        total_delivered: 0,
+        total_opened: 0,
+        total_clicked: 0,
+        total_replied: 0,
+        total_converted: 0,
+        by_channel: {
+          email: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          sms: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          linkedin: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          call: { sent: 0, delivered: 0, replied: 0, bounced: 0 },
+          whatsapp: { sent: 0, delivered: 0, replied: 0, bounced: 0 }
+        },
+        engagement_score: 0
+      },
+      ai_optimization_enabled: updates.ai_optimization_enabled || false,
+      created_at: updates.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     return campaign;
@@ -265,7 +402,7 @@ export class OmnichannelOrchestrator {
       // Mock campaign start - would update status and schedule in production
       console.log(`Starting campaign ${campaignId}`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Failed to start campaign ${campaignId}:`, error);
       return false;
     }
@@ -276,7 +413,7 @@ export class OmnichannelOrchestrator {
       // Mock campaign pause - would update status in production
       console.log(`Pausing campaign ${campaignId}`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Failed to pause campaign ${campaignId}:`, error);
       return false;
     }
@@ -287,7 +424,7 @@ export class OmnichannelOrchestrator {
       // Mock campaign stop - would update status and cancel scheduled tasks in production
       console.log(`Stopping campaign ${campaignId}`);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Failed to stop campaign ${campaignId}:`, error);
       return false;
     }
@@ -319,21 +456,32 @@ export class OmnichannelOrchestrator {
       try {
         // Mock health check - would test actual channel connectivity in production
         const isHealthy = Math.random() > 0.1; // 90% chance of being healthy
-        
+
+
         healthChecks.push({
           channel: channelType as ChannelType,
-          status: isHealthy ? 'healthy' : 'unhealthy',
-          lastChecked: new Date().toISOString(),
-          responseTime: Math.floor(Math.random() * 1000),
-          error: isHealthy ? null : 'Connection timeout'
+          status: isHealthy ? 'healthy' : 'down',
+          last_checked: new Date().toISOString(),
+          metrics: {
+            success_rate: isHealthy ? 0.95 : 0,
+            avg_latency_ms: Math.floor(Math.random() * 1000),
+            daily_quota_used: 100,
+            daily_quota_limit: 1000
+          },
+          issues: isHealthy ? undefined : ['Connection timeout']
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         healthChecks.push({
           channel: channelType as ChannelType,
-          status: 'unhealthy',
-          lastChecked: new Date().toISOString(),
-          responseTime: -1,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          status: 'down',
+          last_checked: new Date().toISOString(),
+          metrics: {
+            success_rate: 0,
+            avg_latency_ms: -1,
+            daily_quota_used: 0,
+            daily_quota_limit: 0
+          },
+          issues: [error instanceof Error ? error.message : 'Unknown error']
         });
       }
     }
@@ -350,26 +498,29 @@ export class OmnichannelOrchestrator {
 
     // Optimize based on performance data
     const optimizedCampaign = { ...campaign };
-    
-    // Adjust timing based on performance
-    for (const step of optimizedCampaign.steps) {
-      if (step.channel === 'email' && step.delay < 24) {
-        step.delay = 24; // Move email to next day if sent too early
-      }
-    }
 
-    optimizedCampaign.updatedAt = new Date().toISOString();
+    // Adjust timing based on performance (modify strategy sequence)
+    optimizedCampaign.strategy.sequence = optimizedCampaign.strategy.sequence.map(step => {
+      if (step.channel === 'email' && step.delay_hours < 24) {
+        return { ...step, delay_hours: 24 }; // Move email to next day if sent too early
+      }
+      return step;
+    });
+
+    optimizedCampaign.updated_at = new Date().toISOString();
     return optimizedCampaign;
   }
 
   async getPersonalizationSuggestions(lead: Lead): Promise<string[]> {
     // Mock personalization suggestions - would use AI in production
+    const companyName = lead.company_name || 'their company';
+    const industry = lead.industry || 'their industry';
+
     const suggestions = [
-      `Mention ${lead.company}'s recent growth`,
-      `Reference ${lead.industry || 'their industry'} trends`,
+      `Mention ${companyName}'s recent growth`,
+      `Reference ${industry} trends`,
       `Highlight relevant case studies`,
-      `Use ${lead.preferredLanguage || 'English'} language`,
-      `Adjust tone for ${lead.companySize || 'medium'} company`
+      `Adjust tone for ${companyName}`
     ];
 
     return suggestions;
@@ -384,12 +535,12 @@ export class OmnichannelOrchestrator {
 
       // Mock channel test - would send actual test message in production
       console.log(`Testing ${channel} channel with data:`, testData);
-      
+
       // Simulate test delay
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Channel test failed for ${channel}:`, error);
       return false;
     }
@@ -409,25 +560,18 @@ export class OmnichannelOrchestrator {
     const errors: string[] = [];
 
     // Validate strategy
-    if (!campaign.strategy || !campaign.strategy.channels.length) {
-      errors.push('Campaign must have at least one channel');
+    if (!campaign.strategy || !campaign.strategy.sequence.length) {
+      errors.push('Campaign must have at least one channel in sequence');
     }
 
     // Validate content
-    for (const channel of campaign.strategy.channels) {
-      if (!campaign.content[channel as keyof ChannelContent]) {
-        errors.push(`Content missing for channel: ${channel}`);
-      }
+    if (!campaign.content || campaign.content.length === 0) {
+      errors.push('Campaign must have content');
     }
 
-    // Validate leads
-    if (!campaign.leads || campaign.leads.length === 0) {
-      errors.push('Campaign must have at least one lead');
-    }
-
-    // Validate steps
-    if (!campaign.steps || campaign.steps.length === 0) {
-      errors.push('Campaign must have at least one step');
+    // Validate target audience
+    if (!campaign.target_audience || campaign.target_audience.total_recipients === 0) {
+      errors.push('Campaign must have at least one recipient');
     }
 
     return {
@@ -440,7 +584,7 @@ export class OmnichannelOrchestrator {
     try {
       // Mock cleanup - would close connections and clean up resources in production
       console.log('Omnichannel Orchestrator cleanup completed');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Omnichannel Orchestrator cleanup failed:', error);
     }
   }

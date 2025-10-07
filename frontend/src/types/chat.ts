@@ -27,7 +27,7 @@ export interface ChatMessage {
   conversationId: string
   type: MessageType
   content: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   attachments?: FileAttachment[]
   sources?: MessageSource[]
   contextUsed: boolean
@@ -41,7 +41,7 @@ export interface Conversation {
   userId: string
   businessId: string
   status: 'active' | 'archived' | 'deleted'
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   messageCount: number
   lastMessageAt?: string
   createdAt: string
@@ -55,9 +55,9 @@ export interface StreamChunk {
   content?: string
   functionCall?: {
     name: string
-    arguments: Record<string, any>
+    arguments: Record<string, unknown>
   }
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface CommandAction {
@@ -115,4 +115,46 @@ export interface UploadProgress {
   progress: number
   status: 'pending' | 'uploading' | 'completed' | 'error'
   error?: string
+}
+
+export interface InvoiceData {
+  number: string
+  status: 'paid' | 'pending' | 'overdue'
+  customer: string
+  amount: number
+}
+
+export interface MetricData {
+  metrics: Array<{
+    value: string | number
+    label: string
+    change?: number
+  }>
+}
+
+export interface ChartData {
+  title: string
+  data: Array<{
+    label: string
+    value: number
+  }>
+}
+
+export interface LeadData {
+  name: string
+  email: string
+  phone: string
+  company: string
+  status: string
+  value: number
+}
+
+export interface TableData {
+  headers: string[]
+  rows: Array<Array<string | number>>
+}
+
+export interface WidgetData {
+  title: string
+  content: unknown
 }

@@ -1,11 +1,9 @@
 import * as React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
@@ -21,12 +19,9 @@ import {
   FileSpreadsheet,
   FileJson,
   Database,
-  Calendar,
-  Filter,
   CheckCircle2,
   AlertCircle,
   Clock,
-  Send,
   Archive
 } from 'lucide-react'
 
@@ -37,7 +32,7 @@ interface ExportPreset {
   format: string
   filters: number
   lastUsed: string
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
 }
 
 export function ExportPanel() {

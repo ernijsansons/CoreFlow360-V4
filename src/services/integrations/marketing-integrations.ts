@@ -123,6 +123,7 @@ export class MetaAdsIntegration extends BaseIntegration {
     const mappedData = await this.applyFieldMappings(metaLead);
 
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     await db.prepare(`
       INSERT OR REPLACE INTO leads (
         id, business_id, first_name, last_name, email, phone,
@@ -145,6 +146,7 @@ export class MetaAdsIntegration extends BaseIntegration {
   private async getRecentConversions(): Promise<any[]> {
     // Get conversions from CRM to push to Meta
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     const conversions = await db.prepare(`
       SELECT * FROM opportunities
       WHERE status = 'closed_won'
@@ -183,6 +185,7 @@ export class MetaAdsIntegration extends BaseIntegration {
 
   private async getCustomAudiences(): Promise<any[]> {
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     const segments = await db.prepare(`
       SELECT * FROM customer_segments
       WHERE active = 1
@@ -216,6 +219,7 @@ export class MetaAdsIntegration extends BaseIntegration {
 
   private async getLeadsForSegment(segmentId: string): Promise<any[]> {
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     const leads = await db.prepare(`
       SELECT * FROM leads
       WHERE segment_id = ?
@@ -379,6 +383,7 @@ export class GoogleAdsIntegration extends BaseIntegration {
     const mappedData = await this.applyFieldMappings(googleLead);
 
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     await db.prepare(`
       INSERT OR REPLACE INTO leads (
         id, business_id, first_name, last_name, email, phone,
@@ -429,6 +434,7 @@ export class GoogleAdsIntegration extends BaseIntegration {
 
     // Store performance data
     const db = this.env.DB_ANALYTICS;
+    if (!db) throw new Error('Database not available');
     for (const result of response.results || []) {
       await db.prepare(`
         INSERT OR REPLACE INTO campaign_performance (
@@ -451,6 +457,7 @@ export class GoogleAdsIntegration extends BaseIntegration {
 
   private async getRecentConversions(): Promise<any[]> {
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     const conversions = await db.prepare(`
       SELECT * FROM opportunities
       WHERE status = 'closed_won'
@@ -492,6 +499,7 @@ export class GoogleAdsIntegration extends BaseIntegration {
   private async updateCustomerMatchLists(): Promise<void> {
     // Update customer match lists in Google Ads
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     const segments = await db.prepare(`
       SELECT * FROM customer_segments
       WHERE active = 1
@@ -701,6 +709,7 @@ export class HubSpotIntegration extends BaseIntegration {
     const mappedData = await this.applyFieldMappings(contact.properties);
 
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     await db.prepare(`
       INSERT OR REPLACE INTO leads (
         id, business_id, first_name, last_name, email, phone,
@@ -725,6 +734,7 @@ export class HubSpotIntegration extends BaseIntegration {
     const mappedData = await this.applyFieldMappings(company.properties);
 
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     await db.prepare(`
       INSERT OR REPLACE INTO accounts (
         id, business_id, name, domain, industry, size,
@@ -748,6 +758,7 @@ export class HubSpotIntegration extends BaseIntegration {
     const mappedData = await this.applyFieldMappings(deal.properties);
 
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     await db.prepare(`
       INSERT OR REPLACE INTO opportunities (
         id, business_id, name, amount, stage, close_date,
@@ -769,6 +780,7 @@ export class HubSpotIntegration extends BaseIntegration {
 
   private async getCRMLeadsToSync(): Promise<any[]> {
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
     const leads = await db.prepare(`
       SELECT * FROM leads
       WHERE updated_at >= datetime('now', '-1 day')

@@ -203,7 +203,7 @@ class PerformanceMonitor {
     })
   }
 
-  private reportCustomMetric(name: string, value: any): void {
+  private reportCustomMetric(name: string, value: unknown): void {
     console.log(`Custom metric ${name}:`, value)
 
     // Add to analytics
@@ -302,7 +302,7 @@ export function usePerformanceTracking(componentName: string) {
 
 // Hook for tracking user interactions
 export function useInteractionTracking() {
-  const trackClick = React.useCallback((elementName: string, additionalData?: any) => {
+  const trackClick = React.useCallback((elementName: string, additionalData?: unknown) => {
     performanceMonitor.recordCount(`click_${elementName}`)
 
     if (additionalData) {

@@ -301,7 +301,7 @@ describe('TOTPCrypto', () => {
 
   describe('TOTP Code Generation', () => {
     it('should generate 6-digit TOTP codes', async () => {
-      const secret = 'JBSWY3DPEHPK3PXP'; // Base32 encoded secret
+      const secret = process.env.TEST_TOTP_SECRET || crypto.randomUUID().replace(/-/g, '').substring(0, 16); // Base32 encoded secret
       const code = await TOTPCrypto.generateTOTP(secret);
 
       expect(code).toMatch(/^\d{6}$/);

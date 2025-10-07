@@ -1123,7 +1123,7 @@ describe('🔒 COMPREHENSIVE SECURITY TEST SUITE', () => {
     });
 
     it('should validate TOTP codes correctly', () => {
-      const secret = 'JBSWY3DPEHPK3PXP';
+      const secret = process.env.TEST_TOTP_SECRET || crypto.randomUUID().replace(/-/g, '').substring(0, 16);
 
       // Generate TOTP for current time (would need real implementation)
       const isValid = verifyTOTP('123456', secret);
@@ -1132,7 +1132,7 @@ describe('🔒 COMPREHENSIVE SECURITY TEST SUITE', () => {
 
     it('should enforce MFA rate limiting', async () => {
       const userId = 'test-user';
-      const secret = 'JBSWY3DPEHPK3PXP';
+      const secret = process.env.TEST_TOTP_SECRET || crypto.randomUUID().replace(/-/g, '').substring(0, 16);
 
       // Simulate multiple failed attempts
       for (let i = 0; i < 6; i++) {
@@ -1146,7 +1146,7 @@ describe('🔒 COMPREHENSIVE SECURITY TEST SUITE', () => {
 
     it('should handle backup codes properly', async () => {
       const userId = 'test-user';
-      const secret = 'JBSWY3DPEHPK3PXP';
+      const secret = process.env.TEST_TOTP_SECRET || crypto.randomUUID().replace(/-/g, '').substring(0, 16);
 
       // Test backup code format (8 characters)
       const backupCodeResult = await verifyMFA('ABCD1234', secret, userId, mockKV);
@@ -1155,7 +1155,7 @@ describe('🔒 COMPREHENSIVE SECURITY TEST SUITE', () => {
 
     it('should reject invalid code formats', async () => {
       const userId = 'test-user';
-      const secret = 'JBSWY3DPEHPK3PXP';
+      const secret = process.env.TEST_TOTP_SECRET || crypto.randomUUID().replace(/-/g, '').substring(0, 16);
 
       const invalidCodes = ['12345', '1234567', 'abcdefgh', '12345a'];
 

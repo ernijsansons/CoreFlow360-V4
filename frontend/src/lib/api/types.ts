@@ -13,7 +13,7 @@ export interface User {
   emailVerified: boolean
   mfaEnabled: boolean
   profilePicture?: string
-  settings?: Record<string, any>
+  settings?: Record<string, unknown>
 }
 
 export interface Business {
@@ -88,7 +88,7 @@ export interface Permission {
   resource: string
   action: string
   description?: string
-  conditions?: Record<string, any>
+  conditions?: Record<string, unknown>
 }
 
 // CRM Types
@@ -105,7 +105,7 @@ export interface Lead {
   assignedTo?: string
   tags?: string[]
   notes?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   createdAt: string
   updatedAt: string
 }
@@ -305,19 +305,19 @@ export interface WorkflowTrigger {
   type: 'event' | 'schedule' | 'manual'
   event?: string
   schedule?: string
-  config?: Record<string, any>
+  config?: Record<string, unknown>
 }
 
 export interface WorkflowCondition {
   field: string
   operator: string
-  value: any
+  value: unknown
   logic?: 'and' | 'or'
 }
 
 export interface WorkflowAction {
   type: string
-  config: Record<string, any>
+  config: Record<string, unknown>
   order: number
 }
 
@@ -329,8 +329,8 @@ export interface AuditLog {
   action: string
   resource: string
   resourceId?: string
-  changes?: Record<string, any>
-  metadata?: Record<string, any>
+  changes?: Record<string, unknown>
+  metadata?: Record<string, unknown>
   ipAddress?: string
   userAgent?: string
   createdAt: string
@@ -343,7 +343,7 @@ export interface Notification {
   type: string
   title: string
   message: string
-  data?: Record<string, any>
+  data?: Record<string, unknown>
   read: boolean
   createdAt: string
   readAt?: string
@@ -359,7 +359,7 @@ export interface FileMetadata {
   mimeType: string
   uploadedBy: string
   tags?: string[]
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   createdAt: string
   updatedAt: string
 }
@@ -372,7 +372,7 @@ export interface Report {
   description?: string
   type: string
   query?: string
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
   columns?: ReportColumn[]
   schedule?: string
   recipients?: string[]

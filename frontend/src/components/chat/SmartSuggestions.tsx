@@ -3,7 +3,7 @@
  * AI-powered proactive suggestions and quick actions
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Lightbulb,
@@ -12,18 +12,12 @@ import {
   Target,
   Zap,
   Clock,
-  DollarSign,
-  Users,
-  Package,
-  FileText,
-  BarChart3,
   ChevronRight,
   X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
 import { useSmartSuggestions } from '@/hooks/useSmartSuggestions'
 import { useChatStore } from '@/stores/chatStore'
 import type { SmartSuggestion, SuggestionType } from '@/types/chat'
@@ -31,7 +25,7 @@ import type { SmartSuggestion, SuggestionType } from '@/types/chat'
 export interface SmartSuggestionsProps {
   userId: string
   businessId: string
-  currentContext?: any
+  currentContext?: Record<string, unknown>
   className?: string
   onSuggestionSelect?: (suggestion: SmartSuggestion) => void
 }
@@ -235,7 +229,7 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
     })
 
     return Object.entries(counts)
-      .filter(([_, count]) => count > 0)
+      .filter(([, count]) => count > 0)
       .map(([type, count]) => ({ type: type as SuggestionType, count }))
   }, [filteredSuggestions])
 

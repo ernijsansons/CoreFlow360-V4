@@ -1,31 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bot,
   Brain,
-  Cpu,
   MessageSquare,
   Zap,
-  Play,
-  Pause,
   Settings,
-  CheckCircle,
-  AlertCircle,
-  Info,
   TrendingUp,
   Activity,
   Clock,
-  BarChart3,
   Send,
   Mic,
   Paperclip,
   ChevronDown,
   ChevronRight,
   RefreshCw,
-  Download,
-  Upload,
   Shield,
-  AlertTriangle,
   Command,
   Sparkles
 } from 'lucide-react';
@@ -56,25 +46,8 @@ interface AIAgent {
   };
 }
 
-interface Conversation {
-  id: string;
-  agentId: string;
-  messages: Message[];
-  status: 'active' | 'resolved' | 'pending';
-}
-
-interface Message {
-  id: string;
-  sender: 'user' | 'agent';
-  content: string;
-  timestamp: Date;
-  attachments?: string[];
-  suggestions?: string[];
-}
-
 export const AIAgentInterface: React.FC = () => {
   const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null);
-  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [showCapabilities, setShowCapabilities] = useState(false);
@@ -208,26 +181,28 @@ export const AIAgentInterface: React.FC = () => {
   const handleSendMessage = () => {
     if (!message.trim() || !selectedAgent) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'user',
-      content: message,
-      timestamp: new Date()
-    };
+    // TODO: Implement message sending
+    // const newMessage: Message = {
+    //   id: Date.now().toString(),
+    //   sender: 'user',
+    //   content: message,
+    //   timestamp: new Date()
+    // };
 
     // Simulate agent response
     setTimeout(() => {
-      const agentResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        sender: 'agent',
-        content: `I understand your request about "${message}". I'm processing this now and will have results for you shortly.`,
-        timestamp: new Date(),
-        suggestions: [
-          'View detailed analysis',
-          'Export report',
-          'Schedule follow-up'
-        ]
-      };
+      // TODO: Implement agent response
+      // const agentResponse: Message = {
+      //   id: (Date.now() + 1).toString(),
+      //   sender: 'agent',
+      //   content: `I understand your request about "${message}". I'm processing this now and will have results for you shortly.`,
+      //   timestamp: new Date(),
+      //   suggestions: [
+      //     'View detailed analysis',
+      //     'Export report',
+      //     'Schedule follow-up'
+      //   ]
+      // };
       // Update conversation with agent response
     }, 1000);
 

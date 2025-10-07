@@ -6,7 +6,7 @@ interface OfflineDB extends DBSchema {
     key: string
     value: {
       id: string
-      data: any
+      data: unknown
       timestamp: number
       lastAccessed: number
     }
@@ -15,7 +15,7 @@ interface OfflineDB extends DBSchema {
     key: string
     value: {
       url: string
-      data: any
+      data: unknown
       timestamp: number
       ttl: number
     }
@@ -24,7 +24,7 @@ interface OfflineDB extends DBSchema {
     key: string
     value: {
       key: string
-      value: any
+      value: unknown
       timestamp: number
     }
   }
@@ -34,7 +34,7 @@ interface OfflineDB extends DBSchema {
       id: string
       method: string
       url: string
-      data?: any
+      data?: unknown
       headers?: Record<string, string>
       timestamp: number
       retries: number
@@ -92,7 +92,7 @@ class OfflineManager {
   }
 
   // Entity data management
-  async storeEntity(id: string, data: any): Promise<void> {
+  async storeEntity(id: string, data: unknown): Promise<void> {
     if (!this.db) await this.initialize()
 
     try {
@@ -107,7 +107,7 @@ class OfflineManager {
     }
   }
 
-  async getEntity(id: string): Promise<any | null> {
+  async getEntity(id: string): Promise<unknown | null> {
     if (!this.db) await this.initialize()
 
     try {
@@ -138,7 +138,7 @@ class OfflineManager {
   }
 
   // API cache management
-  async cacheAPIResponse(url: string, data: any, ttl = 5 * 60 * 1000): Promise<void> {
+  async cacheAPIResponse(url: string, data: unknown, ttl = 5 * 60 * 1000): Promise<void> {
     if (!this.db) await this.initialize()
 
     try {
@@ -153,7 +153,7 @@ class OfflineManager {
     }
   }
 
-  async getCachedAPIResponse(url: string): Promise<any | null> {
+  async getCachedAPIResponse(url: string): Promise<unknown | null> {
     if (!this.db) await this.initialize()
 
     try {
@@ -178,7 +178,7 @@ class OfflineManager {
   }
 
   // User preferences management
-  async setUserPreference(key: string, value: any): Promise<void> {
+  async setUserPreference(key: string, value: unknown): Promise<void> {
     if (!this.db) await this.initialize()
 
     try {
@@ -192,7 +192,7 @@ class OfflineManager {
     }
   }
 
-  async getUserPreference(key: string): Promise<any | null> {
+  async getUserPreference(key: string): Promise<unknown | null> {
     if (!this.db) await this.initialize()
 
     try {
@@ -208,7 +208,7 @@ class OfflineManager {
   async addToSyncQueue(request: {
     method: string
     url: string
-    data?: any
+    data?: unknown
     headers?: Record<string, string>
   }): Promise<void> {
     if (!this.db) await this.initialize()
@@ -230,7 +230,7 @@ class OfflineManager {
     }
   }
 
-  async getSyncQueue(): Promise<any[]> {
+  async getSyncQueue(): Promise<Array<{ id: string; method: string; url: string; data?: unknown; headers?: Record<string, string>; timestamp: number; retries: number }>> {
     if (!this.db) await this.initialize()
 
     try {

@@ -468,3 +468,14 @@ export function formatDate(timestamp: number): string {
   }
   return new Date(timestamp).toLocaleDateString();
 }
+
+/**
+ * Format currency for display (alias for formatAmount)
+ */
+export function formatCurrency(
+  amount: number,
+  currencyCode: string = 'USD',
+  locale: string = 'en-US'
+): string {
+  return formatAmount(amount, currencyCode, locale);
+}

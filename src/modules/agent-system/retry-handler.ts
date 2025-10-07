@@ -154,10 +154,11 @@ export class RetryHandler {
       } catch (error: any) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
-        this.logger.warn('Task execution threw exception', lastError, {
+        this.logger.warn('Task execution threw exception', {
           taskId: task.id,
           agentId: currentAgent.id,
           attempt: attempt + 1,
+          error: lastError.message
         });
 
         // Check if error is retryable

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { useEntityStore, useAuthStore } from '@/stores'
 import type { Entity } from '@/types'

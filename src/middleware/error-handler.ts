@@ -266,7 +266,7 @@ export class ErrorHandler {
     };
 
     // Console log for immediate visibility
-    if (context.statusCode >= 500 || !error.isOperational) {
+    if ((context.statusCode && context.statusCode >= 500) || !error.isOperational) {
       console.error('[ERROR]', JSON.stringify(logEntry, null, 2));
     } else {
       console.warn('[WARNING]', JSON.stringify(logEntry, null, 2));

@@ -204,7 +204,8 @@ export class AgentSwarmDemo {
         results.set(scenarioId, result);
 
         // Brief pause between scenarios
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // eslint-disable-next-line no-undef
+        await new Promise(resolve => (setTimeout as any)(resolve, 1000));
       } catch (error) {
         this.logger.error('Failed to run scenario', { scenarioId, error });
       }

@@ -113,8 +113,13 @@ app.post('/companies', zValidator('json', CreateCompanySchema), async (c: any) =
 app.get('/companies', async (c: any) => {
   try {
     const crmService = new CRMService(c.env);
-    const companies = await crmService.getCompanies();
-    return c.json({ success: true, data: companies });
+    const businessId = c.get('businessId');
+    // Fetch all companies for the business
+    const result = await c.env.DB_CRM
+      .prepare('SELECT * FROM companies WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC')
+      .bind(businessId)
+      .all();
+    return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
@@ -172,11 +177,16 @@ app.post('/contacts', zValidator('json', CreateContactSchema), async (c: any) =>
 
 app.get('/contacts', zValidator('query', ContactFiltersSchema.merge(PaginationSchema)), async (c: any) => {
   try {
-    const crmService = new CRMService(c.env);
+    const businessId = c.get('businessId');
     const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
-    const pagination: PaginationOptions = { page, limit, sort_by, sort_order };
-    const contacts = await crmService.getContacts(filters, pagination);
-    return c.json({ success: true, data: contacts });
+    const pagination: PaginationOptions = { page, limit, sortBy: sort_by, sortOrder: sort_order };
+
+    // Simple query to fetch all contacts
+    const result = await c.env.DB_CRM
+      .prepare('SELECT * FROM contacts WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?')
+      .bind(businessId, limit || 50, ((page || 1) - 1) * (limit || 50))
+      .all();
+    return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
@@ -234,11 +244,16 @@ app.post('/leads', zValidator('json', CreateLeadSchema), async (c: any) => {
 
 app.get('/leads', zValidator('query', LeadFiltersSchema.merge(PaginationSchema)), async (c: any) => {
   try {
-    const crmService = new CRMService(c.env);
+    const businessId = c.get('businessId');
     const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
-    const pagination: PaginationOptions = { page, limit, sort_by, sort_order };
-    const leads = await crmService.getLeads(filters, pagination);
-    return c.json({ success: true, data: leads });
+    const pagination: PaginationOptions = { page, limit, sortBy: sort_by, sortOrder: sort_order };
+
+    // Simple query to fetch all leads
+    const result = await c.env.DB_CRM
+      .prepare('SELECT * FROM leads WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?')
+      .bind(businessId, limit || 50, ((page || 1) - 1) * (limit || 50))
+      .all();
+    return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
@@ -296,11 +311,16 @@ app.post('/conversations', zValidator('json', CreateConversationSchema), async (
 
 app.get('/conversations', zValidator('query', ConversationFiltersSchema.merge(PaginationSchema)), async (c: any) => {
   try {
-    const crmService = new CRMService(c.env);
+    const businessId = c.get('businessId');
     const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
-    const pagination: PaginationOptions = { page, limit, sort_by, sort_order };
-    const conversations = await crmService.getConversations(filters, pagination);
-    return c.json({ success: true, data: conversations });
+    const pagination: PaginationOptions = { page, limit, sortBy: sort_by, sortOrder: sort_order };
+
+    // Simple query to fetch all conversations
+    const result = await c.env.DB_CRM
+      .prepare('SELECT * FROM conversations WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?')
+      .bind(businessId, limit || 50, ((page || 1) - 1) * (limit || 50))
+      .all();
+    return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
@@ -332,9 +352,13 @@ app.post('/ai-tasks', zValidator('json', CreateAITaskSchema), async (c: any) => 
 
 app.get('/ai-tasks', async (c: any) => {
   try {
-    const crmService = new CRMService(c.env);
-    const tasks = await crmService.getAITasks();
-    return c.json({ success: true, data: tasks });
+    const businessId = c.get('businessId');
+    // Simple query to fetch all AI tasks
+    const result = await c.env.DB_CRM
+      .prepare('SELECT * FROM ai_tasks WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC')
+      .bind(businessId)
+      .all();
+    return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
@@ -401,7 +425,7 @@ app.get('/metrics/ai-tasks', async (c: any) => {
 app.post('/migrate', async (c: any) => {
   try {
     const migrationManager = new CRMMigrationManager(c.env);
-    const result = await migrationManager.runMigrations();
+    const result = await migrationManager.executeCRMMigrations();
     return c.json({ success: true, data: result });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
@@ -411,7 +435,7 @@ app.post('/migrate', async (c: any) => {
 app.get('/migrate/status', async (c: any) => {
   try {
     const migrationManager = new CRMMigrationManager(c.env);
-    const status = await migrationManager.getMigrationStatus();
+    const status = await migrationManager.getCRMMigrationStatus();
     return c.json({ success: true, data: status });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);

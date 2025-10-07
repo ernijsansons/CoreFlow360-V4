@@ -7,7 +7,7 @@ import React, { useState, useMemo } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
 import { Input } from './input'
-import { ChevronUp, ChevronDown, Search, Filter } from 'lucide-react'
+import { ChevronUp, ChevronDown, Filter } from 'lucide-react'
 
 // Basic table components for compatibility
 export const Table = React.forwardRef<
@@ -86,18 +86,18 @@ export const TableCell = React.forwardRef<
 ))
 TableCell.displayName = 'TableCell'
 
-export interface TableColumn<T = any> {
+export interface TableColumn<T = Record<string, unknown>> {
   key: string
   header: string
-  accessor?: keyof T | ((row: T) => any)
+  accessor?: keyof T | ((row: T) => unknown)
   sortable?: boolean
   filterable?: boolean
   width?: string | number
   align?: 'left' | 'center' | 'right'
-  render?: (value: any, row: T, index: number) => React.ReactNode
+  render?: (value: unknown, row: T, index: number) => React.ReactNode
 }
 
-export interface TableProps<T = any> {
+export interface TableProps<T = Record<string, unknown>> {
   data: T[]
   columns: TableColumn<T>[]
   loading?: boolean
@@ -164,13 +164,13 @@ export const AdvancedTable = <T,>({
           const column = columns.find(col => col.key === key)
           if (!column) return true
 
-          let cellValue: any
+          let cellValue: unknown
           if (typeof column.accessor === 'function') {
             cellValue = column.accessor(row)
           } else if (column.accessor) {
             cellValue = row[column.accessor]
           } else {
-            cellValue = (row as any)[key]
+            cellValue = (row as Record<string, unknown>)[key]
           }
 
           return String(cellValue || '')
@@ -233,7 +233,7 @@ export const AdvancedTable = <T,>({
     } else if (column.accessor) {
       return row[column.accessor]
     } else {
-      return (row as any)[column.key]
+      return (row as Record<string, unknown>)[column.key]
     }
   }
 

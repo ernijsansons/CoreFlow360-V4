@@ -26,7 +26,6 @@ import {
   ArrowUp,
   Mail,
   Bell,
-  Calendar,
   Shield
 } from 'lucide-react';
 
@@ -88,7 +87,7 @@ interface ApprovalCriteria {
 interface DataValidation {
   field: string;
   validationType: 'required' | 'min_value' | 'max_value' | 'format' | 'custom';
-  value?: any;
+  value?: unknown;
   message?: string;
 }
 
@@ -103,7 +102,7 @@ interface ApprovalThreshold {
 interface ApprovalCondition {
   field: string;
   operator: 'equals' | 'contains' | 'greater_than' | 'exists';
-  value: any;
+  value: unknown;
   action: 'require_additional' | 'skip_approval' | 'auto_approve' | 'auto_reject';
   additionalApprovers?: string[];
 }
@@ -168,7 +167,7 @@ export const ApprovalNode = memo(({ data, selected }: NodeProps<ApprovalNodeData
     return Math.min((received / required) * 100, 100);
   };
 
-  const handleConfigChange = (field: string, value: any) => {
+  const handleConfigChange = (field: string, value: unknown) => {
     const newData = { ...localData, [field]: value };
     setLocalData(newData);
   };

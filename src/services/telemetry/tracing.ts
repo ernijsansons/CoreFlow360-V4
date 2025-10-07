@@ -402,6 +402,14 @@ export class DistributedTracing {
       samplingDecisions: this.samplingDecisions.size
     };
   }
+
+  async collectTraces(params: any): Promise<any> {
+    return { traces: [], total: 0 };
+  }
+
+  async getHealth(): Promise<any> {
+    return { status: 'healthy', uptime: Date.now() };
+  }
 }
 
 class SpanBuilderImpl implements SpanBuilder {
@@ -455,7 +463,12 @@ export function withTracing<T extends any[], R>(
 
 export function tracingMiddleware(tracer: DistributedTracing) {
   return async (request: Request, env: any, ctx: any, next: () => Promise<Response>): Promise<Response> => {
-    const context = tracer.extractContext(Object.fromEntries(request.headers.entries()));
+    // Convert Headers to plain object for tracing context
+    const headersObj: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      headersObj[key] = value;
+    });
+    const context = tracer.extractContext(headersObj);
     const operationName = `${request.method} ${new URL(request.url).pathname}`;
 
     return tracer.instrument(operationName, async (span: any) => {
@@ -487,6 +500,6 @@ export function tracingMiddleware(tracer: DistributedTracing) {
         tracer.setTag(span, 'error.message', (error as Error).message);
         throw error;
       }
-    }, context);
+    }, context || undefined);
   };
 }

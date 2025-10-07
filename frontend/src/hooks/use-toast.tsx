@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 
 export interface ToastProps {
@@ -61,7 +62,7 @@ export function useToast() {
   return context
 }
 
-export function toast(props: ToastProps) {
+export function toast() {
   // This is a placeholder for global toast function
   // In a real implementation, this would trigger the toast through a global event emitter
   // or by accessing the context imperatively

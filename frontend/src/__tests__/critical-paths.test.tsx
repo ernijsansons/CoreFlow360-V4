@@ -3,15 +3,14 @@
  * These tests ensure core business functionality works for launch
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ToastProvider } from '@/hooks/use-toast'
 import { LeadsTableEnhanced } from '@/components/dashboard/LeadsTable-enhanced'
 import { InvoicesTableEnhanced } from '@/components/finance/InvoicesTable-enhanced'
 import { PaymentRecordModal } from '@/components/finance/PaymentRecordModal'
-import { PipelineBoardEnhanced } from '@/components/dashboard/PipelineBoard-enhanced'
 
 // Mock the API services
 vi.mock('@/hooks/api/use-crm', () => ({
@@ -309,7 +308,8 @@ describe('Critical Path: Authentication Flow', () => {
 describe('Critical Path: Error Handling', () => {
   it('should handle API errors gracefully', async () => {
     // Mock failed API call
-    vi.mocked(require('@/hooks/api/use-crm').useLeads).mockReturnValue({
+    const useCrmHooks = await import('@/hooks/api/use-crm')
+    vi.mocked(useCrmHooks.useLeads).mockReturnValue({
       data: null,
       isLoading: false,
       isError: true,
@@ -329,7 +329,8 @@ describe('Critical Path: Error Handling', () => {
 
   it('should show loading states', async () => {
     // Mock loading state
-    vi.mocked(require('@/hooks/api/use-crm').useLeads).mockReturnValue({
+    const useCrmHooks = await import('@/hooks/api/use-crm')
+    vi.mocked(useCrmHooks.useLeads).mockReturnValue({
       data: null,
       isLoading: true,
       isError: false,
@@ -393,7 +394,7 @@ describe('Critical Path: Performance', () => {
 // Integration test for complete user flow
 describe('Critical Path: Complete User Flow', () => {
   it('should handle lead to invoice conversion', async () => {
-    const user = userEvent.setup()
+    userEvent.setup()
 
     // This would test the complete flow:
     // 1. Create lead

@@ -17,12 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  Download,
-  FileText,
-  TrendingUp,
-  DollarSign,
-  CreditCard,
-  Calendar
+  Download
 } from 'lucide-react'
 import { useUIStore } from '@/stores'
 

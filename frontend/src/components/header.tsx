@@ -1,10 +1,9 @@
 import * as React from 'react'
-import { Menu, Bell, Search, Settings, User, LogOut } from 'lucide-react'
+import { Menu, Search, Settings, User, LogOut } from 'lucide-react'
 import { useAuthStore, useUIStore } from '@/stores'
 import { EntitySwitcher } from './entity-switcher'
 import { ThemeToggle } from './theme-toggle'
 import { NotificationDropdown } from './notification-dropdown'
-import { cn } from '@/lib/utils'
 import {
   Button,
   DropdownMenu,

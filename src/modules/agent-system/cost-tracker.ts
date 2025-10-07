@@ -543,7 +543,7 @@ export class CostTracker {
       });
 
     } catch (error: any) {
-      this.logger.warn('Failed to update cost counter', error, { costKey: key });
+      this.logger.warn('Failed to update cost counter', error);
     }
   }
 

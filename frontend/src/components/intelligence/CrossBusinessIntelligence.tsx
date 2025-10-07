@@ -1,14 +1,8 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
   AreaChart,
   Area,
-  PieChart,
-  Pie,
   RadarChart,
   Radar,
   PolarGrid,
@@ -21,46 +15,24 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ComposedChart,
-  Scatter,
-  Treemap
+  PieChart,
+  Pie,
 } from 'recharts';
 import {
   TrendingUp,
-  TrendingDown,
   Activity,
   BarChart3,
   PieChart as PieChartIcon,
   Target,
   Zap,
-  Globe,
-  Users,
-  DollarSign,
-  Package,
-  ShoppingCart,
-  Calendar,
-  Filter,
   Download,
   Maximize2,
   RefreshCw,
   Info,
-  ChevronRight,
-  Eye,
   Brain,
   Layers,
   GitBranch
 } from 'lucide-react';
-
-interface BusinessData {
-  id: string;
-  name: string;
-  revenue: number[];
-  customers: number[];
-  growth: number;
-  marketShare: number;
-  efficiency: number;
-  satisfaction: number;
-}
 
 interface InsightCard {
   id: string;
@@ -74,10 +46,7 @@ interface InsightCard {
 }
 
 export const CrossBusinessIntelligence: React.FC = () => {
-  const [selectedMetric, setSelectedMetric] = useState<string>('revenue');
   const [timeRange, setTimeRange] = useState<string>('30d');
-  const [comparisonMode, setComparisonMode] = useState<boolean>(true);
-  const [selectedBusinesses, setSelectedBusinesses] = useState<string[]>(['all']);
 
   // Mock data for demonstration
   const businessPerformanceData = [
@@ -104,13 +73,6 @@ export const CrossBusinessIntelligence: React.FC = () => {
     { metric: 'Innovation', TechFlow: 90, StyleHub: 86, ProConsult: 82 },
   ];
 
-  const correlationData = [
-    { x: 45, y: 92, z: 200, name: 'Marketing Spend vs Revenue' },
-    { x: 38, y: 85, z: 150, name: 'Customer Support vs Satisfaction' },
-    { x: 52, y: 78, z: 180, name: 'Product Dev vs Growth' },
-    { x: 61, y: 88, z: 220, name: 'Sales Effort vs Conversion' },
-    { x: 48, y: 95, z: 190, name: 'Automation vs Efficiency' },
-  ];
 
   const insights: InsightCard[] = [
     {
@@ -170,19 +132,19 @@ export const CrossBusinessIntelligence: React.FC = () => {
     }
   };
 
-  const getInsightColor = (type: string, priority: string) => {
+  const getInsightColor = (type: string) => {
     if (type === 'risk') return 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400';
     if (type === 'opportunity') return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
     if (type === 'trend') return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
     return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400';
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ color: string; name: string; value: number }>; label?: string }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
           <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">{label}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <div key={index} className="flex items-center justify-between gap-4 text-sm">
               <span style={{ color: entry.color }}>{entry.name}:</span>
               <span className="font-medium">${entry.value.toLocaleString()}</span>

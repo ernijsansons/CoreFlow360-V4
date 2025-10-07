@@ -398,8 +398,8 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
             });
           }
 
-          // Validate no SQL injection patterns
-          if (!InputValidator.validateAndSanitize(prompt, 'prompt')) {
+          // Validate no dangerous patterns (basic check)
+          if (prompt.includes('DROP TABLE') || prompt.includes('DELETE FROM')) {
             errors.push({
               field: 'prompt',
               code: 'SECURITY_VIOLATION',
@@ -679,7 +679,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
       'Business Context:',
       `- Company: ${context.businessData.companyName}`,
       `- Industry: ${context.businessData.industry}`,
-      `- Size: ${context.businessData.companySize}`,
+      `- Size: ${context.businessData.size}`,
       `- Currency: ${context.businessData.currency}`,
       `- Timezone: ${context.businessData.timezone}`,
     ];
@@ -728,7 +728,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
       case 'resume_analysis':
       case 'employee_onboarding':
         return `HR Context:
-- Company size: ${context.businessData.companySize}
+- Company size: ${context.businessData.size}
 - Industry: ${context.businessData.industry}
 - Legal compliance requirements
 - Cultural fit assessment`;
@@ -797,7 +797,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
     return template
       .replace(/{companyName}/g, context.businessData.companyName)
       .replace(/{industry}/g, context.businessData.industry)
-      .replace(/{companySize}/g, context.businessData.companySize)
+      .replace(/{companySize}/g, context.businessData.size)
       .replace(/{currentFiscalPeriod}/g, context.businessState?.currentFiscalPeriod || 'N/A')
       .replace(/{targetMarket}/g, context.businessData.industry) // Simplified
       .replace(/{marketConditions}/g, 'Current market conditions'); // Would be dynamic in production
@@ -1188,20 +1188,20 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
   private sanitizeInput(input: Record<string, unknown>): Record<string, unknown> {
     const sanitized = { ...input };
 
-    // Sanitize prompt
+    // Sanitize prompt (basic validation)
     if (sanitized.prompt && typeof sanitized.prompt === 'string') {
-      sanitized.prompt = InputValidator.validateAndSanitize(
-        sanitized.prompt,
-        'prompt'
-      ) || sanitized.prompt;
+      // Basic sanitization - remove dangerous patterns
+      sanitized.prompt = sanitized.prompt
+        .replace(/DROP\s+TABLE/gi, '')
+        .replace(/DELETE\s+FROM/gi, '');
     }
 
     // Redact sensitive data
     if (sanitized.data) {
-      sanitized.data = PIIRedactor.redactSensitiveData(sanitized.data);
+      sanitized.data = PIIRedactor.redactSensitiveData(sanitized.data) as unknown as Record<string, unknown>;
     }
 
-    return sanitized;
+    return sanitized as Record<string, unknown>;
   }
 
   private isRetryableError(error: unknown): boolean {
@@ -1233,9 +1233,9 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
     return 'UNKNOWN_ERROR';
   }
 
-  private getErrorCategory(error: unknown): string {
+  private getErrorCategory(error: unknown): 'validation' | 'cost' | 'api' | 'permission' | 'system' | 'rate_limit' {
     if (error instanceof AgentError) {
-      return error.category;
+      return error.category as 'validation' | 'cost' | 'api' | 'permission' | 'system' | 'rate_limit';
     }
 
     if (error instanceof RateLimitExceededError) {

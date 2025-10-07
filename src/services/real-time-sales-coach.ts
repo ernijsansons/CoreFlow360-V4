@@ -2,15 +2,80 @@ import type { Env } from '../types/env';
 import type {
   CallStream,
   TranscriptChunk,
-  Situation,
-  Guidance,
-  Battlecard,
-  PricingGuidance,
-  CoachingTip,
+  Situation as BaseSituation,
+  Guidance as BaseGuidance,
+  Battlecard as BaseBattlecard,
+  PricingGuidance as BasePricingGuidance,
+  CoachingTip as BaseCoachingTip,
   LiveCoachingMessage,
   Lead,
   Participant
 } from '../types/crm';
+
+// Extended types for real-time coaching service
+interface SituationExtended extends Partial<BaseSituation> {
+  type: string;
+  confidence: number;
+  timestamp: string | number;
+  context: string;
+  severity: 'low' | 'medium' | 'high';
+  urgency: string;
+  suggestedAction: string;
+  objection?: string;
+  competitor?: string;
+  buyingSignal?: string;
+  painPoint?: string;
+}
+
+interface GuidanceExtended extends Partial<BaseGuidance> {
+  type: string;
+  title: string;
+  whatThisMeans?: string;
+  discoveryQuestions?: string[];
+  reframeApproach?: string;
+  socialProof?: string[];
+  doNotSay?: string[];
+  suggestedPhrases?: string[];
+  urgency: string;
+  effectiveness: number;
+}
+
+interface BattlecardExtended extends Partial<BaseBattlecard> {
+  competitor: string;
+  strengths: Array<{ point: string; counterStrategy: string }>;
+  weaknesses: Array<{ point: string; howToExploit: string; proof: string }>;
+  positioning: Array<{ theirClaim: string; ourResponse: string; differentiation: string }>;
+  commonObjections: Array<{ objection: string; response: string; framework: string }>;
+  winningMessages: string[];
+  trapQuestions: string[];
+  caseStudies: Array<{ situation: string; outcome: string; metrics: string[] }>;
+}
+
+interface PricingGuidanceExtended extends Partial<BasePricingGuidance> {
+  situation: string;
+  approach: string;
+  valueProposition: string[];
+  roiCalculation?: any;
+  competitiveComparisons?: any[];
+  negotiationTactics: string[];
+  redLines: string[];
+  suggestedPhrases: string[];
+}
+
+interface CoachingTipExtended extends Partial<BaseCoachingTip> {
+  type: string;
+  message: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  timing: string;
+  actionable: boolean;
+  context: string;
+}
+
+type Situation = SituationExtended;
+type Guidance = GuidanceExtended;
+type Battlecard = BattlecardExtended;
+type PricingGuidance = PricingGuidanceExtended;
+type CoachingTip = CoachingTipExtended;
 
 export class RealTimeSalesCoach {
   private env: Env;
@@ -27,6 +92,9 @@ export class RealTimeSalesCoach {
   async provideLiveCoaching(callStream: CallStream): Promise<void> {
 
     // Initialize coaching channel
+    if (!callStream.coachingChannel) {
+      throw new Error('Coaching channel URL is required');
+    }
     const coach = new WebSocket(callStream.coachingChannel);
     this.activeCoaches.set(callStream.id, coach);
 
@@ -55,14 +123,16 @@ export class RealTimeSalesCoach {
     });
 
     // Listen for transcript updates
-    callStream.on('transcript_update', async (chunk: TranscriptChunk) => {
-      await this.processTranscriptChunk(callStream.id, chunk);
-    });
+    if (callStream.on) {
+      callStream.on('transcript_update', async (chunk: TranscriptChunk) => {
+        await this.processTranscriptChunk(callStream.id, chunk);
+      });
 
-    // Listen for call events
-    callStream.on('call_end', () => {
-      this.cleanupCall(callStream.id);
-    });
+      // Listen for call events
+      callStream.on('call_end', () => {
+        this.cleanupCall(callStream.id);
+      });
+    }
 
     // Periodic coaching checks
     this.startPeriodicCoaching(callStream.id);
@@ -536,14 +606,18 @@ export class RealTimeSalesCoach {
     }
   }
 
-  private sendMessage(callId: string, message: Omit<LiveCoachingMessage, 'id' | 'timestamp'>): void {
+  private sendMessage(callId: string, message: { type: string; content: any; priority: 'low' | 'medium' | 'high' | 'critical'; category?: string; displayDuration?: number; requiresAcknowledgment?: boolean }): void {
     const coach = this.activeCoaches.get(callId);
     if (!coach) return;
 
-    const fullMessage: LiveCoachingMessage = {
+    const fullMessage = {
       id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      call_id: callId,
+      message_type: message.type as 'tip' | 'warning' | 'suggestion' | 'battlecard',
+      content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content),
+      priority: message.priority,
       timestamp: Date.now(),
-      ...message
+      delivered: true
     };
 
     try {
@@ -608,7 +682,7 @@ export class RealTimeSalesCoach {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': this.env.ANTHROPIC_API_KEY,
+          'x-api-key': this.env.ANTHROPIC_API_KEY || '',
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
@@ -766,15 +840,17 @@ export class RealTimeSalesCoach {
 
     // Store in database
     const db = this.env.DB_CRM;
-    await db.prepare(`
-      INSERT OR REPLACE INTO battlecards (
-        competitor, battlecard_data, updated_at
-      ) VALUES (?, ?, ?)
-    `).bind(
-      competitor,
-      JSON.stringify(battlecard),
-      new Date().toISOString()
-    ).run();
+    if (db) {
+      await db.prepare(`
+        INSERT OR REPLACE INTO battlecards (
+          competitor, battlecard_data, updated_at
+        ) VALUES (?, ?, ?)
+      `).bind(
+        competitor,
+        JSON.stringify(battlecard),
+        new Date().toISOString()
+      ).run();
+    }
   }
 
   async getCoachingStats(callIds: string[]): Promise<{

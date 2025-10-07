@@ -628,6 +628,9 @@ export interface InvoiceTemplate {
   showTaxColumn: boolean;
   showDiscountColumn: boolean;
   footerText?: string;
+  subject?: string;
+  htmlBody?: string;
+  textBody?: string;
   businessId: string;
 }
 
@@ -685,10 +688,15 @@ export interface UpdateInvoiceRequest {
 
 export interface SendInvoiceRequest {
   invoiceId: string;
+  customerId: string;
+  customerEmail: string;
+  businessId: string;
   email?: string;
   subject?: string;
   message?: string;
   copyToSender?: boolean;
+  includePDF?: boolean;
+  templateId?: string;
 }
 
 export interface RecordPaymentRequest {

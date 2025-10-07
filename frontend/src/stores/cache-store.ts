@@ -6,8 +6,8 @@ import type { CacheItem } from '@/types'
 interface CacheStore {
   cache: Record<string, CacheItem>
 
-  get: <T = any>(key: string) => T | null
-  set: <T = any>(key: string, data: T, ttl?: number) => void
+  get: <T = unknown>(key: string) => T | null
+  set: <T = unknown>(key: string, data: T, ttl?: number) => void
   remove: (key: string) => void
   clear: () => void
   cleanup: () => void
@@ -22,7 +22,7 @@ export const useCacheStore = create<CacheStore>()(
     immer((set, get) => ({
       cache: {},
 
-      get: <T = any>(key: string): T | null => {
+      get: <T = unknown>(key: string): T | null => {
         const { cache, isExpired, remove } = get()
         const item = cache[key]
 
@@ -36,7 +36,7 @@ export const useCacheStore = create<CacheStore>()(
         return item.data as T
       },
 
-      set: <T = any>(key: string, data: T, ttl: number = DEFAULT_TTL) => {
+      set: <T = unknown>(key: string, data: T, ttl: number = DEFAULT_TTL) => {
         set((state) => {
           state.cache[key] = {
             data,

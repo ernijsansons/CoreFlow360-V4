@@ -6,8 +6,7 @@ import {
   CheckCircle2,
   PartyPopper,
   Trophy,
-  ArrowRight,
-  Home
+  ArrowRight
 } from 'lucide-react'
 
 export interface SuccessStateProps {

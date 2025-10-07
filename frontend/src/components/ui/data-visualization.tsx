@@ -1,5 +1,5 @@
 import * as React from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, RadialBarChart, RadialBar } from "recharts"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "./card"
@@ -208,7 +208,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
 // Animated line chart
 export interface AnimatedLineChartProps {
-  data: Array<Record<string, any>>
+  data: Array<Record<string, unknown>>
   xKey: string
   yKey: string
   title?: string
@@ -277,7 +277,7 @@ export const AnimatedLineChart: React.FC<AnimatedLineChartProps> = ({
 
 // Animated area chart
 export interface AnimatedAreaChartProps {
-  data: Array<Record<string, any>>
+  data: Array<Record<string, unknown>>
   xKey: string
   yKey: string
   title?: string
@@ -336,7 +336,7 @@ export const AnimatedAreaChart: React.FC<AnimatedAreaChartProps> = ({
 
 // Animated bar chart
 export interface AnimatedBarChartProps {
-  data: Array<Record<string, any>>
+  data: Array<Record<string, unknown>>
   xKey: string
   yKey: string
   title?: string

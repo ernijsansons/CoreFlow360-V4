@@ -3,12 +3,17 @@ import { AuthSystem, User, LoginRequest, RegisterRequest } from './auth/auth-sys
 import { CORSManager } from './security/cors-config';
 import { AuthSchemas, InputSanitizer, ValidationError } from './security/validation-schemas';
 import { DistributedRateLimiter, AuditLogger } from './security/security-utilities';
+import { SecurityBootstrap } from './shared/security/security-bootstrap';
+import { SecurityError } from './shared/errors/app-error';
 
 // Use canonical Env type
 import type { Env } from './types/env';
 
 // Re-export canonical type
 export type { Env } from './types/env';
+
+// Global security validation state (per-isolate)
+const securityValidationCache = new Map<string, { validated: boolean; error: string | null }>();
 
 // Enhanced Rate Limiter Durable Object
 export class AdvancedRateLimiterDO {
@@ -153,6 +158,31 @@ const createProductionRoutes = (
   authSystem: AuthSystem,
   analytics: AnalyticsManager
 ) => ({
+  // Root welcome endpoint
+  '/': async (request: Request) => {
+    return new Response(JSON.stringify({
+      service: 'CoreFlow360 V4 API',
+      version: '4.2.0',
+      status: 'operational',
+      message: 'Welcome to CoreFlow360 V4 - AI-First Entrepreneurial Scaling Platform',
+      documentation: 'https://docs.coreflow360.com',
+      endpoints: {
+        health: '/health',
+        status: '/api/status',
+        auth: {
+          register: '/api/auth/register',
+          login: '/api/auth/login',
+          refresh: '/api/auth/refresh',
+          logout: '/api/auth/logout'
+        },
+        api: '/api/*'
+      },
+      environment: env.ENVIRONMENT || 'production'
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  },
+
   // Health and status endpoints
   '/health': async (request: Request) => {
     const checks = {
@@ -477,6 +507,66 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    // ============================================================================
+    // CRITICAL SECURITY VALIDATION - CVSS 9.8 JWT BYPASS PREVENTION
+    // ============================================================================
+    // Perform security validation (cached per environment configuration)
+    const envKey = `${env.ENVIRONMENT || 'production'}-${env.JWT_SECRET?.substring(0, 10) || 'none'}`;
+    let cached = securityValidationCache.get(envKey);
+
+    if (!cached) {
+      try {
+        console.log('🔒 Performing startup security validation...');
+        const validation = await SecurityBootstrap.validateStartupSecurity(env);
+
+        if (!validation.passed || validation.blocksStartup) {
+          const errorMessage = [
+            'CRITICAL SECURITY VALIDATION FAILED',
+            '='.repeat(50),
+            '',
+            'Critical Issues:',
+            ...validation.criticalIssues.map(issue => `  - ${issue}`),
+            '',
+            'Application startup blocked for security reasons.',
+            'Fix all critical issues before deployment.',
+            '',
+            'Recommendations:',
+            ...validation.recommendations.map(rec => `  - ${rec}`)
+          ].join('\n');
+
+          console.error(errorMessage);
+          cached = { validated: false, error: errorMessage };
+        } else {
+          console.log('✅ Security validation passed - application ready');
+          cached = { validated: true, error: null };
+        }
+
+        securityValidationCache.set(envKey, cached);
+      } catch (error) {
+        const errorMessage = `Security validation system error: ${(error as any).message}`;
+        console.error(errorMessage);
+        cached = { validated: false, error: errorMessage };
+        securityValidationCache.set(envKey, cached);
+      }
+    }
+
+    // Block requests if security validation failed
+    if (cached.error) {
+      return new Response(JSON.stringify({
+        error: 'Service Unavailable - Security Configuration Error',
+        message: 'The service cannot start due to critical security issues',
+        details: env.ENVIRONMENT === 'development' ? cached.error : 'Contact system administrator',
+        statusCode: 503
+      }), {
+        status: 503,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': '300' // Retry after 5 minutes
+        }
+      });
+    }
+    // ============================================================================
+
     // Initialize CORS manager with proper configuration
     const corsManager = new CORSManager(env.ENVIRONMENT || 'production');
     const origin = request.headers.get('Origin');
@@ -542,7 +632,7 @@ export default {
       const routes = createProductionRoutes(env, authSystem, analytics);
 
       // Public endpoints (no auth required)
-      const publicEndpoints = ['/health', '/api/status', '/api/auth/register', '/api/auth/login'];
+      const publicEndpoints = ['/', '/health', '/api/status', '/api/auth/register', '/api/auth/login', '/api/auth/refresh'];
 
       let user: User | null = null;
       let authError: string | undefined;

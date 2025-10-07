@@ -779,7 +779,7 @@ export class SessionManager {
     const session = await this.db.prepare(`
       SELECT * FROM sessions
       WHERE id = ? AND expires_at > ?
-    `).bind(sessionId, Date.now()).first();
+    `).bind(sessionId, Date.now()).first() as { token_hash: string; fingerprint_hash: string } | null;
 
     if (!session) {
       return false;
@@ -862,7 +862,7 @@ interface Session {
 }
 
 // Export all utilities
-export {
+export type {
   AuditEvent,
   Session
 };

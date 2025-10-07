@@ -10,6 +10,9 @@ export class AIClient {
   private readonly REQUEST_TIMEOUT = 30000; // 30 seconds
 
   constructor(env: Env) {
+    if (!env.AI) {
+      throw new Error('AI binding not available in environment');
+    }
     this.ai = env.AI;
     this.env = env;
   }

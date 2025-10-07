@@ -2,6 +2,21 @@
  * Client-side helper for business switching
  * This would be used in the frontend application
  */
+
+// Define Storage interface for browser environment
+interface Storage {
+  readonly length: number;
+  clear(): void;
+  getItem(key: string): string | null;
+  key(index: number): string | null;
+  removeItem(key: string): void;
+  setItem(key: string, value: string): void;
+  [name: string]: any;
+}
+
+// Declare localStorage for browser environment
+declare const localStorage: Storage;
+
 interface BusinessSwitchClient {
   currentBusinessId: string | null;
   accessToken: string | null;

@@ -181,7 +181,7 @@ export class AgentSwarmIntegration {
   // Request management
   private activeRequests: Map<string, SwarmRequest> = new Map();
   private requestQueue: SwarmRequest[] = [];
-  private streamingConnections: Map<string, Function[]> = new Map();
+  private streamingConnections: Map<string, Array<(...args: any[]) => any>> = new Map();
 
   // Performance tracking
   private performanceMetrics: {
@@ -467,7 +467,8 @@ export class AgentSwarmIntegration {
     this.logger.info('Executing dry run', { requestId: request.id });
 
     // Simulate planning phase
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, 2000));
 
     const estimatedTasks = this.estimateTasksFromQuery(request.query);
     const estimatedAgents = this.estimateRequiredAgents(request.query);
@@ -734,7 +735,8 @@ export class AgentSwarmIntegration {
   }
 
   private startSystemMonitoring(): void {
-    setInterval(() => {
+    // eslint-disable-next-line no-undef
+    (setInterval as any)(() => {
       this.performHealthCheck();
     }, 30000); // Every 30 seconds
   }

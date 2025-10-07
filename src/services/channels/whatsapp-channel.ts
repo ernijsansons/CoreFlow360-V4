@@ -96,9 +96,10 @@ export class WhatsAppChannel extends BaseChannel {
 
   async getStatus(messageId: string): Promise<MessageStatus> {
     const db = this.env.DB_CRM;
+    if (!db) return 'failed';
     const result = await db.prepare(
       'SELECT status FROM channel_messages WHERE id = ?'
-    ).bind(messageId).first();
+    ).bind(messageId).first<{ status: MessageStatus }>();
 
     return result?.status || 'failed';
   }
@@ -118,8 +119,9 @@ export class WhatsAppChannel extends BaseChannel {
   }
 
   async getQuotaStatus(): Promise<{ used: number; limit: number; remaining: number }> {
+    const kv = this.env.KV_CACHE || this.env.KV_RATE_LIMIT_METRICS;
     const dayKey = `quota:whatsapp:day:${new Date().toISOString().split('T')[0]}`;
-    const used = await this.env.KV.get(dayKey) || '0';
+    const used = (kv ? await kv.get(dayKey) : null) || '0';
     const dailyUsed = parseInt(used);
     const limit = 1000; // Daily WhatsApp limit
 
@@ -185,11 +187,14 @@ export class WhatsAppChannel extends BaseChannel {
     }
 
     // Update quota
-    const dayKey = `quota:whatsapp:day:${new Date().toISOString().split('T')[0]}`;
-    const current = await this.env.KV.get(dayKey) || '0';
-    await this.env.KV.put(dayKey, String(parseInt(current) + 1), {
-      expirationTtl: 86400
-    });
+    const kv = this.env.KV_CACHE || this.env.KV_RATE_LIMIT_METRICS;
+    if (kv) {
+      const dayKey = `quota:whatsapp:day:${new Date().toISOString().split('T')[0]}`;
+      const current = await kv.get(dayKey) || '0';
+      await kv.put(dayKey, String(parseInt(current) + 1), {
+        expirationTtl: 86400
+      });
+    }
   }
 
   private async sendViaTwilio(
@@ -239,7 +244,7 @@ export class WhatsAppChannel extends BaseChannel {
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.env.META_WHATSAPP_TOKEN}`,
+          'Authorization': `Bearer ${(this.env as any).META_WHATSAPP_TOKEN || ''}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

@@ -17,13 +17,11 @@ import { Badge } from '@/components/ui/badge'
 import {
   Users,
   UserPlus,
-  TrendingUp,
   Target,
   DollarSign,
   Phone,
   Mail,
   Calendar,
-  Filter,
   Plus,
   Download,
   ArrowUpRight,

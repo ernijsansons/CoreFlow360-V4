@@ -528,7 +528,8 @@ export class EdgeAIOrchestrator {
   }
 
   private startPerformanceMonitoring(): void {
-    setInterval(() => {
+    // eslint-disable-next-line no-undef
+    (setInterval as any)(() => {
       this.analyzePerformanceMetrics();
       this.adjustAdaptiveThresholds();
       this.cleanupCache();
@@ -666,7 +667,8 @@ export class EdgeAIOrchestrator {
     results: Map<string, Float32Array>
   ): Promise<void> {
     // Simulate data transfer between nodes
-    await new Promise(resolve => setTimeout(resolve, step.estimatedTime));
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, step.estimatedTime));
   }
 
   private async aggregateResults(

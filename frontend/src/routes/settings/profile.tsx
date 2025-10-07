@@ -8,12 +8,10 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  User,
   Mail,
   Globe,
   Briefcase,
   MapPin,
-  Calendar,
   Shield,
   Activity
 } from 'lucide-react'

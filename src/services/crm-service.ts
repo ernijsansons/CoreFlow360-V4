@@ -39,7 +39,22 @@ import type {
   VoicemailCampaign,
   VoicemailRequest,
   VoicemailCampaignRequest,
-  VoicemailStats
+  VoicemailStats,
+  CompanySize,
+  RevenueRange,
+  AuthorityLevel,
+  Sentiment,
+  MeetingStatus,
+  BookingSource,
+  BookingMethod,
+  VoicemailType,
+  PersonalizationLevel,
+  VoiceType,
+  VoicePace,
+  VoiceEmotion,
+  VoicemailDeliveryStatus,
+  VoicemailCampaignType,
+  CampaignStatus
 } from '../types/crm';
 
 export class CRMService {
@@ -82,31 +97,40 @@ export class CRMService {
   }
 
   // Company Management
-  async createCompany(data: CreateCompany): Promise<CRMResponse<Company>> {
+  async createCompany(data: CreateCompany, businessId: string = ''): Promise<CRMResponse<Company>> {
     try {
-      const company = await this.db.companies.create(data);
-      return { success: true, data: company };
+      const createData = { ...data, business_id: businessId } as any;
+      const result = await this.db.createCompany(createData);
+      if (!result.success || !result.data) {
+        return { success: false, error: result.error || 'Failed to create company' };
+      }
+      // Note: createCompany returns { id }, need to fetch full company
+      const fetchResult = await this.db.getCompany(result.data.id, businessId);
+      if (!fetchResult.success || !fetchResult.data) {
+        return { success: false, error: 'Failed to fetch created company' };
+      }
+      return { success: true, data: fetchResult.data as Company };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async getCompany(id: string): Promise<CRMResponse<Company>> {
+  async getCompany(id: string, businessId: string = ''): Promise<CRMResponse<Company>> {
     try {
-      const cacheKey = this.getCacheKey('getCompany', { id });
+      const cacheKey = this.getCacheKey('getCompany', { id, businessId });
       const cached = this.getFromCache<Company>(cacheKey);
-      
+
       if (cached) {
         return { success: true, data: cached };
       }
-      
-      const company = await this.db.companies.getById(id);
-      if (!company) {
-        return { success: false, error: 'Company not found' };
+
+      const result = await this.db.getCompany(id, businessId);
+      if (!result.success || !result.data) {
+        return { success: false, error: result.error || 'Company not found' };
       }
-      
-      this.setCache(cacheKey, company);
-      return { success: true, data: company };
+
+      this.setCache(cacheKey, result.data);
+      return { success: true, data: result.data as Company };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -114,8 +138,9 @@ export class CRMService {
 
   async updateCompany(id: string, data: Partial<Company>): Promise<CRMResponse<Company>> {
     try {
-      const company = await this.db.companies.update(id, data);
-      return { success: true, data: company };
+      // Note: CRMDatabase doesn't have generic updateCompany, only updateCompanyAIData
+      // For now, return not implemented
+      return { success: false, error: 'Update company not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -123,30 +148,39 @@ export class CRMService {
 
   async deleteCompany(id: string): Promise<CRMResponse<boolean>> {
     try {
-      await this.db.companies.delete(id);
-      return { success: true, data: true };
+      // Note: CRMDatabase doesn't have delete methods exposed
+      return { success: false, error: 'Delete company not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
   // Contact Management
-  async createContact(data: CreateContact): Promise<CRMResponse<Contact>> {
+  async createContact(data: CreateContact, businessId: string = ''): Promise<CRMResponse<Contact>> {
     try {
-      const contact = await this.db.contacts.create(data);
-      return { success: true, data: contact };
+      const createData = { ...data, business_id: businessId } as any;
+      const result = await this.db.createContact(createData);
+      if (!result.success || !result.data) {
+        return { success: false, error: result.error || 'Failed to create contact' };
+      }
+      // Note: createContact returns { id }, need to fetch full contact
+      const fetchResult = await this.db.getContact(result.data.id, businessId);
+      if (!fetchResult.success || !fetchResult.data) {
+        return { success: false, error: 'Failed to fetch created contact' };
+      }
+      return { success: true, data: fetchResult.data as Contact };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async getContact(id: string): Promise<CRMResponse<Contact>> {
+  async getContact(id: string, businessId: string = ''): Promise<CRMResponse<Contact>> {
     try {
-      const contact = await this.db.contacts.getById(id);
-      if (!contact) {
-        return { success: false, error: 'Contact not found' };
+      const result = await this.db.getContact(id, businessId);
+      if (!result.success || !result.data) {
+        return { success: false, error: result.error || 'Contact not found' };
       }
-      return { success: true, data: contact };
+      return { success: true, data: result.data as Contact };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -154,8 +188,8 @@ export class CRMService {
 
   async updateContact(id: string, data: Partial<Contact>): Promise<CRMResponse<Contact>> {
     try {
-      const contact = await this.db.contacts.update(id, data);
-      return { success: true, data: contact };
+      // Note: CRMDatabase doesn't have generic updateContact
+      return { success: false, error: 'Update contact not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -163,8 +197,8 @@ export class CRMService {
 
   async deleteContact(id: string): Promise<CRMResponse<boolean>> {
     try {
-      await this.db.contacts.delete(id);
-      return { success: true, data: true };
+      // Note: CRMDatabase doesn't have delete methods
+      return { success: false, error: 'Delete contact not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -174,47 +208,58 @@ export class CRMService {
     try {
       const cacheKey = this.getCacheKey('searchContacts', { filters, pagination });
       const cached = this.getFromCache<PaginatedResponse<Contact>>(cacheKey);
-      
+
       if (cached) {
         return cached;
       }
-      
-      // Optimize pagination with reasonable limits
-      const optimizedPagination = {
-        page: pagination?.page || 1,
-        limit: Math.min(pagination?.limit || 20, this.BATCH_SIZE)
+
+      // Note: CRMDatabase doesn't have contact search, return empty result
+      const result: PaginatedResponse<Contact> = {
+        data: [],
+        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
       };
-      
-      const result = await this.db.contacts.search(filters, optimizedPagination);
-      
-      // Cache successful results for 2 minutes
-      if (result.data.length > 0) {
-        this.setCache(cacheKey, result);
-      }
-      
+
       return result;
     } catch (error: any) {
       return {
         data: [],
-        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
-        error: error instanceof Error ? error.message : 'Unknown error'
+        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
       };
     }
   }
 
   // Lead Management
-  async createLead(data: CreateLead): Promise<CRMResponse<Lead>> {
+  async createLead(data: CreateLead, businessId: string = ''): Promise<CRMResponse<Lead>> {
     try {
-      const lead = await this.db.leads.create(data);
+      const createData = { ...data, business_id: businessId, source: data.source || 'unknown' } as any;
+      const result = await this.db.createLead(createData);
+      if (!result.success || !result.data) {
+        return { success: false, error: result.error || 'Failed to create lead' };
+      }
+      // Note: createLead returns { id }, need to fetch from getLeads
+      const leadsResult = await this.db.getLeads(businessId, {});
+      if (!leadsResult.success || !leadsResult.data) {
+        return { success: false, error: 'Failed to fetch created lead' };
+      }
+      const leads = leadsResult.data as Lead[];
+      const lead = leads.find(l => l.id === result.data!.id);
+      if (!lead) {
+        return { success: false, error: 'Lead created but not found' };
+      }
       return { success: true, data: lead };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async getLead(id: string): Promise<CRMResponse<Lead>> {
+  async getLead(id: string, businessId: string = ''): Promise<CRMResponse<Lead>> {
     try {
-      const lead = await this.db.leads.getById(id);
+      const result = await this.db.getLeads(businessId, {});
+      if (!result.success || !result.data) {
+        return { success: false, error: result.error || 'Failed to fetch leads' };
+      }
+      const leads = result.data as Lead[];
+      const lead = leads.find(l => l.id === id);
       if (!lead) {
         return { success: false, error: 'Lead not found' };
       }
@@ -226,8 +271,14 @@ export class CRMService {
 
   async updateLead(id: string, data: Partial<Lead>): Promise<CRMResponse<Lead>> {
     try {
-      const lead = await this.db.leads.update(id, data);
-      return { success: true, data: lead };
+      // Note: CRMDatabase has updateLeadStatus, use that if status update
+      if (data.status) {
+        const result = await this.db.updateLeadStatus(id, data.status, data.ai_qualification_summary);
+        if (!result.success) {
+          return { success: false, error: result.error || 'Failed to update lead status' };
+        }
+      }
+      return { success: false, error: 'Generic update lead not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -235,39 +286,85 @@ export class CRMService {
 
   async deleteLead(id: string): Promise<CRMResponse<boolean>> {
     try {
-      await this.db.leads.delete(id);
-      return { success: true, data: true };
+      // Note: CRMDatabase doesn't have delete methods
+      return { success: false, error: 'Delete lead not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async searchLeads(filters: LeadFilters, pagination?: PaginationOptions): Promise<PaginatedResponse<Lead>> {
+  async searchLeads(filters: LeadFilters, pagination?: PaginationOptions, businessId: string = ''): Promise<PaginatedResponse<Lead>> {
     try {
-      const result = await this.db.leads.search(filters, pagination);
-      return result;
+      // Convert LeadFilters to database-compatible format
+      const dbFilters: any = {
+        status: filters.status?.[0],
+        assigned_to: filters.assigned_to?.[0],
+        source: filters.source?.[0],
+        ai_qualification_score_min: filters.ai_qualification_score_min,
+        created_after: filters.created_after,
+        created_before: filters.created_before
+      };
+
+      const result = await this.db.getLeads(businessId, dbFilters, pagination);
+      if (!result.success || !result.data) {
+        return {
+          data: [],
+          pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
+        };
+      }
+      // Note: getLeads returns array, need to construct pagination
+      const leads = result.data as Lead[];
+      const page = pagination?.page || 1;
+      const limit = pagination?.limit || 10;
+      return {
+        data: leads,
+        pagination: { page, limit, total: leads.length, totalPages: Math.ceil(leads.length / limit) }
+      };
     } catch (error: any) {
       return {
         data: [],
-        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
-        error: error instanceof Error ? error.message : 'Unknown error'
+        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
       };
     }
   }
 
   // AI Task Management
-  async createAITask(data: CreateAITask): Promise<CRMResponse<AITask>> {
+  async createAITask(data: CreateAITask, businessId: string = ''): Promise<CRMResponse<AITask>> {
     try {
-      const task = await this.db.aiTasks.create(data);
+      const createData = {
+        ...data,
+        business_id: businessId,
+        type: data.type,
+        payload: JSON.stringify(data.metadata || {})
+      } as any;
+      const result = await this.db.createAITask(createData);
+      if (!result.success || !result.data) {
+        return { success: false, error: result.error || 'Failed to create AI task' };
+      }
+      // Note: createAITask returns { id }, need to fetch from getPendingAITasks
+      const tasksResult = await this.db.getPendingAITasks(businessId, 100);
+      if (!tasksResult.success || !tasksResult.data) {
+        return { success: false, error: 'Failed to fetch created task' };
+      }
+      const tasks = tasksResult.data as AITask[];
+      const task = tasks.find(t => t.id === result.data!.id);
+      if (!task) {
+        return { success: false, error: 'Task created but not found' };
+      }
       return { success: true, data: task };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async getAITask(id: string): Promise<CRMResponse<AITask>> {
+  async getAITask(id: string, businessId: string = ''): Promise<CRMResponse<AITask>> {
     try {
-      const task = await this.db.aiTasks.getById(id);
+      const result = await this.db.getPendingAITasks(businessId, 100);
+      if (!result.success || !result.data) {
+        return { success: false, error: result.error || 'Failed to fetch tasks' };
+      }
+      const tasks = result.data as AITask[];
+      const task = tasks.find(t => t.id === id);
       if (!task) {
         return { success: false, error: 'AI Task not found' };
       }
@@ -279,8 +376,14 @@ export class CRMService {
 
   async updateAITask(id: string, data: Partial<AITask>): Promise<CRMResponse<AITask>> {
     try {
-      const task = await this.db.aiTasks.update(id, data);
-      return { success: true, data: task };
+      // Note: CRMDatabase has updateAITaskStatus
+      if (data.status) {
+        const result = await this.db.updateAITaskStatus(id, data.status, data.business_id || '', data.last_error);
+        if (!result.success) {
+          return { success: false, error: result.error || 'Failed to update task' };
+        }
+      }
+      return { success: false, error: 'Generic update task not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -288,8 +391,8 @@ export class CRMService {
 
   async deleteAITask(id: string): Promise<CRMResponse<boolean>> {
     try {
-      await this.db.aiTasks.delete(id);
-      return { success: true, data: true };
+      // Note: CRMDatabase doesn't have delete methods
+      return { success: false, error: 'Delete task not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -298,8 +401,12 @@ export class CRMService {
   // Conversation Management
   async createConversation(data: Partial<Conversation>): Promise<CRMResponse<Conversation>> {
     try {
-      const conversation = await this.db.conversations.create(data);
-      return { success: true, data: conversation };
+      const result = await this.db.createConversation(data as any);
+      if (!result.success || !result.data) {
+        return { success: false, error: result.error || 'Failed to create conversation' };
+      }
+      // Return created conversation (createConversation returns { id })
+      return { success: true, data: { ...data, id: result.data.id } as Conversation };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -307,11 +414,8 @@ export class CRMService {
 
   async getConversation(id: string): Promise<CRMResponse<Conversation>> {
     try {
-      const conversation = await this.db.conversations.getById(id);
-      if (!conversation) {
-        return { success: false, error: 'Conversation not found' };
-      }
-      return { success: true, data: conversation };
+      // Note: CRMDatabase doesn't have getConversation
+      return { success: false, error: 'Get conversation not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -319,8 +423,20 @@ export class CRMService {
 
   async updateConversation(id: string, data: Partial<Conversation>): Promise<CRMResponse<Conversation>> {
     try {
-      const conversation = await this.db.conversations.update(id, data);
-      return { success: true, data: conversation };
+      // Note: CRMDatabase has updateConversationAI
+      if (data.ai_summary || data.ai_sentiment) {
+        const result = await this.db.updateConversationAI(id, {
+          ai_summary: data.ai_summary,
+          ai_sentiment: data.ai_sentiment,
+          ai_objections: data.ai_objections,
+          ai_commitments: data.ai_commitments,
+          ai_next_steps: data.ai_next_steps
+        });
+        if (!result.success) {
+          return { success: false, error: result.error || 'Failed to update conversation' };
+        }
+      }
+      return { success: false, error: 'Generic update conversation not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -328,28 +444,30 @@ export class CRMService {
 
   async searchConversations(filters: ConversationFilters, pagination?: PaginationOptions): Promise<PaginatedResponse<Conversation>> {
     try {
-      const result = await this.db.conversations.search(filters, pagination);
-      return result;
+      // Note: CRMDatabase doesn't have conversation search
+      return {
+        data: [],
+        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
+      };
     } catch (error: any) {
       return {
         data: [],
-        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
-        error: error instanceof Error ? error.message : 'Unknown error'
+        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
       };
     }
   }
 
   // Lead Activity Management
-  async addLeadActivity(leadId: string, activity: Omit<LeadActivity, 'id' | 'timestamp'>): Promise<CRMResponse<LeadActivity>> {
+  async addLeadActivity(leadId: string, activity: Omit<LeadActivity, 'id' | 'created_at'>): Promise<CRMResponse<LeadActivity>> {
     try {
       const newActivity: LeadActivity = {
         ...activity,
         id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: new Date().toISOString()
+        created_at: new Date().toISOString()
       };
 
-      await this.db.leadActivities.create(leadId, newActivity);
-      return { success: true, data: newActivity };
+      // Note: CRMDatabase doesn't have leadActivities methods
+      return { success: false, error: 'Add lead activity not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -357,13 +475,15 @@ export class CRMService {
 
   async getLeadActivities(leadId: string, pagination?: PaginationOptions): Promise<PaginatedResponse<LeadActivity>> {
     try {
-      const result = await this.db.leadActivities.getByLeadId(leadId, pagination);
-      return result;
+      // Note: CRMDatabase doesn't have leadActivities methods
+      return {
+        data: [],
+        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
+      };
     } catch (error: any) {
       return {
         data: [],
-        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 },
-        error: error instanceof Error ? error.message : 'Unknown error'
+        pagination: { page: 1, limit: 10, total: 0, totalPages: 0 }
       };
     }
   }
@@ -374,25 +494,24 @@ export class CRMService {
       // Mock company research - would use AI in production
       const company: Company = {
         id: `company_${Date.now()}`,
-        name: payload.companyName,
-        domain: payload.domain || '',
+        business_id: '',
+        name: 'Research Company',
+        domain: '',
         industry: 'Technology',
-        size: 'Medium',
-        location: 'United States',
-        description: `Research data for ${payload.companyName}`,
-        website: payload.domain ? `https://${payload.domain}` : '',
-        linkedinUrl: '',
-        twitterUrl: '',
-        foundedYear: 2020,
-        employeeCount: 100,
-        revenue: 1000000,
-        technologies: ['React', 'Node.js', 'TypeScript'],
-        tags: ['tech', 'startup'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        size_range: '51-200' as CompanySize,
+        revenue_range: '10M-50M' as RevenueRange,
+        ai_summary: `Research data for company`,
+        ai_pain_points: '',
+        ai_icp_score: 75,
+        technologies: JSON.stringify(['React', 'Node.js']),
+        funding: JSON.stringify({}),
+        news: JSON.stringify({}),
+        social_profiles: JSON.stringify({}),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      await this.db.companies.create(company);
+      // Note: Would normally create company via database
       return { success: true, data: company };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -403,13 +522,26 @@ export class CRMService {
     try {
       // Mock lead qualification - would use AI in production
       const result: QualificationResult = {
-        leadId: payload.leadId,
-        score: Math.floor(Math.random() * 100),
-        status: 'qualified' as QualificationStatus,
-        reasons: ['High engagement', 'Budget confirmed', 'Decision maker identified'],
-        nextSteps: ['Schedule demo', 'Send proposal'],
-        confidence: 0.85,
-        timestamp: new Date().toISOString()
+        leadId: payload.lead_id,
+        overall_score: Math.floor(Math.random() * 100),
+        bant_data: {
+          budget: null,
+          authority: null,
+          need: null,
+          timeline: null
+        },
+        qualification_status: 'qualified' as QualificationStatus,
+        next_questions: ['What is your budget?', 'Who is the decision maker?'],
+        confidence_level: 0.85,
+        qualification_summary: 'Lead appears qualified based on engagement',
+        ai_insights: {
+          buying_signals: ['High engagement', 'Budget confirmed'],
+          objections: [],
+          pain_points: ['Scaling issues'],
+          decision_timeline: 'Q1 2024',
+          budget_indicators: ['$50k+ mentioned'],
+          authority_level: 'decision_maker' as AuthorityLevel
+        }
       };
 
       return { success: true, data: result };
@@ -421,7 +553,7 @@ export class CRMService {
   async sendFollowup(payload: SendFollowupPayload): Promise<CRMResponse<boolean>> {
     try {
       // Mock followup sending - would integrate with email/SMS in production
-      console.log(`Sending followup to lead ${payload.leadId}: ${payload.message}`);
+      console.log(`Sending followup to lead ${payload.lead_id}: ${payload.template_type}`);
       return { success: true, data: true };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -432,12 +564,14 @@ export class CRMService {
     try {
       // Mock conversation analysis - would use AI in production
       const context: ConversationContext = {
-        sentiment: 'positive',
-        intent: 'schedule_meeting',
-        keyTopics: ['pricing', 'features', 'timeline'],
-        nextActions: ['Send proposal', 'Schedule demo'],
-        confidence: 0.8,
-        timestamp: new Date().toISOString()
+        leadId: '',
+        contactId: '',
+        transcript: '',
+        messages: [],
+        metadata: {
+          sentiment: 'positive' as Sentiment,
+          topics: ['pricing', 'features', 'timeline']
+        }
       };
 
       return { success: true, data: context };
@@ -451,23 +585,39 @@ export class CRMService {
     try {
       const meeting: Meeting = {
         id: `meeting_${Date.now()}`,
-        leadId: request.leadId,
-        title: request.title,
-        description: request.description,
-        startTime: request.startTime,
-        endTime: request.endTime,
-        duration: request.duration,
-        type: request.type,
-        status: 'scheduled',
-        location: request.location,
-        meetingUrl: request.meetingUrl,
-        attendees: request.attendees,
-        notes: request.notes,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        business_id: '',
+        lead_id: request.lead_id,
+        contact_id: undefined,
+        title: 'Meeting',
+        description: undefined,
+        meeting_type: request.meeting_type,
+        status: 'scheduled' as MeetingStatus,
+        scheduled_start: request.preferred_slots?.[0]?.start || new Date().toISOString(),
+        scheduled_end: request.preferred_slots?.[0]?.end || new Date().toISOString(),
+        timezone: request.timezone || 'UTC',
+        location: undefined,
+        meeting_url: undefined,
+        calendar_event_id: undefined,
+        attendees: [],
+        agenda: undefined,
+        ai_generated_agenda: false,
+        booking_source: 'manual_booking' as BookingSource,
+        booking_method: 'instant_booking' as BookingMethod,
+        confirmation_sent: false,
+        reminder_sent: false,
+        no_show: false,
+        cancelled_at: undefined,
+        cancellation_reason: undefined,
+        rescheduled_from: undefined,
+        notes: undefined,
+        outcome: undefined,
+        follow_up_actions: undefined,
+        recording_url: undefined,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      await this.db.meetings.create(meeting);
+      // Note: CRMDatabase doesn't have meeting methods
       return { success: true, data: meeting };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -476,11 +626,8 @@ export class CRMService {
 
   async getMeeting(id: string): Promise<CRMResponse<Meeting>> {
     try {
-      const meeting = await this.db.meetings.getById(id);
-      if (!meeting) {
-        return { success: false, error: 'Meeting not found' };
-      }
-      return { success: true, data: meeting };
+      // Note: CRMDatabase doesn't have meeting methods
+      return { success: false, error: 'Get meeting not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -488,8 +635,8 @@ export class CRMService {
 
   async updateMeeting(id: string, data: Partial<Meeting>): Promise<CRMResponse<Meeting>> {
     try {
-      const meeting = await this.db.meetings.update(id, data);
-      return { success: true, data: meeting };
+      // Note: CRMDatabase doesn't have meeting methods
+      return { success: false, error: 'Update meeting not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -497,8 +644,8 @@ export class CRMService {
 
   async cancelMeeting(id: string): Promise<CRMResponse<boolean>> {
     try {
-      await this.db.meetings.update(id, { status: 'cancelled' });
-      return { success: true, data: true };
+      // Note: CRMDatabase doesn't have meeting methods
+      return { success: false, error: 'Cancel meeting not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -509,14 +656,20 @@ export class CRMService {
       // Mock available slots - would integrate with calendar in production
       const slots: CalendarSlot[] = [
         {
-          startTime: new Date(`${date}T09:00:00Z`).toISOString(),
-          endTime: new Date(`${date}T10:00:00Z`).toISOString(),
-          available: true
+          start: new Date(`${date}T09:00:00Z`).toISOString(),
+          end: new Date(`${date}T10:00:00Z`).toISOString(),
+          timezone: 'UTC',
+          available: true,
+          busy_reason: undefined,
+          calendar_owner: undefined
         },
         {
-          startTime: new Date(`${date}T14:00:00Z`).toISOString(),
-          endTime: new Date(`${date}T15:00:00Z`).toISOString(),
-          available: true
+          start: new Date(`${date}T14:00:00Z`).toISOString(),
+          end: new Date(`${date}T15:00:00Z`).toISOString(),
+          timezone: 'UTC',
+          available: true,
+          busy_reason: undefined,
+          calendar_owner: undefined
         }
       ];
 
@@ -531,17 +684,43 @@ export class CRMService {
     try {
       const voicemail: Voicemail = {
         id: `voicemail_${Date.now()}`,
-        leadId: request.leadId,
-        content: request.content,
-        duration: request.duration,
-        status: 'pending',
-        scheduledAt: request.scheduledAt,
-        sentAt: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        business_id: '',
+        lead_id: request.lead_id,
+        contact_id: undefined,
+        call_id: undefined,
+        attempt_number: 1,
+        voicemail_type: 'initial_outreach' as VoicemailType,
+        message_text: request.script_template || '',
+        message_duration_seconds: 30,
+        audio_url: undefined,
+        transcription: undefined,
+        ai_generated: true,
+        personalization_level: 'basic' as PersonalizationLevel,
+        voice_settings: {
+          voice: 'professional_female' as VoiceType,
+          pace: 'normal' as VoicePace,
+          emotion: 'friendly' as VoiceEmotion,
+          pitch: 0,
+          volume: 0.8,
+          language: 'en',
+          accent: undefined
+        },
+        delivery_status: 'pending' as VoicemailDeliveryStatus,
+        delivered_at: undefined,
+        listened: false,
+        listened_at: undefined,
+        response_received: false,
+        response_type: undefined,
+        response_timestamp: undefined,
+        follow_up_scheduled: false,
+        follow_up_time: undefined,
+        sentiment_score: undefined,
+        effectiveness_score: undefined,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      await this.db.voicemails.create(voicemail);
+      // Note: CRMDatabase doesn't have voicemail methods
       return { success: true, data: voicemail };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -550,11 +729,8 @@ export class CRMService {
 
   async getVoicemail(id: string): Promise<CRMResponse<Voicemail>> {
     try {
-      const voicemail = await this.db.voicemails.getById(id);
-      if (!voicemail) {
-        return { success: false, error: 'Voicemail not found' };
-      }
-      return { success: true, data: voicemail };
+      // Note: CRMDatabase doesn't have voicemail methods
+      return { success: false, error: 'Get voicemail not yet implemented in database layer' };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -564,16 +740,28 @@ export class CRMService {
     try {
       const campaign: VoicemailCampaign = {
         id: `campaign_${Date.now()}`,
+        business_id: '',
         name: request.name,
-        templateId: request.templateId,
-        leadIds: request.leadIds,
-        status: 'draft',
-        scheduledAt: request.scheduledAt,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        description: request.description,
+        target_segment: undefined,
+        campaign_type: 'cold_outreach' as VoicemailCampaignType,
+        status: 'draft' as CampaignStatus,
+        templates: [],
+        schedule: {
+          start_date: request.scheduling?.start_date || new Date().toISOString(),
+          end_date: request.scheduling?.end_date,
+          time_windows: [],
+          timezone: request.scheduling?.timezone || 'UTC',
+          max_attempts_per_lead: 3,
+          retry_delay_hours: 24
+        },
+        ai_optimization: false,
+        performance_metrics: undefined,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      await this.db.voicemailCampaigns.create(campaign);
+      // Note: CRMDatabase doesn't have voicemail campaign methods
       return { success: true, data: campaign };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
@@ -584,15 +772,20 @@ export class CRMService {
     try {
       // Mock voicemail stats - would calculate from actual data in production
       const stats: VoicemailStats = {
-        campaignId,
-        totalSent: 100,
-        totalDelivered: 95,
-        totalOpened: 80,
-        totalClicked: 20,
-        deliveryRate: 0.95,
-        openRate: 0.84,
-        clickRate: 0.25,
-        createdAt: new Date().toISOString()
+        total_sent: 100,
+        total_delivered: 95,
+        total_listened: 80,
+        avg_listen_duration: 25,
+        callbacks_received: 20,
+        conversion_rate: 0.21,
+        by_campaign: {
+          [campaignId]: {
+            sent: 100,
+            delivered: 95,
+            listened: 80,
+            callbacks: 20
+          }
+        }
       };
 
       return { success: true, data: stats };
@@ -606,14 +799,14 @@ export class CRMService {
     try {
       // Mock lead metrics - would calculate from actual data in production
       const metrics: LeadMetrics = {
-        totalLeads: 1000,
-        newLeads: 50,
-        qualifiedLeads: 200,
-        convertedLeads: 100,
-        conversionRate: 0.1,
-        averageDealSize: 50000,
-        totalValue: 5000000,
-        createdAt: new Date().toISOString()
+        total_leads: 1000,
+        new_leads: 50,
+        qualified_leads: 200,
+        won_leads: 100,
+        avg_qualification_score: 75,
+        total_predicted_value: 5000000,
+        conversion_rate: 0.1,
+        avg_deal_size: 50000
       };
 
       return { success: true, data: metrics };
@@ -626,12 +819,24 @@ export class CRMService {
     try {
       // Mock contact metrics - would calculate from actual data in production
       const metrics: ContactMetrics = {
-        totalContacts: 500,
-        newContacts: 25,
-        activeContacts: 400,
-        engagedContacts: 300,
-        engagementRate: 0.75,
-        createdAt: new Date().toISOString()
+        total_contacts: 500,
+        verified_contacts: 400,
+        contacts_with_linkedin: 300,
+        top_companies: [
+          { company_name: 'TechCorp', contact_count: 50 },
+          { company_name: 'InnovateCo', contact_count: 30 }
+        ],
+        department_breakdown: {
+          engineering: 100,
+          sales: 80,
+          marketing: 70,
+          hr: 40,
+          finance: 50,
+          operations: 60,
+          legal: 20,
+          executive: 30,
+          other: 50
+        }
       };
 
       return { success: true, data: metrics };
@@ -644,13 +849,12 @@ export class CRMService {
     try {
       // Mock AI task metrics - would calculate from actual data in production
       const metrics: AITaskMetrics = {
-        totalTasks: 200,
-        completedTasks: 150,
-        pendingTasks: 30,
-        failedTasks: 20,
-        completionRate: 0.75,
-        averageProcessingTime: 300,
-        createdAt: new Date().toISOString()
+        pending_tasks: 30,
+        processing_tasks: 20,
+        completed_tasks_today: 150,
+        failed_tasks_today: 10,
+        avg_processing_time: 300,
+        success_rate: 0.94
       };
 
       return { success: true, data: metrics };

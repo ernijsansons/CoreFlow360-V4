@@ -29,6 +29,7 @@ export interface AuthContext {
     businessId: string;
     role: string;
     permissions: string[];
+    mfaVerified?: boolean;
   };
   metadata: {
     requestId: string;
@@ -591,7 +592,7 @@ export class AuthorizationService {
           return this.evaluateLocationCondition(condition, request.context?.location);
 
         case 'mfa':
-          return this.evaluateMFACondition(condition, user.mfaVerified);
+          return this.evaluateMFACondition(condition, user.mfaVerified || false);
 
         case 'custom':
           return this.evaluateCustomCondition(condition, user, request, metadata);
