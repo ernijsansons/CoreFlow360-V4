@@ -1,9 +1,55 @@
 /* Import CoreFlow360 V4 Premium Design System */
 @import '../../../design-system/design-tokens.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Tailwind v4 CSS-first theme configuration */
+@theme {
+  /* Brand Primary Colors (Trust Blue) */
+  --color-brand-primary-50: var(--brand-primary-50);
+  --color-brand-primary-100: var(--brand-primary-100);
+  --color-brand-primary-200: var(--brand-primary-200);
+  --color-brand-primary-300: var(--brand-primary-300);
+  --color-brand-primary-400: var(--brand-primary-400);
+  --color-brand-primary-500: var(--brand-primary-500);
+  --color-brand-primary-600: var(--brand-primary-600);
+  --color-brand-primary-700: var(--brand-primary-700);
+  --color-brand-primary-800: var(--brand-primary-800);
+  --color-brand-primary-900: var(--brand-primary-900);
+  --color-brand-primary-950: var(--brand-primary-950);
+
+  /* Brand Accent Colors (Innovation Purple) */
+  --color-brand-accent-50: var(--brand-accent-50);
+  --color-brand-accent-100: var(--brand-accent-100);
+  --color-brand-accent-200: var(--brand-accent-200);
+  --color-brand-accent-300: var(--brand-accent-300);
+  --color-brand-accent-400: var(--brand-accent-400);
+  --color-brand-accent-500: var(--brand-accent-500);
+  --color-brand-accent-600: var(--brand-accent-600);
+  --color-brand-accent-700: var(--brand-accent-700);
+  --color-brand-accent-800: var(--brand-accent-800);
+  --color-brand-accent-900: var(--brand-accent-900);
+  --color-brand-accent-950: var(--brand-accent-950);
+
+  /* Brand Teal Colors (Growth Teal) */
+  --color-brand-teal-50: var(--brand-teal-50);
+  --color-brand-teal-100: var(--brand-teal-100);
+  --color-brand-teal-200: var(--brand-teal-200);
+  --color-brand-teal-300: var(--brand-teal-300);
+  --color-brand-teal-400: var(--brand-teal-400);
+  --color-brand-teal-500: var(--brand-teal-500);
+  --color-brand-teal-600: var(--brand-teal-600);
+  --color-brand-teal-700: var(--brand-teal-700);
+  --color-brand-teal-800: var(--brand-teal-800);
+  --color-brand-teal-900: var(--brand-teal-900);
+  --color-brand-teal-950: var(--brand-teal-950);
+
+  /* Semantic Colors */
+  --color-success-400: var(--semantic-success-400);
+  --color-success-600: var(--semantic-success-600);
+  --color-warning-400: var(--semantic-warning-400);
+  --color-warning-600: var(--semantic-warning-600);
+}
 
 @layer base {
   /*

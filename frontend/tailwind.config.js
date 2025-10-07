@@ -8,14 +8,26 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   safelist: [
-    // Brand primary colors used in login page
-    { pattern: /^(bg|text|from|to|via)-brand-primary-\d{1,3}$/ },
-    { pattern: /^(bg|text|from|to|via)-brand-accent-\d{1,3}$/ },
-    { pattern: /^(bg|text|from|to|via)-brand-teal-\d{1,3}$/ },
-    { pattern: /^(bg|text|from|to)-success-\d{1,3}$/ },
-    { pattern: /^(bg|text|from|to)-warning-\d{1,3}$/ },
-    { pattern: /^(from|to|via)-gray-\d{1,3}$/ },
-    'shadow-primary-lg',
+    // Explicit brand color classes - patterns weren't working, using explicit list
+    // Login page brand colors
+    'bg-brand-primary-500', 'bg-brand-primary-600', 'bg-brand-primary-700', 'bg-brand-primary-950',
+    'bg-brand-accent-500', 'bg-brand-accent-600', 'bg-brand-teal-500', 'bg-brand-teal-600',
+    'text-brand-primary-200', 'text-brand-primary-300', 'text-brand-primary-400',
+    'from-brand-primary-400', 'from-brand-primary-500', 'from-brand-primary-600',
+    'to-brand-accent-400', 'to-brand-accent-600', 'to-brand-teal-600',
+    'via-brand-primary-950', 'from-gray-950', 'to-gray-950',
+    'from-warning-400', 'to-warning-600', 'from-success-400', 'to-success-600',
+    'text-warning-400', 'shadow-primary-lg',
+    // Additional brand colors for components
+    'bg-brand-primary-100', 'bg-brand-primary-200', 'bg-brand-primary-300', 'bg-brand-primary-400',
+    'bg-brand-primary-800', 'bg-brand-primary-900',
+    'bg-brand-accent-100', 'bg-brand-accent-200', 'bg-brand-accent-300', 'bg-brand-accent-400',
+    'text-brand-primary-600', 'text-brand-primary-700', 'text-brand-primary-800',
+    'text-brand-accent-400', 'text-brand-accent-600', 'text-brand-teal-600',
+    'from-brand-accent-400', 'from-brand-teal-400', 'from-brand-teal-500',
+    'to-brand-primary-700', 'to-brand-accent-700',
+    'border-brand-primary-200', 'border-brand-primary-700',
+    'hover:from-brand-primary-700', 'hover:to-brand-accent-700',
   ],
   theme: {
     container: {
