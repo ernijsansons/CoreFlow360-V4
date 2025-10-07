@@ -77,13 +77,7 @@ const features = [
   },
 ]
 
-// Trust badges
-const trustBadges = [
-  { label: "SOC 2 Type II", icon: Shield },
-  { label: "ISO 27001", icon: Award },
-  { label: "GDPR Compliant", icon: Globe },
-  { label: "Enterprise Ready", icon: Building },
-]
+// Trust badges removed - not yet compliant
 
 function LoginPage() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0)
@@ -292,24 +286,6 @@ function LoginPage() {
             </motion.div>
           </div>
 
-          {/* Trust badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.5 }}
-            className="flex items-center justify-between"
-          >
-            {trustBadges.map((badge) => (
-              <motion.div
-                key={badge.label}
-                whileHover={{ scale: 1.1 }}
-                className="flex flex-col items-center space-y-1 text-white/60 hover:text-white/90 transition-colors"
-              >
-                <badge.icon className="h-5 w-5" />
-                <span className="text-xs font-medium">{badge.label}</span>
-              </motion.div>
-            ))}
-          </motion.div>
         </div>
 
         {/* Right side - Login form */}
