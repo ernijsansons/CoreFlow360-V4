@@ -96,7 +96,7 @@ function PasswordStrength({ password }: { password: string }) {
 
       {/* Strength label */}
       <div className="flex items-center justify-between">
-        <span className="text-xs text-purple-200">
+        <span className="text-xs text-brand-accent-200">
           {strengthLabels[strength - 1] || 'Very Weak'}
         </span>
         <div className="flex items-center space-x-2">
@@ -163,7 +163,7 @@ function PremiumInput({
     <div className="relative group">
       {/* Input glow effect */}
       <div
-        className={`absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl opacity-0 group-hover:opacity-50 blur transition-opacity duration-300 ${
+        className={`absolute -inset-0.5 bg-gradient-to-r from-brand-accent-600 to-brand-primary-600 rounded-xl opacity-0 group-hover:opacity-50 blur transition-opacity duration-300 ${
           isFocused ? 'opacity-75' : ''
         }`}
       />
@@ -174,7 +174,7 @@ function PremiumInput({
         <div className="absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
           <Icon
             className={`h-5 w-5 transition-colors duration-200 ${
-              isFocused ? 'text-purple-300' : 'text-purple-400/60'
+              isFocused ? 'text-brand-accent-300' : 'text-brand-accent-400/60'
             }`}
           />
         </div>
@@ -189,9 +189,9 @@ function PremiumInput({
             bg-white/5 backdrop-blur-sm
             border border-white/10
             rounded-xl
-            text-white placeholder-purple-300/50
+            text-white placeholder-brand-accent-300/50
             transition-all duration-300
-            focus:outline-none focus:border-purple-400/50 focus:bg-white/10
+            focus:outline-none focus:border-brand-accent-400/50 focus:bg-white/10
             hover:bg-white/10 hover:border-white/20
             ${error ? 'border-red-400/50' : ''}
           `}
@@ -206,7 +206,7 @@ function PremiumInput({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-purple-400/60 hover:text-purple-300 transition-colors"
+            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-brand-accent-400/60 hover:text-brand-accent-300 transition-colors"
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? (
@@ -338,7 +338,7 @@ export function LoginForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
       {/* Email input */}
       <div className="space-y-2">
-        <Label htmlFor="email" className="text-sm font-medium text-purple-200">
+        <Label htmlFor="email" className="text-sm font-medium text-brand-accent-200">
           Email Address
         </Label>
         <PremiumInput
@@ -358,12 +358,12 @@ export function LoginForm() {
       {/* Password input */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="password" className="text-sm font-medium text-purple-200">
+          <Label htmlFor="password" className="text-sm font-medium text-brand-accent-200">
             Password
           </Label>
           <motion.a
             href="/auth/forgot-password"
-            className="text-xs font-medium text-purple-300 hover:text-white transition-colors"
+            className="text-xs font-medium text-brand-accent-300 hover:text-white transition-colors"
             whileHover={{ x: 3 }}
             transition={{ type: 'spring', stiffness: 400 }}
           >
@@ -392,19 +392,19 @@ export function LoginForm() {
           <input
             id="remember-me"
             type="checkbox"
-            className="h-4 w-4 rounded border-purple-400/30 bg-white/5 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
+            className="h-4 w-4 rounded border-brand-accent-400/30 bg-white/5 text-brand-accent-600 focus:ring-brand-accent-500 focus:ring-offset-0"
             {...register('rememberMe')}
           />
           <Label
             htmlFor="remember-me"
-            className="ml-2 text-sm text-purple-200 cursor-pointer"
+            className="ml-2 text-sm text-brand-accent-200 cursor-pointer"
           >
             Keep me signed in
           </Label>
         </div>
 
         {/* Security badge */}
-        <div className="flex items-center text-xs text-purple-300">
+        <div className="flex items-center text-xs text-brand-accent-300">
           <KeyRound className="h-3 w-3 mr-1" />
           256-bit encryption
         </div>
@@ -417,12 +417,12 @@ export function LoginForm() {
       >
         <Button
           type="submit"
-          className="w-full relative overflow-hidden group bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white border-0 py-3.5"
+          className="w-full relative overflow-hidden group bg-gradient-to-r from-brand-accent-600 to-brand-primary-600 hover:from-brand-accent-500 hover:to-brand-primary-500 text-white border-0 py-3.5"
           disabled={isLoading}
           aria-busy={isLoading}
         >
           {/* Button gradient animation */}
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-accent-400 to-brand-primary-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
           {/* Button content */}
           <span className="relative flex items-center justify-center">
@@ -446,11 +446,11 @@ export function LoginForm() {
         <motion.button
           type="button"
           onClick={handleBiometricLogin}
-          className="w-full py-3 border border-purple-400/30 rounded-xl text-purple-200 hover:text-white hover:bg-white/5 transition-all duration-300 flex items-center justify-center space-x-2 group"
+          className="w-full py-3 border border-brand-accent-400/30 rounded-xl text-brand-accent-200 hover:text-white hover:bg-white/5 transition-all duration-300 flex items-center justify-center space-x-2 group"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Fingerprint className="h-5 w-5 group-hover:text-purple-300 transition-colors" />
+          <Fingerprint className="h-5 w-5 group-hover:text-brand-accent-300 transition-colors" />
           <span>Use Biometric Authentication</span>
         </motion.button>
       )}
@@ -458,10 +458,10 @@ export function LoginForm() {
       {/* Divider */}
       <div className="relative my-8">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-purple-400/20" />
+          <span className="w-full border-t border-brand-accent-400/20" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-transparent px-3 text-purple-300">
+          <span className="bg-transparent px-3 text-brand-accent-300">
             Or continue with
           </span>
         </div>
@@ -472,7 +472,7 @@ export function LoginForm() {
         <motion.button
           type="button"
           onClick={() => toast.info('Google SSO coming soon!')}
-          className="flex items-center justify-center py-2.5 border border-purple-400/30 rounded-xl text-purple-200 hover:text-white hover:bg-white/5 transition-all duration-300 group"
+          className="flex items-center justify-center py-2.5 border border-brand-accent-400/30 rounded-xl text-brand-accent-200 hover:text-white hover:bg-white/5 transition-all duration-300 group"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           aria-label="Sign in with Google"
@@ -501,7 +501,7 @@ export function LoginForm() {
         <motion.button
           type="button"
           onClick={() => toast.info('Microsoft SSO coming soon!')}
-          className="flex items-center justify-center py-2.5 border border-purple-400/30 rounded-xl text-purple-200 hover:text-white hover:bg-white/5 transition-all duration-300 group"
+          className="flex items-center justify-center py-2.5 border border-brand-accent-400/30 rounded-xl text-brand-accent-200 hover:text-white hover:bg-white/5 transition-all duration-300 group"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           aria-label="Sign in with Microsoft"

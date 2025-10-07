@@ -32,8 +32,8 @@ const MessageAvatar: React.FC<{ type: MessageType }> = ({ type }) => {
     <div className={cn(
       "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
       type === 'user'
-        ? "bg-blue-600 text-white"
-        : "bg-gradient-to-br from-purple-600 to-blue-600 text-white"
+        ? "bg-brand-primary-600 text-white"
+        : "bg-gradient-to-br from-brand-accent-600 to-brand-primary-600 text-white"
     )}>
       {type === 'user' ? (
         <User className="w-4 h-4" />
@@ -275,7 +275,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
       {messages.length === 0 && !isLoading && (
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center max-w-md">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-brand-primary-600 to-brand-accent-600 flex items-center justify-center">
               <Bot className="w-8 h-8 text-white" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">

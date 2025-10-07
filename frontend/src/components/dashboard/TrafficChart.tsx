@@ -52,7 +52,7 @@ export function TrafficChart() {
         {
           label: 'Page Views',
           data: generateValues().map(v => v * 2.5),
-          color: 'rgb(168, 85, 247)'
+          color: 'rgb(var(--brand-accent-600))'
         }
       ]
     }
@@ -261,7 +261,7 @@ export function TrafficChart() {
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center space-x-1">
-                <Eye className="h-4 w-4 text-purple-600" />
+                <Eye className="h-4 w-4 text-brand-accent-600" />
                 <p className="text-2xl font-bold">156K</p>
               </div>
               <p className="text-xs text-gray-500">Page Views</p>

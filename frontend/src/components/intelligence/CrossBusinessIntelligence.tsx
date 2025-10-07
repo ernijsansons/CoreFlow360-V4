@@ -60,7 +60,7 @@ export const CrossBusinessIntelligence: React.FC = () => {
 
   const marketShareData = [
     { name: 'TechFlow SaaS', value: 40, color: '#3b82f6' },
-    { name: 'StyleHub Store', value: 35, color: '#a855f7' },
+    { name: 'StyleHub Store', value: 35, color: 'rgb(var(--brand-accent-600))' },
     { name: 'ProConsult', value: 25, color: '#10b981' },
   ];
 
@@ -162,7 +162,7 @@ export const CrossBusinessIntelligence: React.FC = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
+            <div className="p-3 bg-gradient-to-r from-brand-accent-600 to-brand-primary-600 rounded-xl">
               <Brain className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -188,7 +188,7 @@ export const CrossBusinessIntelligence: React.FC = () => {
             <button className="p-2 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
               <RefreshCw className="h-4 w-4" />
             </button>
-            <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700">
+            <button className="px-4 py-2 bg-gradient-to-r from-brand-accent-600 to-brand-primary-600 text-white rounded-lg hover:from-brand-accent-700 hover:to-brand-primary-700">
               <Download className="h-4 w-4 inline mr-2" />
               Export Report
             </button>
@@ -199,7 +199,7 @@ export const CrossBusinessIntelligence: React.FC = () => {
       {/* AI Insights Cards */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-purple-600" />
+          <Sparkles className="h-5 w-5 text-brand-accent-600" />
           AI-Generated Insights
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -286,7 +286,7 @@ export const CrossBusinessIntelligence: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-              <Target className="h-5 w-5 text-purple-600" />
+              <Target className="h-5 w-5 text-brand-accent-600" />
               Business Efficiency Matrix
             </h3>
             <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
@@ -364,10 +364,10 @@ export const CrossBusinessIntelligence: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Market Expansion</span>
-                <span className="text-sm font-medium text-purple-600">+31.8%</span>
+                <span className="text-sm font-medium text-brand-accent-600">+31.8%</span>
               </div>
               <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div className="bg-gradient-to-r from-purple-400 to-purple-600 h-2 rounded-full" style={{ width: '85%' }} />
+                <div className="bg-gradient-to-r from-brand-accent-400 to-brand-accent-600 h-2 rounded-full" style={{ width: '85%' }} />
               </div>
             </div>
           </div>
@@ -390,7 +390,7 @@ export const CrossBusinessIntelligence: React.FC = () => {
             </div>
             <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded-lg">
               <span className="text-sm text-gray-700 dark:text-gray-300">Innovation → Growth</span>
-              <span className="text-sm font-medium text-purple-600">0.78</span>
+              <span className="text-sm font-medium text-brand-accent-600">0.78</span>
             </div>
           </div>
         </div>
@@ -400,7 +400,7 @@ export const CrossBusinessIntelligence: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Layers className="h-5 w-5 text-indigo-600" />
+            <Layers className="h-5 w-5 text-brand-primary-600" />
             Predictive Analytics & Forecasting
           </h3>
           <div className="flex items-center gap-2">
@@ -424,10 +424,10 @@ export const CrossBusinessIntelligence: React.FC = () => {
             <p className="text-2xl font-bold text-green-900 dark:text-green-300">+2,847</p>
             <p className="text-xs text-green-600 dark:text-green-500 mt-1">Next 30 days</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg">
-            <p className="text-sm text-purple-700 dark:text-purple-400 mb-1">Churn Risk</p>
-            <p className="text-2xl font-bold text-purple-900 dark:text-purple-300">2.1%</p>
-            <p className="text-xs text-purple-600 dark:text-purple-500 mt-1">147 accounts at risk</p>
+          <div className="p-4 bg-gradient-to-br from-brand-accent-50 to-brand-accent-100 dark:from-brand-accent-900/20 dark:to-brand-accent-800/20 rounded-lg">
+            <p className="text-sm text-brand-accent-700 dark:text-brand-accent-400 mb-1">Churn Risk</p>
+            <p className="text-2xl font-bold text-brand-accent-900 dark:text-brand-accent-300">2.1%</p>
+            <p className="text-xs text-brand-accent-600 dark:text-brand-accent-500 mt-1">147 accounts at risk</p>
           </div>
           <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg">
             <p className="text-sm text-orange-700 dark:text-orange-400 mb-1">Resource Needs</p>

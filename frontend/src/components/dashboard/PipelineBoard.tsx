@@ -139,7 +139,7 @@ export function PipelineBoard() {
     {
       id: 'negotiation',
       name: 'Negotiation',
-      color: 'bg-purple-500',
+      color: 'bg-brand-accent-500',
       value: 185000,
       deals: [
         {

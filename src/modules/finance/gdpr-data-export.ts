@@ -208,14 +208,16 @@ class GDPRDataExportService {
       `).bind(Date.now()).all();
 
       for (const exportRow of expiredExports.results || []) {
+        const row = exportRow as any;
         // Delete file from R2 if exists
-        if (this.r2Bucket && exportRow.download_url) {
+        if (this.r2Bucket && row.download_url) {
           try {
-            const fileName = this.extractFileNameFromUrl(exportRow.download_url);
+            const fileName = this.extractFileNameFromUrl(row.download_url as string);
             await this.r2Bucket.delete(fileName);
           } catch (error: any) {
-            this.logger.warn('Failed to delete expired export file', error, {
-              exportId: exportRow.id
+            this.logger.warn('Failed to delete expired export file', {
+              exportId: row.id,
+              error: error instanceof Error ? error.message : 'Unknown error'
             });
           }
         }
@@ -225,7 +227,7 @@ class GDPRDataExportService {
           UPDATE gdpr_export_requests
           SET status = 'expired', download_url = NULL
           WHERE id = ?
-        `).bind(exportRow.id).run();
+        `).bind(row.id).run();
       }
 
       this.logger.info('Cleaned up expired exports', {
@@ -342,19 +344,20 @@ class GDPRDataExportService {
     ).all();
 
     for (const customer of customers.results || []) {
+      const c = customer as any;
       personalData.push({
         entityType: 'customer',
-        entityId: customer.id,
+        entityId: c.id as string,
         dataFields: {
-          name: customer.name,
-          email: customer.email,
-          phone: customer.phone,
-          address: customer.address,
-          taxId: customer.tax_id
+          name: c.name,
+          email: c.email,
+          phone: c.phone,
+          address: c.address,
+          taxId: c.tax_id
         },
         source: 'customer_management',
-        collectedAt: customer.created_at,
-        lastModified: customer.updated_at,
+        collectedAt: c.created_at as number,
+        lastModified: c.updated_at as number,
         legalBasis: 'contract',
         processingPurpose: 'customer_relationship_management'
       });
@@ -382,21 +385,22 @@ class GDPRDataExportService {
     ).all();
 
     for (const invoice of invoices.results || []) {
+      const inv = invoice as any;
       financialData.push({
         recordType: 'invoice',
-        recordId: invoice.id,
+        recordId: inv.id as string,
         data: {
-          invoiceNumber: invoice.invoice_number,
-          customerName: invoice.customer_name,
-          amount: invoice.total,
-          currency: invoice.currency,
-          status: invoice.status,
-          issueDate: invoice.issue_date,
-          dueDate: invoice.due_date
+          invoiceNumber: inv.invoice_number,
+          customerName: inv.customer_name,
+          amount: inv.total,
+          currency: inv.currency,
+          status: inv.status,
+          issueDate: inv.issue_date,
+          dueDate: inv.due_date
         },
-        createdAt: invoice.created_at,
-        lastModified: invoice.updated_at,
-        relatedPersons: [invoice.customer_id]
+        createdAt: inv.created_at as number,
+        lastModified: inv.updated_at as number,
+        relatedPersons: [inv.customer_id as string]
       });
     }
 
@@ -422,15 +426,16 @@ class GDPRDataExportService {
     ).all();
 
     for (const audit of audits.results || []) {
+      const a = audit as any;
       auditTrails.push({
-        action: audit.action,
-        entityType: audit.entity_type,
-        entityId: audit.entity_id,
-        performedBy: audit.performed_by,
-        performedAt: audit.performed_at,
-        changes: audit.changes ? JSON.parse(audit.changes) : {},
-        ipAddress: audit.ip_address,
-        userAgent: audit.user_agent
+        action: a.action as string,
+        entityType: a.entity_type as string,
+        entityId: a.entity_id as string,
+        performedBy: a.performed_by as string,
+        performedAt: a.performed_at as number,
+        changes: a.changes ? JSON.parse(a.changes as string) : {},
+        ipAddress: a.ip_address as string | undefined,
+        userAgent: a.user_agent as string | undefined
       });
     }
 

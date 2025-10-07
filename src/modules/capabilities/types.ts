@@ -33,8 +33,11 @@ export interface ParameterValidation {
   max?: number;
   pattern?: string; // Regex pattern
   enum?: string[]; // Allowed values
-  format?: 'email' | 'url' | 'uuid' | 'iso8601' | 'currency' | 'percentage';
+  format?: 'email' | 'url' | 'uuid' | 'iso8601' | 'currency' | 'percentage' | 'date';
   customValidator?: string; // Reference to custom validation function
+  minItems?: number; // For array validation
+  maxItems?: number; // For array validation
+  items?: ParameterValidation; // For array item validation
 }
 
 /**
@@ -119,6 +122,7 @@ export interface PermissionSpec {
   businessContextRequired: boolean;
   userContextRequired: boolean;
   elevatedPrivileges?: boolean; // Requires admin/elevated access
+  required?: boolean; // Backward compatibility flag
   approvalRequired?: {
     minApprovers: number;
     approverRoles: string[];
@@ -132,6 +136,7 @@ export interface PermissionSpec {
 export interface AuditSpec {
   severity: 'low' | 'medium' | 'high' | 'critical';
   eventType: string;
+  enabled?: boolean; // Enable/disable audit logging
   sensitiveDataHandling: {
     redactParameters: string[]; // Parameter names to redact
     redactResults: boolean;

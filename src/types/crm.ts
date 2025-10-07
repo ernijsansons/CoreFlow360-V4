@@ -362,6 +362,21 @@ export interface Lead {
   company_name?: string;
   company_domain?: string;
   industry?: string;
+
+  // Enrichment data for AI-powered lead intelligence
+  enrichment_data?: {
+    company_info?: any;
+    contact_info?: any;
+    social_profiles?: any;
+  };
+  seniority_level?: string;
+  previous_interactions?: Array<{
+    type: string;
+    date: string;
+    notes?: string;
+  }>;
+  company_size?: string;
+  industry_detail?: string;
 }
 
 export interface Conversation {

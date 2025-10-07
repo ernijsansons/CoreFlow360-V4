@@ -186,7 +186,7 @@ const MetricRenderer: React.FC<{ data: MetricData }> = ({ data }) => (
     {data.metrics.map((metric, index: number) => (
       <div
         key={index}
-        className="p-3 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg"
+        className="p-3 bg-gradient-to-br from-brand-primary-50 to-brand-accent-50 dark:from-brand-primary-900/20 dark:to-brand-accent-900/20 rounded-lg"
       >
         <div className="text-2xl font-bold text-gray-900 dark:text-white">
           {metric.value}

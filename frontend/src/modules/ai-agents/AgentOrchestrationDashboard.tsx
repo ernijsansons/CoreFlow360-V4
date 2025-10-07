@@ -169,7 +169,7 @@ export function AgentOrchestrationDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-accent-600 to-brand-primary-600 bg-clip-text text-transparent">
             AI Agent Orchestration
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -177,7 +177,7 @@ export function AgentOrchestrationDashboard() {
           </p>
         </div>
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+          <Button className="bg-gradient-to-r from-brand-accent-600 to-brand-primary-600 text-white">
             <Settings className="w-4 h-4 mr-2" />
             Configure Agents
           </Button>
@@ -191,15 +191,15 @@ export function AgentOrchestrationDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="glass-effect border-purple-500/20">
+          <Card className="glass-effect border-brand-accent-500/20">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Total Agents</p>
                   <p className="text-3xl font-bold mt-1">{metrics.totalAgents}</p>
                 </div>
-                <div className="h-12 w-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                  <Brain className="h-6 w-6 text-purple-600" />
+                <div className="h-12 w-12 rounded-lg bg-brand-accent-500/10 flex items-center justify-center">
+                  <Brain className="h-6 w-6 text-brand-accent-600" />
                 </div>
               </div>
             </CardContent>
@@ -271,15 +271,15 @@ export function AgentOrchestrationDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card className="glass-effect border-pink-500/20">
+          <Card className="glass-effect border-brand-teal-500/20">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Automation Rate</p>
                   <p className="text-3xl font-bold mt-1">{metrics.automationRate}%</p>
                 </div>
-                <div className="h-12 w-12 rounded-lg bg-pink-500/10 flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-pink-600" />
+                <div className="h-12 w-12 rounded-lg bg-brand-teal-500/10 flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6 text-brand-teal-600" />
                 </div>
               </div>
             </CardContent>
@@ -305,7 +305,7 @@ export function AgentOrchestrationDashboard() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center`}>
+                      <div className={`h-10 w-10 rounded-lg bg-gradient-to-br from-brand-accent-500 to-brand-primary-500 flex items-center justify-center`}>
                         <Icon className="h-5 w-5 text-white" />
                       </div>
                       <div>
@@ -318,7 +318,7 @@ export function AgentOrchestrationDashboard() {
                         </div>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="bg-purple-500/10 text-purple-600">
+                    <Badge variant="secondary" className="bg-brand-accent-500/10 text-brand-accent-600">
                       {agent.efficiency}% Efficient
                     </Badge>
                   </div>
@@ -471,7 +471,7 @@ export function AgentOrchestrationDashboard() {
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: '97%' }}
-                          className="h-full bg-gradient-to-r from-blue-500 to-cyan-500"
+                          className="h-full bg-gradient-to-r from-brand-primary-500 to-brand-teal-500"
                         />
                       </div>
                     </div>

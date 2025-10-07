@@ -114,7 +114,7 @@ const LOGIC_TYPES = {
   loop: {
     label: 'Loop',
     icon: RotateCcw,
-    color: 'bg-purple-500',
+    color: 'bg-brand-accent-500',
     description: 'Repeat execution with break conditions'
   },
   parallel: {
@@ -132,13 +132,13 @@ const LOGIC_TYPES = {
   transform: {
     label: 'Transform',
     icon: Filter,
-    color: 'bg-cyan-500',
+    color: 'bg-brand-teal-500',
     description: 'Transform data between nodes'
   },
   pattern_match: {
     label: 'Pattern Match',
     icon: Code,
-    color: 'bg-indigo-500',
+    color: 'bg-brand-primary-500',
     description: 'Pattern matching and routing'
   },
   error_boundary: {

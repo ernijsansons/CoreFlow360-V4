@@ -49,7 +49,7 @@ const AGENT_TEMPLATES = {
     label: 'CEO Assistant',
     systemPrompt: 'You are a strategic CEO assistant focused on high-level business decisions, growth opportunities, and executive insights.',
     icon: '👔',
-    color: 'bg-purple-500'
+    color: 'bg-brand-accent-500'
   },
   cfo: {
     label: 'CFO Assistant',

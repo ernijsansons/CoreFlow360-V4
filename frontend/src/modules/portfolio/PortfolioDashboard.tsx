@@ -153,7 +153,7 @@ const healthColors = {
 
 const statusColors = {
   active: 'bg-green-500',
-  scaling: 'bg-purple-500',
+  scaling: 'bg-brand-accent-500',
   stable: 'bg-blue-500',
   launching: 'bg-orange-500',
 }
@@ -171,7 +171,7 @@ export function PortfolioDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-accent-600 via-brand-primary-600 to-orange-600 bg-clip-text text-transparent">
             Business Portfolio
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -179,7 +179,7 @@ export function PortfolioDashboard() {
           </p>
         </div>
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+          <Button className="bg-gradient-to-r from-brand-accent-600 to-brand-primary-600 text-white">
             <Sparkles className="w-4 h-4 mr-2" />
             AI Insights
           </Button>
@@ -193,8 +193,8 @@ export function PortfolioDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Card className="glass-effect border-purple-500/20 relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent" />
+          <Card className="glass-effect border-brand-accent-500/20 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-accent-500/5 to-transparent" />
             <CardContent className="pt-6 relative">
               <div className="flex items-center justify-between">
                 <div>
@@ -207,7 +207,7 @@ export function PortfolioDashboard() {
                     <span>+{avgGrowth.toFixed(1)}%</span>
                   </div>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-brand-accent-500 to-brand-primary-500 flex items-center justify-center">
                   <DollarSign className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -234,7 +234,7 @@ export function PortfolioDashboard() {
                     <span>Growing</span>
                   </div>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-brand-primary-500 to-brand-teal-500 flex items-center justify-center">
                   <Users className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -286,7 +286,7 @@ export function PortfolioDashboard() {
                     <span>Working 24/7</span>
                   </div>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-500 to-brand-primary-500 flex items-center justify-center">
                   <Zap className="h-6 w-6 text-white" />
                 </div>
               </div>
@@ -312,12 +312,12 @@ export function PortfolioDashboard() {
                 className="cursor-pointer"
               >
                 <Card className="glass-effect hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/10 to-transparent rounded-bl-full" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-brand-accent-500/10 to-transparent rounded-bl-full" />
 
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-brand-accent-500 to-brand-primary-500 flex items-center justify-center">
                           <Icon className="h-6 w-6 text-white" />
                         </div>
                         <div>
@@ -342,7 +342,7 @@ export function PortfolioDashboard() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-xs text-gray-600 dark:text-gray-400">Revenue</p>
-                          <p className="text-2xl font-bold text-purple-600">
+                          <p className="text-2xl font-bold text-brand-accent-600">
                             ${(business.revenue / 1000).toFixed(0)}K
                           </p>
                         </div>
@@ -361,14 +361,14 @@ export function PortfolioDashboard() {
                           <AreaChart data={business.sparklineData.map((value, i) => ({ value, index: i }))}>
                             <defs>
                               <linearGradient id={`gradient-${business.id}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                                <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                                <stop offset="5%" stopColor="rgb(var(--brand-accent-600))" stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor="rgb(var(--brand-accent-600))" stopOpacity={0}/>
                               </linearGradient>
                             </defs>
                             <Area
                               type="monotone"
                               dataKey="value"
-                              stroke="#8b5cf6"
+                              stroke="rgb(var(--brand-accent-600))"
                               fill={`url(#gradient-${business.id})`}
                               strokeWidth={2}
                             />
@@ -382,7 +382,7 @@ export function PortfolioDashboard() {
                           <Users className="h-4 w-4" />
                           <span>{business.customers.toLocaleString()}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-purple-600">
+                        <div className="flex items-center gap-2 text-sm text-brand-accent-600">
                           <Brain className="h-4 w-4" />
                           <span>{business.aiAgents} AI agents</span>
                         </div>

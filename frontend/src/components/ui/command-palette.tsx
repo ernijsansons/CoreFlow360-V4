@@ -531,7 +531,7 @@ function CommandPaletteItem({ item }: { item: CommandItem }) {
         "relative flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
         "transition-all duration-150",
         "hover:bg-gray-100/80 dark:hover:bg-gray-800/80",
-        "aria-selected:bg-gradient-to-r aria-selected:from-blue-500/10 aria-selected:to-purple-500/10",
+        "aria-selected:bg-gradient-to-r aria-selected:from-brand-primary-500/10 aria-selected:to-brand-accent-500/10",
         "aria-selected:text-blue-600 dark:aria-selected:text-blue-400",
         "group"
       )}
@@ -543,8 +543,8 @@ function CommandPaletteItem({ item }: { item: CommandItem }) {
         "dark:from-gray-800 dark:to-gray-700/50",
         "transition-all duration-200",
         "group-hover:scale-110 group-hover:rotate-3",
-        "group-aria-selected:from-blue-100 group-aria-selected:to-purple-100",
-        "dark:group-aria-selected:from-blue-900/30 dark:group-aria-selected:to-purple-900/30"
+        "group-aria-selected:from-brand-primary-100 group-aria-selected:to-brand-accent-100",
+        "dark:group-aria-selected:from-brand-primary-900/30 dark:group-aria-selected:to-brand-accent-900/30"
       )}>
         <Icon className="h-4 w-4 text-gray-600 dark:text-gray-400 group-aria-selected:text-blue-600 dark:group-aria-selected:text-blue-400" />
       </div>
@@ -558,7 +558,7 @@ function CommandPaletteItem({ item }: { item: CommandItem }) {
           {item.badge && (
             <span className={cn(
               "rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-              "bg-gradient-to-r from-blue-500 to-purple-500 text-white",
+              "bg-gradient-to-r from-brand-primary-500 to-brand-accent-500 text-white",
               "shadow-sm"
             )}>
               {item.badge}

@@ -427,6 +427,12 @@ export interface Invoice {
   updatedBy?: string;
   businessId: string;
   metadata?: Record<string, any>;
+
+  // Payment gateway integration fields
+  payment_status?: 'pending' | 'paid' | 'overdue' | 'cancelled';
+  payment_method?: string;
+  stripe_invoice_id?: string;
+  paypal_transaction_id?: string;
 }
 
 export interface InvoiceLine {
@@ -1144,4 +1150,29 @@ export interface ReportExportRequest {
   reportId: string;
   format: ExportFormat;
   configuration?: ExportConfiguration;
+}
+
+// Currency Management Types
+export type Currency = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'AUD' | string;
+
+export interface CurrencyRate {
+  from: Currency;
+  to: Currency;
+  rate: number;
+  timestamp: string;
+  source?: string;
+}
+
+// Payment Gateway Integration Types
+export interface PaymentGatewayResponse {
+  success: boolean;
+  transaction_id?: string;
+  payment_intent_id?: string;
+  error?: string;
+  error_code?: string;
+  metadata?: Record<string, any>;
+  amount?: number;
+  currency?: string;
+  status?: 'pending' | 'succeeded' | 'failed' | 'cancelled';
+  created_at?: string;
 }

@@ -141,11 +141,13 @@ class JWTService {
   decodeToken(token: string): any {
     const parts = token.split('.');
     if (parts.length !== 3) {
-      throw new Error('Invalid token format`');
+      throw new Error('Invalid token format');
     }
 
     try {
-      const payload = JSON.parse(atob(parts[1]!.replace(/-/g, '').replace(/_/g, '`/')));
+      // SECURITY FIX: Corrected base64url decoding (CVSS 3.1)
+      // Base64url uses - and _ instead of + and /
+      const payload = JSON.parse(atob(parts[1]!.replace(/-/g, '+').replace(/_/g, '/')));
       return payload;
     } catch (error: any) {
       throw new Error('Failed to decode token');

@@ -69,4 +69,15 @@ export interface SmartSuggestion {
   confidence?: number
   impact?: 'high' | 'medium' | 'low'
   metadata?: Record<string, unknown>
+  metrics?: Array<{
+    label: string
+    value: string | number
+  }>
+  actions?: Array<{
+    type?: string
+    label: string
+    handler?: string
+    command?: string
+  }>
+  expiresAt?: string
 }

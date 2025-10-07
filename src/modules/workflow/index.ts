@@ -3,10 +3,23 @@
  * Central entry point for workflow orchestration functionality
  */
 
-// Core workflow orchestrator
+// Import types and classes first
+import {
+  WorkflowDefinition,
+  WorkflowDefinitionSchema,
+  WorkflowValidationError,
+  StepHandler,
+} from './types';
+
+import {
+  StepHandlerRegistry,
+} from './step-handlers';
+
+import { WorkflowOrchestrator } from './orchestrator';
+
+// Re-export everything
 export { WorkflowOrchestrator } from './orchestrator';
 
-// Step handlers
 export {
   HttpRequestStepHandler,
   DatabaseStepHandler,
@@ -16,7 +29,6 @@ export {
   StepHandlerRegistry
 } from './step-handlers';
 
-// Type definitions
 export type {
   WorkflowDefinition,
   WorkflowExecution,
@@ -33,7 +45,6 @@ export type {
   StepCost
 } from './types';
 
-// Error types
 export {
   WorkflowError,
   StepTimeoutError,
@@ -42,7 +53,6 @@ export {
   WorkflowValidationError
 } from './types';
 
-// Default configuration and schemas
 export {
   DEFAULT_WORKFLOW_CONFIG,
   StepCostSchema,
@@ -263,7 +273,8 @@ export class WorkflowModule {
         dependsOn: [config.approvalStep.id],
       },
       {
-        ...config.approvalStep,
+        id: config.approvalStep.id,
+        name: config.approvalStep.name,
         type: 'approval' as const,
         handler: 'approval',
         parameters: {},

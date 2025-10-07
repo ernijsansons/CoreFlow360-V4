@@ -55,8 +55,8 @@ export function ConversionFunnel() {
           percentage: 50,
           dropoff: 50,
           icon: MousePointer,
-          color: 'text-purple-600',
-          bgColor: 'bg-purple-100 dark:bg-purple-900/20'
+          color: 'text-brand-accent-600',
+          bgColor: 'bg-brand-accent-100 dark:bg-brand-accent-900/20'
         },
         {
           name: 'Add to Cart',
@@ -104,8 +104,8 @@ export function ConversionFunnel() {
           percentage: 40,
           dropoff: 60,
           icon: MousePointer,
-          color: 'text-purple-600',
-          bgColor: 'bg-purple-100 dark:bg-purple-900/20'
+          color: 'text-brand-accent-600',
+          bgColor: 'bg-brand-accent-100 dark:bg-brand-accent-900/20'
         },
         {
           name: 'Email Verification',

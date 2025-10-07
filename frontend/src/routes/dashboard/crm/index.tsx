@@ -65,8 +65,8 @@ function CRMDashboard() {
       value: '32.8%',
       change: -2.4,
       icon: Target,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-900/20'
+      color: 'text-brand-accent-600',
+      bgColor: 'bg-brand-accent-100 dark:bg-brand-accent-900/20'
     },
     {
       title: 'Pipeline Value',
@@ -224,11 +224,11 @@ function CRMDashboard() {
                         <div className={`p-2 rounded-full ${
                           activity.type === 'call' ? 'bg-blue-100 dark:bg-blue-900/20' :
                           activity.type === 'email' ? 'bg-green-100 dark:bg-green-900/20' :
-                          'bg-purple-100 dark:bg-purple-900/20'
+                          'bg-brand-accent-100 dark:bg-brand-accent-900/20'
                         }`}>
                           {activity.type === 'call' && <Phone className="h-4 w-4 text-blue-600" />}
                           {activity.type === 'email' && <Mail className="h-4 w-4 text-green-600" />}
-                          {activity.type === 'meeting' && <Calendar className="h-4 w-4 text-purple-600" />}
+                          {activity.type === 'meeting' && <Calendar className="h-4 w-4 text-brand-accent-600" />}
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium">
@@ -286,7 +286,7 @@ function CRMDashboard() {
                         <span className="text-sm font-medium">47 / 60</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-purple-600 h-2 rounded-full" style={{ width: '78.3%' }} />
+                        <div className="bg-brand-accent-600 h-2 rounded-full" style={{ width: '78.3%' }} />
                       </div>
                     </div>
                     <div>

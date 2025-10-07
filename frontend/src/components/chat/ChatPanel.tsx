@@ -150,7 +150,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         className={cn(
           "fixed bottom-6 right-6 z-40",
           "w-14 h-14 rounded-full",
-          "bg-gradient-to-r from-blue-600 to-purple-600",
+          "bg-gradient-to-r from-brand-primary-600 to-brand-accent-600",
           "shadow-xl hover:shadow-2xl",
           "flex items-center justify-center",
           "text-white transition-all duration-300",

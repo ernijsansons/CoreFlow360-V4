@@ -224,7 +224,7 @@ export const ApprovalNode = memo(({ data, selected }: NodeProps<ApprovalNodeData
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-lg bg-brand-accent-500 flex items-center justify-center text-white">
               <UserCheck className="w-4 h-4" />
             </div>
             <div>

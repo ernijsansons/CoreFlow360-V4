@@ -152,7 +152,7 @@ const INTEGRATION_PROVIDERS = {
   file: {
     label: 'File Storage',
     icon: FileText,
-    color: 'bg-purple-500',
+    color: 'bg-brand-accent-500',
     providers: [
       { id: 'aws_s3', name: 'Amazon S3', icon: '🪣' },
       { id: 'google_drive', name: 'Google Drive', icon: '💾' },
@@ -164,7 +164,7 @@ const INTEGRATION_PROVIDERS = {
   database: {
     label: 'Databases',
     icon: Database,
-    color: 'bg-indigo-500',
+    color: 'bg-brand-primary-500',
     providers: [
       { id: 'mysql', name: 'MySQL', icon: '🐬' },
       { id: 'postgresql', name: 'PostgreSQL', icon: '🐘' },
@@ -176,7 +176,7 @@ const INTEGRATION_PROVIDERS = {
   api: {
     label: 'REST APIs',
     icon: Globe,
-    color: 'bg-cyan-500',
+    color: 'bg-brand-teal-500',
     providers: [
       { id: 'stripe', name: 'Stripe', icon: '💳' },
       { id: 'paypal', name: 'PayPal', icon: '💰' },

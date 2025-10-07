@@ -79,7 +79,7 @@ export function EntitySwitcher({ className }: EntitySwitcherProps) {
       case 'professional':
         return 'bg-success-500'
       case 'enterprise':
-        return 'bg-purple-500'
+        return 'bg-brand-accent-500'
       default:
         return 'bg-gray-500'
     }

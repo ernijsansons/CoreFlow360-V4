@@ -306,7 +306,7 @@ const QuickAction = ({ icon: Icon, title, description, onClick, color = 'brand' 
     brand: 'text-brand-600 dark:text-brand-400 bg-brand-100 dark:bg-brand-900/30',
     green: 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30',
     blue: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30',
-    purple: 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30'
+    purple: 'text-brand-accent-600 dark:text-brand-accent-400 bg-brand-accent-100 dark:bg-brand-accent-900/30'
   }
 
   return (
@@ -345,7 +345,7 @@ const ActivityItem = ({ activity, isLast = false }: { activity: { type: string; 
     switch (type) {
       case 'invoice': return 'text-blue-600 dark:text-blue-400'
       case 'customer': return 'text-green-600 dark:text-green-400'
-      case 'order': return 'text-purple-600 dark:text-purple-400'
+      case 'order': return 'text-brand-accent-600 dark:text-brand-accent-400'
       case 'payment': return 'text-emerald-600 dark:text-emerald-400'
       default: return 'text-gray-600 dark:text-gray-400'
     }

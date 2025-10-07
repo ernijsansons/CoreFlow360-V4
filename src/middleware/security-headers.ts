@@ -250,11 +250,11 @@ export class SecurityHeadersMiddleware {
         const path = new URL(c.req.url).pathname;
 
         // Skip CSRF for authentication endpoints
+        // SECURITY FIX: Removed /api/auth/logout to prevent CSRF logout attacks (CVSS 5.4)
         const skipCSRF = [
           '/api/auth/login',
           '/api/auth/register',
-          '/api/auth/refresh',
-          '/api/auth/logout'
+          '/api/auth/refresh'
         ];
 
         if (!skipCSRF.includes(path)) {

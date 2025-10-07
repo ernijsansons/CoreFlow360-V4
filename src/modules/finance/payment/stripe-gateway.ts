@@ -12,7 +12,7 @@ export interface StripeConfig {
   secretKey: string
   publishableKey: string
   webhookSecret: string
-  apiVersion: '2023-10-16'
+  apiVersion: '2024-06-20'
   environment: 'test' | 'live'
   automaticTax?: boolean
   captureMethod?: 'automatic' | 'manual'
@@ -178,7 +178,7 @@ export class StripePaymentGateway {
         paymentMethodId: paymentIntent.payment_method as string,
         clientSecret: paymentIntent.client_secret || undefined,
         nextAction: paymentIntent.next_action,
-        charges: paymentIntent.charges?.data.map((charge: any) => ({
+        charges: (paymentIntent as any).charges?.data.map((charge: any) => ({
           id: charge.id,
           amount: charge.amount / 100,
           status: charge.status,
@@ -186,7 +186,7 @@ export class StripePaymentGateway {
           failureCode: charge.failure_code || undefined,
           failureMessage: charge.failure_message || undefined
         })),
-        metadata: paymentIntent.metadata,
+        metadata: paymentIntent.metadata as Record<string, string> | undefined,
         createdAt: new Date(paymentIntent.created * 1000).toISOString(),
         updatedAt: new Date().toISOString()
       }
@@ -213,8 +213,9 @@ export class StripePaymentGateway {
       if (error instanceof Stripe.errors.StripeError) {
         throw new AppError(
           `Stripe payment error: ${error.message}`,
-          'STRIPE_PAYMENT_ERROR',
           400,
+          'STRIPE_PAYMENT_ERROR',
+          true,
           {
             stripeCode: error.code,
             stripeType: error.type,
@@ -225,8 +226,9 @@ export class StripePaymentGateway {
 
       throw new AppError(
         'Payment intent creation failed',
-        'PAYMENT_INTENT_ERROR',
         500,
+        'PAYMENT_INTENT_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -361,10 +363,10 @@ export class StripePaymentGateway {
         amount: refund.amount / 100,
         currency: refund.currency.toUpperCase(),
         status: refund.status as RefundResult['status'],
-        reason: refund.reason as RefundResult['reason'],
+        reason: (refund.reason as RefundResult['reason']) || 'requested_by_customer',
         paymentIntentId: refund.payment_intent as string,
         receiptNumber: refund.receipt_number || undefined,
-        metadata: refund.metadata,
+        metadata: refund.metadata as Record<string, string> | undefined,
         createdAt: new Date(refund.created * 1000).toISOString()
       }
 
@@ -399,8 +401,7 @@ export class StripePaymentGateway {
         email: request.email,
         name: request.name,
         phone: request.phone,
-        address: request.address,
-        tax_ids: request.taxIds,
+        address: request.address as any,
         metadata: request.metadata
       })
 
@@ -439,8 +440,8 @@ export class StripePaymentGateway {
         }],
         trial_period_days: request.trialPeriodDays,
         metadata: request.metadata,
-        payment_settings: request.paymentSettings,
-        automatic_tax: request.automaticTax
+        payment_settings: request.paymentSettings as any,
+        automatic_tax: request.automaticTax as any
       })
 
       auditLogger.log({
@@ -561,7 +562,7 @@ export class StripePaymentGateway {
         created: event.created,
         livemode: event.livemode,
         pendingWebhooks: event.pending_webhooks,
-        request: event.request
+        request: event.request ? { id: (event.request as any).id, idempotencyKey: (event.request as any).idempotency_key } : undefined
       }
 
     } catch (error: any) {
@@ -573,15 +574,16 @@ export class StripePaymentGateway {
       if (error instanceof Stripe.errors.StripeSignatureVerificationError) {
         throw new AppError(
           'Invalid webhook signature',
-          'INVALID_WEBHOOK_SIGNATURE',
-          400
+          400,
+          'INVALID_WEBHOOK_SIGNATURE'
         )
       }
 
       throw new AppError(
         'Webhook processing failed',
-        'WEBHOOK_PROCESSING_ERROR',
         500,
+        'WEBHOOK_PROCESSING_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -713,7 +715,7 @@ export class StripePaymentGateway {
       paymentMethodId: paymentIntent.payment_method as string,
       clientSecret: paymentIntent.client_secret || undefined,
       nextAction: paymentIntent.next_action,
-      charges: paymentIntent.charges?.data.map((charge: any) => ({
+      charges: (paymentIntent as any).charges?.data.map((charge: any) => ({
         id: charge.id,
         amount: charge.amount / 100,
         status: charge.status,
@@ -721,7 +723,7 @@ export class StripePaymentGateway {
         failureCode: charge.failure_code || undefined,
         failureMessage: charge.failure_message || undefined
       })),
-      metadata: paymentIntent.metadata,
+      metadata: paymentIntent.metadata as Record<string, string> | undefined,
       createdAt: new Date(paymentIntent.created * 1000).toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -731,24 +733,24 @@ export class StripePaymentGateway {
     if (request.amount <= 0) {
       throw new AppError(
         'Payment amount must be greater than zero',
-        'INVALID_PAYMENT_AMOUNT',
-        400
+        400,
+        'INVALID_PAYMENT_AMOUNT'
       )
     }
 
     if (!request.currency || request.currency.length !== 3) {
       throw new AppError(
         'Valid 3-character currency code is required',
-        'INVALID_CURRENCY_CODE',
-        400
+        400,
+        'INVALID_CURRENCY_CODE'
       )
     }
 
     if (request.amount > 99999999) { // Stripe limit
       throw new AppError(
         'Payment amount exceeds maximum allowed',
-        'AMOUNT_TOO_LARGE',
-        400
+        400,
+        'AMOUNT_TOO_LARGE'
       )
     }
   }
@@ -758,8 +760,9 @@ export class StripePaymentGateway {
       const statusCode = this.getStatusCodeFromStripeError(error)
       return new AppError(
         `Stripe error: ${error.message}`,
-        'STRIPE_ERROR',
         statusCode,
+        'STRIPE_ERROR',
+        true,
         {
           stripeCode: error.code,
           stripeType: error.type,
@@ -771,8 +774,9 @@ export class StripePaymentGateway {
 
     return new AppError(
       fallbackMessage,
-      'PAYMENT_GATEWAY_ERROR',
       500,
+      'PAYMENT_GATEWAY_ERROR',
+      true,
       { originalError: error }
     )
   }

@@ -14,12 +14,14 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
+import { Route as MarketingIndexRouteImport } from './routes/marketing.index'
 import { Route as FinanceIndexRouteImport } from './routes/finance/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as CrmIndexRouteImport } from './routes/crm/index'
 import { Route as SettingsSecurityRouteImport } from './routes/settings/security'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
+import { Route as MarketingProductsRouteImport } from './routes/marketing.products'
 import { Route as ErrorErrorRouteImport } from './routes/error/error'
 import { Route as Error404RouteImport } from './routes/error/404'
 import { Route as DashboardPortfolioRouteImport } from './routes/dashboard/portfolio'
@@ -55,6 +57,11 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
   path: '/settings/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarketingIndexRoute = MarketingIndexRouteImport.update({
+  id: '/marketing/',
+  path: '/marketing/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinanceIndexRoute = FinanceIndexRouteImport.update({
   id: '/finance/',
   path: '/finance/',
@@ -83,6 +90,11 @@ const SettingsProfileRoute = SettingsProfileRouteImport.update({
 const SettingsBillingRoute = SettingsBillingRouteImport.update({
   id: '/settings/billing',
   path: '/settings/billing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketingProductsRoute = MarketingProductsRouteImport.update({
+  id: '/marketing/products',
+  path: '/marketing/products',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ErrorErrorRoute = ErrorErrorRouteImport.update({
@@ -142,12 +154,14 @@ export interface FileRoutesByFullPath {
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
+  '/marketing/products': typeof MarketingProductsRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/crm': typeof CrmIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/finance': typeof FinanceIndexRoute
+  '/marketing': typeof MarketingIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/dashboard/analytics': typeof DashboardAnalyticsIndexRoute
   '/dashboard/crm': typeof DashboardCrmIndexRoute
@@ -164,12 +178,14 @@ export interface FileRoutesByTo {
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
+  '/marketing/products': typeof MarketingProductsRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/crm': typeof CrmIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/finance': typeof FinanceIndexRoute
+  '/marketing': typeof MarketingIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/dashboard/analytics': typeof DashboardAnalyticsIndexRoute
   '/dashboard/crm': typeof DashboardCrmIndexRoute
@@ -187,12 +203,14 @@ export interface FileRoutesById {
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
+  '/marketing/products': typeof MarketingProductsRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/crm/': typeof CrmIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/finance/': typeof FinanceIndexRoute
+  '/marketing/': typeof MarketingIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/dashboard/analytics/': typeof DashboardAnalyticsIndexRoute
   '/dashboard/crm/': typeof DashboardCrmIndexRoute
@@ -211,12 +229,14 @@ export interface FileRouteTypes {
     | '/dashboard/portfolio'
     | '/error/404'
     | '/error/error'
+    | '/marketing/products'
     | '/settings/billing'
     | '/settings/profile'
     | '/settings/security'
     | '/crm'
     | '/dashboard'
     | '/finance'
+    | '/marketing'
     | '/settings'
     | '/dashboard/analytics'
     | '/dashboard/crm'
@@ -233,12 +253,14 @@ export interface FileRouteTypes {
     | '/dashboard/portfolio'
     | '/error/404'
     | '/error/error'
+    | '/marketing/products'
     | '/settings/billing'
     | '/settings/profile'
     | '/settings/security'
     | '/crm'
     | '/dashboard'
     | '/finance'
+    | '/marketing'
     | '/settings'
     | '/dashboard/analytics'
     | '/dashboard/crm'
@@ -255,12 +277,14 @@ export interface FileRouteTypes {
     | '/dashboard/portfolio'
     | '/error/404'
     | '/error/error'
+    | '/marketing/products'
     | '/settings/billing'
     | '/settings/profile'
     | '/settings/security'
     | '/crm/'
     | '/dashboard/'
     | '/finance/'
+    | '/marketing/'
     | '/settings/'
     | '/dashboard/analytics/'
     | '/dashboard/crm/'
@@ -278,12 +302,14 @@ export interface RootRouteChildren {
   DashboardPortfolioRoute: typeof DashboardPortfolioRoute
   Error404Route: typeof Error404Route
   ErrorErrorRoute: typeof ErrorErrorRoute
+  MarketingProductsRoute: typeof MarketingProductsRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   SettingsSecurityRoute: typeof SettingsSecurityRoute
   CrmIndexRoute: typeof CrmIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   FinanceIndexRoute: typeof FinanceIndexRoute
+  MarketingIndexRoute: typeof MarketingIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
   DashboardAnalyticsIndexRoute: typeof DashboardAnalyticsIndexRoute
   DashboardCrmIndexRoute: typeof DashboardCrmIndexRoute
@@ -327,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/marketing/': {
+      id: '/marketing/'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof MarketingIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/finance/': {
       id: '/finance/'
       path: '/finance'
@@ -367,6 +400,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/billing'
       fullPath: '/settings/billing'
       preLoaderRoute: typeof SettingsBillingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketing/products': {
+      id: '/marketing/products'
+      path: '/marketing/products'
+      fullPath: '/marketing/products'
+      preLoaderRoute: typeof MarketingProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/error/error': {
@@ -446,12 +486,14 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardPortfolioRoute: DashboardPortfolioRoute,
   Error404Route: Error404Route,
   ErrorErrorRoute: ErrorErrorRoute,
+  MarketingProductsRoute: MarketingProductsRoute,
   SettingsBillingRoute: SettingsBillingRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   SettingsSecurityRoute: SettingsSecurityRoute,
   CrmIndexRoute: CrmIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   FinanceIndexRoute: FinanceIndexRoute,
+  MarketingIndexRoute: MarketingIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
   DashboardAnalyticsIndexRoute: DashboardAnalyticsIndexRoute,
   DashboardCrmIndexRoute: DashboardCrmIndexRoute,

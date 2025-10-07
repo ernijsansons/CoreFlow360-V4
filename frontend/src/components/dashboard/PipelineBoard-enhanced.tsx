@@ -58,11 +58,11 @@ interface PipelineStage {
 }
 
 const stageColors = {
-  'prospecting': 'bg-blue-100 text-blue-800 border-blue-200',
-  'qualification': 'bg-purple-100 text-purple-800 border-purple-200',
+  'prospecting': 'bg-brand-primary-100 text-brand-primary-800 border-brand-primary-200',
+  'qualification': 'bg-brand-accent-100 text-brand-accent-800 border-brand-accent-200',
   'proposal': 'bg-yellow-100 text-yellow-800 border-yellow-200',
   'negotiation': 'bg-orange-100 text-orange-800 border-orange-200',
-  'closing': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+  'closing': 'bg-brand-primary-100 text-brand-primary-800 border-brand-primary-200',
   'won': 'bg-green-100 text-green-800 border-green-200',
   'lost': 'bg-red-100 text-red-800 border-red-200',
 }
@@ -364,7 +364,7 @@ export function PipelineBoardEnhanced() {
                     <p className="text-sm text-gray-600">Weighted Value</p>
                     <p className="text-2xl font-bold">{formatCurrency(metrics.weightedValue)}</p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-purple-500" />
+                  <TrendingUp className="h-8 w-8 text-brand-accent-500" />
                 </div>
               </CardContent>
             </Card>
