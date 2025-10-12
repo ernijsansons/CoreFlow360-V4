@@ -671,7 +671,7 @@ class AdaptiveBackpressureStrategy implements BackpressureStrategy {
     const priority = task.priority || 'normal';
     if (priority === 'high' || priority === 'critical') {
       return utilization < 0.95;
-    } else if (priority === 'normal') {
+    } else if (priority === 'normal' || priority === 'low') {
       return utilization < 0.8;
     } else {
       return utilization < 0.6;

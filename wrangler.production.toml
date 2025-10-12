@@ -106,24 +106,9 @@ max_instances = 100
 # Production build settings
 [build]
 command = "npm run build:production"
-watch_paths = ["src/**/*.ts", "src/**/*.js"]
 
-# Production deployment settings
-[deploy]
-routes = ["api.coreflow360.com/*", "coreflow360.com/api/*"]
-preview_enabled = false
-test_before_deploy = true
-
-# Security headers
-[site]
-headers = [
-  "X-Content-Type-Options: nosniff",
-  "X-Frame-Options: DENY",
-  "X-XSS-Protection: 1; mode=block",
-  "Referrer-Policy: strict-origin-when-cross-origin",
-  "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'",
-  "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload"
-]
+# Note: Security headers should be set via Response headers in the Worker code
+# See src/middleware/security-headers.ts for implementation
 
 # Production secrets (set via: wrangler secret put SECRET_NAME --env production)
 # JWT_SECRET

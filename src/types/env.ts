@@ -154,6 +154,7 @@ export interface Env {
   REQUEST_TIMEOUT?: string;
   JWT_EXPIRY?: string;
   CSP_REPORT_URI?: string;
+  SKIP_SECURITY_VALIDATION?: string;
 
   // CORS
   CORS_ORIGINS?: string;
