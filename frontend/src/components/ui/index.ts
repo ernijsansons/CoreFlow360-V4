@@ -1,23 +1,85 @@
 // UI Component Index - Centralized export
+
+// Core Components
 export { Button, buttonVariants, type ButtonProps } from './button-refactored'
 export { Input } from './input-refactored'
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './card-refactored'
+export { Textarea } from './textarea'
 export { Label } from './label'
-export { Badge } from './badge-refactored'
+export { PasswordInput } from './PasswordInput'
+
+// Layout Components
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './card-refactored'
+export { Badge, badgeVariants } from './badge-refactored'
 export { Alert, AlertTitle, AlertDescription } from './alert'
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
-export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from './dialog'
 
-// Dropdown Menu components (from Radix UI)
-export * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+// Form Components
+export { Checkbox } from './checkbox'
+export { Switch } from './switch'
+export { RadioGroup, RadioGroupItem } from './radio-group'
+export { Progress } from './progress'
 
-// Create named exports for common dropdown components
+// Select Component
 export {
-  Root as DropdownMenuRoot,
-  Trigger as DropdownMenuTrigger,
-  Content as DropdownMenuContent,
-  Item as DropdownMenuItem,
-  Label as DropdownMenuLabel,
-  Separator as DropdownMenuSeparator,
-  Group as DropdownMenuGroup,
-} from '@radix-ui/react-dropdown-menu'
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+} from './select'
+
+// Dialog Components
+export {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogTrigger,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from './dialog'
+
+// Dropdown Menu
+export {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuGroup,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuRadioGroup,
+} from './dropdown-menu'
+
+// Display Components
+export { Avatar, AvatarImage, AvatarFallback } from './avatar'
+export { ScrollArea, ScrollBar } from './scroll-area'
+
+// Loading States
+export {
+  Skeleton,
+  SkeletonCard,
+  SkeletonTable,
+  SkeletonChart,
+  SkeletonForm,
+  SkeletonDashboard,
+  SkeletonText,
+  SkeletonCircle,
+  SkeletonAvatar,
+  SkeletonButton,
+} from './skeleton'

@@ -5,6 +5,10 @@
     "es2022": true,
     "node": true
   },
+  "globals": {
+    "React": "readonly",
+    "JSX": "readonly"
+  },
   "extends": [
     "eslint:recommended",
     "@typescript-eslint/recommended",

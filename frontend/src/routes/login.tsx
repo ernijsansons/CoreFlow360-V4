@@ -3,26 +3,19 @@ import { useAuthStore } from '@/stores'
 import { LoginForm } from '@/modules/auth/login-form'
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Shield,
-  Zap,
-  TrendingUp,
-  Users,
-  Award,
-  ChevronRight,
-  Sparkles,
-  Globe,
-  Building
-} from 'lucide-react'
+import { Zap, TrendingUp, Users, ChevronRight, Sparkles } from 'lucide-react'
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
-  beforeLoad: () => {
+  beforeLoad: async () => {
     const { isAuthenticated } = useAuthStore.getState()
 
     // Redirect to dashboard if already authenticated
     if (isAuthenticated) {
-      throw new Error('Already authenticated')
+      const { redirect } = await import('@tanstack/react-router')
+      throw redirect({
+        to: '/',
+      })
     }
   },
   meta: () => [
@@ -362,7 +355,7 @@ function LoginPage() {
                   <p className="text-sm text-brand-primary-200">
                     New to CoreFlow360?{' '}
                     <a
-                      href="/register"
+                      href="/auth/register"
                       className="font-semibold text-white hover:text-brand-primary-100 transition-colors underline underline-offset-4"
                     >
                       Create an account

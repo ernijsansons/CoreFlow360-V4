@@ -287,8 +287,13 @@ export function LoginForm() {
         password: data.password,
       })
 
+      // Check if response is successful and has data
+      if (!response.success || !response.data) {
+        throw new Error('Login failed: Invalid response')
+      }
+
       // Store authentication data
-      login(response.token, response.refreshToken || response.token, response.user)
+      login(response.data.token, response.data.refreshToken || response.data.token, response.data.user)
 
       // Success animation
       toast.success(
@@ -299,7 +304,7 @@ export function LoginForm() {
           <div>
             <p className="font-semibold">Login successful!</p>
             <p className="text-sm text-muted-foreground">
-              Welcome back, {response.user.firstName}!
+              Welcome back, {response.data.user?.firstName || response.data.user?.email || 'there'}!
             </p>
           </div>
         </div>

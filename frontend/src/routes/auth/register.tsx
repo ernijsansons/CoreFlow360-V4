@@ -57,21 +57,30 @@ function RegisterPage() {
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      subscribeToUpdates: true
+      subscribeToUpdates: true,
+      agreeToTerms: false
     }
   })
 
-  const onSubmit = async () => {
+  const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Import auth service
+      const { authService } = await import('@/lib/api/services/auth.service')
+      
+      // Call API
+      const response = await authService.register({
+        email: data.email,
+        password: data.password,
+        name: `${data.firstName} ${data.lastName}`,
+        businessName: data.company,
+        acceptTerms: data.agreeToTerms
+      })
 
-      // Simulate random error for demo
-      if (Math.random() > 0.7) {
-        throw new Error('This email is already registered')
+      if (!response.success) {
+        throw new Error(response.error?.message || 'Registration failed')
       }
 
       setSuccess(true)

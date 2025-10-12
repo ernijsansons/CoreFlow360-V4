@@ -50,16 +50,61 @@ class ApiClient {
     }
   }
 
+  private getCSRFToken(): string | null {
+    // Get CSRF token from cookie
+    const cookies = document.cookie.split(';')
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split('=')
+      if (name === 'csrf-token' || name === '__Host-csrf-token') {
+        return decodeURIComponent(value)
+      }
+    }
+    return null
+  }
+
   private async getAuthHeaders(): Promise<HeadersInit> {
     const { token } = useAuthStore.getState()
+    const headers: HeadersInit = {}
 
-    if (!token) {
-      return {}
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
     }
 
-    return {
-      'Authorization': `Bearer ${token}`,
+    // Add CSRF token for state-changing methods
+    const csrfToken = this.getCSRFToken()
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken
     }
+
+    return headers
+  }
+
+  private prepareBody(data: unknown): BodyInit | undefined {
+    if (data === undefined || data === null) {
+      return undefined
+    }
+
+    if (typeof FormData !== 'undefined' && data instanceof FormData) {
+      return data
+    }
+
+    if (data instanceof URLSearchParams) {
+      return data
+    }
+
+    if (data instanceof Blob || data instanceof ArrayBuffer) {
+      return data as BodyInit
+    }
+
+    if (ArrayBuffer.isView(data as ArrayBufferView)) {
+      return data as BodyInit
+    }
+
+    if (typeof data === 'string') {
+      return data
+    }
+
+    return JSON.stringify(data)
   }
 
   private async handleOfflineRequest(url: string, options: ApiRequestOptions): Promise<void> {
@@ -153,11 +198,61 @@ class ApiClient {
     options: ApiRequestOptions = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.config.baseUrl}${endpoint}`
+    const requestOptions: ApiRequestOptions = { ...options }
 
     try {
+      // Prepare headers
+      const authHeaders = requestOptions.skipAuth ? {} : await this.getAuthHeaders()
+
+      const headers = new Headers()
+      const applyHeaders = (source?: HeadersInit) => {
+        if (!source) return
+
+        if (source instanceof Headers) {
+          source.forEach((value, key) => headers.set(key, value))
+          return
+        }
+
+        if (Array.isArray(source)) {
+          source.forEach(([key, value]) => headers.set(key, value))
+          return
+        }
+
+        Object.entries(source).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            headers.set(key, String(value))
+          }
+        })
+      }
+
+      applyHeaders(authHeaders)
+      applyHeaders(requestOptions.headers)
+
+      const requestBody = requestOptions.body
+      const isFormData = typeof FormData !== 'undefined' && requestBody instanceof FormData
+      const isBinary =
+        requestBody instanceof Blob ||
+        requestBody instanceof ArrayBuffer ||
+        (requestBody && typeof requestBody === 'object' && ArrayBuffer.isView(requestBody as ArrayBufferView))
+
+      if (!isFormData && !isBinary && requestBody !== undefined && !headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json')
+      }
+
+      if (isFormData) {
+        headers.delete('Content-Type')
+      }
+
+      const headersObject: Record<string, string> = {}
+      headers.forEach((value, key) => {
+        headersObject[key] = value
+      })
+
+      requestOptions.headers = headersObject
+
       // Check if offline and queue request if needed
-      if (!navigator.onLine && options.method !== 'GET') {
-        await this.handleOfflineRequest(url, options)
+      if (!navigator.onLine && requestOptions.method !== 'GET') {
+        await this.handleOfflineRequest(url, requestOptions)
         return {
           success: false,
           error: {
@@ -168,19 +263,8 @@ class ApiClient {
         }
       }
 
-      // Prepare headers
-      const authHeaders = options.skipAuth ? {} : await this.getAuthHeaders()
-      const headers = {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-        ...options.headers,
-      }
-
       // Make request with retry logic
-      const response = await this.retryRequest(url, {
-        ...options,
-        headers,
-      })
+      const response = await this.retryRequest(url, requestOptions)
 
       // Handle non-JSON responses
       const contentType = response.headers.get('content-type')
@@ -205,11 +289,11 @@ class ApiClient {
           response.status
         )
 
-        if (response.status === 401 && !options.skipAuth) {
+        if (response.status === 401 && !requestOptions.skipAuth) {
           useAuthStore.getState().logout()
         }
 
-        if (!options.skipErrorHandling) {
+        if (!requestOptions.skipErrorHandling) {
           console.error(`API Error [${endpoint}]:`, error)
         }
 
@@ -227,13 +311,13 @@ class ApiClient {
     } catch (error: unknown) {
       const apiError = this.handleError(error)
 
-      if (!options.skipErrorHandling) {
+      if (!requestOptions.skipErrorHandling) {
         console.error(`API Error [${endpoint}]:`, apiError)
       }
 
       // Queue for offline sync if applicable
-      if (apiError.code === 'OFFLINE' && options.method !== 'GET') {
-        await this.handleOfflineRequest(url, options)
+      if (apiError.code === 'OFFLINE' && requestOptions.method !== 'GET') {
+        await this.handleOfflineRequest(url, requestOptions)
         return {
           success: false,
           error: {
@@ -263,7 +347,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: this.prepareBody(data),
     })
   }
 
@@ -275,7 +359,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
+      body: this.prepareBody(data),
     })
   }
 
@@ -287,7 +371,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
+      body: this.prepareBody(data),
     })
   }
 

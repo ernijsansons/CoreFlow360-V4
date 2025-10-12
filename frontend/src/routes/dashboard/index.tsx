@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { createFileRoute } from '@tanstack/react-router'
-import { MainLayout } from '@/layouts/main-layout'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -28,11 +27,20 @@ import {
   RefreshCw,
   Bell
 } from 'lucide-react'
-import { useUIStore } from '@/stores'
+import { useAuthStore, useUIStore } from '@/stores'
 
 export const Route = createFileRoute('/dashboard/')({
   component: MainDashboard,
-  beforeLoad: () => {
+  beforeLoad: ({ location }) => {
+    const { isAuthenticated } = useAuthStore.getState()
+
+    if (!isAuthenticated) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href ?? '/dashboard' }
+      })
+    }
+
     useUIStore.getState().setBreadcrumbs([
       { label: 'Dashboard' }
     ])
@@ -104,8 +112,7 @@ function MainDashboard() {
   ]
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-start">
           <div>
@@ -382,6 +389,5 @@ function MainDashboard() {
           </TabsContent>
         </Tabs>
       </div>
-    </MainLayout>
   )
 }

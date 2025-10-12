@@ -4,8 +4,9 @@
 This checklist ensures your CoreFlow360 V4 deployment is production-ready and secure for customer onboarding. Complete each section and verify all checks pass before launching.
 
 **Production URLs:**
-- Backend API: https://coreflow360-v4-prod.ernijs-ansons.workers.dev
-- Frontend Application: https://production.coreflow360-frontend.pages.dev
+- Backend API: https://coreflow360-v4-prod.ernijs-ansons.workers.dev (pending api.coreflow360.com cutover)
+- Frontend Application: https://main.coreflow360-frontend.pages.dev
+- Latest Deploy Preview: https://<deploy-id>.coreflow360-frontend.pages.dev
 - Health Check Endpoint: https://coreflow360-v4-prod.ernijs-ansons.workers.dev/health
 
 ## Pre-Launch Verification

@@ -17,28 +17,37 @@ const TanStackRouterDevtools =
 
 export const Route = createRootRoute({
   component: RootComponent,
-  errorComponent: ({ error, reset }) => (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center space-y-4">
-        <h1 className="text-2xl font-bold text-destructive">Something went wrong</h1>
-        <p className="text-muted-foreground">{error.message}</p>
-        <div className="space-x-2">
-          <button
-            onClick={reset}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-          >
-            Try again
-          </button>
-          <Link
-            to="/login"
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
-          >
-            Go to login
-          </Link>
+  errorComponent: ({ error, reset }) => {
+    // Safely extract error message
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : typeof error === 'string' 
+        ? error 
+        : 'An unexpected error occurred'
+    
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold text-destructive">Something went wrong</h1>
+          <p className="text-muted-foreground">{errorMessage}</p>
+          <div className="space-x-2">
+            <button
+              onClick={reset}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+            >
+              Try again
+            </button>
+            <Link
+              to="/login"
+              className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
+            >
+              Go to login
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
-  ),
+    )
+  },
 })
 
 function RootComponent() {

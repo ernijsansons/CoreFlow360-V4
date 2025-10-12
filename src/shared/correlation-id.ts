@@ -339,12 +339,14 @@ export class CorrelationIdManager {
 
   /**
    * Setup cleanup timer for old traces
+   * Note: Disabled in Cloudflare Workers environment (setInterval not allowed in global scope)
    */
   private setupCleanupTimer(): void {
     // Clean up old traces every hour
-    setInterval(() => {
-      this.cleanupOldTraces();
-    }, 60 * 60 * 1000);
+    // Disabled for Cloudflare Workers - cleanup happens on-demand instead
+    // setInterval(() => {
+    //   this.cleanupOldTraces();
+    // }, 60 * 60 * 1000);
   }
 
   /**

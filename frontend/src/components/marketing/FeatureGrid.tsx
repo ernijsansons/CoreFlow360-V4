@@ -25,7 +25,8 @@ export function FeatureGrid({ features, columns = 3 }: FeatureGridProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={`grid grid-cols-1 ${gridCols[columns]} gap-12`}>
           {features.map((feature, index) => {
-            const IconComponent = (Icons as any)[feature.icon] as LucideIcon;
+            const iconKey = feature.icon as keyof typeof Icons;
+            const IconComponent = Icons[iconKey] as LucideIcon | undefined;
             
             return (
               <div

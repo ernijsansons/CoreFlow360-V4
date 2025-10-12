@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VoiceRouteImport } from './routes/voice'
 import { Route as TestRouteImport } from './routes/test'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LandingRouteImport } from './routes/landing'
+import { Route as EmailRouteImport } from './routes/email'
+import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as MarketingIndexRouteImport } from './routes/marketing.index'
@@ -22,9 +28,15 @@ import { Route as SettingsSecurityRouteImport } from './routes/settings/security
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
 import { Route as MarketingProductsRouteImport } from './routes/marketing.products'
+import { Route as FinanceInvoicesRouteImport } from './routes/finance/invoices'
+import { Route as FinanceExpensesRouteImport } from './routes/finance/expenses'
 import { Route as ErrorErrorRouteImport } from './routes/error/error'
 import { Route as Error404RouteImport } from './routes/error/404'
 import { Route as DashboardPortfolioRouteImport } from './routes/dashboard/portfolio'
+import { Route as CrmDealsRouteImport } from './routes/crm/deals'
+import { Route as CrmContactsRouteImport } from './routes/crm/contacts'
+import { Route as CrmCompaniesRouteImport } from './routes/crm/companies'
+import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
@@ -32,9 +44,24 @@ import { Route as DashboardMigrationIndexRouteImport } from './routes/dashboard/
 import { Route as DashboardCrmIndexRouteImport } from './routes/dashboard/crm/index'
 import { Route as DashboardAnalyticsIndexRouteImport } from './routes/dashboard/analytics/index'
 
+const VoiceRoute = VoiceRouteImport.update({
+  id: '/voice',
+  path: '/voice',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TestRoute = TestRouteImport.update({
   id: '/test',
   path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -45,6 +72,21 @@ const LoginRoute = LoginRouteImport.update({
 const LandingRoute = LandingRouteImport.update({
   id: '/landing',
   path: '/landing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmailRoute = EmailRouteImport.update({
+  id: '/email',
+  path: '/email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -97,6 +139,16 @@ const MarketingProductsRoute = MarketingProductsRouteImport.update({
   path: '/marketing/products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanceInvoicesRoute = FinanceInvoicesRouteImport.update({
+  id: '/finance/invoices',
+  path: '/finance/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceExpensesRoute = FinanceExpensesRouteImport.update({
+  id: '/finance/expenses',
+  path: '/finance/expenses',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ErrorErrorRoute = ErrorErrorRouteImport.update({
   id: '/error/error',
   path: '/error/error',
@@ -110,6 +162,26 @@ const Error404Route = Error404RouteImport.update({
 const DashboardPortfolioRoute = DashboardPortfolioRouteImport.update({
   id: '/dashboard/portfolio',
   path: '/dashboard/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmDealsRoute = CrmDealsRouteImport.update({
+  id: '/crm/deals',
+  path: '/crm/deals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmContactsRoute = CrmContactsRouteImport.update({
+  id: '/crm/contacts',
+  path: '/crm/contacts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmCompaniesRoute = CrmCompaniesRouteImport.update({
+  id: '/crm/companies',
+  path: '/crm/companies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
+  id: '/auth/verify-email',
+  path: '/auth/verify-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
@@ -145,15 +217,27 @@ const DashboardAnalyticsIndexRoute = DashboardAnalyticsIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/calendar': typeof CalendarRoute
+  '/email': typeof EmailRoute
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/test': typeof TestRoute
+  '/voice': typeof VoiceRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/crm/companies': typeof CrmCompaniesRoute
+  '/crm/contacts': typeof CrmContactsRoute
+  '/crm/deals': typeof CrmDealsRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
+  '/finance/expenses': typeof FinanceExpensesRoute
+  '/finance/invoices': typeof FinanceInvoicesRoute
   '/marketing/products': typeof MarketingProductsRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -169,15 +253,27 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/calendar': typeof CalendarRoute
+  '/email': typeof EmailRoute
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/test': typeof TestRoute
+  '/voice': typeof VoiceRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/crm/companies': typeof CrmCompaniesRoute
+  '/crm/contacts': typeof CrmContactsRoute
+  '/crm/deals': typeof CrmDealsRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
+  '/finance/expenses': typeof FinanceExpensesRoute
+  '/finance/invoices': typeof FinanceInvoicesRoute
   '/marketing/products': typeof MarketingProductsRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -194,15 +290,27 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/calendar': typeof CalendarRoute
+  '/email': typeof EmailRoute
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/test': typeof TestRoute
+  '/voice': typeof VoiceRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/auth/verify-email': typeof AuthVerifyEmailRoute
+  '/crm/companies': typeof CrmCompaniesRoute
+  '/crm/contacts': typeof CrmContactsRoute
+  '/crm/deals': typeof CrmDealsRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
+  '/finance/expenses': typeof FinanceExpensesRoute
+  '/finance/invoices': typeof FinanceInvoicesRoute
   '/marketing/products': typeof MarketingProductsRoute
   '/settings/billing': typeof SettingsBillingRoute
   '/settings/profile': typeof SettingsProfileRoute
@@ -220,15 +328,27 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/analytics'
+    | '/calendar'
+    | '/email'
     | '/landing'
     | '/login'
+    | '/privacy'
+    | '/terms'
     | '/test'
+    | '/voice'
     | '/auth/forgot-password'
     | '/auth/register'
     | '/auth/reset-password'
+    | '/auth/verify-email'
+    | '/crm/companies'
+    | '/crm/contacts'
+    | '/crm/deals'
     | '/dashboard/portfolio'
     | '/error/404'
     | '/error/error'
+    | '/finance/expenses'
+    | '/finance/invoices'
     | '/marketing/products'
     | '/settings/billing'
     | '/settings/profile'
@@ -244,15 +364,27 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/analytics'
+    | '/calendar'
+    | '/email'
     | '/landing'
     | '/login'
+    | '/privacy'
+    | '/terms'
     | '/test'
+    | '/voice'
     | '/auth/forgot-password'
     | '/auth/register'
     | '/auth/reset-password'
+    | '/auth/verify-email'
+    | '/crm/companies'
+    | '/crm/contacts'
+    | '/crm/deals'
     | '/dashboard/portfolio'
     | '/error/404'
     | '/error/error'
+    | '/finance/expenses'
+    | '/finance/invoices'
     | '/marketing/products'
     | '/settings/billing'
     | '/settings/profile'
@@ -268,15 +400,27 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/analytics'
+    | '/calendar'
+    | '/email'
     | '/landing'
     | '/login'
+    | '/privacy'
+    | '/terms'
     | '/test'
+    | '/voice'
     | '/auth/forgot-password'
     | '/auth/register'
     | '/auth/reset-password'
+    | '/auth/verify-email'
+    | '/crm/companies'
+    | '/crm/contacts'
+    | '/crm/deals'
     | '/dashboard/portfolio'
     | '/error/404'
     | '/error/error'
+    | '/finance/expenses'
+    | '/finance/invoices'
     | '/marketing/products'
     | '/settings/billing'
     | '/settings/profile'
@@ -293,15 +437,27 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
+  CalendarRoute: typeof CalendarRoute
+  EmailRoute: typeof EmailRoute
   LandingRoute: typeof LandingRoute
   LoginRoute: typeof LoginRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
   TestRoute: typeof TestRoute
+  VoiceRoute: typeof VoiceRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
+  CrmCompaniesRoute: typeof CrmCompaniesRoute
+  CrmContactsRoute: typeof CrmContactsRoute
+  CrmDealsRoute: typeof CrmDealsRoute
   DashboardPortfolioRoute: typeof DashboardPortfolioRoute
   Error404Route: typeof Error404Route
   ErrorErrorRoute: typeof ErrorErrorRoute
+  FinanceExpensesRoute: typeof FinanceExpensesRoute
+  FinanceInvoicesRoute: typeof FinanceInvoicesRoute
   MarketingProductsRoute: typeof MarketingProductsRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
@@ -318,11 +474,32 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/voice': {
+      id: '/voice'
+      path: '/voice'
+      fullPath: '/voice'
+      preLoaderRoute: typeof VoiceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/test': {
       id: '/test'
       path: '/test'
       fullPath: '/test'
       preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -337,6 +514,27 @@ declare module '@tanstack/react-router' {
       path: '/landing'
       fullPath: '/landing'
       preLoaderRoute: typeof LandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/email': {
+      id: '/email'
+      path: '/email'
+      fullPath: '/email'
+      preLoaderRoute: typeof EmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -409,6 +607,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketingProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/finance/invoices': {
+      id: '/finance/invoices'
+      path: '/finance/invoices'
+      fullPath: '/finance/invoices'
+      preLoaderRoute: typeof FinanceInvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance/expenses': {
+      id: '/finance/expenses'
+      path: '/finance/expenses'
+      fullPath: '/finance/expenses'
+      preLoaderRoute: typeof FinanceExpensesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/error/error': {
       id: '/error/error'
       path: '/error/error'
@@ -428,6 +640,34 @@ declare module '@tanstack/react-router' {
       path: '/dashboard/portfolio'
       fullPath: '/dashboard/portfolio'
       preLoaderRoute: typeof DashboardPortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/deals': {
+      id: '/crm/deals'
+      path: '/crm/deals'
+      fullPath: '/crm/deals'
+      preLoaderRoute: typeof CrmDealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/contacts': {
+      id: '/crm/contacts'
+      path: '/crm/contacts'
+      fullPath: '/crm/contacts'
+      preLoaderRoute: typeof CrmContactsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/companies': {
+      id: '/crm/companies'
+      path: '/crm/companies'
+      fullPath: '/crm/companies'
+      preLoaderRoute: typeof CrmCompaniesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/verify-email': {
+      id: '/auth/verify-email'
+      path: '/auth/verify-email'
+      fullPath: '/auth/verify-email'
+      preLoaderRoute: typeof AuthVerifyEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/reset-password': {
@@ -477,15 +717,27 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  CalendarRoute: CalendarRoute,
+  EmailRoute: EmailRoute,
   LandingRoute: LandingRoute,
   LoginRoute: LoginRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
   TestRoute: TestRoute,
+  VoiceRoute: VoiceRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthRegisterRoute: AuthRegisterRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
+  AuthVerifyEmailRoute: AuthVerifyEmailRoute,
+  CrmCompaniesRoute: CrmCompaniesRoute,
+  CrmContactsRoute: CrmContactsRoute,
+  CrmDealsRoute: CrmDealsRoute,
   DashboardPortfolioRoute: DashboardPortfolioRoute,
   Error404Route: Error404Route,
   ErrorErrorRoute: ErrorErrorRoute,
+  FinanceExpensesRoute: FinanceExpensesRoute,
+  FinanceInvoicesRoute: FinanceInvoicesRoute,
   MarketingProductsRoute: MarketingProductsRoute,
   SettingsBillingRoute: SettingsBillingRoute,
   SettingsProfileRoute: SettingsProfileRoute,

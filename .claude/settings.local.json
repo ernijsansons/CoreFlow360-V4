@@ -124,7 +124,11 @@
       "Bash(CLOUDFLARE_API_TOKEN=\"Rp3owWaOgVIBOFqv13wVWDzei3YbjfRfO0te5yVH\" npx wrangler secret put JWT_SECRET --env production)",
       "Bash(set CLOUDFLARE_API_TOKEN=Rp3owWaOgVIBOFqv13wVWDzei3YbjfRfO0te5yVH)",
       "Bash(xargs:*)",
-      "Bash(sort:*)"
+      "Bash(sort:*)",
+      "Bash(bash:*)",
+      "Bash(if [ -f \".env\" ])",
+      "Bash(then echo \"✓ .env file exists\")",
+      "Bash(else echo \"✗ .env file missing\")"
     ],
     "deny": [],
     "ask": []

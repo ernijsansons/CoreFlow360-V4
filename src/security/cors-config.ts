@@ -21,7 +21,10 @@ export const PRODUCTION_CORS_CONFIG: CORSConfig = {
     'https://app.coreflow360.com',
     'https://dashboard.coreflow360.com',
     'https://api.coreflow360.com',
-    'https://admin.coreflow360.com'
+    'https://admin.coreflow360.com',
+    'https://main.coreflow360-frontend.pages.dev',
+    'https://coreflow360-frontend.pages.dev',
+    '*.coreflow360-frontend.pages.dev'
   ],
 
   // Allowed HTTP methods
@@ -102,9 +105,17 @@ export class CORSManager {
   private config: CORSConfig;
   private environment: string;
 
-  constructor(environment: string = 'production') {
+  constructor(environment: string = 'production', customOrigins?: string[]) {
     this.environment = environment;
     this.config = this.getConfigForEnvironment(environment);
+    
+    // Merge custom origins from environment variables if provided
+    if (customOrigins && customOrigins.length > 0) {
+      this.config = {
+        ...this.config,
+        allowedOrigins: [...this.config.allowedOrigins, ...customOrigins]
+      };
+    }
   }
 
   /**

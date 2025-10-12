@@ -5,6 +5,7 @@ import { AuthSchemas, InputSanitizer, ValidationError } from './security/validat
 import { DistributedRateLimiter, AuditLogger } from './security/security-utilities';
 import { SecurityBootstrap } from './shared/security/security-bootstrap';
 import { SecurityError } from './shared/errors/app-error';
+import { handleAPIRequest } from './routes';
 
 // Use canonical Env type
 import type { Env } from './types/env';
@@ -568,7 +569,8 @@ export default {
     // ============================================================================
 
     // Initialize CORS manager with proper configuration
-    const corsManager = new CORSManager(env.ENVIRONMENT || 'production');
+    const allowedOrigins = env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()).filter(o => o.length > 0) || [];
+    const corsManager = new CORSManager(env.ENVIRONMENT || 'production', allowedOrigins);
     const origin = request.headers.get('Origin');
 
     // Handle preflight requests
@@ -628,17 +630,70 @@ export default {
         }
       }
 
-      // Get routes
+      // Get routes (legacy handlers) and detect API requests
       const routes = createProductionRoutes(env, authSystem, analytics);
+      const handler = routes[path as keyof typeof routes];
+      const isApiRequest = path.startsWith('/api/');
 
-      // Public endpoints (no auth required)
+      const forwardToApiRoutes = async (): Promise<Response> => {
+        let apiRequest = request;
+        const requestUrl = new URL(request.url);
+
+        if (!requestUrl.pathname.startsWith('/api/v1')) {
+          const suffix = requestUrl.pathname.substring('/api'.length);
+          const rewrittenUrl = new URL(requestUrl.toString());
+          rewrittenUrl.pathname = `/api/v1${suffix}`.replace('//', '/');
+          apiRequest = new Request(rewrittenUrl.toString(), request);
+        }
+
+        const honoResponse = await handleAPIRequest(apiRequest, env, ctx);
+        const responseHeaders = new Headers(honoResponse.headers);
+
+        Object.entries(corsHeaders).forEach(([key, value]) => {
+          responseHeaders.set(key, value);
+        });
+        const securityHeaders = corsManager.getSecurityHeaders();
+        Object.entries(securityHeaders).forEach(([key, value]) => {
+          if (!responseHeaders.has(key)) {
+            responseHeaders.set(key, value);
+          }
+        });
+
+        const finalResponse = new Response(honoResponse.body, {
+          status: honoResponse.status,
+          statusText: honoResponse.statusText,
+          headers: responseHeaders
+        });
+
+        const responseTime = Date.now() - startTime;
+        const authDetails = await authenticate(request, authSystem).catch(() => ({ user: null as User | null }));
+        const currentUser = authDetails?.user || null;
+
+        ctx.waitUntil(analytics.logRequest({
+          endpoint: path,
+          method: request.method,
+          statusCode: finalResponse.status,
+          responseTime,
+          userId: currentUser?.id,
+          businessId: currentUser?.businessId,
+          ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+          userAgent: request.headers.get('User-Agent') || undefined
+        }));
+
+        return finalResponse;
+      };
+
+      if (!handler && isApiRequest) {
+        return await forwardToApiRoutes();
+      }
+
+      // Public endpoints (no auth required) for legacy handlers
       const publicEndpoints = ['/', '/health', '/api/status', '/api/auth/register', '/api/auth/login', '/api/auth/refresh'];
 
       let user: User | null = null;
       let authError: string | undefined;
 
-      // Authenticate for protected endpoints
-      if (!publicEndpoints.includes(path)) {
+      if (handler && !publicEndpoints.includes(path)) {
         const authResult = await authenticate(request, authSystem);
         user = authResult.user;
         authError = authResult.error;
@@ -658,11 +713,11 @@ export default {
       let response: Response;
       let statusCode: number;
 
-      const handler = routes[path as keyof typeof routes];
-
       if (handler) {
         response = await handler(request, user!);
         statusCode = response.status;
+      } else if (isApiRequest) {
+        return await forwardToApiRoutes();
       } else {
         response = new Response(JSON.stringify({
           error: 'Endpoint not found',
@@ -676,13 +731,19 @@ export default {
         statusCode = 404;
       }
 
-      // Add CORS headers
+      // Add CORS and security headers
       const newHeaders = new Headers(response.headers);
       Object.entries(corsHeaders).forEach(([key, value]) => {
         newHeaders.set(key, value);
       });
+      const securityHeaders = corsManager.getSecurityHeaders();
+      Object.entries(securityHeaders).forEach(([key, value]) => {
+        if (!newHeaders.has(key)) {
+          newHeaders.set(key, value);
+        }
+      });
 
-      // Log request
+      // Log request for legacy handlers
       const responseTime = Date.now() - startTime;
       ctx.waitUntil(analytics.logRequest({
         endpoint: path,

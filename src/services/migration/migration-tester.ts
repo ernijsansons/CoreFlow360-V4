@@ -207,7 +207,7 @@ export class MigrationTester {
   }
 
   private async generateSampleRecord(tableMapping: any, index: number, options: any): Promise<Record<string, any>> {
-    const record: Record<string, any> = {};
+    let record: Record<string, any> = {};
 
     // Generate data for each mapped column
     for (const columnMapping of tableMapping.columnMappings) {
@@ -310,7 +310,7 @@ export class MigrationTester {
       const transformedData: any[] = [];
 
       for (const sourceRecord of sourceData) {
-        const targetRecord: Record<string, any> = {};
+        let targetRecord: Record<string, any> = {};
 
         // Apply column mappings
         for (const columnMapping of tableMapping.columnMappings) {

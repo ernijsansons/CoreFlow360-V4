@@ -16,6 +16,7 @@ API_VERSION = "v4"
 AGENT_SYSTEM_ENABLED = "true"
 MAX_AGENT_CONCURRENCY = "10"
 AGENT_TIMEOUT_MS = "30000"
+ALLOWED_ORIGINS = "https://main.coreflow360-frontend.pages.dev,https://coreflow360-frontend.pages.dev,https://app.coreflow360.com,https://www.coreflow360.com"
 
 # Production-specific bindings
 [[env.production.d1_databases]]

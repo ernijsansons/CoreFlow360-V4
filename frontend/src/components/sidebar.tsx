@@ -23,7 +23,7 @@ const sidebarItems: SidebarItem[] = [
     id: 'dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
-    href: '/',
+    href: '/dashboard',
   },
   {
     id: 'crm',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from '@tanstack/react-router';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '../ui/button';
 
 export function MarketingHeader() {

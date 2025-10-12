@@ -18,15 +18,15 @@ import invoiceRoutes from './invoices';
 import paymentRoutes from './payments';
 import agentRoutes from './agents';
 import chatRoutes from './chat';
-import webhookRoutes from './webhooks';
-import voiceAgentRoutes from './voice-agent';
-import learningRoutes from './learning';
-import learningDashboardRoutes from './learning-dashboard';
+// import webhookRoutes from './webhooks';
+// import voiceAgentRoutes from './voice-agent'; // Exports function, not Hono app
+// import learningRoutes from './learning';
+// import learningDashboardRoutes from './learning-dashboard';
 import leadIngestionRoutes from './lead-ingestion';
 import enrichmentRoutes from './enrichment';
-import exportRoutes from './export';
+// import exportRoutes from './export'; // Uses Express - not compatible with Workers
 import migrationRoutes from './migration';
-import dataIntegrityRoutes from './data-integrity';
+// import dataIntegrityRoutes from './data-integrity';
 import abacRoutes from './abac';
 import aiAuditRoutes from './ai-audit';
 import aiMonitoringRoutes from './ai-monitoring';
@@ -50,10 +50,30 @@ api.use('*', cors({
       'https://app.coreflow360.com',
       'https://dashboard.coreflow360.com',
       'https://api.coreflow360.com',
+      'https://main.coreflow360-frontend.pages.dev',
+      'https://coreflow360-frontend.pages.dev',
       'http://localhost:3000',
       'http://localhost:5173'
     ];
-    return allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+    const wildcardOrigins = ['*.coreflow360-frontend.pages.dev'];
+
+    const isAllowedOrigin = (value: string | undefined | null): value is string => {
+      if (!value) return false;
+      if (allowedOrigins.includes(value)) return true;
+
+      try {
+        const { hostname } = new URL(value);
+        return wildcardOrigins.some(pattern => {
+          if (!pattern.startsWith('*.')) return false;
+          const domain = pattern.substring(2);
+          return hostname.endsWith(domain);
+        });
+      } catch {
+        return false;
+      }
+    };
+
+    return isAllowedOrigin(origin) ? origin : allowedOrigins[0];
   },
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -85,15 +105,15 @@ v1.route('/invoices', invoiceRoutes);
 v1.route('/payments', paymentRoutes);
 v1.route('/agents', agentRoutes);
 v1.route('/chat', chatRoutes);
-v1.route('/webhooks', webhookRoutes);
-v1.route('/voice-agents', voiceAgentRoutes);
-v1.route('/learning', learningRoutes);
-v1.route('/learning-dashboard', learningDashboardRoutes);
+// v1.route('/webhooks', webhookRoutes);
+// v1.route('/voice-agents', voiceAgentRoutes); // Exports function, not Hono app
+// v1.route('/learning', learningRoutes);
+// v1.route('/learning-dashboard', learningDashboardRoutes);
 v1.route('/lead-ingestion', leadIngestionRoutes);
 v1.route('/enrichment', enrichmentRoutes);
-v1.route('/export', exportRoutes);
+// v1.route('/export', exportRoutes); // Uses Express - not compatible with Workers
 v1.route('/migration', migrationRoutes);
-v1.route('/data-integrity', dataIntegrityRoutes);
+// v1.route('/data-integrity', dataIntegrityRoutes);
 v1.route('/abac', abacRoutes);
 v1.route('/ai-audit', aiAuditRoutes);
 v1.route('/ai-monitoring', aiMonitoringRoutes);

@@ -330,7 +330,7 @@ const QuickAction = ({ icon: Icon, title, description, onClick, color = 'brand' 
 }
 
 // Activity Item Component
-const ActivityItem = ({ activity, isLast = false }: { activity: { type: string; title: string; time: string; user: string; metadata?: Record<string, unknown> }; isLast?: boolean }) => {
+const ActivityItem = ({ activity, isLast = false }: { activity: { type: string; title: string; description?: string; time: string; user?: string; value?: string; metadata?: Record<string, unknown> }; isLast?: boolean }) => {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'invoice': return FileText

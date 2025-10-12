@@ -277,9 +277,7 @@ class CRMService {
   }>> {
     const formData = new FormData()
     formData.append('file', file)
-    return apiClient.post('/api/crm/import/contacts', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    return apiClient.post('/api/crm/import/contacts', formData)
   }
 
   async exportContacts(format: 'csv' | 'excel'): Promise<Blob> {
