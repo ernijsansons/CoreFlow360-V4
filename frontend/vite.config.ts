@@ -20,6 +20,8 @@ function copyHeadersPlugin() {
   }
 }
 
+
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -33,6 +35,7 @@ export default defineConfig({
       silent: true
     }),
     copyHeadersPlugin(),
+    
   ],
   resolve: {
     alias: {
@@ -46,6 +49,7 @@ export default defineConfig({
       '@/styles': path.resolve(__dirname, './src/styles'),
       '@/layouts': path.resolve(__dirname, './src/layouts'),
       '@/workers': path.resolve(__dirname, './src/workers'),
+      '@design-system': path.resolve(__dirname, '../design-system'),
     },
   },
   build: {

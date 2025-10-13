@@ -68,14 +68,126 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Remove loading screen after 10 seconds if React hasn't mounted
+      // Enhanced error handling and diagnostics
+      window.addEventListener('error', function(event) {
+        console.error('[CoreFlow360] Global error caught:', event.error);
+        console.error('[CoreFlow360] Error details:', {
+          message: event.message,
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+          stack: event.error?.stack
+        });
+      });
+
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('[CoreFlow360] Unhandled promise rejection:', event.reason);
+      });
+
+      // CSS validation function
+      function validateCSSVariables() {
+        const criticalVars = [
+          '--brand-primary-600',
+          '--brand-accent-600',
+          '--brand-teal-600',
+          '--semantic-success-500',
+          '--semantic-warning-500',
+          '--semantic-error-500'
+        ];
+        
+        const missing = [];
+        const rootStyles = getComputedStyle(document.documentElement);
+        
+        for (const variable of criticalVars) {
+          const value = rootStyles.getPropertyValue(variable).trim();
+          if (!value) {
+            missing.push(variable);
+          }
+        }
+        
+        if (missing.length > 0) {
+          console.error('[CoreFlow360] CSS Validation Failed - Missing variables:', missing);
+          return false;
+        } else {
+          console.log('[CoreFlow360] CSS Validation Passed - All critical variables loaded');
+          return true;
+        }
+      }
+
+      // Remove loading screen after 30 seconds if React hasn't mounted
       setTimeout(function() {
         var loadingScreen = document.getElementById('loading-screen');
         if (loadingScreen) {
           loadingScreen.style.display = 'none';
-          console.error('[CoreFlow360] Loading timeout - React failed to mount within 10 seconds');
+          
+          // Enhanced error reporting
+          console.error('[CoreFlow360] Loading timeout - React failed to mount within 30 seconds');
+          console.error('[CoreFlow360] Possible causes:');
+          console.error('  1. JavaScript bundle failed to load');
+          console.error('  2. React initialization error');
+          console.error('  3. CSS design tokens missing');
+          console.error('  4. Environment configuration issue');
+          
+          // Validate CSS variables
+          const cssValid = validateCSSVariables();
+          if (!cssValid) {
+            console.error('[CoreFlow360] CSS design tokens validation failed - this may be the root cause');
+          }
+          
+          // Show error message to user
+          document.body.innerHTML = `
+            <div style="
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+              padding: 2rem;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              text-align: center;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+            ">
+              <h1 style="font-size: 2rem; margin-bottom: 1rem; font-weight: 600;">
+                Application Loading Failed
+              </h1>
+              <p style="font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.9;">
+                The application failed to load within the expected time. This may be due to a network issue or configuration problem.
+              </p>
+              <div style="
+                background: rgba(255, 255, 255, 0.1);
+                padding: 1.5rem;
+                border-radius: 0.5rem;
+                margin-bottom: 2rem;
+                max-width: 600px;
+              ">
+                <h2 style="font-size: 1.2rem; margin-bottom: 1rem; font-weight: 600;">
+                  Troubleshooting Steps:
+                </h2>
+                <ol style="text-align: left; line-height: 1.6;">
+                  <li>Check your internet connection</li>
+                  <li>Try refreshing the page (Ctrl+F5 or Cmd+Shift+R)</li>
+                  <li>Clear your browser cache and cookies</li>
+                  <li>Check browser console (F12) for detailed error messages</li>
+                  <li>Try a different browser or incognito mode</li>
+                </ol>
+              </div>
+              <button onclick="window.location.reload()" style="
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                color: white;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.375rem;
+                font-size: 1rem;
+                cursor: pointer;
+                transition: background-color 0.2s;
+              " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
+                Retry Loading
+              </button>
+            </div>
+          `;
         }
-      }, 10000);
+      }, 30000);
     </script>
   </body>
 </html>

@@ -5,6 +5,7 @@ import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { ToastListener } from '@/components/toast-listener'
 import { QueryProvider } from '@/providers/query-provider'
+import { validateCSSVariables, logCSSValidation } from '@/lib/css-validation'
 
 function LoadingFallback() {
   return (
@@ -39,6 +40,21 @@ export default function App() {
     if (loadingScreen) {
       console.log('[CoreFlow360] Removing loading screen')
       loadingScreen.style.display = 'none'
+    }
+
+    // Validate CSS design tokens on app mount
+    try {
+      const cssValidationResult = validateCSSVariables()
+      logCSSValidation(cssValidationResult)
+      
+      if (!cssValidationResult.valid) {
+        console.warn('[CoreFlow360] CSS validation failed - some design tokens may be missing')
+        // Don't throw here - let the app continue with inline fallback tokens
+      } else {
+        console.log('[CoreFlow360] CSS design tokens validation successful')
+      }
+    } catch (error) {
+      console.error('[CoreFlow360] CSS validation error:', error)
     }
 
     return () => {
