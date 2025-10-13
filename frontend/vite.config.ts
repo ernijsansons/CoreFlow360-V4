@@ -24,6 +24,15 @@ function copyHeadersPlugin() {
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Define environment variables with fallbacks for production builds
+  define: {
+    'import.meta.env.VITE_API_URL': JSON.stringify(
+      process.env.VITE_API_URL || 'https://coreflow360-v4-prod.ernijs-ansons.workers.dev'
+    ),
+    'import.meta.env.VITE_ENVIRONMENT': JSON.stringify(
+      process.env.VITE_ENVIRONMENT || process.env.NODE_ENV || 'production'
+    ),
+  },
   plugins: [
     react(),
     TanStackRouterVite(),
@@ -35,7 +44,7 @@ export default defineConfig({
       silent: true
     }),
     copyHeadersPlugin(),
-    
+
   ],
   resolve: {
     alias: {
