@@ -14,24 +14,21 @@ export interface EnvValidationResult {
  * @throws Error if critical environment variables are missing
  */
 export function validateEnvironment(): EnvValidationResult {
-  const required = ['VITE_API_URL']
-  const optional = ['VITE_SENTRY_DSN', 'VITE_ENVIRONMENT']
-
   const missing: string[] = []
   const warnings: string[] = []
 
-  // Check required variables
-  for (const key of required) {
-    if (!import.meta.env[key]) {
-      missing.push(key)
-    }
+  // Check required variables using direct property access (not bracket notation)
+  // This is required for Vite's define config to work correctly
+  if (!import.meta.env.VITE_API_URL) {
+    missing.push('VITE_API_URL')
   }
 
   // Check optional variables (warn but don't fail)
-  for (const key of optional) {
-    if (!import.meta.env[key]) {
-      warnings.push(`Optional environment variable ${key} is not set`)
-    }
+  if (!import.meta.env.VITE_SENTRY_DSN) {
+    warnings.push('Optional environment variable VITE_SENTRY_DSN is not set')
+  }
+  if (!import.meta.env.VITE_ENVIRONMENT) {
+    warnings.push('Optional environment variable VITE_ENVIRONMENT is not set')
   }
 
   // Validate API URL format
