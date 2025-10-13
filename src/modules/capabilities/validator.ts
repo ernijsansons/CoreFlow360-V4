@@ -173,7 +173,7 @@ export class CapabilityValidator {
 
   private registerBuiltInValidators(): void {
     for (const [name, validator] of Object.entries(BuiltInValidators)) {
-      this.customValidators.set(name, validator);
+      this.customValidators.set(name, validator as (value: unknown) => boolean);
     }
   }
 
@@ -780,7 +780,7 @@ export class CapabilityValidator {
 
     // Simple redaction for demonstration
     // In production, use more sophisticated redaction based on data patterns
-    return PIIRedactor.redactSensitiveData(result);
+    return PIIRedactor.redactSensitiveData(result as Record<string, unknown>);
   }
 
   private async runCrossParameterValidation(

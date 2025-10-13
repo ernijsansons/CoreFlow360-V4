@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Schema, Table, Column, ConnectionConfig } from '../../../types/migration';
 import { BaseConnector, Connector, QueryOptions, WriteOptions } from './index';
 

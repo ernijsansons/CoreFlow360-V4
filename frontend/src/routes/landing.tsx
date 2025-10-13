@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { Analytics } from '@/lib/analytics'
+import { PublicHeader } from '@/components/layouts/PublicHeader'
 
 export const Route = createFileRoute('/landing')({
   component: LandingPage,
@@ -8,6 +9,7 @@ export const Route = createFileRoute('/landing')({
 function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
+      <PublicHeader />
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-20 px-4">
         <div className="max-w-7xl mx-auto text-center">

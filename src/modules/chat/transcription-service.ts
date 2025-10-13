@@ -114,9 +114,10 @@ class TranscriptionService {
 
       throw new AppError(
         'Transcription failed',
-        'TRANSCRIPTION_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'TRANSCRIPTION_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -153,13 +154,13 @@ class TranscriptionService {
             const transcription = await this.callWhisperAPI(audioBuffer, {
               audio: this.bufferToBase64(audioBuffer),
               format: (options.format as any) || 'webm',
-              language: options.language
+              language: options.language || 'en'
             })
 
             const result = await this.postprocessTranscription(transcription, {
               audio: '',
               format: 'webm',
-              language: options.language
+              language: options.language || 'en'
             })
 
             options.onTranscript?.(result.transcript)
@@ -178,13 +179,13 @@ class TranscriptionService {
         const finalTranscription = await this.callWhisperAPI(finalBuffer, {
           audio: this.bufferToBase64(finalBuffer),
           format: (options.format as any) || 'webm',
-          language: options.language
+          language: options.language || 'en'
         })
 
         const finalResult = await this.postprocessTranscription(finalTranscription, {
           audio: '',
           format: 'webm',
-          language: options.language
+          language: options.language || 'en'
         })
 
         options.onComplete?.(finalResult)
@@ -193,9 +194,10 @@ class TranscriptionService {
     } catch (error: any) {
       throw new AppError(
         'Stream transcription failed',
-        'STREAM_TRANSCRIPTION_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'STREAM_TRANSCRIPTION_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -208,6 +210,11 @@ class TranscriptionService {
     request: TranscriptionRequest
   ): Promise<any> {
     try {
+      // Check if AI binding is available
+      if (!this.env.AI) {
+        throw new AppError('AI service not configured', 503, 'AI_UNAVAILABLE')
+      }
+
       // Use Cloudflare Workers AI Whisper model
       const result = await this.env.AI.run('@cf/openai/whisper', {
         audio: Array.from(new Uint8Array(audioBuffer))
@@ -218,9 +225,10 @@ class TranscriptionService {
     } catch (error: any) {
       throw new AppError(
         'AI transcription service failed',
-        'AI_SERVICE_ERROR',
         503,
-        error instanceof Error ? error.message : undefined
+        'AI_SERVICE_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -329,11 +337,11 @@ class TranscriptionService {
    */
   private validateAudioFile(buffer: ArrayBuffer, format: string): void {
     if (buffer.byteLength === 0) {
-      throw new AppError('Audio file is empty', 'INVALID_AUDIO')
+      throw new AppError('Audio file is empty', 400, 'INVALID_AUDIO')
     }
 
     if (buffer.byteLength > 25 * 1024 * 1024) { // 25MB limit
-      throw new AppError('Audio file too large', 'AUDIO_TOO_LARGE')
+      throw new AppError('Audio file too large', 413, 'AUDIO_TOO_LARGE')
     }
 
     // Basic format validation based on magic numbers
@@ -375,7 +383,7 @@ class TranscriptionService {
 
       return buffer
     } catch (error: any) {
-      throw new AppError('Invalid base64 audio data', 'INVALID_AUDIO_DATA')
+      throw new AppError('Invalid base64 audio data', 400, 'INVALID_AUDIO_DATA')
     }
   }
 

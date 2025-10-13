@@ -7,7 +7,7 @@
 import { Logger } from '../shared/logger';
 import { webGPUAccelerator, type EdgeInferenceModel } from './webgpu-neural-accelerator';
 import { AutomatedAIOptimizer } from './automated-ai-optimizer';
-import type { OptimizationStrategy } from './automated-ai-optimizer';
+import { getNavigator, getPerformance, getEdgeDeviceInfo } from '../shared/worker-polyfills';
 
 export interface EdgeNode {
   nodeId: string;
@@ -481,22 +481,19 @@ export class EdgeAIOrchestrator {
    */
   private async discoverEdgeNodes(): Promise<void> {
     // Discover browser capabilities
-    // @ts-ignore - window is not available in Workers environment
-    if (typeof globalThis !== 'undefined' && typeof globalThis.window !== 'undefined') {
+    // Browser node (Worker-safe check)
+    if (typeof globalThis !== 'undefined' && typeof (globalThis as any).window !== 'undefined') {
+      const nav = getNavigator();
+      const perf = getPerformance();
+      const deviceInfo = getEdgeDeviceInfo();
+
       this.edgeNodes.set('browser-main', {
         nodeId: 'browser-main',
         location: 'browser',
-        capabilities: {
-          // @ts-ignore - navigator is browser-specific
-          webGPU: 'gpu' in navigator,
-          wasmSimd: typeof WebAssembly !== 'undefined',
-          tensorflowLite: false,
-          memoryMB: (performance as any).memory?.jsHeapSizeLimit / 1024 / 1024 || 2048,
-          computeUnits: navigator.hardwareConcurrency || 4
-        },
-        latency: 1,
-        bandwidth: 1000,
-        reliability: 0.99
+        capabilities: deviceInfo.capabilities,
+        latency: deviceInfo.latency,
+        bandwidth: deviceInfo.bandwidth,
+        reliability: deviceInfo.reliability
       });
     }
 
@@ -707,7 +704,7 @@ export class EdgeAIOrchestrator {
       architecture: this.nasEngine?.currentArchitecture || this.createInitialArchitecture(),
       latency: strategy.expectedLatency,
       accuracy: 0.95, // Would be calculated from actual result
-      energyConsumption: this.estimateEnergyConsumption(this.nasEngine?.currentArchitecture!),
+      energyConsumption: this.estimateEnergyConsumption(this.nasEngine?.currentArchitecture || this.createInitialArchitecture()),
       timestamp: Date.now()
     };
 

@@ -255,7 +255,7 @@ export class AuthSystem {
   }> {
     try {
       // Find user
-      const userRow = await this.db.prepare('SELECT * FROM users WHERE email = ? AND is_active = 1')
+      const userRow = await this.db.prepare("SELECT * FROM users WHERE email = ? AND status = 'active'")
         .bind(request.email).first() as any;
 
       if (!userRow) {
@@ -276,11 +276,11 @@ export class AuthSystem {
       const user: User = {
         id: userRow.id,
         email: userRow.email,
-        name: userRow.name,
+        name: userRow.display_name || `${userRow.first_name} ${userRow.last_name}`,
         businessId: userRow.business_id,
-        roles: JSON.parse(userRow.roles),
-        permissions: JSON.parse(userRow.permissions),
-        isActive: userRow.is_active === 1,
+        roles: [userRow.role],
+        permissions: userRow.permissions ? JSON.parse(userRow.permissions) : [],
+        isActive: userRow.status === 'active',
         createdAt: userRow.created_at,
         updatedAt: userRow.updated_at,
         lastLoginAt: userRow.last_login_at,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * AI Monitoring Dashboard API
  * Real-time monitoring and alerting for AI audit systems

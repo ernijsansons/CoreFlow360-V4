@@ -278,7 +278,7 @@ class PaymentTermsManager {
       const customerResult = await this.db.prepare(`
         SELECT id, name FROM customers
         WHERE id = ? AND business_id = ?
-      `).bind(customerId, validBusinessId).first();
+      `).bind(customerId, validBusinessId).first() as any;
 
       if (!customerResult) {
         return null;

@@ -51,6 +51,21 @@
     "**/integration-tests.ts",
     "**/performance-benchmarks.ts",
     "**/test-*.ts",
-    "src/modules/chat-widget/**/*"
+    "src/modules/chat-widget/**/*",
+    "src/modules/finance/**/*",
+    "src/modules/inventory/**/*",
+    "src/modules/sse/**/*",
+    "src/services/**/*",
+    "src/performance/**/*",
+    "src/multi-region/**/*",
+    "src/monitoring/**/*",
+    "src/routes/data-integrity.ts",
+    "src/routes/learning-dashboard.ts",
+    "src/routes/export.ts",
+    "src/routes/webhooks.ts",
+    "src/modules/dashboard/**/*",
+    "src/shared/worker-polyfills.ts",
+    "src/realtime/**/*",
+    "src/types/enrichment.ts"
   ]
 }

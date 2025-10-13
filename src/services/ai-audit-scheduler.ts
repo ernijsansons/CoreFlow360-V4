@@ -532,21 +532,24 @@ export class AIAuditScheduler {
     switch (schedule.frequency) {
       case 'hourly':
         return new Date(now.getTime() + 60 * 60 * 1000);
-      case 'daily':
+      case 'daily': {
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(2, 0, 0, 0); // 2 AM
         return tomorrow;
-      case 'weekly':
+      }
+      case 'weekly': {
         const nextWeek = new Date(now);
         nextWeek.setDate(nextWeek.getDate() + (7 - nextWeek.getDay()));
         nextWeek.setHours(2, 0, 0, 0);
         return nextWeek;
-      case 'monthly':
+      }
+      case 'monthly': {
         const nextMonth = new Date(now);
         nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
         nextMonth.setHours(2, 0, 0, 0);
         return nextMonth;
+      }
       case 'custom':
         if (schedule.customCron) {
           // Simplified cron parsing - in real implementation would use a proper cron library

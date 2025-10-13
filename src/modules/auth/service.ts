@@ -236,14 +236,36 @@ class AuthService {
         `).bind(validatedData.email).first<UserRow>();
 
         if (!user) {
+          this.logger.info('User not found for email', { email: validatedData.email });
+          throw new AuthenticationError('Invalid email or password');
+        }
+
+        this.logger.info('User found, verifying credentials', {
+          userId: user.id,
+          email: user.email,
+          hasHash: !!user.password_hash,
+          hasSalt: !!user.password_salt,
+          hashLength: user.password_hash?.length,
+          saltLength: user.password_salt?.length,
+        });
+
+        // Check if hash and salt exist
+        if (!user.password_hash || !user.password_salt) {
+          this.logger.warn('Missing password hash or salt', { userId: user.id });
           throw new AuthenticationError('Invalid email or password');
         }
 
         // Verify password
+        this.logger.info('Verifying password', { userId: user.id });
         const isValidPassword = await verifyPassword(validatedData.password, user.password_hash, user.password_salt);
+        this.logger.info('Password verification complete', { userId: user.id, isValid: isValidPassword });
+
         if (!isValidPassword) {
+          this.logger.warn('Password verification failed', { userId: user.id, email: user.email });
           throw new AuthenticationError('Invalid email or password');
         }
+
+        this.logger.info('Password verification successful', { userId: user.id })
 
         // Check if MFA is required
         const mfaStatus = await this.mfaService.getMFAStatus(user.id);
@@ -325,6 +347,11 @@ class AuthService {
         };
 
       } catch (error: any) {
+        console.log('[AUTH] Login error caught:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack?.substring(0, 200)
+        });
         this.logger.error('Login failed', { error: error.message, email: data.email });
 
         // Log audit entry

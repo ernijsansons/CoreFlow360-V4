@@ -1153,11 +1153,11 @@ export interface ReportExportRequest {
 }
 
 // Currency Management Types
-export type Currency = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'AUD' | string;
+export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'AUD' | string;
 
 export interface CurrencyRate {
-  from: Currency;
-  to: Currency;
+  from: CurrencyCode;
+  to: CurrencyCode;
   rate: number;
   timestamp: string;
   source?: string;

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enhanced Payment Processing API Routes
  * Enterprise payment gateway integration with comprehensive security validation

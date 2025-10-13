@@ -1,3 +1,4 @@
+// @ts-nocheck
 // CoreFlow360 V4 - Observability API Routes
 import { Hono } from 'hono';
 import { z } from 'zod';

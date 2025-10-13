@@ -180,7 +180,7 @@ export class VerificationQualitySystem {
 
   // Anti-hallucination knowledge sources
   private factCheckingSources: Map<string, string> = new Map();
-  private consistencyCheckers: Map<string, Function> = new Map();
+  private consistencyCheckers: Map<string, (...args: any[]) => any> = new Map();
   private plausibilityModels: Map<string, any> = new Map();
 
   constructor() {

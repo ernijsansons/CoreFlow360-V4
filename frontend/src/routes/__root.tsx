@@ -4,6 +4,8 @@ import { EntityProvider } from '@/hooks'
 import { useAuthStore, useUIStore } from '@/stores'
 import { MainLayout } from '@/layouts/main-layout'
 import { Analytics } from '@/lib/analytics'
+import { SupportChat } from '@/components/support/SupportChat'
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
 
 // Lazy load DevTools only in development
 const TanStackRouterDevtools =
@@ -18,19 +20,42 @@ const TanStackRouterDevtools =
 export const Route = createRootRoute({
   component: RootComponent,
   errorComponent: ({ error, reset }) => {
+    // Log detailed error for debugging
+    console.error('[CoreFlow360] Router Error Boundary caught error:', error)
+    console.error('[CoreFlow360] Error type:', typeof error)
+    console.error('[CoreFlow360] Error constructor:', error?.constructor?.name)
+    if (error instanceof Error) {
+      console.error('[CoreFlow360] Error stack:', error.stack)
+    }
+
     // Safely extract error message
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : typeof error === 'string' 
-        ? error 
+    const errorMessage = error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
         : 'An unexpected error occurred'
-    
+
+    const errorDetails = error instanceof Error && error.stack
+      ? error.stack
+      : JSON.stringify(error, null, 2)
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold text-destructive">Something went wrong</h1>
-          <p className="text-muted-foreground">{errorMessage}</p>
-          <div className="space-x-2">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="max-w-2xl w-full space-y-4">
+          <div className="text-center space-y-4">
+            <h1 className="text-2xl font-bold text-destructive">Something went wrong</h1>
+            <p className="text-muted-foreground">{errorMessage}</p>
+          </div>
+
+          {/* Always show error details in production for debugging */}
+          <details className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+            <summary className="cursor-pointer font-semibold text-sm mb-2">Error Details (Click to expand)</summary>
+            <pre className="text-xs overflow-auto mt-2 whitespace-pre-wrap break-words">
+              <code>{errorDetails}</code>
+            </pre>
+          </details>
+
+          <div className="flex gap-2 justify-center">
             <button
               onClick={reset}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
@@ -38,10 +63,10 @@ export const Route = createRootRoute({
               Try again
             </button>
             <Link
-              to="/login"
+              to="/landing"
               className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
             >
-              Go to login
+              Go Home
             </Link>
           </div>
         </div>
@@ -87,6 +112,7 @@ function RootComponent() {
     return (
       <>
         <Outlet />
+        <SupportChat />
         <TanStackRouterDevtools />
       </>
     )
@@ -97,6 +123,8 @@ function RootComponent() {
       <MainLayout>
         <Outlet />
       </MainLayout>
+      <OnboardingTour />
+      <SupportChat />
       <TanStackRouterDevtools />
     </EntityProvider>
   )

@@ -484,7 +484,7 @@ export class PatternRecognition {
     for (const segmentName of applicability) {
       const segment = await db.prepare(`
         SELECT * FROM customer_segments WHERE name = ?
-      `).bind(segmentName).first();
+      `).bind(segmentName).first() as any;
 
       if (segment) {
         const segmentRow = segment as Record<string, unknown>;

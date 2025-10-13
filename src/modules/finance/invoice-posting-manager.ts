@@ -588,7 +588,7 @@ class InvoicePostingManager {
         cash_account_id
       FROM finance_config
       WHERE business_id = ?
-    `).bind(businessId).first();
+    `).bind(businessId).first() as any;
 
     if (!result) {
       throw new Error('Finance configuration not found');
@@ -622,7 +622,7 @@ class InvoicePostingManager {
         SELECT id, method_type, fees_percentage, fees_fixed_amount
         FROM payment_methods_config
         WHERE method_type = ? AND business_id = ? AND is_active = 1
-      `).bind(paymentMethod, validBusinessId).first();
+      `).bind(paymentMethod, validBusinessId).first() as any;
 
       if (!paymentMethodResult) {
         // If no specific configuration found, try to get default cash account
@@ -673,7 +673,7 @@ class InvoicePostingManager {
         validBusinessId,
         Date.now(),
         Date.now()
-      ).first();
+      ).first() as any;
 
       if (accountResult) {
         return accountResult.account_id as string;
@@ -692,7 +692,7 @@ class InvoicePostingManager {
         validBusinessId,
         Date.now(),
         Date.now()
-      ).first();
+      ).first() as any;
 
       if (fallbackResult) {
         return fallbackResult.account_id as string;
@@ -777,7 +777,7 @@ class InvoicePostingManager {
       const paymentMethodResult = await this.db.prepare(`
         SELECT id FROM payment_methods_config
         WHERE method_type = ? AND business_id = ? AND is_active = 1
-      `).bind(paymentMethod, validBusinessId).first();
+      `).bind(paymentMethod, validBusinessId).first() as any;
 
       if (!paymentMethodResult) {
         return null;
@@ -798,7 +798,7 @@ class InvoicePostingManager {
         validBusinessId,
         Date.now(),
         Date.now()
-      ).first();
+      ).first() as any;
 
       return accountResult ? accountResult.account_id as string : null;
 
@@ -818,7 +818,7 @@ class InvoicePostingManager {
     const result = await this.db.prepare(`
       SELECT * FROM invoices
       WHERE id = ? AND business_id = ?
-    `).bind(invoiceId, businessId).first();
+    `).bind(invoiceId, businessId).first() as any;
 
     if (!result) {
       return null;
@@ -840,7 +840,7 @@ class InvoicePostingManager {
       UPDATE invoices
       SET journal_entry_id = ?, updated_at = ?, updated_by = ?
       WHERE id = ? AND business_id = ?
-    `).bind(journalEntryId, Date.now(), updatedBy, invoiceId, businessId).run();
+    `).bind(journalEntryId, Date.now(), updatedBy, invoiceId, businessId as any).run();
 
     const updatedInvoice = await this.getInvoice(invoiceId, businessId);
     if (!updatedInvoice) {
@@ -864,7 +864,7 @@ class InvoicePostingManager {
       UPDATE invoices
       SET balance_due = ?, status = ?, updated_at = ?, updated_by = ?
       WHERE id = ? AND business_id = ?
-    `).bind(newBalance, newStatus, Date.now(), updatedBy, invoiceId, businessId).run();
+    `).bind(newBalance, newStatus, Date.now(), updatedBy, invoiceId, businessId as any).run();
   }
 
   /**

@@ -1198,7 +1198,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
 
     // Redact sensitive data
     if (sanitized.data) {
-      sanitized.data = PIIRedactor.redactSensitiveData(sanitized.data) as unknown as Record<string, unknown>;
+      sanitized.data = PIIRedactor.redactSensitiveData(sanitized.data as Record<string, unknown>) as unknown as Record<string, unknown>;
     }
 
     return sanitized as Record<string, unknown>;

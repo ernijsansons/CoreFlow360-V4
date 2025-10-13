@@ -645,7 +645,7 @@ export class CustomReportBuilder {
       const result = await this.db.prepare(`
         SELECT * FROM custom_report_definitions
         WHERE id = ? AND business_id = ?
-      `).bind(definitionId, validBusinessId).first();
+      `).bind(definitionId, validBusinessId).first() as any;
 
       if (!result) {
         return null;

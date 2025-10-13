@@ -68,7 +68,7 @@ export async function generateEntryNumber(
     year.toString(),
     businessId,
     `${prefix}-${year}-%`
-  ).first();
+  ).first() as any;
 
   const nextSeq = ((result?.max_seq as number) || 0) + 1;
   const paddedSeq = nextSeq.toString().padStart(6, '0');

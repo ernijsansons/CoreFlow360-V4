@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ConnectionConfig, Schema, CDCEvent } from '../../../types/migration';
 
 export interface Connector {

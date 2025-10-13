@@ -398,6 +398,7 @@ Provide actionable insights and recommendations.`;
       });
       results.workersAI = true;
     } catch (error: any) {
+      // Expected: Workers AI may not be available, result stays false
     }
 
     try {
@@ -416,12 +417,14 @@ Provide actionable insights and recommendations.`;
       });
       results.anthropic = response.ok;
     } catch (error: any) {
+      // Expected: Anthropic API may not be configured, result stays false
     }
 
     try {
       await this.ai.run('@cf/baai/bge-base-en-v1.5', { text: 'test' });
       results.embeddings = true;
     } catch (error: any) {
+      // Expected: Embeddings model may not be available, result stays false
     }
 
     return results;

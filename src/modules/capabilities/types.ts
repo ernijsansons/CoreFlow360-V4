@@ -31,13 +31,13 @@ export interface ParameterValidation {
   maxLength?: number;
   min?: number;
   max?: number;
-  pattern?: string; // Regex pattern
-  enum?: string[]; // Allowed values
+  pattern?: string;
+  enum?: string[];
   format?: 'email' | 'url' | 'uuid' | 'iso8601' | 'currency' | 'percentage' | 'date';
-  customValidator?: string; // Reference to custom validation function
-  minItems?: number; // For array validation
-  maxItems?: number; // For array validation
-  items?: ParameterValidation; // For array item validation
+  customValidator?: string;
+  minItems?: number;
+  maxItems?: number;
+  items?: ParameterValidation;
 }
 
 /**
@@ -122,7 +122,9 @@ export interface PermissionSpec {
   businessContextRequired: boolean;
   userContextRequired: boolean;
   elevatedPrivileges?: boolean; // Requires admin/elevated access
-  required?: boolean; // Backward compatibility flag
+  required?: boolean | string[]; // Backward compatibility flag - boolean or list of required permissions
+  optional?: string[]; // Optional permissions that enhance but don't block functionality
+  businessRules?: string[]; // Business logic rules that must be satisfied
   approvalRequired?: {
     minApprovers: number;
     approverRoles: string[];
@@ -136,11 +138,14 @@ export interface PermissionSpec {
 export interface AuditSpec {
   severity: 'low' | 'medium' | 'high' | 'critical';
   eventType: string;
+  logLevel?: 'info' | 'warn' | 'error' | 'debug'; // Logging level for audit events
   enabled?: boolean; // Enable/disable audit logging
+  requiredFields?: string[]; // Fields that must be present in audit logs
+  retentionDays?: number; // Audit log retention in days (top-level for convenience)
   sensitiveDataHandling: {
     redactParameters: string[]; // Parameter names to redact
     redactResults: boolean;
-    retentionDays: number;
+    retentionDays: number; // Retention for sensitive data specifically
   };
   complianceFlags?: string[]; // GDPR, SOX, HIPAA, etc.
   customMetadata?: Record<string, unknown>;
@@ -192,6 +197,19 @@ export interface CapabilitySpec {
   owner: string;
   createdAt: number;
   updatedAt: number;
+
+  // AI safety configuration
+  aiSafety?: {
+    maxTokens?: number;
+    temperature?: number;
+    topP?: number;
+    frequencyPenalty?: number;
+    presencePenalty?: number;
+    stopSequences?: string[];
+    contentFilter?: boolean;
+    biasDetection?: boolean;
+    hallucinationCheck?: boolean;
+  };
 
   // AI-specific configuration
   aiConfiguration?: {

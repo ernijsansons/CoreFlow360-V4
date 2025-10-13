@@ -408,6 +408,23 @@ class FinanceService {
   async completeReconciliation(id: string): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.post(`/api/finance/reconciliations/${id}/complete`)
   }
+
+  // Period Management
+  async getPeriods(): Promise<ApiResponse<Array<Record<string, unknown>>>> {
+    return apiClient.get('/api/finance/periods')
+  }
+
+  async closePeriod(id: string): Promise<ApiResponse<{ message: string }>> {
+    return apiClient.post(`/api/finance/periods/${id}/close`)
+  }
+
+  async getCurrentPeriod(): Promise<ApiResponse<Record<string, unknown>>> {
+    return apiClient.get('/api/finance/periods/current')
+  }
+
+  async reopenPeriod(id: string): Promise<ApiResponse<Record<string, unknown>>> {
+    return apiClient.post(`/api/finance/periods/${id}/reopen`)
+  }
 }
 
 export const financeService = new FinanceService()

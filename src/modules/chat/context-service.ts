@@ -156,7 +156,7 @@ class ChatContextService {
     } | undefined
 
     if (!user) {
-      throw new AppError('User not found', 'USER_NOT_FOUND', 404)
+      throw new AppError('User not found', 404, 'USER_NOT_FOUND')
     }
 
     return {
@@ -184,7 +184,7 @@ class ChatContextService {
     } | undefined
 
     if (!business) {
-      throw new AppError('Business not found', 'BUSINESS_NOT_FOUND', 404)
+      throw new AppError('Business not found', 404, 'BUSINESS_NOT_FOUND')
     }
 
     return {
@@ -415,6 +415,10 @@ class ChatContextService {
   ): Promise<void> {
     try {
       // Store context updates in cache for quick retrieval
+      if (!this.env.CHAT_CONTEXT_KV) {
+        return
+      }
+
       const contextKey = `chat_context:${userId}`
 
       await this.env.CHAT_CONTEXT_KV.put(
@@ -440,6 +444,10 @@ class ChatContextService {
    */
   async getCachedContext(userId: string): Promise<Partial<ChatContext> | null> {
     try {
+      if (!this.env.CHAT_CONTEXT_KV) {
+        return null
+      }
+
       const contextKey = `chat_context:${userId}`
       const cached = await this.env.CHAT_CONTEXT_KV.get(contextKey)
 

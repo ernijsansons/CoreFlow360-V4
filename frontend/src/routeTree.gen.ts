@@ -12,37 +12,71 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VoiceRouteImport } from './routes/voice'
 import { Route as TestRouteImport } from './routes/test'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LandingRouteImport } from './routes/landing'
+import { Route as HelpRouteImport } from './routes/help'
+import { Route as ExportRouteImport } from './routes/export'
 import { Route as EmailRouteImport } from './routes/email'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CollaborationRouteImport } from './routes/collaboration'
+import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as ChatRouteImport } from './routes/chat'
 import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AiMonitoringRouteImport } from './routes/ai-monitoring'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as MarketingIndexRouteImport } from './routes/marketing.index'
 import { Route as FinanceIndexRouteImport } from './routes/finance/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as CrmIndexRouteImport } from './routes/crm/index'
+import { Route as ChatIndexRouteImport } from './routes/chat/index'
+import { Route as AgentsIndexRouteImport } from './routes/agents/index'
+import { Route as SystemProductionRouteImport } from './routes/system/production'
 import { Route as SettingsSecurityRouteImport } from './routes/settings/security'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
+import { Route as SettingsMigrationRouteImport } from './routes/settings/migration'
 import { Route as SettingsBillingRouteImport } from './routes/settings/billing'
+import { Route as ReportsBuilderRouteImport } from './routes/reports/builder'
 import { Route as MarketingProductsRouteImport } from './routes/marketing.products'
+import { Route as FinanceReportsRouteImport } from './routes/finance/reports'
+import { Route as FinanceReconciliationRouteImport } from './routes/finance/reconciliation'
+import { Route as FinancePeriodsRouteImport } from './routes/finance/periods'
 import { Route as FinanceInvoicesRouteImport } from './routes/finance/invoices'
 import { Route as FinanceExpensesRouteImport } from './routes/finance/expenses'
+import { Route as FinanceDocumentsRouteImport } from './routes/finance/documents'
+import { Route as FinanceBankingRouteImport } from './routes/finance/banking'
+import { Route as FinanceBankConnectionsRouteImport } from './routes/finance/bank-connections'
+import { Route as FinanceAnomaliesRouteImport } from './routes/finance/anomalies'
 import { Route as ErrorErrorRouteImport } from './routes/error/error'
 import { Route as Error404RouteImport } from './routes/error/404'
+import { Route as DataExportRouteImport } from './routes/data/export'
 import { Route as DashboardPortfolioRouteImport } from './routes/dashboard/portfolio'
+import { Route as CrmMigrationRouteImport } from './routes/crm/migration'
+import { Route as CrmLeadsRouteImport } from './routes/crm/leads'
+import { Route as CrmIntegrationsDashboardRouteImport } from './routes/crm/integrations-dashboard'
+import { Route as CrmEnrichmentRouteImport } from './routes/crm/enrichment'
 import { Route as CrmDealsRouteImport } from './routes/crm/deals'
+import { Route as CrmDataQualityRouteImport } from './routes/crm/data-quality'
 import { Route as CrmContactsRouteImport } from './routes/crm/contacts'
 import { Route as CrmCompaniesRouteImport } from './routes/crm/companies'
+import { Route as CheckoutSuccessRouteImport } from './routes/checkout/success'
 import { Route as AuthVerifyEmailRouteImport } from './routes/auth/verify-email'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
+import { Route as AgentsDashboardRouteImport } from './routes/agents/dashboard'
+import { Route as AgentsConfigRouteImport } from './routes/agents/config'
 import { Route as DashboardMigrationIndexRouteImport } from './routes/dashboard/migration/index'
 import { Route as DashboardCrmIndexRouteImport } from './routes/dashboard/crm/index'
 import { Route as DashboardAnalyticsIndexRouteImport } from './routes/dashboard/analytics/index'
+import { Route as CrmIntegrationsOauthCallbackRouteImport } from './routes/crm/integrations/oauth-callback'
+import { Route as CrmContactsContactIdRouteImport } from './routes/crm/contacts/$contactId'
+import { Route as CrmCompaniesCompanyIdRouteImport } from './routes/crm/companies/$companyId'
 
 const VoiceRoute = VoiceRouteImport.update({
   id: '/voice',
@@ -59,9 +93,19 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -74,9 +118,39 @@ const LandingRoute = LandingRouteImport.update({
   path: '/landing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExportRoute = ExportRouteImport.update({
+  id: '/export',
+  path: '/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmailRoute = EmailRouteImport.update({
   id: '/email',
   path: '/email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CollaborationRoute = CollaborationRouteImport.update({
+  id: '/collaboration',
+  path: '/collaboration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatRoute = ChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalendarRoute = CalendarRouteImport.update({
@@ -87,6 +161,16 @@ const CalendarRoute = CalendarRouteImport.update({
 const AnalyticsRoute = AnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiMonitoringRoute = AiMonitoringRouteImport.update({
+  id: '/ai-monitoring',
+  path: '/ai-monitoring',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -119,6 +203,21 @@ const CrmIndexRoute = CrmIndexRouteImport.update({
   path: '/crm/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChatIndexRoute = ChatIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ChatRoute,
+} as any)
+const AgentsIndexRoute = AgentsIndexRouteImport.update({
+  id: '/agents/',
+  path: '/agents/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SystemProductionRoute = SystemProductionRouteImport.update({
+  id: '/system/production',
+  path: '/system/production',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
   id: '/settings/security',
   path: '/settings/security',
@@ -129,14 +228,39 @@ const SettingsProfileRoute = SettingsProfileRouteImport.update({
   path: '/settings/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsMigrationRoute = SettingsMigrationRouteImport.update({
+  id: '/settings/migration',
+  path: '/settings/migration',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsBillingRoute = SettingsBillingRouteImport.update({
   id: '/settings/billing',
   path: '/settings/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportsBuilderRoute = ReportsBuilderRouteImport.update({
+  id: '/reports/builder',
+  path: '/reports/builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MarketingProductsRoute = MarketingProductsRouteImport.update({
   id: '/marketing/products',
   path: '/marketing/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceReportsRoute = FinanceReportsRouteImport.update({
+  id: '/finance/reports',
+  path: '/finance/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceReconciliationRoute = FinanceReconciliationRouteImport.update({
+  id: '/finance/reconciliation',
+  path: '/finance/reconciliation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinancePeriodsRoute = FinancePeriodsRouteImport.update({
+  id: '/finance/periods',
+  path: '/finance/periods',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FinanceInvoicesRoute = FinanceInvoicesRouteImport.update({
@@ -149,6 +273,26 @@ const FinanceExpensesRoute = FinanceExpensesRouteImport.update({
   path: '/finance/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanceDocumentsRoute = FinanceDocumentsRouteImport.update({
+  id: '/finance/documents',
+  path: '/finance/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceBankingRoute = FinanceBankingRouteImport.update({
+  id: '/finance/banking',
+  path: '/finance/banking',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceBankConnectionsRoute = FinanceBankConnectionsRouteImport.update({
+  id: '/finance/bank-connections',
+  path: '/finance/bank-connections',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceAnomaliesRoute = FinanceAnomaliesRouteImport.update({
+  id: '/finance/anomalies',
+  path: '/finance/anomalies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ErrorErrorRoute = ErrorErrorRouteImport.update({
   id: '/error/error',
   path: '/error/error',
@@ -159,14 +303,45 @@ const Error404Route = Error404RouteImport.update({
   path: '/error/404',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DataExportRoute = DataExportRouteImport.update({
+  id: '/data/export',
+  path: '/data/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardPortfolioRoute = DashboardPortfolioRouteImport.update({
   id: '/dashboard/portfolio',
   path: '/dashboard/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CrmMigrationRoute = CrmMigrationRouteImport.update({
+  id: '/crm/migration',
+  path: '/crm/migration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmLeadsRoute = CrmLeadsRouteImport.update({
+  id: '/crm/leads',
+  path: '/crm/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmIntegrationsDashboardRoute =
+  CrmIntegrationsDashboardRouteImport.update({
+    id: '/crm/integrations-dashboard',
+    path: '/crm/integrations-dashboard',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const CrmEnrichmentRoute = CrmEnrichmentRouteImport.update({
+  id: '/crm/enrichment',
+  path: '/crm/enrichment',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrmDealsRoute = CrmDealsRouteImport.update({
   id: '/crm/deals',
   path: '/crm/deals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmDataQualityRoute = CrmDataQualityRouteImport.update({
+  id: '/crm/data-quality',
+  path: '/crm/data-quality',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CrmContactsRoute = CrmContactsRouteImport.update({
@@ -178,6 +353,11 @@ const CrmCompaniesRoute = CrmCompaniesRouteImport.update({
   id: '/crm/companies',
   path: '/crm/companies',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutSuccessRoute = CheckoutSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => CheckoutRoute,
 } as any)
 const AuthVerifyEmailRoute = AuthVerifyEmailRouteImport.update({
   id: '/auth/verify-email',
@@ -199,6 +379,16 @@ const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   path: '/auth/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AgentsDashboardRoute = AgentsDashboardRouteImport.update({
+  id: '/agents/dashboard',
+  path: '/agents/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsConfigRoute = AgentsConfigRouteImport.update({
+  id: '/agents/config',
+  path: '/agents/config',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardMigrationIndexRoute = DashboardMigrationIndexRouteImport.update({
   id: '/dashboard/migration/',
   path: '/dashboard/migration/',
@@ -214,75 +404,158 @@ const DashboardAnalyticsIndexRoute = DashboardAnalyticsIndexRouteImport.update({
   path: '/dashboard/analytics/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CrmIntegrationsOauthCallbackRoute =
+  CrmIntegrationsOauthCallbackRouteImport.update({
+    id: '/crm/integrations/oauth-callback',
+    path: '/crm/integrations/oauth-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const CrmContactsContactIdRoute = CrmContactsContactIdRouteImport.update({
+  id: '/$contactId',
+  path: '/$contactId',
+  getParentRoute: () => CrmContactsRoute,
+} as any)
+const CrmCompaniesCompanyIdRoute = CrmCompaniesCompanyIdRouteImport.update({
+  id: '/$companyId',
+  path: '/$companyId',
+  getParentRoute: () => CrmCompaniesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/ai-monitoring': typeof AiMonitoringRoute
   '/analytics': typeof AnalyticsRoute
   '/calendar': typeof CalendarRoute
+  '/chat': typeof ChatRouteWithChildren
+  '/checkout': typeof CheckoutRouteWithChildren
+  '/collaboration': typeof CollaborationRoute
+  '/contact': typeof ContactRoute
   '/email': typeof EmailRoute
+  '/export': typeof ExportRoute
+  '/help': typeof HelpRoute
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/test': typeof TestRoute
   '/voice': typeof VoiceRoute
+  '/agents/config': typeof AgentsConfigRoute
+  '/agents/dashboard': typeof AgentsDashboardRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/crm/companies': typeof CrmCompaniesRoute
-  '/crm/contacts': typeof CrmContactsRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
+  '/crm/companies': typeof CrmCompaniesRouteWithChildren
+  '/crm/contacts': typeof CrmContactsRouteWithChildren
+  '/crm/data-quality': typeof CrmDataQualityRoute
   '/crm/deals': typeof CrmDealsRoute
+  '/crm/enrichment': typeof CrmEnrichmentRoute
+  '/crm/integrations-dashboard': typeof CrmIntegrationsDashboardRoute
+  '/crm/leads': typeof CrmLeadsRoute
+  '/crm/migration': typeof CrmMigrationRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
+  '/data/export': typeof DataExportRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
+  '/finance/anomalies': typeof FinanceAnomaliesRoute
+  '/finance/bank-connections': typeof FinanceBankConnectionsRoute
+  '/finance/banking': typeof FinanceBankingRoute
+  '/finance/documents': typeof FinanceDocumentsRoute
   '/finance/expenses': typeof FinanceExpensesRoute
   '/finance/invoices': typeof FinanceInvoicesRoute
+  '/finance/periods': typeof FinancePeriodsRoute
+  '/finance/reconciliation': typeof FinanceReconciliationRoute
+  '/finance/reports': typeof FinanceReportsRoute
   '/marketing/products': typeof MarketingProductsRoute
+  '/reports/builder': typeof ReportsBuilderRoute
   '/settings/billing': typeof SettingsBillingRoute
+  '/settings/migration': typeof SettingsMigrationRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
+  '/system/production': typeof SystemProductionRoute
+  '/agents': typeof AgentsIndexRoute
+  '/chat/': typeof ChatIndexRoute
   '/crm': typeof CrmIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/finance': typeof FinanceIndexRoute
   '/marketing': typeof MarketingIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/crm/companies/$companyId': typeof CrmCompaniesCompanyIdRoute
+  '/crm/contacts/$contactId': typeof CrmContactsContactIdRoute
+  '/crm/integrations/oauth-callback': typeof CrmIntegrationsOauthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsIndexRoute
   '/dashboard/crm': typeof DashboardCrmIndexRoute
   '/dashboard/migration': typeof DashboardMigrationIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/ai-monitoring': typeof AiMonitoringRoute
   '/analytics': typeof AnalyticsRoute
   '/calendar': typeof CalendarRoute
+  '/checkout': typeof CheckoutRouteWithChildren
+  '/collaboration': typeof CollaborationRoute
+  '/contact': typeof ContactRoute
   '/email': typeof EmailRoute
+  '/export': typeof ExportRoute
+  '/help': typeof HelpRoute
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/test': typeof TestRoute
   '/voice': typeof VoiceRoute
+  '/agents/config': typeof AgentsConfigRoute
+  '/agents/dashboard': typeof AgentsDashboardRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/crm/companies': typeof CrmCompaniesRoute
-  '/crm/contacts': typeof CrmContactsRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
+  '/crm/companies': typeof CrmCompaniesRouteWithChildren
+  '/crm/contacts': typeof CrmContactsRouteWithChildren
+  '/crm/data-quality': typeof CrmDataQualityRoute
   '/crm/deals': typeof CrmDealsRoute
+  '/crm/enrichment': typeof CrmEnrichmentRoute
+  '/crm/integrations-dashboard': typeof CrmIntegrationsDashboardRoute
+  '/crm/leads': typeof CrmLeadsRoute
+  '/crm/migration': typeof CrmMigrationRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
+  '/data/export': typeof DataExportRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
+  '/finance/anomalies': typeof FinanceAnomaliesRoute
+  '/finance/bank-connections': typeof FinanceBankConnectionsRoute
+  '/finance/banking': typeof FinanceBankingRoute
+  '/finance/documents': typeof FinanceDocumentsRoute
   '/finance/expenses': typeof FinanceExpensesRoute
   '/finance/invoices': typeof FinanceInvoicesRoute
+  '/finance/periods': typeof FinancePeriodsRoute
+  '/finance/reconciliation': typeof FinanceReconciliationRoute
+  '/finance/reports': typeof FinanceReportsRoute
   '/marketing/products': typeof MarketingProductsRoute
+  '/reports/builder': typeof ReportsBuilderRoute
   '/settings/billing': typeof SettingsBillingRoute
+  '/settings/migration': typeof SettingsMigrationRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
+  '/system/production': typeof SystemProductionRoute
+  '/agents': typeof AgentsIndexRoute
+  '/chat': typeof ChatIndexRoute
   '/crm': typeof CrmIndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/finance': typeof FinanceIndexRoute
   '/marketing': typeof MarketingIndexRoute
   '/settings': typeof SettingsIndexRoute
+  '/crm/companies/$companyId': typeof CrmCompaniesCompanyIdRoute
+  '/crm/contacts/$contactId': typeof CrmContactsContactIdRoute
+  '/crm/integrations/oauth-callback': typeof CrmIntegrationsOauthCallbackRoute
   '/dashboard/analytics': typeof DashboardAnalyticsIndexRoute
   '/dashboard/crm': typeof DashboardCrmIndexRoute
   '/dashboard/migration': typeof DashboardMigrationIndexRoute
@@ -290,36 +563,70 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/ai-monitoring': typeof AiMonitoringRoute
   '/analytics': typeof AnalyticsRoute
   '/calendar': typeof CalendarRoute
+  '/chat': typeof ChatRouteWithChildren
+  '/checkout': typeof CheckoutRouteWithChildren
+  '/collaboration': typeof CollaborationRoute
+  '/contact': typeof ContactRoute
   '/email': typeof EmailRoute
+  '/export': typeof ExportRoute
+  '/help': typeof HelpRoute
   '/landing': typeof LandingRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/test': typeof TestRoute
   '/voice': typeof VoiceRoute
+  '/agents/config': typeof AgentsConfigRoute
+  '/agents/dashboard': typeof AgentsDashboardRoute
   '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/register': typeof AuthRegisterRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/verify-email': typeof AuthVerifyEmailRoute
-  '/crm/companies': typeof CrmCompaniesRoute
-  '/crm/contacts': typeof CrmContactsRoute
+  '/checkout/success': typeof CheckoutSuccessRoute
+  '/crm/companies': typeof CrmCompaniesRouteWithChildren
+  '/crm/contacts': typeof CrmContactsRouteWithChildren
+  '/crm/data-quality': typeof CrmDataQualityRoute
   '/crm/deals': typeof CrmDealsRoute
+  '/crm/enrichment': typeof CrmEnrichmentRoute
+  '/crm/integrations-dashboard': typeof CrmIntegrationsDashboardRoute
+  '/crm/leads': typeof CrmLeadsRoute
+  '/crm/migration': typeof CrmMigrationRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
+  '/data/export': typeof DataExportRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
+  '/finance/anomalies': typeof FinanceAnomaliesRoute
+  '/finance/bank-connections': typeof FinanceBankConnectionsRoute
+  '/finance/banking': typeof FinanceBankingRoute
+  '/finance/documents': typeof FinanceDocumentsRoute
   '/finance/expenses': typeof FinanceExpensesRoute
   '/finance/invoices': typeof FinanceInvoicesRoute
+  '/finance/periods': typeof FinancePeriodsRoute
+  '/finance/reconciliation': typeof FinanceReconciliationRoute
+  '/finance/reports': typeof FinanceReportsRoute
   '/marketing/products': typeof MarketingProductsRoute
+  '/reports/builder': typeof ReportsBuilderRoute
   '/settings/billing': typeof SettingsBillingRoute
+  '/settings/migration': typeof SettingsMigrationRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
+  '/system/production': typeof SystemProductionRoute
+  '/agents/': typeof AgentsIndexRoute
+  '/chat/': typeof ChatIndexRoute
   '/crm/': typeof CrmIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/finance/': typeof FinanceIndexRoute
   '/marketing/': typeof MarketingIndexRoute
   '/settings/': typeof SettingsIndexRoute
+  '/crm/companies/$companyId': typeof CrmCompaniesCompanyIdRoute
+  '/crm/contacts/$contactId': typeof CrmContactsContactIdRoute
+  '/crm/integrations/oauth-callback': typeof CrmIntegrationsOauthCallbackRoute
   '/dashboard/analytics/': typeof DashboardAnalyticsIndexRoute
   '/dashboard/crm/': typeof DashboardCrmIndexRoute
   '/dashboard/migration/': typeof DashboardMigrationIndexRoute
@@ -328,108 +635,209 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
+    | '/ai-monitoring'
     | '/analytics'
     | '/calendar'
+    | '/chat'
+    | '/checkout'
+    | '/collaboration'
+    | '/contact'
     | '/email'
+    | '/export'
+    | '/help'
     | '/landing'
     | '/login'
+    | '/pricing'
     | '/privacy'
+    | '/support'
     | '/terms'
     | '/test'
     | '/voice'
+    | '/agents/config'
+    | '/agents/dashboard'
     | '/auth/forgot-password'
     | '/auth/register'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/checkout/success'
     | '/crm/companies'
     | '/crm/contacts'
+    | '/crm/data-quality'
     | '/crm/deals'
+    | '/crm/enrichment'
+    | '/crm/integrations-dashboard'
+    | '/crm/leads'
+    | '/crm/migration'
     | '/dashboard/portfolio'
+    | '/data/export'
     | '/error/404'
     | '/error/error'
+    | '/finance/anomalies'
+    | '/finance/bank-connections'
+    | '/finance/banking'
+    | '/finance/documents'
     | '/finance/expenses'
     | '/finance/invoices'
+    | '/finance/periods'
+    | '/finance/reconciliation'
+    | '/finance/reports'
     | '/marketing/products'
+    | '/reports/builder'
     | '/settings/billing'
+    | '/settings/migration'
     | '/settings/profile'
     | '/settings/security'
+    | '/system/production'
+    | '/agents'
+    | '/chat/'
     | '/crm'
     | '/dashboard'
     | '/finance'
     | '/marketing'
     | '/settings'
+    | '/crm/companies/$companyId'
+    | '/crm/contacts/$contactId'
+    | '/crm/integrations/oauth-callback'
     | '/dashboard/analytics'
     | '/dashboard/crm'
     | '/dashboard/migration'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
+    | '/ai-monitoring'
     | '/analytics'
     | '/calendar'
+    | '/checkout'
+    | '/collaboration'
+    | '/contact'
     | '/email'
+    | '/export'
+    | '/help'
     | '/landing'
     | '/login'
+    | '/pricing'
     | '/privacy'
+    | '/support'
     | '/terms'
     | '/test'
     | '/voice'
+    | '/agents/config'
+    | '/agents/dashboard'
     | '/auth/forgot-password'
     | '/auth/register'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/checkout/success'
     | '/crm/companies'
     | '/crm/contacts'
+    | '/crm/data-quality'
     | '/crm/deals'
+    | '/crm/enrichment'
+    | '/crm/integrations-dashboard'
+    | '/crm/leads'
+    | '/crm/migration'
     | '/dashboard/portfolio'
+    | '/data/export'
     | '/error/404'
     | '/error/error'
+    | '/finance/anomalies'
+    | '/finance/bank-connections'
+    | '/finance/banking'
+    | '/finance/documents'
     | '/finance/expenses'
     | '/finance/invoices'
+    | '/finance/periods'
+    | '/finance/reconciliation'
+    | '/finance/reports'
     | '/marketing/products'
+    | '/reports/builder'
     | '/settings/billing'
+    | '/settings/migration'
     | '/settings/profile'
     | '/settings/security'
+    | '/system/production'
+    | '/agents'
+    | '/chat'
     | '/crm'
     | '/dashboard'
     | '/finance'
     | '/marketing'
     | '/settings'
+    | '/crm/companies/$companyId'
+    | '/crm/contacts/$contactId'
+    | '/crm/integrations/oauth-callback'
     | '/dashboard/analytics'
     | '/dashboard/crm'
     | '/dashboard/migration'
   id:
     | '__root__'
     | '/'
+    | '/about'
+    | '/ai-monitoring'
     | '/analytics'
     | '/calendar'
+    | '/chat'
+    | '/checkout'
+    | '/collaboration'
+    | '/contact'
     | '/email'
+    | '/export'
+    | '/help'
     | '/landing'
     | '/login'
+    | '/pricing'
     | '/privacy'
+    | '/support'
     | '/terms'
     | '/test'
     | '/voice'
+    | '/agents/config'
+    | '/agents/dashboard'
     | '/auth/forgot-password'
     | '/auth/register'
     | '/auth/reset-password'
     | '/auth/verify-email'
+    | '/checkout/success'
     | '/crm/companies'
     | '/crm/contacts'
+    | '/crm/data-quality'
     | '/crm/deals'
+    | '/crm/enrichment'
+    | '/crm/integrations-dashboard'
+    | '/crm/leads'
+    | '/crm/migration'
     | '/dashboard/portfolio'
+    | '/data/export'
     | '/error/404'
     | '/error/error'
+    | '/finance/anomalies'
+    | '/finance/bank-connections'
+    | '/finance/banking'
+    | '/finance/documents'
     | '/finance/expenses'
     | '/finance/invoices'
+    | '/finance/periods'
+    | '/finance/reconciliation'
+    | '/finance/reports'
     | '/marketing/products'
+    | '/reports/builder'
     | '/settings/billing'
+    | '/settings/migration'
     | '/settings/profile'
     | '/settings/security'
+    | '/system/production'
+    | '/agents/'
+    | '/chat/'
     | '/crm/'
     | '/dashboard/'
     | '/finance/'
     | '/marketing/'
     | '/settings/'
+    | '/crm/companies/$companyId'
+    | '/crm/contacts/$contactId'
+    | '/crm/integrations/oauth-callback'
     | '/dashboard/analytics/'
     | '/dashboard/crm/'
     | '/dashboard/migration/'
@@ -437,36 +845,66 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AiMonitoringRoute: typeof AiMonitoringRoute
   AnalyticsRoute: typeof AnalyticsRoute
   CalendarRoute: typeof CalendarRoute
+  ChatRoute: typeof ChatRouteWithChildren
+  CheckoutRoute: typeof CheckoutRouteWithChildren
+  CollaborationRoute: typeof CollaborationRoute
+  ContactRoute: typeof ContactRoute
   EmailRoute: typeof EmailRoute
+  ExportRoute: typeof ExportRoute
+  HelpRoute: typeof HelpRoute
   LandingRoute: typeof LandingRoute
   LoginRoute: typeof LoginRoute
+  PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
+  SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
   TestRoute: typeof TestRoute
   VoiceRoute: typeof VoiceRoute
+  AgentsConfigRoute: typeof AgentsConfigRoute
+  AgentsDashboardRoute: typeof AgentsDashboardRoute
   AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthVerifyEmailRoute: typeof AuthVerifyEmailRoute
-  CrmCompaniesRoute: typeof CrmCompaniesRoute
-  CrmContactsRoute: typeof CrmContactsRoute
+  CrmCompaniesRoute: typeof CrmCompaniesRouteWithChildren
+  CrmContactsRoute: typeof CrmContactsRouteWithChildren
+  CrmDataQualityRoute: typeof CrmDataQualityRoute
   CrmDealsRoute: typeof CrmDealsRoute
+  CrmEnrichmentRoute: typeof CrmEnrichmentRoute
+  CrmIntegrationsDashboardRoute: typeof CrmIntegrationsDashboardRoute
+  CrmLeadsRoute: typeof CrmLeadsRoute
+  CrmMigrationRoute: typeof CrmMigrationRoute
   DashboardPortfolioRoute: typeof DashboardPortfolioRoute
+  DataExportRoute: typeof DataExportRoute
   Error404Route: typeof Error404Route
   ErrorErrorRoute: typeof ErrorErrorRoute
+  FinanceAnomaliesRoute: typeof FinanceAnomaliesRoute
+  FinanceBankConnectionsRoute: typeof FinanceBankConnectionsRoute
+  FinanceBankingRoute: typeof FinanceBankingRoute
+  FinanceDocumentsRoute: typeof FinanceDocumentsRoute
   FinanceExpensesRoute: typeof FinanceExpensesRoute
   FinanceInvoicesRoute: typeof FinanceInvoicesRoute
+  FinancePeriodsRoute: typeof FinancePeriodsRoute
+  FinanceReconciliationRoute: typeof FinanceReconciliationRoute
+  FinanceReportsRoute: typeof FinanceReportsRoute
   MarketingProductsRoute: typeof MarketingProductsRoute
+  ReportsBuilderRoute: typeof ReportsBuilderRoute
   SettingsBillingRoute: typeof SettingsBillingRoute
+  SettingsMigrationRoute: typeof SettingsMigrationRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   SettingsSecurityRoute: typeof SettingsSecurityRoute
+  SystemProductionRoute: typeof SystemProductionRoute
+  AgentsIndexRoute: typeof AgentsIndexRoute
   CrmIndexRoute: typeof CrmIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   FinanceIndexRoute: typeof FinanceIndexRoute
   MarketingIndexRoute: typeof MarketingIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
+  CrmIntegrationsOauthCallbackRoute: typeof CrmIntegrationsOauthCallbackRoute
   DashboardAnalyticsIndexRoute: typeof DashboardAnalyticsIndexRoute
   DashboardCrmIndexRoute: typeof DashboardCrmIndexRoute
   DashboardMigrationIndexRoute: typeof DashboardMigrationIndexRoute
@@ -495,11 +933,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -516,11 +968,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LandingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/export': {
+      id: '/export'
+      path: '/export'
+      fullPath: '/export'
+      preLoaderRoute: typeof ExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/email': {
       id: '/email'
       path: '/email'
       fullPath: '/email'
       preLoaderRoute: typeof EmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/collaboration': {
+      id: '/collaboration'
+      path: '/collaboration'
+      fullPath: '/collaboration'
+      preLoaderRoute: typeof CollaborationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calendar': {
@@ -535,6 +1029,20 @@ declare module '@tanstack/react-router' {
       path: '/analytics'
       fullPath: '/analytics'
       preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-monitoring': {
+      id: '/ai-monitoring'
+      path: '/ai-monitoring'
+      fullPath: '/ai-monitoring'
+      preLoaderRoute: typeof AiMonitoringRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -579,6 +1087,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chat/': {
+      id: '/chat/'
+      path: '/'
+      fullPath: '/chat/'
+      preLoaderRoute: typeof ChatIndexRouteImport
+      parentRoute: typeof ChatRoute
+    }
+    '/agents/': {
+      id: '/agents/'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AgentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/system/production': {
+      id: '/system/production'
+      path: '/system/production'
+      fullPath: '/system/production'
+      preLoaderRoute: typeof SystemProductionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings/security': {
       id: '/settings/security'
       path: '/settings/security'
@@ -593,6 +1122,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/migration': {
+      id: '/settings/migration'
+      path: '/settings/migration'
+      fullPath: '/settings/migration'
+      preLoaderRoute: typeof SettingsMigrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings/billing': {
       id: '/settings/billing'
       path: '/settings/billing'
@@ -600,11 +1136,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsBillingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reports/builder': {
+      id: '/reports/builder'
+      path: '/reports/builder'
+      fullPath: '/reports/builder'
+      preLoaderRoute: typeof ReportsBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/marketing/products': {
       id: '/marketing/products'
       path: '/marketing/products'
       fullPath: '/marketing/products'
       preLoaderRoute: typeof MarketingProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance/reports': {
+      id: '/finance/reports'
+      path: '/finance/reports'
+      fullPath: '/finance/reports'
+      preLoaderRoute: typeof FinanceReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance/reconciliation': {
+      id: '/finance/reconciliation'
+      path: '/finance/reconciliation'
+      fullPath: '/finance/reconciliation'
+      preLoaderRoute: typeof FinanceReconciliationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance/periods': {
+      id: '/finance/periods'
+      path: '/finance/periods'
+      fullPath: '/finance/periods'
+      preLoaderRoute: typeof FinancePeriodsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/finance/invoices': {
@@ -621,6 +1185,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FinanceExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/finance/documents': {
+      id: '/finance/documents'
+      path: '/finance/documents'
+      fullPath: '/finance/documents'
+      preLoaderRoute: typeof FinanceDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance/banking': {
+      id: '/finance/banking'
+      path: '/finance/banking'
+      fullPath: '/finance/banking'
+      preLoaderRoute: typeof FinanceBankingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance/bank-connections': {
+      id: '/finance/bank-connections'
+      path: '/finance/bank-connections'
+      fullPath: '/finance/bank-connections'
+      preLoaderRoute: typeof FinanceBankConnectionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance/anomalies': {
+      id: '/finance/anomalies'
+      path: '/finance/anomalies'
+      fullPath: '/finance/anomalies'
+      preLoaderRoute: typeof FinanceAnomaliesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/error/error': {
       id: '/error/error'
       path: '/error/error'
@@ -635,6 +1227,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Error404RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/data/export': {
+      id: '/data/export'
+      path: '/data/export'
+      fullPath: '/data/export'
+      preLoaderRoute: typeof DataExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/portfolio': {
       id: '/dashboard/portfolio'
       path: '/dashboard/portfolio'
@@ -642,11 +1241,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardPortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crm/migration': {
+      id: '/crm/migration'
+      path: '/crm/migration'
+      fullPath: '/crm/migration'
+      preLoaderRoute: typeof CrmMigrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/leads': {
+      id: '/crm/leads'
+      path: '/crm/leads'
+      fullPath: '/crm/leads'
+      preLoaderRoute: typeof CrmLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/integrations-dashboard': {
+      id: '/crm/integrations-dashboard'
+      path: '/crm/integrations-dashboard'
+      fullPath: '/crm/integrations-dashboard'
+      preLoaderRoute: typeof CrmIntegrationsDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/enrichment': {
+      id: '/crm/enrichment'
+      path: '/crm/enrichment'
+      fullPath: '/crm/enrichment'
+      preLoaderRoute: typeof CrmEnrichmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crm/deals': {
       id: '/crm/deals'
       path: '/crm/deals'
       fullPath: '/crm/deals'
       preLoaderRoute: typeof CrmDealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/data-quality': {
+      id: '/crm/data-quality'
+      path: '/crm/data-quality'
+      fullPath: '/crm/data-quality'
+      preLoaderRoute: typeof CrmDataQualityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/crm/contacts': {
@@ -662,6 +1296,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/crm/companies'
       preLoaderRoute: typeof CrmCompaniesRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/checkout/success': {
+      id: '/checkout/success'
+      path: '/success'
+      fullPath: '/checkout/success'
+      preLoaderRoute: typeof CheckoutSuccessRouteImport
+      parentRoute: typeof CheckoutRoute
     }
     '/auth/verify-email': {
       id: '/auth/verify-email'
@@ -691,6 +1332,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agents/dashboard': {
+      id: '/agents/dashboard'
+      path: '/agents/dashboard'
+      fullPath: '/agents/dashboard'
+      preLoaderRoute: typeof AgentsDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents/config': {
+      id: '/agents/config'
+      path: '/agents/config'
+      fullPath: '/agents/config'
+      preLoaderRoute: typeof AgentsConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/migration/': {
       id: '/dashboard/migration/'
       path: '/dashboard/migration'
@@ -712,41 +1367,138 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAnalyticsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crm/integrations/oauth-callback': {
+      id: '/crm/integrations/oauth-callback'
+      path: '/crm/integrations/oauth-callback'
+      fullPath: '/crm/integrations/oauth-callback'
+      preLoaderRoute: typeof CrmIntegrationsOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm/contacts/$contactId': {
+      id: '/crm/contacts/$contactId'
+      path: '/$contactId'
+      fullPath: '/crm/contacts/$contactId'
+      preLoaderRoute: typeof CrmContactsContactIdRouteImport
+      parentRoute: typeof CrmContactsRoute
+    }
+    '/crm/companies/$companyId': {
+      id: '/crm/companies/$companyId'
+      path: '/$companyId'
+      fullPath: '/crm/companies/$companyId'
+      preLoaderRoute: typeof CrmCompaniesCompanyIdRouteImport
+      parentRoute: typeof CrmCompaniesRoute
+    }
   }
 }
 
+interface ChatRouteChildren {
+  ChatIndexRoute: typeof ChatIndexRoute
+}
+
+const ChatRouteChildren: ChatRouteChildren = {
+  ChatIndexRoute: ChatIndexRoute,
+}
+
+const ChatRouteWithChildren = ChatRoute._addFileChildren(ChatRouteChildren)
+
+interface CheckoutRouteChildren {
+  CheckoutSuccessRoute: typeof CheckoutSuccessRoute
+}
+
+const CheckoutRouteChildren: CheckoutRouteChildren = {
+  CheckoutSuccessRoute: CheckoutSuccessRoute,
+}
+
+const CheckoutRouteWithChildren = CheckoutRoute._addFileChildren(
+  CheckoutRouteChildren,
+)
+
+interface CrmCompaniesRouteChildren {
+  CrmCompaniesCompanyIdRoute: typeof CrmCompaniesCompanyIdRoute
+}
+
+const CrmCompaniesRouteChildren: CrmCompaniesRouteChildren = {
+  CrmCompaniesCompanyIdRoute: CrmCompaniesCompanyIdRoute,
+}
+
+const CrmCompaniesRouteWithChildren = CrmCompaniesRoute._addFileChildren(
+  CrmCompaniesRouteChildren,
+)
+
+interface CrmContactsRouteChildren {
+  CrmContactsContactIdRoute: typeof CrmContactsContactIdRoute
+}
+
+const CrmContactsRouteChildren: CrmContactsRouteChildren = {
+  CrmContactsContactIdRoute: CrmContactsContactIdRoute,
+}
+
+const CrmContactsRouteWithChildren = CrmContactsRoute._addFileChildren(
+  CrmContactsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AiMonitoringRoute: AiMonitoringRoute,
   AnalyticsRoute: AnalyticsRoute,
   CalendarRoute: CalendarRoute,
+  ChatRoute: ChatRouteWithChildren,
+  CheckoutRoute: CheckoutRouteWithChildren,
+  CollaborationRoute: CollaborationRoute,
+  ContactRoute: ContactRoute,
   EmailRoute: EmailRoute,
+  ExportRoute: ExportRoute,
+  HelpRoute: HelpRoute,
   LandingRoute: LandingRoute,
   LoginRoute: LoginRoute,
+  PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
+  SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
   TestRoute: TestRoute,
   VoiceRoute: VoiceRoute,
+  AgentsConfigRoute: AgentsConfigRoute,
+  AgentsDashboardRoute: AgentsDashboardRoute,
   AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthRegisterRoute: AuthRegisterRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthVerifyEmailRoute: AuthVerifyEmailRoute,
-  CrmCompaniesRoute: CrmCompaniesRoute,
-  CrmContactsRoute: CrmContactsRoute,
+  CrmCompaniesRoute: CrmCompaniesRouteWithChildren,
+  CrmContactsRoute: CrmContactsRouteWithChildren,
+  CrmDataQualityRoute: CrmDataQualityRoute,
   CrmDealsRoute: CrmDealsRoute,
+  CrmEnrichmentRoute: CrmEnrichmentRoute,
+  CrmIntegrationsDashboardRoute: CrmIntegrationsDashboardRoute,
+  CrmLeadsRoute: CrmLeadsRoute,
+  CrmMigrationRoute: CrmMigrationRoute,
   DashboardPortfolioRoute: DashboardPortfolioRoute,
+  DataExportRoute: DataExportRoute,
   Error404Route: Error404Route,
   ErrorErrorRoute: ErrorErrorRoute,
+  FinanceAnomaliesRoute: FinanceAnomaliesRoute,
+  FinanceBankConnectionsRoute: FinanceBankConnectionsRoute,
+  FinanceBankingRoute: FinanceBankingRoute,
+  FinanceDocumentsRoute: FinanceDocumentsRoute,
   FinanceExpensesRoute: FinanceExpensesRoute,
   FinanceInvoicesRoute: FinanceInvoicesRoute,
+  FinancePeriodsRoute: FinancePeriodsRoute,
+  FinanceReconciliationRoute: FinanceReconciliationRoute,
+  FinanceReportsRoute: FinanceReportsRoute,
   MarketingProductsRoute: MarketingProductsRoute,
+  ReportsBuilderRoute: ReportsBuilderRoute,
   SettingsBillingRoute: SettingsBillingRoute,
+  SettingsMigrationRoute: SettingsMigrationRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   SettingsSecurityRoute: SettingsSecurityRoute,
+  SystemProductionRoute: SystemProductionRoute,
+  AgentsIndexRoute: AgentsIndexRoute,
   CrmIndexRoute: CrmIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   FinanceIndexRoute: FinanceIndexRoute,
   MarketingIndexRoute: MarketingIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
+  CrmIntegrationsOauthCallbackRoute: CrmIntegrationsOauthCallbackRoute,
   DashboardAnalyticsIndexRoute: DashboardAnalyticsIndexRoute,
   DashboardCrmIndexRoute: DashboardCrmIndexRoute,
   DashboardMigrationIndexRoute: DashboardMigrationIndexRoute,

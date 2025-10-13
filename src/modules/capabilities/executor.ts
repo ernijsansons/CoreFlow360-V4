@@ -218,7 +218,7 @@ export class CapabilityExecutor {
         actualCost: {
           computeUnits: 1, // Minimal cost for failed execution
           totalUSD: this.config.costMultipliers.COMPUTE_UNIT_USD,
-          breakdown: { base: 1, parameters: 0, operation: 0, ai: 0, custom: {} },
+          breakdown: { base: 1, parameters: 0, operation: 0, ai: 0 },
         },
         auditEvent: {
           eventId: CorrelationId.generate(),
@@ -374,14 +374,14 @@ export class CapabilityExecutor {
 
     // Check required capabilities
     for (const requiredCapability of permissionSpec.requiredCapabilities) {
-      const hasPermission = await this.permissionEngine.checkPermission({
-        capability: requiredCapability,
-        resourceType: 'capability',
-        resourceId: spec.id,
-        businessId: context.businessId,
-        userId: context.userId,
-        correlationId: context.correlationId,
-      });
+      const hasPermission = await this.permissionEngine.checkPermission(
+        {
+          userId: context.userId,
+          businessId: context.businessId,
+          attributes: {} as any
+        } as any,
+        requiredCapability as any
+      );
 
       if (!hasPermission.allowed) {
         throw new CapabilityPermissionError(
@@ -394,14 +394,14 @@ export class CapabilityExecutor {
 
     // Check elevated privileges
     if (permissionSpec.elevatedPrivileges) {
-      const isAdmin = await this.permissionEngine.checkPermission({
-        capability: 'admin:execute_elevated_capabilities',
-        resourceType: 'system',
-        resourceId: 'capabilities',
-        businessId: context.businessId,
-        userId: context.userId,
-        correlationId: context.correlationId,
-      });
+      const isAdmin = await this.permissionEngine.checkPermission(
+        {
+          userId: context.userId,
+          businessId: context.businessId,
+          attributes: {} as any
+        } as any,
+        'admin:execute_elevated_capabilities' as any
+      );
 
       if (!isAdmin.allowed) {
         throw new CapabilityPermissionError(
@@ -578,22 +578,27 @@ export class CapabilityExecutor {
     data: Record<string, unknown>
   ): Promise<void> {
     try {
-      await this.auditService.logEvent({
-        eventType,
-        severity: spec.audit.severity,
-        operation: `capability:${spec.id}`,
-        result: 'success',
-        details: {
-          capabilityId: spec.id,
-          capabilityVersion: spec.version,
-          executionId: context.executionId,
-          ...data,
+      await this.auditService.logDataAccess({
+        resource: {
+          type: 'capability',
+          id: spec.id,
+          attributes: {
+            version: spec.version,
+            category: spec.category,
+          },
         },
+        operation: 'read' as const,
+        result: 'success' as const,
+        recordCount: 1,
         securityContext: {
           correlationId: context.correlationId,
           userId: context.userId,
           businessId: context.businessId,
           operation: `capability_execution:${spec.id}`,
+          ipAddress: '',
+          userAgent: '',
+          sessionId: '',
+          timestamp: Date.now(),
         },
       });
     } catch (error: any) {
@@ -660,13 +665,14 @@ export class CapabilityExecutor {
 
   private async estimateSQLCost(sqlOp: any, parameters: Record<string, unknown>): Promise<number> {
     // Estimate based on operation type and potential result size
-    const baseCost = {
+    const baseCostMap: Record<string, number> = {
       select: 2,
       insert: 3,
       update: 4,
       delete: 5,
       procedure: 10,
-    }[sqlOp.type] || 2;
+    };
+    const baseCost = baseCostMap[sqlOp.type as string] || 2;
 
     // Add cost based on potential row count
     const maxRows = sqlOp.maxRows || 1000;
@@ -680,13 +686,14 @@ export class CapabilityExecutor {
 
   private async estimateFileCost(fileOp: any, parameters: Record<string, unknown>): Promise<number> {
     // Estimate based on file operation type
-    const baseCost = {
+    const baseCostMap: Record<string, number> = {
       read: 2,
       write: 3,
       delete: 1,
       upload: 5,
       download: 3,
-    }[fileOp.operation] || 2;
+    };
+    const baseCost = baseCostMap[fileOp.operation as string] || 2;
 
     // Add cost based on file size if available
     const fileSize = parameters.fileSize as number || 1024; // Default 1KB
@@ -708,7 +715,8 @@ export class CapabilityExecutor {
       }
     }
 
-    return Math.min(totalTokens, param.aiUsage?.maxTokens || 4000);
+    const maxTokens = spec.aiSafety?.maxTokens || 4000;
+    return Math.min(totalTokens, maxTokens);
   }
 
   private calculateCustomCostFactor(

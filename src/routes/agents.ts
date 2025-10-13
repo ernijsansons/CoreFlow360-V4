@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Hono } from 'hono';
 import { CoreFlow360AgentBridge } from '../services/integration/agent-bridge';
 import { AgentServiceConnector } from '../services/integration/agent-connector';

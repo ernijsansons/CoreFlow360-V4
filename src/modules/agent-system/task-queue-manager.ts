@@ -669,11 +669,10 @@ class AdaptiveBackpressureStrategy implements BackpressureStrategy {
 
     // Graduated acceptance based on priority and utilization
     const priority = task.priority || 'normal';
-    if (priority === 'high' || priority === 'critical') {
-      return utilization < 0.95;
-    } else if (priority === 'normal' || priority === 'low') {
+    if (priority === 'normal') {
       return utilization < 0.8;
     } else {
+      // priority === 'low'
       return utilization < 0.6;
     }
   }

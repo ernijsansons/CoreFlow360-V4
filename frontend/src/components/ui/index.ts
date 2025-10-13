@@ -76,10 +76,9 @@ export {
   SkeletonCard,
   SkeletonTable,
   SkeletonChart,
-  SkeletonForm,
-  SkeletonDashboard,
   SkeletonText,
-  SkeletonCircle,
   SkeletonAvatar,
   SkeletonButton,
+  SkeletonList,
+  SkeletonPage,
 } from './skeleton'

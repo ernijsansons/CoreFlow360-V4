@@ -186,7 +186,7 @@ export class AlertNotificationSystem {
       SELECT COUNT(*) as count
       FROM alert_notifications
       WHERE channel_id = ? AND status = 'sent' AND created_at >= ?
-    `).bind(channel.id, windowStart.toISOString()).first();
+    `).bind(channel.id, windowStart.toISOString()).first() as any;
 
     if (!result) return false;
     return (result.count as number) >= channel.rateLimitCount;
@@ -307,7 +307,7 @@ export class AlertNotificationSystem {
   async getNotificationChannel(channelId: string): Promise<NotificationChannel | null> {
     const result = await this.db.prepare(`
       SELECT * FROM notification_channels WHERE id = ?
-    `).bind(channelId).first();
+    `).bind(channelId).first() as any;
 
     if (!result) return null;
 
@@ -430,14 +430,14 @@ export class AlertNotificationSystem {
     const channelsResult = await this.db.prepare(`
       SELECT COUNT(*) as total, SUM(CASE WHEN enabled = true THEN 1 ELSE 0 END) as active
       FROM notification_channels WHERE business_id = ?
-    `).bind(businessId).first();
+    `).bind(businessId).first() as any;
 
     const notificationsResult = await this.db.prepare(`
       SELECT COUNT(*) as total, SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) as successful
       FROM alert_notifications an
       JOIN notification_channels nc ON an.channel_id = nc.id
       WHERE nc.business_id = ?
-    `).bind(businessId).first();
+    `).bind(businessId).first() as any;
 
     if (!channelsResult || !notificationsResult) {
       return {

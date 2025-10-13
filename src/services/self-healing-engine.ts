@@ -50,7 +50,7 @@ export class SelfHealingEngine {
     // Check if self-healing is enabled for this business
     const settings = await this.db.prepare(`
       SELECT self_healing_enabled FROM business_settings WHERE business_id = ?
-    `).bind(alert.businessId).first();
+    `).bind(alert.businessId).first() as any;
 
     if (!settings?.self_healing_enabled) {
       return false;
@@ -69,7 +69,7 @@ export class SelfHealingEngine {
       alert.businessId,
       alert.fingerprint,
       new Date(Date.now() - 30 * 60 * 1000).toISOString() // Last 30 minutes
-    ).first();
+    ).first() as any;
 
     if ((recentAttempts?.count || 0) >= 3) {
       return false; // Too many recent attempts
@@ -473,7 +473,7 @@ export class SelfHealingEngine {
       // Get the original alert with business isolation
       const alert = await this.db.prepare(`
         SELECT * FROM alerts WHERE id = ? AND business_id = ?
-      `).bind(task.alert_id, task.business_id).first();
+      `).bind(task.alert_id, task.business_id).first() as any;
 
       if (!alert) {
         return;
@@ -484,7 +484,7 @@ export class SelfHealingEngine {
       const similarAlerts = await this.db.prepare(`
         SELECT COUNT(*) as count FROM alerts
         WHERE fingerprint = ? AND triggered_at >= ? AND id != ? AND business_id = ?
-      `).bind(alert.fingerprint, since.toISOString(), alert.id, alert.business_id).first();
+      `).bind(alert.fingerprint, since.toISOString(), alert.id, alert.business_id).first() as any;
 
       const isEffective = (similarAlerts?.count || 0) === 0;
 

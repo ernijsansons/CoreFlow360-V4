@@ -558,7 +558,7 @@ class InvoiceManager {
       const result = await this.db.prepare(`
         SELECT * FROM invoices
         WHERE id = ? AND business_id = ?
-      `).bind(invoiceId, validBusinessId).first();
+      `).bind(invoiceId, validBusinessId).first() as any;
 
       if (!result) {
         return null;
@@ -589,7 +589,7 @@ class InvoiceManager {
     const result = await this.db.prepare(`
       SELECT * FROM customers
       WHERE id = ? AND business_id = ?
-    `).bind(customerId, businessId).first();
+    `).bind(customerId, businessId).first() as any;
 
     if (!result) {
       return null;
@@ -605,7 +605,7 @@ class InvoiceManager {
     const result = await this.db.prepare(`
       SELECT approval_threshold FROM finance_config
       WHERE business_id = ?
-    `).bind(businessId).first();
+    `).bind(businessId).first() as any;
 
     return (result?.approval_threshold as number) || 0;
   }
@@ -621,7 +621,7 @@ class InvoiceManager {
       SELECT accounts_receivable_id, sales_tax_payable_id
       FROM finance_config
       WHERE business_id = ?
-    `).bind(businessId).first();
+    `).bind(businessId).first() as any;
 
     if (!result) {
       throw new Error('Accounting configuration not found');

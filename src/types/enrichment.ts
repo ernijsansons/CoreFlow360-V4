@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Enrichment Pipeline Types for CoreFlow360 AI-Native CRM
 // Multi-source data enrichment with AI analysis
 

@@ -191,7 +191,7 @@ export class AgentDatabaseIntegration {
   }
 
   private async verifyConnection(): Promise<void> {
-    const result = await this.db.prepare('SELECT 1 as test').first();
+    const result = await this.db.prepare('SELECT 1 as test').first() as any;
     if (!result) {
       throw new Error('Database connection verification failed');
     }
@@ -225,7 +225,7 @@ export class AgentDatabaseIntegration {
 
   async getDecision(decisionId: string): Promise<AgentDecisionRecord | null> {
     const query = `SELECT * FROM agent_decisions WHERE id = ?`;
-    return await this.db.prepare(query).bind(decisionId).first();
+    return await this.db.prepare(query).bind(decisionId).first() as any;
   }
 
   async getAgentDecisions(
@@ -319,7 +319,7 @@ export class AgentDatabaseIntegration {
   async updatePatternSuccess(patternId: string, success: boolean): Promise<void> {
     const currentPattern = await this.db.prepare(
       `SELECT frequency, success_rate FROM agent_patterns WHERE id = ?`
-    ).bind(patternId).first();
+    ).bind(patternId).first() as any;
 
     if (currentPattern) {
       const newFrequency = currentPattern.frequency + 1;
@@ -370,7 +370,7 @@ export class AgentDatabaseIntegration {
       WHERE agent_id = ? AND memory_type = ? AND key = ?
     `;
 
-    const memory = await this.db.prepare(query).bind(agentId, memoryType, key).first();
+    const memory = await this.db.prepare(query).bind(agentId, memoryType, key).first() as any;
 
     if (memory) {
       // Update access count and last accessed
@@ -488,7 +488,7 @@ export class AgentDatabaseIntegration {
       params.push(since.toISOString());
     }
 
-    const result = await this.db.prepare(query).bind(...params).first();
+    const result = await this.db.prepare(query).bind(...params).first() as any;
     return result?.result || 0;
   }
 

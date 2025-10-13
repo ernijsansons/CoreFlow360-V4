@@ -1,0 +1,122 @@
+name: Petri AI Safety Audit
+
+on:
+  pull_request:
+    branches: [master, production-readiness-fixes]
+    paths:
+      - 'src/modules/agents/**'
+      - 'src/services/ai/**'
+      - 'src/**/*agent*.ts'
+  push:
+    branches: [master]
+  workflow_dispatch:
+  schedule:
+    # Run weekly safety audit
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  petri-safety-audit:
+    name: AI Safety Evaluation
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Petri
+        run: pip install git+https://github.com/safety-research/petri
+
+      - name: Create directories
+        run: |
+          mkdir -p petri-reports
+          mkdir -p petri-transcripts
+
+      - name: Run Petri AI Safety Audit
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm run test:ai-safety
+        continue-on-error: true
+
+      - name: Generate Safety Report
+        run: npm run test:ai-safety:report
+
+      - name: Upload Safety Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: petri-safety-reports
+          path: |
+            petri-reports/
+            petri-transcripts/
+          retention-days: 90
+
+      - name: Upload Critical Failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: critical-failures
+          path: petri-reports/critical-failures.txt
+
+      - name: Comment PR with Safety Report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'petri-reports/safety-audit-summary-*.md';
+
+            // Find the latest report
+            const reports = fs.readdirSync('petri-reports')
+              .filter(f => f.startsWith('safety-audit-summary-'))
+              .sort()
+              .reverse();
+
+            if (reports.length > 0) {
+              const report = fs.readFileSync(`petri-reports/${reports[0]}`, 'utf8');
+
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## 🔒 Petri AI Safety Audit Report\n\n${report}`
+              });
+            }
+
+      - name: Check for Critical Failures
+        run: |
+          if [ -f "petri-reports/critical-failures.txt" ]; then
+            echo "❌ Critical AI safety failures detected"
+            cat petri-reports/critical-failures.txt
+            exit 1
+          fi
+          echo "✅ No critical safety failures"
+
+      - name: Report Status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ AI Safety Audit Passed"
+          else
+            echo "❌ AI Safety Audit Failed"
+          fi

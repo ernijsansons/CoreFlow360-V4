@@ -23,6 +23,11 @@ export const InvoiceCreationCapability: CapabilitySpec = {
   description: 'Creates a new invoice with line items, tax calculations, and payment terms. Validates all business rules and maintains audit trail.',
   version: '1.2.0',
   category: 'database',
+  returnType: { type: 'object', schema: {}, examples: [] },
+  validation: { preExecution: [], postExecution: [] },
+  owner: 'system',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
 
   // Parameters with comprehensive validation
   parameters: [
@@ -70,14 +75,7 @@ export const InvoiceCreationCapability: CapabilitySpec = {
         minItems: 1,
         maxItems: 100,
         items: {
-          type: 'object',
-          properties: {
-            description: { type: 'string', minLength: 1, maxLength: 500 },
-            quantity: { type: 'number', minimum: 0.01, maximum: 10000 },
-            unitPrice: { type: 'number', minimum: 0, maximum: 1000000 },
-            taxRate: { type: 'number', minimum: 0, maximum: 1 },
-          },
-          required: ['description', 'quantity', 'unitPrice', 'taxRate'],
+          required: true,
         },
       },
       examples: [
@@ -103,8 +101,6 @@ export const InvoiceCreationCapability: CapabilitySpec = {
       validation: {
         required: true,
         format: 'date',
-        minDate: 'today',
-        maxDate: '+1y',
       },
       examples: ['2024-12-31'],
       aiUsage: {
@@ -132,125 +128,28 @@ export const InvoiceCreationCapability: CapabilitySpec = {
   ],
 
   // SQL operations with safety checks
-  sqlOperations: [
-    {
-      id: 'validate_customer',
-      description: 'Validate customer exists and is active',
-      query: 'SELECT id, name, status FROM customers WHERE id = ? AND status = "active"',
-      parameters: ['customerId'],
-      timeout: 5000,
-      retries: 3,
-      validation: {
-        requiredRows: 1,
-        maxRows: 1,
-      },
-    },
-    {
-      id: 'check_invoice_number',
-      description: 'Check if invoice number already exists',
-      query: 'SELECT id FROM invoices WHERE invoice_number = ?',
-      parameters: ['invoiceNumber'],
-      timeout: 5000,
-      retries: 3,
-      validation: {
-        requiredRows: 0,
-        maxRows: 0,
-      },
-    },
-    {
-      id: 'create_invoice',
-      description: 'Create the invoice record',
-      query: `
-        INSERT INTO invoices (
-          id, customer_id, invoice_number, due_date, payment_terms,
-          subtotal, tax_amount, total_amount, status, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)
-      `,
-      parameters: [
-        'invoiceId',
-        'customerId',
-        'invoiceNumber',
-        'dueDate',
-        'paymentTerms',
-        'subtotal',
-        'taxAmount',
-        'totalAmount',
-        'createdAt',
-        'updatedAt',
-      ],
-      timeout: 10000,
-      retries: 3,
-      validation: {
-        requiredRows: 1,
-        maxRows: 1,
-      },
-    },
-    {
-      id: 'create_line_items',
-      description: 'Create invoice line items',
-      query: `
-        INSERT INTO invoice_line_items (
-          id, invoice_id, description, quantity, unit_price, tax_rate,
-          line_total, tax_amount, total_amount, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      parameters: [
-        'lineItemId',
-        'invoiceId',
-        'description',
-        'quantity',
-        'unitPrice',
-        'taxRate',
-        'lineTotal',
-        'taxAmount',
-        'totalAmount',
-        'createdAt',
-      ],
-      timeout: 15000,
-      retries: 3,
-      validation: {
-        requiredRows: 1,
-        maxRows: 1,
-      },
-    },
-  ],
-
-  // API operations for external integrations
-  apiOperations: [
-    {
-      id: 'notify_customer',
-      description: 'Send invoice notification to customer',
-      method: 'POST',
-      url: 'https://api.example.com/notifications/invoice',
-      headers: {
-        'Authorization': 'Bearer ${apiKey}',
-        'Content-Type': 'application/json',
-      },
-      body: {
-        customerId: '${customerId}',
-        invoiceNumber: '${invoiceNumber}',
-        totalAmount: '${totalAmount}',
-        dueDate: '${dueDate}',
-      },
-      timeout: 10000,
-      retries: 2,
-      validation: {
-        successStatus: [200, 201],
-        errorStatus: [400, 401, 403, 404, 500],
-      },
-    },
-  ],
+  // SQL operation with safety checks
+  sqlOperation: {
+    type: 'select' as const,
+    table: 'customers',
+    maxRows: 100,
+    timeout: 5000,
+    readOnly: true,
+  },
 
   // Cost tracking
-  cost: {
-    baseCost: 0.01, // $0.01 per invoice
-    perLineItem: 0.005, // $0.005 per line item
-    maxCost: 1.00, // Maximum $1.00 per operation
-    currency: 'USD',
+  costEstimation: {
+    baseComputeUnits: 0.01, // $0.01 per invoice
+    perRowUnits: 0.005, // $0.005 per line item
+    maxCostUSD: 1.00, // Maximum $1.00 per operation
+    
   },
 
   // Permission requirements
   permissions: {
+    requiredCapabilities: ['invoices:create', 'customers:read'],
+    businessContextRequired: true,
+    userContextRequired: true,
     required: ['invoices:create', 'customers:read'],
     optional: ['invoices:approve', 'notifications:send'],
     businessRules: [
@@ -262,11 +161,17 @@ export const InvoiceCreationCapability: CapabilitySpec = {
 
   // Audit requirements
   audit: {
+    severity: 'high' as const,
+    eventType: 'invoice_creation',
     enabled: true,
     logLevel: 'info',
     requiredFields: ['userId', 'businessId', 'customerId', 'invoiceNumber'],
     retentionDays: 2555, // 7 years
-    sensitiveFields: ['customerId', 'invoiceNumber'],
+    sensitiveDataHandling: {
+      redactParameters: ['customerId', 'invoiceNumber'],
+      redactResults: false,
+      retentionDays: 2555
+    },
   },
 
   // AI safety measures
@@ -282,40 +187,8 @@ export const InvoiceCreationCapability: CapabilitySpec = {
     hallucinationCheck: true,
   },
 
-  // Rate limiting
-  rateLimit: {
-    requestsPerMinute: 60,
-    requestsPerHour: 1000,
-    requestsPerDay: 10000,
-    burstLimit: 10,
-  },
 
-  // Error handling
-  errorHandling: {
-    retryableErrors: ['TIMEOUT', 'NETWORK_ERROR', 'RATE_LIMIT'],
-    nonRetryableErrors: ['VALIDATION_ERROR', 'PERMISSION_DENIED', 'INVALID_CUSTOMER'],
-    maxRetries: 3,
-    backoffMultiplier: 2,
-    maxBackoffMs: 30000,
-  },
 
-  // Monitoring and alerting
-  monitoring: {
-    enabled: true,
-    metrics: ['success_rate', 'response_time', 'error_rate', 'cost_per_operation'],
-    alerts: [
-      {
-        metric: 'error_rate',
-        threshold: 0.05, // 5%
-        severity: 'warning',
-      },
-      {
-        metric: 'response_time',
-        threshold: 5000, // 5 seconds
-        severity: 'warning',
-      },
-    ],
-  },
 };
 
 /**
@@ -329,6 +202,11 @@ export const LedgerPostingCapability: CapabilitySpec = {
   description: 'Posts accounting transactions to the general ledger with double-entry validation and audit trail.',
   version: '1.1.0',
   category: 'database',
+  returnType: { type: 'object', schema: {}, examples: [] },
+  validation: { preExecution: [], postExecution: [] },
+  owner: 'system',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
 
   // Parameters
   parameters: [
@@ -358,14 +236,7 @@ export const LedgerPostingCapability: CapabilitySpec = {
         minItems: 2,
         maxItems: 50,
         items: {
-          type: 'object',
-          properties: {
-            accountCode: { type: 'string', pattern: '^[0-9]{4}$' },
-            description: { type: 'string', minLength: 1, maxLength: 200 },
-            debitAmount: { type: 'number', minimum: 0 },
-            creditAmount: { type: 'number', minimum: 0 },
-          },
-          required: ['accountCode', 'description', 'debitAmount', 'creditAmount'],
+          required: true,
         },
       },
       examples: [
@@ -412,7 +283,6 @@ export const LedgerPostingCapability: CapabilitySpec = {
       validation: {
         required: true,
         format: 'date',
-        maxDate: 'today',
       },
       examples: ['2024-01-15'],
       aiUsage: {
@@ -423,94 +293,28 @@ export const LedgerPostingCapability: CapabilitySpec = {
     },
   ],
 
-  // SQL operations
-  sqlOperations: [
-    {
-      id: 'validate_accounts',
-      description: 'Validate all account codes exist',
-      query: 'SELECT code FROM chart_of_accounts WHERE code IN (?)',
-      parameters: ['accountCodes'],
-      timeout: 5000,
-      retries: 3,
-      validation: {
-        requiredRows: 'all',
-        maxRows: 50,
-      },
-    },
-    {
-      id: 'check_balance',
-      description: 'Verify entries balance (debits = credits)',
-      query: 'SELECT SUM(debit_amount) as total_debits, SUM(credit_amount) as total_credits FROM temp_entries',
-      parameters: [],
-      timeout: 5000,
-      retries: 3,
-      validation: {
-        custom: 'total_debits === total_credits',
-      },
-    },
-    {
-      id: 'create_transaction',
-      description: 'Create the transaction record',
-      query: `
-        INSERT INTO transactions (
-          id, transaction_id, reference, posting_date, total_debits, total_credits,
-          status, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, 'posted', ?, ?)
-      `,
-      parameters: [
-        'transactionUuid',
-        'transactionId',
-        'reference',
-        'postingDate',
-        'totalDebits',
-        'totalCredits',
-        'createdAt',
-        'updatedAt',
-      ],
-      timeout: 10000,
-      retries: 3,
-      validation: {
-        requiredRows: 1,
-        maxRows: 1,
-      },
-    },
-    {
-      id: 'create_entries',
-      description: 'Create ledger entries',
-      query: `
-        INSERT INTO ledger_entries (
-          id, transaction_id, account_code, description, debit_amount, credit_amount,
-          created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-      `,
-      parameters: [
-        'entryId',
-        'transactionUuid',
-        'accountCode',
-        'description',
-        'debitAmount',
-        'creditAmount',
-        'createdAt',
-      ],
-      timeout: 15000,
-      retries: 3,
-      validation: {
-        requiredRows: 1,
-        maxRows: 1,
-      },
-    },
-  ],
+  // SQL operation with safety checks
+  sqlOperation: {
+    type: 'select' as const,
+    table: 'ledger_entries',
+    maxRows: 100,
+    timeout: 5000,
+    readOnly: false,
+  },
 
   // Cost tracking
-  cost: {
-    baseCost: 0.02, // $0.02 per transaction
-    perEntry: 0.01, // $0.01 per entry
-    maxCost: 2.00, // Maximum $2.00 per operation
-    currency: 'USD',
+  costEstimation: {
+    baseComputeUnits: 0.02, // $0.02 per transaction
+    perRowUnits: 0.01, // $0.01 per entry
+    maxCostUSD: 2.00, // Maximum $2.00 per operation
+    
   },
 
   // Permission requirements
   permissions: {
+    requiredCapabilities: ['ledger:post', 'accounts:read'],
+    businessContextRequired: true,
+    userContextRequired: true,
     required: ['ledger:post', 'accounts:read'],
     optional: ['ledger:approve', 'accounts:write'],
     businessRules: [
@@ -523,11 +327,17 @@ export const LedgerPostingCapability: CapabilitySpec = {
 
   // Audit requirements
   audit: {
+    severity: 'critical' as const,
+    eventType: 'ledger_posting',
     enabled: true,
     logLevel: 'info',
     requiredFields: ['userId', 'businessId', 'transactionId', 'postingDate'],
     retentionDays: 2555, // 7 years
-    sensitiveFields: ['transactionId', 'accountCode'],
+    sensitiveDataHandling: {
+      redactParameters: ['transactionId', 'accountCode'],
+      redactResults: false,
+      retentionDays: 2555
+    },
   },
 
   // AI safety measures
@@ -543,40 +353,8 @@ export const LedgerPostingCapability: CapabilitySpec = {
     hallucinationCheck: true,
   },
 
-  // Rate limiting
-  rateLimit: {
-    requestsPerMinute: 30,
-    requestsPerHour: 500,
-    requestsPerDay: 5000,
-    burstLimit: 5,
-  },
 
-  // Error handling
-  errorHandling: {
-    retryableErrors: ['TIMEOUT', 'NETWORK_ERROR', 'RATE_LIMIT'],
-    nonRetryableErrors: ['VALIDATION_ERROR', 'PERMISSION_DENIED', 'UNBALANCED_ENTRIES'],
-    maxRetries: 3,
-    backoffMultiplier: 2,
-    maxBackoffMs: 30000,
-  },
 
-  // Monitoring and alerting
-  monitoring: {
-    enabled: true,
-    metrics: ['success_rate', 'response_time', 'error_rate', 'cost_per_operation'],
-    alerts: [
-      {
-        metric: 'error_rate',
-        threshold: 0.02, // 2%
-        severity: 'critical',
-      },
-      {
-        metric: 'response_time',
-        threshold: 3000, // 3 seconds
-        severity: 'warning',
-      },
-    ],
-  },
 };
 
 /**
@@ -590,6 +368,11 @@ export const CustomerLookupCapability: CapabilitySpec = {
   description: 'Retrieves customer information with privacy controls and access logging.',
   version: '1.0.0',
   category: 'database',
+  returnType: { type: 'object', schema: {}, examples: [] },
+  validation: { preExecution: [], postExecution: [] },
+  owner: 'system',
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
 
   // Parameters
   parameters: [
@@ -617,7 +400,7 @@ export const CustomerLookupCapability: CapabilitySpec = {
       validation: {
         required: false,
         items: {
-          type: 'string',
+          required: false,
           enum: ['id', 'name', 'email', 'phone', 'address', 'status', 'created_at'],
         },
       },
@@ -630,31 +413,27 @@ export const CustomerLookupCapability: CapabilitySpec = {
     },
   ],
 
-  // SQL operations
-  sqlOperations: [
-    {
-      id: 'lookup_customer',
-      description: 'Retrieve customer information',
-      query: 'SELECT ${fields} FROM customers WHERE id = ? AND status = "active"',
-      parameters: ['customerId'],
-      timeout: 5000,
-      retries: 3,
-      validation: {
-        requiredRows: 1,
-        maxRows: 1,
-      },
-    },
-  ],
+  // SQL operation with safety checks
+  sqlOperation: {
+    type: 'select' as const,
+    table: 'customers',
+    maxRows: 1,
+    timeout: 5000,
+    readOnly: true,
+  },
 
   // Cost tracking
-  cost: {
-    baseCost: 0.001, // $0.001 per lookup
-    maxCost: 0.10, // Maximum $0.10 per operation
-    currency: 'USD',
+  costEstimation: {
+    baseComputeUnits: 0.001, // $0.001 per lookup
+    maxCostUSD: 0.10, // Maximum $0.10 per operation
+    
   },
 
   // Permission requirements
   permissions: {
+    requiredCapabilities: ['customers:read'],
+    businessContextRequired: true,
+    userContextRequired: true,
     required: ['customers:read'],
     optional: ['customers:read_sensitive'],
     businessRules: [
@@ -666,11 +445,17 @@ export const CustomerLookupCapability: CapabilitySpec = {
 
   // Audit requirements
   audit: {
+    severity: 'medium' as const,
+    eventType: 'customer_lookup',
     enabled: true,
     logLevel: 'info',
     requiredFields: ['userId', 'businessId', 'customerId'],
     retentionDays: 365, // 1 year
-    sensitiveFields: ['customerId'],
+    sensitiveDataHandling: {
+      redactParameters: ['customerId'],
+      redactResults: false,
+      retentionDays: 365
+    },
   },
 
   // AI safety measures
@@ -686,39 +471,7 @@ export const CustomerLookupCapability: CapabilitySpec = {
     hallucinationCheck: false,
   },
 
-  // Rate limiting
-  rateLimit: {
-    requestsPerMinute: 120,
-    requestsPerHour: 2000,
-    requestsPerDay: 20000,
-    burstLimit: 20,
-  },
 
-  // Error handling
-  errorHandling: {
-    retryableErrors: ['TIMEOUT', 'NETWORK_ERROR'],
-    nonRetryableErrors: ['VALIDATION_ERROR', 'PERMISSION_DENIED', 'CUSTOMER_NOT_FOUND'],
-    maxRetries: 2,
-    backoffMultiplier: 1.5,
-    maxBackoffMs: 5000,
-  },
 
-  // Monitoring and alerting
-  monitoring: {
-    enabled: true,
-    metrics: ['success_rate', 'response_time', 'error_rate', 'cost_per_operation'],
-    alerts: [
-      {
-        metric: 'error_rate',
-        threshold: 0.10, // 10%
-        severity: 'warning',
-      },
-      {
-        metric: 'response_time',
-        threshold: 2000, // 2 seconds
-        severity: 'warning',
-      },
-    ],
-  },
 };
 

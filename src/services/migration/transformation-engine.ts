@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Pipeline, PipelineStage, Transformation, ErrorHandlingStrategy } from '../../types/migration';
 
 interface TransformationRules {

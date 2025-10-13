@@ -135,10 +135,8 @@ export class DashboardMetrics extends DurableObject {
   private async handleStopCollection(): Promise<Response> {
     this.isCollecting = false
 
-    // Clear alarms
-    for (const alarmId of this.alarms.values()) {
-      this.ctx.storage.deleteAlarm(alarmId)
-    }
+    // Clear alarm (Durable Object has single alarm)
+    await this.ctx.storage.deleteAlarm()
     this.alarms.clear()
 
     return new Response(JSON.stringify({ success: true }), {

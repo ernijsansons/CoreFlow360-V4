@@ -449,7 +449,7 @@ export class DistributedTracing {
         SUM(CASE WHEN status = 'error' THEN 1 ELSE 0 END) as error_count
       FROM traces 
       WHERE business_id = ? AND start_time >= ? AND start_time <= ?
-    `).bind(businessId, timeRange.start, timeRange.end).first();
+    `).bind(businessId, timeRange.start, timeRange.end).first() as any;
 
     const durations = await this.db.prepare(`
       SELECT duration FROM traces 
@@ -474,7 +474,7 @@ export class DistributedTracing {
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     try {
       // Test database connection
-      await this.db.prepare('SELECT 1').first();
+      await this.db.prepare('SELECT 1').first() as any;
       
       return {
         status: 'healthy',

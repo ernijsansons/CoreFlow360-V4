@@ -5,7 +5,7 @@
  */
 
 import { Logger } from '../shared/logger';
-import { AgentOrchestrationFramework, type Agent, type Task, type WorkflowDAG } from './agent-orchestration-framework';
+import { AgentOrchestrationFramework, type WorkflowDAG } from './agent-orchestration-framework';
 
 export interface CoordinationContext {
   requestId: string;
@@ -532,7 +532,7 @@ export class AgentCoordinationSystem {
   private async generateCoordinationReport(
     result: CoordinationResult,
     workflow: WorkflowDAG,
-    context: CoordinationContext
+    _context: CoordinationContext
   ): Promise<CoordinationResult> {
     // Enhance the result with additional insights
     const enhancedResult: CoordinationResult = {
@@ -620,7 +620,7 @@ export class AgentCoordinationSystem {
     }>();
 
     // Aggregate agent data
-    for (const [nodeId, node] of workflow.nodes) {
+    for (const [_nodeId, node] of workflow.nodes) {
       if (node.task.assignedAgent && node.task.result) {
         const agentId = node.task.assignedAgent;
 
@@ -653,7 +653,7 @@ export class AgentCoordinationSystem {
    */
   private async calculateQualityMetrics(
     workflow: WorkflowDAG,
-    context: CoordinationContext
+    _context: CoordinationContext
   ): Promise<QualityMetrics> {
     const taskResults = Array.from(workflow.nodes.values())
       .map(node => node.task.result)
@@ -696,7 +696,7 @@ export class AgentCoordinationSystem {
   /**
    * Generate optimization recommendations
    */
-  private generateRecommendations(workflow: WorkflowDAG, context: CoordinationContext): string[] {
+  private generateRecommendations(workflow: WorkflowDAG, _context: CoordinationContext): string[] {
     const recommendations: string[] = [];
 
     // Check execution efficiency
@@ -751,7 +751,7 @@ export class AgentCoordinationSystem {
 
     // Analyze agent collaboration patterns
     const agentTypes = new Set<string>();
-    for (const [nodeId, node] of workflow.nodes) {
+    for (const [_nodeId, node] of workflow.nodes) {
       if (node.task.assignedAgent) {
         agentTypes.add(this.getAgentType(node.task.assignedAgent));
       }

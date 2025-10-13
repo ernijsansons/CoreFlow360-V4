@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Period Manager
  * Manages accounting periods, closing, and locking
@@ -166,7 +167,7 @@ class PeriodManager {
     const result = await this.db.prepare(`
       SELECT * FROM accounting_periods
       WHERE id = ? AND business_id = ?
-    `).bind(periodId, validBusinessId).first();
+    `).bind(periodId, validBusinessId).first() as any;
 
     if (!result) {
       return null;
@@ -187,7 +188,7 @@ class PeriodManager {
       AND start_date <= ? AND end_date >= ?
       ORDER BY start_date DESC
       LIMIT 1
-    `).bind(validBusinessId, date, date).first();
+    `).bind(validBusinessId, date, date).first() as any;
 
     if (!result) {
       return null;

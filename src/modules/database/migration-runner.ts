@@ -177,7 +177,7 @@ export class MigrationRunner {
       const migration = await this.db
         .prepare('SELECT * FROM schema_migrations WHERE version = ?')
         .bind(version)
-        .first();
+        .first() as { status: string } | null;
 
       if (!migration) {
         return {

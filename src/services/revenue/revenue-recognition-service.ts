@@ -235,7 +235,7 @@ export class RevenueRecognitionService {
           `INSERT INTO revenue_schedule (obligation_id, scheduled_date, scheduled_amount)
            VALUES (?, ?, ?)`
         )
-        .bind(obligationId, periodDate.toISOString(), monthlyAmount)
+        .bind(obligation.id, periodDate.toISOString(), monthlyAmount)
         .run();
     }
   }

@@ -3,6 +3,8 @@ import { RouterProvider } from '@tanstack/react-router'
 import { router } from './router'
 import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/error-boundary'
+import { ToastListener } from '@/components/toast-listener'
+import { QueryProvider } from '@/providers/query-provider'
 
 function LoadingFallback() {
   return (
@@ -46,9 +48,12 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <Suspense fallback={<LoadingFallback />}>
-        <RouterProvider router={router} />
-      </Suspense>
+      <QueryProvider>
+        <Suspense fallback={<LoadingFallback />}>
+          <RouterProvider router={router} />
+        </Suspense>
+      </QueryProvider>
+      <ToastListener />
       <Toaster
         position="top-right"
         richColors

@@ -347,7 +347,7 @@ app.post('/issues/:issueId/strategies', async (c: any) => {
     };
 
     const fixer = new AutomatedDataFixer(c.env, fixerConfig);
-    const strategies = await fixer.analyzeIssue(convertToFixerDataIssue(issue, businessId!));
+    const strategies = await fixer.analyzeIssue(convertToFixerDataIssue(issue, user.businessId));
 
     logger.info('Fix strategies generated', {
       issueId,
@@ -418,7 +418,7 @@ app.post('/issues/:issueId/preview', async (c: any) => {
     };
 
     const fixer = new AutomatedDataFixer(c.env, fixerConfig);
-    const strategies = await fixer.analyzeIssue(convertToFixerDataIssue(issue, businessId!));
+    const strategies = await fixer.analyzeIssue(convertToFixerDataIssue(issue, user.businessId));
     const strategy = strategies.find(s => s.id === request.strategyId);
 
     if (!strategy) {
@@ -426,10 +426,10 @@ app.post('/issues/:issueId/preview', async (c: any) => {
     }
 
     // Generate preview
-    const preview = await fixer.generateFixPreview(convertToFixerDataIssue(issue, businessId!), strategy);
+    const preview = await fixer.generateFixPreview(convertToFixerDataIssue(issue, user.businessId), strategy);
 
     // Validate the fix
-    const validation = await fixer.validateFix(convertToFixerDataIssue(issue, businessId!), strategy);
+    const validation = await fixer.validateFix(convertToFixerDataIssue(issue, user.businessId), strategy);
 
     return c.json({
       success: true,
@@ -499,7 +499,7 @@ app.post('/issues/:issueId/fix', async (c: any) => {
     };
 
     const fixer = new AutomatedDataFixer(c.env, fixerConfig);
-    const strategies = await fixer.analyzeIssue(convertToFixerDataIssue(issue, businessId!));
+    const strategies = await fixer.analyzeIssue(convertToFixerDataIssue(issue, user.businessId));
     const strategy = strategies.find(s => s.id === request.strategyId);
 
     if (!strategy) {
@@ -508,7 +508,7 @@ app.post('/issues/:issueId/fix', async (c: any) => {
 
     // Validate before execution
     if (!request.skipValidation) {
-      const validation = await fixer.validateFix(convertToFixerDataIssue(issue, businessId!), strategy);
+      const validation = await fixer.validateFix(convertToFixerDataIssue(issue, user.businessId), strategy);
       if (!validation.valid) {
         return c.json({
           error: 'Fix validation failed',
@@ -518,7 +518,7 @@ app.post('/issues/:issueId/fix', async (c: any) => {
     }
 
     // Execute the fix
-    const execution = await fixer.executeFix(convertToFixerDataIssue(issue, businessId!), strategy, request.approvedBy);
+    const execution = await fixer.executeFix(convertToFixerDataIssue(issue, user.businessId), strategy, request.approvedBy);
 
     // Update issue status if fix was successful
     if (execution.status === 'completed') {

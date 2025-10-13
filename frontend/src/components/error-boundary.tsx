@@ -1,8 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { Component, ReactNode } from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui'
 
 interface Props {
   children: ReactNode

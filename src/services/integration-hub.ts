@@ -451,7 +451,7 @@ export class IntegrationHub {
         COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_syncs
       FROM sync_logs
       WHERE created_at >= datetime('now', '-${daysBack} days')
-    `).first();
+    `).first() as any;
 
     return stats;
   }

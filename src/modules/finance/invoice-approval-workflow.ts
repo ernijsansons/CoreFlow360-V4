@@ -543,7 +543,7 @@ export class InvoiceApprovalWorkflow {
         WHERE ${whereClause}
         AND a.status = 'APPROVED'
         AND a.approved_at IS NOT NULL
-      `).bind(...params).first();
+      `).bind(...params).first() as any;
 
       const averageApprovalTime = timingResult?.avg_time
         ? Math.round((timingResult.avg_time as number) / (1000 * 60 * 60)) // Convert to hours
@@ -583,7 +583,7 @@ export class InvoiceApprovalWorkflow {
     const result = await this.db.prepare(`
       SELECT * FROM invoice_approval_config
       WHERE business_id = ?
-    `).bind(businessId).first();
+    `).bind(businessId).first() as any;
 
     if (!result) {
       // Return default configuration
@@ -639,7 +639,7 @@ export class InvoiceApprovalWorkflow {
     // This is a simplified version
     const result = await this.db.prepare(`
       SELECT * FROM invoices WHERE id = ? AND business_id = ?
-    `).bind(invoiceId, businessId).first();
+    `).bind(invoiceId, businessId).first() as any;
 
     return result ? this.mapToInvoice(result) : null;
   }
@@ -680,7 +680,7 @@ export class InvoiceApprovalWorkflow {
       UPDATE invoices
       SET status = ?, approval_status = ?, updated_at = ?
       WHERE id = ? AND business_id = ?
-    `).bind(status, approvalStatus, Date.now(), invoiceId, businessId).run();
+    `).bind(status, approvalStatus, Date.now(), invoiceId, businessId as any).run();
   }
 
   private async getUserApproval(
@@ -692,7 +692,7 @@ export class InvoiceApprovalWorkflow {
       SELECT a.* FROM invoice_approvals a
       INNER JOIN invoices i ON a.invoice_id = i.id
       WHERE a.invoice_id = ? AND a.approver_user_id = ? AND i.business_id = ?
-    `).bind(invoiceId, userId, businessId).first();
+    `).bind(invoiceId, userId, businessId).first() as any;
 
     return result ? this.mapToInvoiceApproval(result) : null;
   }

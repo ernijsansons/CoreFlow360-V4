@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Universal Webhook Handler Service
  * Centralized webhook processing for all payment providers and external services

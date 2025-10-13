@@ -440,7 +440,7 @@ export class TelemetryCollector {
     const existingAlert = await this.db.prepare(`
       SELECT id FROM alerts
       WHERE fingerprint = ? AND status = 'firing'
-    `).bind(fingerprint).first();
+    `).bind(fingerprint).first() as any;
 
     if (existingAlert) {
       return; // Alert already exists
@@ -507,7 +507,7 @@ export class TelemetryCollector {
       WHERE business_id = ?
         AND module = ?
         AND timestamp BETWEEN ? AND ?
-    `).bind(businessId, serviceName, oneMinuteAgo, now).first();
+    `).bind(businessId, serviceName, oneMinuteAgo, now).first() as any;
 
     if (metrics && (metrics as any).request_count > 0) {
       const perf: Partial<ServicePerformance> = {

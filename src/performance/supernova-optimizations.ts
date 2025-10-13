@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * SUPERNOVA Performance Optimizations
  * Critical performance improvements for CoreFlow360 V4

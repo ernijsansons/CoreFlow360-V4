@@ -2,6 +2,9 @@
  * WebGPU Neural Accelerator
  * Next-generation AI acceleration using WebGPU compute shaders for 30%+ performance improvement
  * Implements federated learning, neuromorphic patterns, and quantum-inspired optimization
+ *
+ * NOTE: This module requires browser environment with WebGPU support.
+ * In Cloudflare Workers, this will gracefully fallback to CPU inference.
  */
 
 import { Logger } from '../shared/logger';

@@ -99,7 +99,7 @@ export class EmailTemplateEngine {
 
     const result = await db.prepare(`
       SELECT * FROM email_templates WHERE id = ?
-    `).bind(templateId).first();
+    `).bind(templateId).first() as any;
 
     if (result) {
       const dbResult = result as any;

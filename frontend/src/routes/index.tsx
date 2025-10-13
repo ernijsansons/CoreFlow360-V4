@@ -11,4 +11,5 @@ export const Route = createFileRoute('/')({
 
     throw redirect({ to: '/landing' })
   },
+  component: () => null, // Fallback component (should never render due to redirect)
 })

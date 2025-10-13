@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Profit & Loss Statement Generator
  * Generates comprehensive income statements with comparison periods

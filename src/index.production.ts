@@ -511,14 +511,18 @@ export default {
     // ============================================================================
     // CRITICAL SECURITY VALIDATION - CVSS 9.8 JWT BYPASS PREVENTION
     // ============================================================================
-    // Perform security validation (cached per environment configuration)
-    const envKey = `${env.ENVIRONMENT || 'production'}-${env.JWT_SECRET?.substring(0, 10) || 'none'}`;
-    let cached = securityValidationCache.get(envKey);
+    // Skip validation for local development with SKIP_SECURITY_VALIDATION flag
+    if (env.ENVIRONMENT === 'development' && env.SKIP_SECURITY_VALIDATION === 'true') {
+      console.log('⚠️ Security validation SKIPPED for local development');
+    } else {
+      // Perform security validation (cached per environment configuration)
+      const envKey = `${env.ENVIRONMENT || 'production'}-${env.JWT_SECRET?.substring(0, 10) || 'none'}`;
+      let cached = securityValidationCache.get(envKey);
 
-    if (!cached) {
-      try {
-        console.log('🔒 Performing startup security validation...');
-        const validation = await SecurityBootstrap.validateStartupSecurity(env);
+      if (!cached) {
+        try {
+          console.log('🔒 Performing startup security validation...');
+          const validation = await SecurityBootstrap.validateStartupSecurity(env);
 
         if (!validation.passed || validation.blocksStartup) {
           const errorMessage = [
@@ -548,23 +552,24 @@ export default {
         console.error(errorMessage);
         cached = { validated: false, error: errorMessage };
         securityValidationCache.set(envKey, cached);
-      }
-    }
-
-    // Block requests if security validation failed
-    if (cached.error) {
-      return new Response(JSON.stringify({
-        error: 'Service Unavailable - Security Configuration Error',
-        message: 'The service cannot start due to critical security issues',
-        details: env.ENVIRONMENT === 'development' ? cached.error : 'Contact system administrator',
-        statusCode: 503
-      }), {
-        status: 503,
-        headers: {
-          'Content-Type': 'application/json',
-          'Retry-After': '300' // Retry after 5 minutes
         }
-      });
+      }
+
+      // Block requests if security validation failed
+      if (cached && cached.error) {
+        return new Response(JSON.stringify({
+          error: 'Service Unavailable - Security Configuration Error',
+          message: 'The service cannot start due to critical security issues',
+          details: env.ENVIRONMENT === 'development' ? cached.error : 'Contact system administrator',
+          statusCode: 503
+        }), {
+          status: 503,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '300' // Retry after 5 minutes
+          }
+        });
+      }
     }
     // ============================================================================
 
@@ -639,12 +644,11 @@ export default {
         let apiRequest = request;
         const requestUrl = new URL(request.url);
 
-        if (!requestUrl.pathname.startsWith('/api/v1')) {
-          const suffix = requestUrl.pathname.substring('/api'.length);
-          const rewrittenUrl = new URL(requestUrl.toString());
-          rewrittenUrl.pathname = `/api/v1${suffix}`.replace('//', '/');
-          apiRequest = new Request(rewrittenUrl.toString(), request);
-        }
+        // Remove /api prefix before forwarding to Hono (Hono app handles /v1/... paths)
+        const suffix = requestUrl.pathname.substring('/api'.length);
+        const rewrittenUrl = new URL(requestUrl.toString());
+        rewrittenUrl.pathname = suffix.startsWith('/v1') ? suffix : `/v1${suffix}`.replace('//', '/');
+        apiRequest = new Request(rewrittenUrl.toString(), request);
 
         const honoResponse = await handleAPIRequest(apiRequest, env, ctx);
         const responseHeaders = new Headers(honoResponse.headers);
@@ -693,7 +697,7 @@ export default {
       let user: User | null = null;
       let authError: string | undefined;
 
-      if (handler && !publicEndpoints.includes(path)) {
+      if (typeof handler !== 'undefined' && !publicEndpoints.includes(path)) {
         const authResult = await authenticate(request, authSystem);
         user = authResult.user;
         authError = authResult.error;
@@ -779,3 +783,186 @@ export default {
     }
   }
 };
+
+// Export additional Durable Objects required by wrangler.toml
+export class WorkflowExecutorDO {
+  state: DurableObjectState;
+  env: Env;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+    this.env = env;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (request.method === 'POST' && url.pathname === '/execute') {
+      return this.executeWorkflow(request);
+    }
+
+    if (request.method === 'GET' && url.pathname === '/status') {
+      return this.getWorkflowStatus(request);
+    }
+
+    return new Response('Not found', { status: 404 });
+  }
+
+  private async executeWorkflow(request: Request): Promise<Response> {
+    try {
+      const body = await request.json() as { workflowId: string; steps: any[] };
+      const workflowId = body.workflowId;
+
+      // Store workflow state
+      await this.state.storage.put(`workflow:${workflowId}`, {
+        status: 'running',
+        steps: body.steps,
+        startedAt: Date.now(),
+        currentStep: 0
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        workflowId,
+        status: 'running'
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Workflow execution failed'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  private async getWorkflowStatus(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const workflowId = url.searchParams.get('workflowId');
+
+    if (!workflowId) {
+      return new Response(JSON.stringify({
+        error: 'workflowId required'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const workflow = await this.state.storage.get(`workflow:${workflowId}`) as any;
+
+    if (!workflow) {
+      return new Response(JSON.stringify({
+        error: 'Workflow not found'
+      }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    return new Response(JSON.stringify(workflow), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+export class RealtimeCoordinatorDO {
+  state: DurableObjectState;
+  env: Env;
+  sessions: Map<string, WebSocket>;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+    this.env = env;
+    this.sessions = new Map();
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    // WebSocket upgrade for real-time connections
+    if (request.headers.get('Upgrade') === 'websocket') {
+      return this.handleWebSocket(request);
+    }
+
+    if (request.method === 'POST' && url.pathname === '/broadcast') {
+      return this.broadcastMessage(request);
+    }
+
+    if (request.method === 'GET' && url.pathname === '/sessions') {
+      return this.getSessions();
+    }
+
+    return new Response('Not found', { status: 404 });
+  }
+
+  private async handleWebSocket(request: Request): Promise<Response> {
+    const pair = new WebSocketPair();
+    const [client, server] = Object.values(pair);
+
+    const sessionId = crypto.randomUUID();
+    this.sessions.set(sessionId, server);
+
+    server.accept();
+
+    server.addEventListener('message', (event: MessageEvent) => {
+      // Broadcast to all other sessions
+      this.sessions.forEach((ws, id) => {
+        if (id !== sessionId && ws.readyState === WebSocket.OPEN) {
+          ws.send(event.data);
+        }
+      });
+    });
+
+    server.addEventListener('close', () => {
+      this.sessions.delete(sessionId);
+    });
+
+    return new Response(null, {
+      status: 101,
+      webSocket: client
+    });
+  }
+
+  private async broadcastMessage(request: Request): Promise<Response> {
+    try {
+      const body = await request.json() as { message: any };
+      const messageStr = JSON.stringify(body.message);
+
+      let sent = 0;
+      this.sessions.forEach((ws) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(messageStr);
+          sent++;
+        }
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        sentTo: sent
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Broadcast failed'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  private async getSessions(): Promise<Response> {
+    return new Response(JSON.stringify({
+      activeSessions: this.sessions.size,
+      sessionIds: Array.from(this.sessions.keys())
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}

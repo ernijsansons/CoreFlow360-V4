@@ -120,9 +120,10 @@ class SuggestionsService {
 
       throw new AppError(
         'Failed to generate suggestions',
-        'SUGGESTIONS_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'SUGGESTIONS_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }

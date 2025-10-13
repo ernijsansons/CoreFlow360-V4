@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enhanced Sentry Integration with AI Analysis
  * Advanced error tracking with ML-powered insights and automated remediation

@@ -152,7 +152,7 @@ class GDPRDataExportService {
       const result = await this.db.prepare(`
         SELECT * FROM gdpr_export_requests
         WHERE id = ? AND business_id = ?
-      `).bind(exportId, validBusinessId).first();
+      `).bind(exportId, validBusinessId).first() as any;
 
       if (!result) {
         return null;
@@ -205,7 +205,7 @@ class GDPRDataExportService {
       const expiredExports = await this.db.prepare(`
         SELECT id, download_url FROM gdpr_export_requests
         WHERE status = 'completed' AND expires_at < ?
-      `).bind(Date.now()).all();
+      `).bind(Date.now() as any).all();
 
       for (const exportRow of expiredExports.results || []) {
         const row = exportRow as any;
@@ -585,7 +585,7 @@ class GDPRDataExportService {
       UPDATE gdpr_export_requests
       SET status = ?, error_message = ?, completed_at = ?
       WHERE id = ?
-    `).bind(status, errorMessage || null, Date.now(), exportId).run();
+    `).bind(status, errorMessage || null, Date.now(), exportId as any).run();
   }
 
   /**

@@ -153,7 +153,7 @@ class ConversationService {
   ): Promise<Conversation | null> {
     try {
       let query = `SELECT * FROM conversations WHERE id = ? AND user_id = ?`
-      const params: any[] = [parseInt(conversationId, 10), userId]
+      const params: any[] = [conversationId, userId]
 
       if (businessId) {
         query += ` AND business_id = ?`
@@ -266,7 +266,7 @@ class ConversationService {
     try {
       const conversation = await this.getConversation(conversationId, userId)
       if (!conversation) {
-        throw new AppError('Conversation not found', 'CONVERSATION_NOT_FOUND', 404)
+        throw new AppError('Conversation not found', 404, 'CONVERSATION_NOT_FOUND')
       }
 
       const now = new Date().toISOString()
@@ -281,7 +281,7 @@ class ConversationService {
         updatedConversation.status,
         JSON.stringify(updatedConversation.metadata || {}),
         updatedConversation.updatedAt,
-        parseInt(conversationId, 10),
+        conversationId,
         userId
       ).run()
 
@@ -321,7 +321,7 @@ class ConversationService {
     try {
       const conversation = await this.getConversation(conversationId, userId)
       if (!conversation) {
-        throw new AppError('Conversation not found', 'CONVERSATION_NOT_FOUND', 404)
+        throw new AppError('Conversation not found', 404, 'CONVERSATION_NOT_FOUND')
       }
 
       // Soft delete - mark as deleted
@@ -332,7 +332,7 @@ class ConversationService {
         DELETE FROM chat_messages
         WHERE conversation_id = ?
           AND conversation_id IN (SELECT id FROM conversations WHERE business_id = ? AND user_id = ?)
-      `).bind(parseInt(conversationId, 10), conversation.businessId, userId).run()
+      `).bind(conversationId, conversation.businessId, userId).run()
 
       await this.auditLogger.log({
         action: 'conversation_deleted',
@@ -456,7 +456,7 @@ class ConversationService {
       // Verify conversation access - extract businessId from conversation
       const conversation = await this.getConversation(conversationId, userId)
       if (!conversation) {
-        throw new AppError('Conversation not found', 'CONVERSATION_NOT_FOUND', 404)
+        throw new AppError('Conversation not found', 404, 'CONVERSATION_NOT_FOUND')
       }
       const businessId = conversation.businessId
 

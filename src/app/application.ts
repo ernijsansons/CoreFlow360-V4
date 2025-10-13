@@ -158,7 +158,7 @@ export async function createSecureApp(
       }
     },
 
-    registerRoute(path: string, handler: Function): void {
+    registerRoute(path: string, handler: (...args: any[]) => any): void {
       routeManager.registerDynamicRoute(path, handler);
     },
 

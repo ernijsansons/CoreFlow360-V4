@@ -716,7 +716,7 @@ export class WorkflowOrchestrationEngine {
       LEFT JOIN workflow_edges e ON w.id = e.workflow_id
       WHERE w.id = ? AND w.business_id = ?
       GROUP BY w.id
-    `).bind(workflowId, this.businessId).first();
+    `).bind(workflowId, this.businessId).first() as any;
 
     if (!workflow) {
       throw new Error('Workflow not found');
@@ -772,7 +772,7 @@ export class WorkflowOrchestrationEngine {
       FROM workflow_executions
       WHERE workflow_id = ? AND business_id = ?
         AND created_at >= datetime('now', '-30 days')
-    `).bind(workflowId, this.businessId).first();
+    `).bind(workflowId, this.businessId).first() as any;
 
     return data || {
       avgExecutionTime: 0,

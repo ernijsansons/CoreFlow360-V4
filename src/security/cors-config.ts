@@ -23,6 +23,7 @@ export const PRODUCTION_CORS_CONFIG: CORSConfig = {
     'https://api.coreflow360.com',
     'https://admin.coreflow360.com',
     'https://main.coreflow360-frontend.pages.dev',
+    'https://production.coreflow360-frontend.pages.dev',
     'https://coreflow360-frontend.pages.dev',
     '*.coreflow360-frontend.pages.dev'
   ],
@@ -307,11 +308,11 @@ export class CORSManager {
   private getCSPHeader(): string {
     const policies = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+      "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://api.coreflow360.com wss://ws.coreflow360.com",
+      "connect-src 'self' https://api.coreflow360.com https://coreflow360-v4-prod.ernijs-ansons.workers.dev wss://ws.coreflow360.com https://www.google-analytics.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

@@ -62,7 +62,7 @@ class ChatStreamingService {
         };
 
         // CRITICAL: Secure CORS headers with origin validation
-        CORSUtils.setCORSHeaders(headers, origin, {
+        CORSUtils.setCORSHeaders(headers, origin || null, {
           environment: this.env.ENVIRONMENT,
           allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Business-ID']
         });
@@ -106,18 +106,23 @@ class ChatStreamingService {
       // Prepare AI request
       const aiRequest = await this.prepareAIRequest(userMessage, context)
 
+      // Check if AI binding is available
+      if (!this.env.AI) {
+        throw new AppError('AI service not configured', 503, 'AI_UNAVAILABLE')
+      }
+
       // Stream from Cloudflare Workers AI
       const aiResponse = await this.env.AI.run('@cf/meta/llama-2-7b-chat-int8', {
         messages: aiRequest.messages,
         stream: true,
         max_tokens: 2048,
         temperature: 0.7
-      })
+      }) as { body?: ReadableStream }
 
       // Process streaming chunks
       const reader = aiResponse.body?.getReader()
       if (!reader) {
-        throw new AppError('Failed to create AI stream reader', 'STREAM_ERROR')
+        throw new AppError('Failed to create AI stream reader', 500, 'STREAM_ERROR')
       }
 
       let accumulatedContent = ''
@@ -303,22 +308,22 @@ ${JSON.stringify(context.relevantData, null, 2)}`
    */
   private async executeFunctionCall(
     functionName: string,
-    arguments: any,
+    args: any,
     context?: any
   ): Promise<string> {
     try {
       switch (functionName) {
         case 'search_invoices':
-          return await this.searchInvoices(arguments, context)
+          return await this.searchInvoices(args, context)
 
         case 'get_business_metrics':
-          return await this.getBusinessMetrics(arguments, context)
+          return await this.getBusinessMetrics(args, context)
 
         case 'search_customers':
-          return await this.searchCustomers(arguments, context)
+          return await this.searchCustomers(args, context)
 
         case 'get_inventory_status':
-          return await this.getInventoryStatus(arguments, context)
+          return await this.getInventoryStatus(args, context)
 
         default:
           return `Function "${functionName}" is not available.`
@@ -409,7 +414,7 @@ ${JSON.stringify(context.relevantData, null, 2)}`
   async handleStreamConnection(request: Request, origin?: string | null): Promise<Response> {
     // Validate request
     if (request.method !== 'GET') {
-      throw new AppError('Method not allowed', 'METHOD_NOT_ALLOWED', 405)
+      throw new AppError('Method not allowed', 405, 'METHOD_NOT_ALLOWED')
     }
 
     const url = new URL(request.url)
@@ -417,7 +422,7 @@ ${JSON.stringify(context.relevantData, null, 2)}`
     const messageId = url.searchParams.get('messageId')
 
     if (!conversationId || !messageId) {
-      throw new AppError('Missing required parameters', 'BAD_REQUEST', 400)
+      throw new AppError('Missing required parameters', 400, 'BAD_REQUEST')
     }
 
     // Create keep-alive stream for connection
@@ -448,7 +453,7 @@ ${JSON.stringify(context.relevantData, null, 2)}`
         };
 
         // CRITICAL: Secure CORS headers with origin validation
-        CORSUtils.setCORSHeaders(headers, origin, {
+        CORSUtils.setCORSHeaders(headers, origin || null, {
           environment: this.env.ENVIRONMENT,
           allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Business-ID']
         });

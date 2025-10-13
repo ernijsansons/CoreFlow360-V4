@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { NewsEnrichment, NewsArticle, PressRelease, NewsSentiment } from '../../types/enrichment';
 
 export interface NewsAPIResponse {

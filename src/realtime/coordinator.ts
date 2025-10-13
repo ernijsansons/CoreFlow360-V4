@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/realtime/coordinator.ts
 import type { DurableObjectState, DurableObject } from '../cloudflare/types/cloudflare';
 

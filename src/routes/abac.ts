@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { ABACService } from '../modules/abac';

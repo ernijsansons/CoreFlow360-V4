@@ -582,7 +582,7 @@ class RollbackManager {
   private async validatePrerequisites(): Promise<void> {
     // Check database connectivity
     if (this.env.DB) {
-      await this.env.DB.prepare('SELECT 1').first();
+      await this.env.DB.prepare('SELECT 1').first() as any;
     }
 
     // Check R2 connectivity

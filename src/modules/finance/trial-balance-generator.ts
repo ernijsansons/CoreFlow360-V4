@@ -388,7 +388,7 @@ export class TrialBalanceGenerator {
       AND je.business_id = ?
       AND je.status = 'POSTED'
       AND je.date < ?
-    `).bind(account.id, businessId, period.startDate).first();
+    `).bind(account.id, businessId, period.startDate).first() as any;
 
     const openingDebit = (openingBalanceResult?.opening_debit as number) || 0;
     const openingCredit = (openingBalanceResult?.opening_credit as number) || 0;
@@ -404,7 +404,7 @@ export class TrialBalanceGenerator {
       AND je.business_id = ?
       AND je.status = 'POSTED'
       AND je.date >= ? AND je.date <= ?
-    `).bind(account.id, businessId, period.startDate, asOfDate).first();
+    `).bind(account.id, businessId, period.startDate, asOfDate).first() as any;
 
     const periodDebit = (periodActivityResult?.period_debit as number) || 0;
     const periodCredit = (periodActivityResult?.period_credit as number) || 0;

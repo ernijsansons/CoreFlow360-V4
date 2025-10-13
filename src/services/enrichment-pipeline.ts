@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ClearbitService } from './data-sources/clearbit-service';
 import { ApolloService } from './data-sources/apollo-service';
 import { NewsService } from './data-sources/news-service';

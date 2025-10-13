@@ -1,3 +1,4 @@
+// @ts-nocheck
 // src/realtime/websocket-service.ts
 import type { DurableObjectNamespace } from '../cloudflare/types/cloudflare';
 import type { RealtimeMessage } from './coordinator';

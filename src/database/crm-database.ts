@@ -494,7 +494,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!Boolean(result.meta.success)) {
+      if (!result.meta.success) {
         return { success: false, error: 'Failed to create company' };
       }
 
@@ -578,7 +578,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!Boolean(result.meta.success)) {
+      if (!result.meta.success) {
         return { success: false, error: 'Failed to create contact' };
       }
 
@@ -643,7 +643,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!Boolean(result.meta.success)) {
+      if (!result.meta.success) {
         return { success: false, error: 'Failed to create lead' };
       }
 
@@ -787,7 +787,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!Boolean(result.meta.success)) {
+      if (!result.meta.success) {
         return { success: false, error: 'Failed to create AI task' };
       }
 
@@ -883,7 +883,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(data))
         .run();
 
-      if (!Boolean(result.meta.success)) {
+      if (!result.meta.success) {
         return { success: false, error: 'Failed to create conversation' };
       }
 

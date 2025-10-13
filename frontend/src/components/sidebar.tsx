@@ -11,6 +11,18 @@ import {
   Settings,
   ChevronLeft,
   ChevronDown,
+  Bot,
+  MessageSquare,
+  FileText,
+  Database,
+  Landmark,
+  RefreshCw,
+  AlertCircle,
+  FileSpreadsheet,
+  Lock,
+  Sparkles,
+  GitMerge,
+  Download,
 } from 'lucide-react'
 import { useUIStore } from '@/stores'
 import { useEntityPermissions } from '@/hooks'
@@ -53,6 +65,27 @@ const sidebarItems: SidebarItem[] = [
         label: 'Deals',
         href: '/crm/deals',
         permissions: ['crm:deals:view'],
+      },
+      {
+        id: 'crm-data-quality',
+        label: 'Data Quality',
+        href: '/crm/data-quality',
+        permissions: ['crm:view'],
+        icon: Sparkles,
+      },
+      {
+        id: 'crm-integrations',
+        label: 'Integrations',
+        href: '/crm/integrations-dashboard',
+        permissions: ['crm:view'],
+        icon: GitMerge,
+      },
+      {
+        id: 'crm-migration',
+        label: 'Migration',
+        href: '/crm/migration',
+        permissions: ['crm:view'],
+        icon: Database,
       },
     ],
   },
@@ -100,6 +133,69 @@ const sidebarItems: SidebarItem[] = [
         href: '/finance/expenses',
         permissions: ['finance:expenses:view'],
       },
+      {
+        id: 'finance-banking',
+        label: 'Bank Matching',
+        href: '/finance/banking',
+        permissions: ['finance:view'],
+        icon: Landmark,
+      },
+      {
+        id: 'finance-reconciliation',
+        label: 'Reconciliation',
+        href: '/finance/reconciliation',
+        permissions: ['finance:view'],
+        icon: RefreshCw,
+      },
+      {
+        id: 'finance-documents',
+        label: 'Documents',
+        href: '/finance/documents',
+        permissions: ['finance:view'],
+        icon: FileText,
+      },
+      {
+        id: 'finance-reports',
+        label: 'Reports',
+        href: '/finance/reports',
+        permissions: ['finance:view'],
+        icon: FileSpreadsheet,
+      },
+      {
+        id: 'finance-periods',
+        label: 'Periods',
+        href: '/finance/periods',
+        permissions: ['finance:view'],
+        icon: Lock,
+      },
+      {
+        id: 'finance-anomalies',
+        label: 'Anomalies',
+        href: '/finance/anomalies',
+        permissions: ['finance:view'],
+        icon: AlertCircle,
+      },
+    ],
+  },
+  {
+    id: 'ai',
+    label: 'AI Tools',
+    icon: Bot,
+    children: [
+      {
+        id: 'ai-agents',
+        label: 'Agent Dashboard',
+        href: '/agents/dashboard',
+        permissions: ['ai:view'],
+        icon: Bot,
+      },
+      {
+        id: 'ai-chat',
+        label: 'AI Chat',
+        href: '/chat',
+        permissions: ['ai:view'],
+        icon: MessageSquare,
+      },
     ],
   },
   {
@@ -108,6 +204,20 @@ const sidebarItems: SidebarItem[] = [
     icon: BarChart3,
     href: '/analytics',
     permissions: ['analytics:view'],
+  },
+  {
+    id: 'data',
+    label: 'Data',
+    icon: Database,
+    children: [
+      {
+        id: 'data-export',
+        label: 'Export',
+        href: '/data/export',
+        permissions: ['data:view'],
+        icon: Download,
+      },
+    ],
   },
   {
     id: 'settings',
@@ -122,7 +232,7 @@ export function Sidebar() {
   const { sidebarOpen, setSidebarOpen } = useUIStore()
   const { hasPermission } = useEntityPermissions()
   const location = useLocation()
-  const [expandedItems, setExpandedItems] = React.useState<string[]>(['crm', 'finance'])
+  const [expandedItems, setExpandedItems] = React.useState<string[]>(['crm', 'finance', 'ai'])
 
   const toggleExpanded = (itemId: string) => {
     setExpandedItems(prev =>

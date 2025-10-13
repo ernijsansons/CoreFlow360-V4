@@ -493,7 +493,7 @@ export class FinancialReportingEngine {
       const result = await this.db.prepare(`
         SELECT * FROM financial_reports
         WHERE id = ? AND business_id = ?
-      `).bind(reportId, validBusinessId).first();
+      `).bind(reportId, validBusinessId).first() as any;
 
       if (!result) {
         return null;
@@ -557,7 +557,7 @@ export class FinancialReportingEngine {
         SELECT COUNT(*) as count
         FROM financial_reports
         WHERE ${whereClause}
-      `).bind(...params).first();
+      `).bind(...params).first() as any;
 
       const total = (countResult?.count as number) || 0;
 

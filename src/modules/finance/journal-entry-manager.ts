@@ -204,7 +204,7 @@ class JournalEntryManager {
     const result = await this.db.prepare(`
       SELECT * FROM journal_entries
       WHERE id = ? AND business_id = ?
-    `).bind(entryId, businessId).first();
+    `).bind(entryId, businessId).first() as any;
 
     if (!result) return null;
 

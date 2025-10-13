@@ -496,7 +496,7 @@ export class RevenueForecast {
         COUNT(CASE WHEN status = 'closed_won' THEN 1 END) as won
       FROM opportunities
       WHERE close_date >= datetime('now', '-1 year')
-    `).first();
+    `).first() as any;
 
     const overall = (overallResult?.won as number || 0) / (overallResult?.total as number || 1);
 
