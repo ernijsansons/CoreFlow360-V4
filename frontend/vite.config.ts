@@ -3,6 +3,22 @@ import react from '@vitejs/plugin-react-swc'
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import path from 'path'
+import fs from 'fs'
+
+// Custom plugin to copy _headers to dist
+function copyHeadersPlugin() {
+  return {
+    name: 'copy-headers',
+    closeBundle() {
+      const headersFile = path.resolve(__dirname, '_headers')
+      const distHeadersFile = path.resolve(__dirname, 'dist/_headers')
+      if (fs.existsSync(headersFile)) {
+        fs.copyFileSync(headersFile, distHeadersFile)
+        console.log('✅ Copied _headers to dist/')
+      }
+    }
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -16,6 +32,7 @@ export default defineConfig({
       telemetry: false,
       silent: true
     }),
+    copyHeadersPlugin(),
   ],
   resolve: {
     alias: {

@@ -9,7 +9,7 @@ name = "coreflow360-v4-prod"
 
 [env.production.vars]
 ENVIRONMENT = "production"
-LOG_LEVEL = "warn"
+LOG_LEVEL = "info"
 SENTRY_ENVIRONMENT = "production"
 APP_NAME = "CoreFlow360 V4"
 API_VERSION = "v4"
@@ -68,6 +68,14 @@ id = "0b48f9a582754f9e97e67e184589fa8a"
 [[env.production.durable_objects.bindings]]
 name = "RATE_LIMITER_DO"
 class_name = "AdvancedRateLimiterDO"
+
+[[env.production.durable_objects.bindings]]
+name = "WORKFLOW_EXECUTOR"
+class_name = "WorkflowExecutorDO"
+
+[[env.production.durable_objects.bindings]]
+name = "REALTIME_COORDINATOR"
+class_name = "RealtimeCoordinatorDO"
 
 [[env.production.r2_buckets]]
 binding = "R2_DOCUMENTS"
@@ -144,6 +152,14 @@ id = "0b48f9a582754f9e97e67e184589fa8a"
 name = "RATE_LIMITER_DO"
 class_name = "AdvancedRateLimiterDO"
 
+[[env.staging.durable_objects.bindings]]
+name = "WORKFLOW_EXECUTOR"
+class_name = "WorkflowExecutorDO"
+
+[[env.staging.durable_objects.bindings]]
+name = "REALTIME_COORDINATOR"
+class_name = "RealtimeCoordinatorDO"
+
 [[env.staging.r2_buckets]]
 binding = "R2_DOCUMENTS"
 bucket_name = "coreflow360-documents"
@@ -199,10 +215,24 @@ id = "091859c74f514d5eae66f3e2937b345e"
 name = "RATE_LIMITER_DO"
 class_name = "AdvancedRateLimiterDO"
 
+[[durable_objects.bindings]]
+name = "WORKFLOW_EXECUTOR"
+class_name = "WorkflowExecutorDO"
+
+[[durable_objects.bindings]]
+name = "REALTIME_COORDINATOR"
+class_name = "RealtimeCoordinatorDO"
+
 # Durable Object Migrations (for free plan compatibility)
+# v1: Original Durable Object (AdvancedRateLimiterDO)
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["AdvancedRateLimiterDO"]
+
+# v2: Adding new Durable Objects for workflow and real-time coordination
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["WorkflowExecutorDO", "RealtimeCoordinatorDO"]
 
 # R2 Bucket bindings
 [[r2_buckets]]
