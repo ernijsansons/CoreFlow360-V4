@@ -12,7 +12,7 @@ import process from 'node:process'
 const BASE_URL = 'https://main.coreflow360-frontend.pages.dev'
 const CREDENTIALS = {
   email: 'founder@coreflow360.com',
-  password: 'REDACTED',
+  password: process.env.TEST_PASSWORD || '', // Set TEST_PASSWORD environment variable
 }
 
 const MUST_PASS = new Set([

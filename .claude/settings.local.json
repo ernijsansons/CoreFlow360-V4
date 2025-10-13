@@ -210,7 +210,9 @@
       "Bash(npx syncpack list-mismatches:*)",
       "Bash(GIT_TRACE=1 timeout 10 git commit -m \"fix: Production frontend fixes\")",
       "Bash(git log:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(git remote add:*)",
+      "Bash(git rev-list:*)"
     ],
     "deny": [],
     "ask": []
