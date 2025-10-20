@@ -122,12 +122,13 @@ class AuthService {
           ),
           this.db.prepare(`
             INSERT INTO businesses (
-              id, name, domain, industry, size_range,
+              id, name, email, domain, industry, size_range,
               created_at, updated_at, created_by
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
             businessId,
             validatedData.businessName || 'My Business',
+            validatedData.email, // Use user's email as business email
             extendedData.businessDomain || null,
             extendedData.industry || null,
             extendedData.sizeRange || null,

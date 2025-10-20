@@ -361,8 +361,11 @@ export class MigrationTester {
   private evaluateExpression(expression: string, value: any): any {
     try {
       // Simple expression evaluation (replace ${value} with actual value)
+      // Using Function constructor instead of eval() for better security and bundler compatibility
+      // This avoids the "direct eval" warning from esbuild
       const code = expression.replace(/\$\{value\}/g, JSON.stringify(value));
-      return eval(code);
+      const fn = new Function('return ' + code);
+      return fn();
     } catch (error: any) {
       return value; // Return original value if expression fails
     }

@@ -246,7 +246,7 @@ export class CSSPerformanceMonitor {
       recommendations.push(`Remove ${totalUnused} unused CSS rules to reduce bundle size`)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const complexSelectors = metrics.flatMap(_m =>
       Array.from(document.styleSheets).flatMap(sheet => {
         try {

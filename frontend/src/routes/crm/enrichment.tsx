@@ -4,7 +4,7 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '@/layouts/main-layout';
 import { enrichmentService, type EnrichmentResult } from '@/lib/api/services/enrichment.service';
 import { Button } from '@/components/ui/button';
@@ -97,45 +97,45 @@ function EnrichmentPage() {
     },
   ]);
 
-  useEffect(() => {
-    loadDataSources();
-    loadEnrichmentHistory();
-  }, []);
-
-  useEffect(() => {
-    if (selectedLeads.length > 0) {
-      estimateCost();
-    } else {
-      setEstimatedCost(null);
-    }
-  }, [selectedLeads]);
-
-  const loadDataSources = async () => {
+  const loadDataSources = useCallback(async () => {
     try {
       const response = await enrichmentService.listDataSources();
       setDataSources(response.data);
     } catch (error) {
       console.error('Failed to load data sources:', error);
     }
-  };
+  }, []);
 
-  const loadEnrichmentHistory = async () => {
+  const loadEnrichmentHistory = useCallback(async () => {
     try {
       const response = await enrichmentService.getEnrichmentHistory({ limit: 10 });
       setEnrichmentHistory(response.data);
     } catch (error) {
       console.error('Failed to load enrichment history:', error);
     }
-  };
+  }, []);
 
-  const estimateCost = async () => {
+  const estimateCost = useCallback(async () => {
+    if (selectedLeads.length === 0) {
+      setEstimatedCost(null);
+      return;
+    }
     try {
       const response = await enrichmentService.estimateEnrichmentCost(selectedLeads);
       setEstimatedCost(response.data.estimated_cost_usd);
     } catch (error) {
       console.error('Failed to estimate cost:', error);
     }
-  };
+  }, [selectedLeads]);
+
+  useEffect(() => {
+    void loadDataSources();
+    void loadEnrichmentHistory();
+  }, [loadDataSources, loadEnrichmentHistory]);
+
+  useEffect(() => {
+    void estimateCost();
+  }, [estimateCost]);
 
   const handleBulkEnrich = async () => {
     if (selectedLeads.length === 0) return;

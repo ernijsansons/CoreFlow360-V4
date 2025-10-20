@@ -4,7 +4,7 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '@/layouts/main-layout';
 import { aiMonitoringService, type MonitoringDashboard, type MonitoringAlert } from '@/lib/api/services/ai-monitoring.service';
 import { aiAuditService, type AIAuditReport } from '@/lib/api/services/ai-audit.service';
@@ -47,13 +47,7 @@ function AIMonitoringPage() {
   const [selectedTab, setSelectedTab] = useState<'overview' | 'models' | 'alerts' | 'audits'>('overview');
   const [isRunningAudit, setIsRunningAudit] = useState(false);
 
-  useEffect(() => {
-    loadData();
-    const interval = setInterval(loadData, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, [timeRange]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [dashboardRes, alertsRes, auditsRes] = await Promise.all([
         aiMonitoringService.getDashboard({ time_range: timeRange }),
@@ -69,7 +63,15 @@ function AIMonitoringPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    void loadData();
+    const interval = setInterval(() => {
+      void loadData();
+    }, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   const handleRunAudit = async () => {
     setIsRunningAudit(true);

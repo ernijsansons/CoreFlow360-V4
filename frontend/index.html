@@ -59,6 +59,56 @@
     </style>
   </head>
   <body>
+    <script>
+      // ============================================================================
+      // FATAL ERROR CAPTURE - Runs BEFORE any ES module evaluation
+      // ============================================================================
+      (function() {
+        window.__CF360_FATAL__ = function(label, detail) {
+          const text =
+            typeof detail === 'string'
+              ? detail
+              : detail instanceof Error
+                ? detail.name + ': ' + detail.message + '\n' + (detail.stack || '')
+                : JSON.stringify(detail, null, 2);
+
+          try {
+            console.error('[CoreFlow360] ' + label + ':', detail);
+          } catch (e) {
+            // Ignore console errors if console has been hijacked
+          }
+
+          let panel = document.getElementById('cf360-fatal-dump');
+          if (!panel) {
+            panel = document.createElement('pre');
+            panel.id = 'cf360-fatal-dump';
+            panel.style.cssText =
+              'position:fixed;top:0;left:0;right:0;white-space:pre-wrap;background:#111827;color:#f87171;padding:16px;font:14px/1.4 monospace;overflow:auto;border-bottom:4px solid #f87171;z-index:2147483647;max-height:300px;';
+            document.body.prepend(panel);
+          }
+          panel.textContent = '[CoreFlow360] ' + label + '\n\n' + text;
+
+          // Alert to ensure visibility even if console is hidden
+          try {
+            alert('[CoreFlow360] ' + label + '\n' + text);
+          } catch (e) {
+            // Swallow if alerts are disabled
+          }
+        };
+
+        // Wire global handlers immediately
+        window.addEventListener('error', function(event) {
+          window.__CF360_FATAL__('EARLY_ERROR', event.error || event.message);
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+          window.__CF360_FATAL__('EARLY_UNHANDLED_REJECTION', event.reason);
+        });
+
+        console.log('[CoreFlow360] Early fatal capture initialized');
+      })();
+    </script>
+
     <div id="loading-screen">
       <div class="loader"></div>
       <div class="loading-text">CoreFlow360 V4</div>
@@ -114,80 +164,20 @@
         }
       }
 
-      // Remove loading screen after 30 seconds if React hasn't mounted
+      // TIMEOUT DISABLED FOR DEBUGGING
+      // The minimal test proved React works - timeout was hiding the issue
+      // Will be re-enabled with smart detection after fixing the real problem
+
+      /*
       setTimeout(function() {
         var loadingScreen = document.getElementById('loading-screen');
         if (loadingScreen) {
           loadingScreen.style.display = 'none';
-          
-          // Enhanced error reporting
           console.error('[CoreFlow360] Loading timeout - React failed to mount within 30 seconds');
-          console.error('[CoreFlow360] Possible causes:');
-          console.error('  1. JavaScript bundle failed to load');
-          console.error('  2. React initialization error');
-          console.error('  3. CSS design tokens missing');
-          console.error('  4. Environment configuration issue');
-          
-          // Validate CSS variables
-          const cssValid = validateCSSVariables();
-          if (!cssValid) {
-            console.error('[CoreFlow360] CSS design tokens validation failed - this may be the root cause');
-          }
-          
-          // Show error message to user
-          document.body.innerHTML = `
-            <div style="
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              align-items: center;
-              min-height: 100vh;
-              padding: 2rem;
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              text-align: center;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
-            ">
-              <h1 style="font-size: 2rem; margin-bottom: 1rem; font-weight: 600;">
-                Application Loading Failed
-              </h1>
-              <p style="font-size: 1.1rem; margin-bottom: 2rem; opacity: 0.9;">
-                The application failed to load within the expected time. This may be due to a network issue or configuration problem.
-              </p>
-              <div style="
-                background: rgba(255, 255, 255, 0.1);
-                padding: 1.5rem;
-                border-radius: 0.5rem;
-                margin-bottom: 2rem;
-                max-width: 600px;
-              ">
-                <h2 style="font-size: 1.2rem; margin-bottom: 1rem; font-weight: 600;">
-                  Troubleshooting Steps:
-                </h2>
-                <ol style="text-align: left; line-height: 1.6;">
-                  <li>Check your internet connection</li>
-                  <li>Try refreshing the page (Ctrl+F5 or Cmd+Shift+R)</li>
-                  <li>Clear your browser cache and cookies</li>
-                  <li>Check browser console (F12) for detailed error messages</li>
-                  <li>Try a different browser or incognito mode</li>
-                </ol>
-              </div>
-              <button onclick="window.location.reload()" style="
-                background: rgba(255, 255, 255, 0.2);
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                color: white;
-                padding: 0.75rem 1.5rem;
-                border-radius: 0.375rem;
-                font-size: 1rem;
-                cursor: pointer;
-                transition: background-color 0.2s;
-              " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">
-                Retry Loading
-              </button>
-            </div>
-          `;
+          document.body.innerHTML = '<div>Application Loading Failed</div>';
         }
       }, 30000);
+      */
     </script>
   </body>
 </html>

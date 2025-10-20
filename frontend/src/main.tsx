@@ -1,32 +1,71 @@
+// ============================================================================
+// CRITICAL: Import and validate React FIRST
+// ============================================================================
+import * as React from 'react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+
+// Validate React module loaded correctly
+console.log('[CoreFlow360] React validation:', {
+  React: !!React,
+  useEffect: typeof React.useEffect,
+  keys: React ? Object.keys(React).slice(0, 10) : []
+});
+
+if (!React || typeof React.useEffect !== 'function') {
+  alert('FATAL: React.useEffect is ' + typeof React?.useEffect);
+  throw new Error('React module validation failed');
+}
+
 import App from './App'
 import './styles/globals.css'
 import { validateEnvironment } from './lib/env-validation'
 
+// Reuse the global fatal handler registered in index.html (before module evaluation)
+declare global {
+  interface Window {
+    __CF360_FATAL__?: (label: string, detail: unknown) => void
+  }
+}
+
+const surfaceFatal =
+  window.__CF360_FATAL__ ??
+  ((label: string, detail: unknown) => console.error(`[CoreFlow360] ${label}:`, detail))
+
 console.log('[CoreFlow360] main.tsx: Starting application initialization')
 
 // Validate environment variables before initialization
+let envValidationPassed = false
 try {
-  validateEnvironment()
-} catch (error) {
-  console.error('[CoreFlow360] Environment validation failed:', error)
-  const rootElement = document.getElementById('root')
-  if (rootElement) {
-    rootElement.innerHTML = `
-      <div style="padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #dc2626; margin-bottom: 16px;">⚠️ Configuration Error</h1>
-        <p style="color: #374151; margin-bottom: 24px;">The application cannot start due to missing environment variables.</p>
-        <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
-          <pre style="margin: 0; font-size: 14px; overflow-x: auto;">${error instanceof Error ? error.message : String(error)}</pre>
+  const validationResult = validateEnvironment()
+  envValidationPassed = validationResult.valid
+  
+  if (!validationResult.valid) {
+    console.error('[CoreFlow360] Environment validation failed:', validationResult.missing)
+    // Show error but don't prevent app from loading - use fallbacks
+    const rootElement = document.getElementById('root')
+    if (rootElement) {
+      rootElement.innerHTML = `
+        <div style="padding: 40px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #dc2626; margin-bottom: 16px;">⚠️ Configuration Warning</h1>
+          <p style="color: #374151; margin-bottom: 24px;">Some environment variables are missing, but the app will continue with fallback values.</p>
+          <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 16px; margin-bottom: 24px; border-radius: 4px;">
+            <pre style="margin: 0; font-size: 14px; overflow-x: auto;">Missing: ${validationResult.missing.join(', ')}</pre>
+          </div>
+          <p style="color: #6b7280; font-size: 14px;">
+            The application will use default configuration values.
+          </p>
         </div>
-        <p style="color: #6b7280; font-size: 14px;">
-          Please contact your system administrator or check the deployment configuration.
-        </p>
-      </div>
-    `
+      `
+    }
+    // Don't throw - let the app continue with fallbacks
+  } else {
+    console.log('[CoreFlow360] Environment validation passed')
   }
-  throw error // Prevent app from loading
+} catch (error) {
+  console.error('[CoreFlow360] Environment validation error:', error)
+  // Don't throw - let the app continue with fallbacks
+  envValidationPassed = false
 }
 
 const rootElement = document.getElementById('root')
@@ -37,9 +76,15 @@ if (!rootElement) {
 } else {
   console.log('[CoreFlow360] Root element found:', rootElement)
 
-  if (!rootElement.innerHTML) {
+  // Only mount React if environment validation passed or if we're using fallbacks
+  if (!rootElement.innerHTML || !envValidationPassed) {
     console.log('[CoreFlow360] Mounting React application...')
     try {
+      // Clear any existing content from environment validation errors
+      if (!envValidationPassed) {
+        rootElement.innerHTML = ''
+      }
+      
       const root = createRoot(rootElement)
       root.render(
         <StrictMode>

@@ -107,7 +107,7 @@ documents.post('/upload', async (c) => {
         file_url: `/api/documents/${documentId}/file`,
         processing_time_ms: result.processing_time_ms
       }
-    });
+    }, 201);
   } catch (error) {
     console.error('Document upload error:', error);
     return c.json({

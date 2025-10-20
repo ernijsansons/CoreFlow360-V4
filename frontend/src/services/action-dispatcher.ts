@@ -313,7 +313,7 @@ class ActionDispatcherService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   private async deleteWidget(widget: Widget, _context: ActionContext): Promise<ActionResult> {
     // Show confirmation dialog first
     const confirmed = confirm(`Are you sure you want to delete "${widget.title}"? This action cannot be undone.`)

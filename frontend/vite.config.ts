@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react-swc' // Use SWC for production
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import path from 'path'
@@ -24,15 +24,6 @@ function copyHeadersPlugin() {
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Define environment variables with fallbacks for production builds
-  define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify(
-      process.env.VITE_API_URL || 'https://coreflow360-v4-prod.ernijs-ansons.workers.dev'
-    ),
-    'import.meta.env.VITE_ENVIRONMENT': JSON.stringify(
-      process.env.VITE_ENVIRONMENT || process.env.NODE_ENV || 'production'
-    ),
-  },
   plugins: [
     react(),
     TanStackRouterVite(),
@@ -62,110 +53,63 @@ export default defineConfig({
     },
   },
   build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
+    },
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Enhanced chunk splitting strategy for optimal performance
+          // CRITICAL: DO NOT separate React into its own chunk
+          // This was causing async loading issues where main bundle executed before React loaded
           if (id.includes('node_modules')) {
-            // Split React core from React DOM for better caching
-            if (id.includes('react/') || id.includes('scheduler/')) {
-              return 'react-core';
+            // Let React stay in the main index chunk
+            if (id.includes('react') || id.includes('react-dom')) {
+              return undefined; // Stay in main bundle
             }
-            if (id.includes('react-dom/')) {
-              return 'react-dom';
+            // Only separate non-React vendors
+            if (id.includes('@tanstack/react-router')) {
+              return 'vendor-router';
             }
-            // Router split into core and devtools
-            if (id.includes('@tanstack/react-router') && !id.includes('devtools')) {
-              return 'router-core';
+            if (id.includes('@tanstack/react-table')) {
+              return 'vendor-table';
             }
-            if (id.includes('@tanstack/router-devtools')) {
-              return 'router-devtools';
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'vendor-charts';
             }
-            
-            // UI frameworks - medium priority, can be cached aggressively
-            if (id.includes('@radix-ui') || id.includes('class-variance-authority') || 
-                id.includes('clsx') || id.includes('tailwind-merge')) {
-              return 'ui-framework';
+            if (id.includes('lucide-react') || id.includes('sonner')) {
+              return 'vendor-ui';
             }
-            
-            // State management - high priority for app functionality
+            if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+              return 'vendor-forms';
+            }
             if (id.includes('zustand') || id.includes('immer')) {
-              return 'state-management';
+              return 'vendor-state';
             }
-            
-            // Forms - medium priority, used frequently
-            if (id.includes('react-hook-form') || id.includes('@hookform') || 
-                id.includes('zod')) {
-              return 'forms-validation';
+            if (id.includes('date-fns')) {
+              return 'vendor-date';
             }
-            
-            // Charts and visualization - lazy loaded, lowest priority
-            if (id.includes('recharts') || id.includes('d3')) {
-              return 'data-visualization';
-            }
-            
-            // Animation libraries - lazy loaded
             if (id.includes('framer-motion')) {
-              return 'animations';
+              return 'vendor-animations';
             }
-            
-            // Date utilities - medium priority
-            if (id.includes('date-fns') || id.includes('react-day-picker')) {
-              return 'date-utilities';
+            if (id.includes('@headlessui') || id.includes('react-hot-toast') || id.includes('@heroicons')) {
+              return 'vendor-landing';
             }
-            
-            // Icons - can be cached aggressively
-            if (id.includes('lucide-react')) {
-              return 'icon-library';
-            }
-            
-            // Other utilities - small utilities grouped together
-            if (id.includes('sonner') || id.includes('vaul') || 
-                id.includes('next-themes') || id.includes('idb')) {
-              return 'utilities';
-            }
-            
-            // Monitoring and analytics - separate chunk for optional features
-            if (id.includes('@sentry') || id.includes('web-vitals')) {
-              return 'monitoring';
-            }
-            
-            // Everything else goes to vendor chunk
-            return 'vendor-misc';
+            // Other node_modules go into generic vendor chunk
+            return 'vendor';
           }
-          
-          // App code chunking based on feature areas
-          if (id.includes('/components/agents/')) {
-            return 'feature-agents';
-          }
-          if (id.includes('/components/chat/')) {
-            return 'feature-chat';
-          }
-          if (id.includes('/components/dashboard/')) {
-            return 'feature-dashboard';
-          }
-          if (id.includes('/components/business/') || id.includes('/components/finance/')) {
-            return 'feature-business';
-          }
-          if (id.includes('/components/workflow/')) {
-            return 'feature-workflow';
-          }
-        },
-        chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
-          return `assets/[name]-[hash]-${facadeModuleId}.js`;
         },
       },
     },
-    sourcemap: process.env.NODE_ENV === 'development',
-    minify: 'terser',
+    sourcemap: false, // Disable source maps in production for security
+    minify: 'esbuild', // Enable minification for production
     target: 'esnext',
     reportCompressedSize: false,
     chunkSizeWarningLimit: 200, // Aggressive chunk size limit for optimal loading
     cssCodeSplit: true, // Split CSS for better caching
     terserOptions: {
       compress: {
-        drop_console: process.env.NODE_ENV === 'production',
+        drop_console: true, // Remove console logs in production
         drop_debugger: true,
         pure_funcs: ['console.log', 'console.debug', 'console.info'],
         passes: 2, // Multiple passes for better compression
@@ -195,17 +139,20 @@ export default defineConfig({
       'clsx',
       'tailwind-merge',
       'lucide-react',
-      'sonner'
+      'sonner',
+      'recharts',
+      '@tanstack/react-table',
+      'date-fns',
+      'framer-motion',
+      '@headlessui/react',
+      '@heroicons/react/24/outline',
+      '@heroicons/react/24/solid'
     ],
     exclude: [
-      'recharts',
-      'd3',
-      'framer-motion',
       '@sentry/react',
       'web-vitals',
       '@tanstack/router-devtools'
     ],
-    force: true, // Force pre-bundling for better performance
   },
   server: {
     port: 3000,

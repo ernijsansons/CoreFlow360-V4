@@ -1,7 +1,8 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import type { SyncQueueItem, ConnectivityStatus } from '@/types'
+import { createSafeJSONStorage } from '@/lib/safe-storage'
 
 interface SyncStore {
   queue: SyncQueueItem[]
@@ -154,7 +155,7 @@ export const useSyncStore = create<SyncStore>()(
     })),
     {
       name: 'sync-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createSafeJSONStorage(),
       partialize: (state) => ({
         queue: state.queue,
       }),

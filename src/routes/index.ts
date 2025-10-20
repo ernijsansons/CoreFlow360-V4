@@ -52,6 +52,21 @@ import subscriptionsRoutes from './subscriptions';
 import conversationLogsRoutes from './conversation-logs';
 import crmV2Routes from './crm-v2';
 
+// Admin routes - System administration
+import adminDashboardRoutes from './admin-dashboard';
+import adminManagementRoutes from './admin-management';
+
+// CRM of Tomorrow routes - Phase 1
+import crmRelationshipGraphRoutes from './crm-relationship-graph';
+import crmEnrichmentRoutes from './crm-enrichment';
+import crmLeadScoringRoutes from './crm-lead-scoring';
+import crmDealHealthRoutes from './crm-deal-health';
+import crmAIIntelligenceRoutes from './crm-ai-intelligence';
+import crmSignalsWebhooksRoutes from './crm-signals-webhooks';
+
+// Global Integrations Infrastructure
+import integrationsRoutes from './integrations';
+
 import type { Env } from '../types/env';
 
 // Create main API app with middleware
@@ -156,6 +171,25 @@ v1.route('/subscriptions', subscriptionsRoutes);
 // Priority 3 routes - Low usage/Optional
 v1.route('/conversation-logs', conversationLogsRoutes);
 v1.route('/crm-v2', crmV2Routes);
+
+// Admin routes - System administration
+v1.route('/admin', adminDashboardRoutes);
+v1.route('/admin', adminManagementRoutes);
+
+// ============================================================
+// GLOBAL INTEGRATIONS INFRASTRUCTURE (Cross-ERP)
+// ============================================================
+v1.route('/integrations', integrationsRoutes);
+
+// ============================================================
+// CRM MODULE (Uses global integrations)
+// ============================================================
+v1.route('/crm/relationships', crmRelationshipGraphRoutes);
+v1.route('/crm/enrichment', crmEnrichmentRoutes);
+v1.route('/crm/lead-scoring', crmLeadScoringRoutes);
+v1.route('/crm/deal-health', crmDealHealthRoutes);
+v1.route('/crm/ai', crmAIIntelligenceRoutes);
+v1.route('/crm/signals', crmSignalsWebhooksRoutes);
 
 // Mount v1 under /api/v1
 api.route('/v1', v1);

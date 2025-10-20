@@ -1,9 +1,10 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import type { Entity, EntitySwitcherItem } from '@/types'
 import apiClient from '@/lib/api/client'
 import { useAuthStore } from './auth-store'
+import { createSafeJSONStorage } from '@/lib/safe-storage'
 
 interface EntityStore {
   currentEntity: Entity | null
@@ -172,7 +173,7 @@ export const useEntityStore = create<EntityStore>()(
     })),
     {
       name: 'entity-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createSafeJSONStorage(),
       partialize: (state) => ({
         currentEntity: state.currentEntity,
         recentEntities: state.recentEntities,

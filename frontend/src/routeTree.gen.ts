@@ -36,6 +36,7 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as CrmIndexRouteImport } from './routes/crm/index'
 import { Route as ChatIndexRouteImport } from './routes/chat/index'
 import { Route as AgentsIndexRouteImport } from './routes/agents/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as SystemProductionRouteImport } from './routes/system/production'
 import { Route as SettingsSecurityRouteImport } from './routes/settings/security'
 import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
@@ -55,6 +56,7 @@ import { Route as FinanceAnomaliesRouteImport } from './routes/finance/anomalies
 import { Route as ErrorErrorRouteImport } from './routes/error/error'
 import { Route as Error404RouteImport } from './routes/error/404'
 import { Route as DataExportRouteImport } from './routes/data/export'
+import { Route as DashboardTailadminRouteImport } from './routes/dashboard/tailadmin'
 import { Route as DashboardPortfolioRouteImport } from './routes/dashboard/portfolio'
 import { Route as CrmMigrationRouteImport } from './routes/crm/migration'
 import { Route as CrmLeadsRouteImport } from './routes/crm/leads'
@@ -213,6 +215,11 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
   path: '/agents/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SystemProductionRoute = SystemProductionRouteImport.update({
   id: '/system/production',
   path: '/system/production',
@@ -306,6 +313,11 @@ const Error404Route = Error404RouteImport.update({
 const DataExportRoute = DataExportRouteImport.update({
   id: '/data/export',
   path: '/data/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardTailadminRoute = DashboardTailadminRouteImport.update({
+  id: '/dashboard/tailadmin',
+  path: '/dashboard/tailadmin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardPortfolioRoute = DashboardPortfolioRouteImport.update({
@@ -458,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/migration': typeof CrmMigrationRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
+  '/dashboard/tailadmin': typeof DashboardTailadminRoute
   '/data/export': typeof DataExportRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
@@ -477,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/system/production': typeof SystemProductionRoute
+  '/admin': typeof AdminIndexRoute
   '/agents': typeof AgentsIndexRoute
   '/chat/': typeof ChatIndexRoute
   '/crm': typeof CrmIndexRoute
@@ -527,6 +541,7 @@ export interface FileRoutesByTo {
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/migration': typeof CrmMigrationRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
+  '/dashboard/tailadmin': typeof DashboardTailadminRoute
   '/data/export': typeof DataExportRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
@@ -546,6 +561,7 @@ export interface FileRoutesByTo {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/system/production': typeof SystemProductionRoute
+  '/admin': typeof AdminIndexRoute
   '/agents': typeof AgentsIndexRoute
   '/chat': typeof ChatIndexRoute
   '/crm': typeof CrmIndexRoute
@@ -598,6 +614,7 @@ export interface FileRoutesById {
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/migration': typeof CrmMigrationRoute
   '/dashboard/portfolio': typeof DashboardPortfolioRoute
+  '/dashboard/tailadmin': typeof DashboardTailadminRoute
   '/data/export': typeof DataExportRoute
   '/error/404': typeof Error404Route
   '/error/error': typeof ErrorErrorRoute
@@ -617,6 +634,7 @@ export interface FileRoutesById {
   '/settings/profile': typeof SettingsProfileRoute
   '/settings/security': typeof SettingsSecurityRoute
   '/system/production': typeof SystemProductionRoute
+  '/admin/': typeof AdminIndexRoute
   '/agents/': typeof AgentsIndexRoute
   '/chat/': typeof ChatIndexRoute
   '/crm/': typeof CrmIndexRoute
@@ -670,6 +688,7 @@ export interface FileRouteTypes {
     | '/crm/leads'
     | '/crm/migration'
     | '/dashboard/portfolio'
+    | '/dashboard/tailadmin'
     | '/data/export'
     | '/error/404'
     | '/error/error'
@@ -689,6 +708,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/security'
     | '/system/production'
+    | '/admin'
     | '/agents'
     | '/chat/'
     | '/crm'
@@ -739,6 +759,7 @@ export interface FileRouteTypes {
     | '/crm/leads'
     | '/crm/migration'
     | '/dashboard/portfolio'
+    | '/dashboard/tailadmin'
     | '/data/export'
     | '/error/404'
     | '/error/error'
@@ -758,6 +779,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/security'
     | '/system/production'
+    | '/admin'
     | '/agents'
     | '/chat'
     | '/crm'
@@ -809,6 +831,7 @@ export interface FileRouteTypes {
     | '/crm/leads'
     | '/crm/migration'
     | '/dashboard/portfolio'
+    | '/dashboard/tailadmin'
     | '/data/export'
     | '/error/404'
     | '/error/error'
@@ -828,6 +851,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/settings/security'
     | '/system/production'
+    | '/admin/'
     | '/agents/'
     | '/chat/'
     | '/crm/'
@@ -879,6 +903,7 @@ export interface RootRouteChildren {
   CrmLeadsRoute: typeof CrmLeadsRoute
   CrmMigrationRoute: typeof CrmMigrationRoute
   DashboardPortfolioRoute: typeof DashboardPortfolioRoute
+  DashboardTailadminRoute: typeof DashboardTailadminRoute
   DataExportRoute: typeof DataExportRoute
   Error404Route: typeof Error404Route
   ErrorErrorRoute: typeof ErrorErrorRoute
@@ -898,6 +923,7 @@ export interface RootRouteChildren {
   SettingsProfileRoute: typeof SettingsProfileRoute
   SettingsSecurityRoute: typeof SettingsSecurityRoute
   SystemProductionRoute: typeof SystemProductionRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
   CrmIndexRoute: typeof CrmIndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -1101,6 +1127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/system/production': {
       id: '/system/production'
       path: '/system/production'
@@ -1232,6 +1265,13 @@ declare module '@tanstack/react-router' {
       path: '/data/export'
       fullPath: '/data/export'
       preLoaderRoute: typeof DataExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/tailadmin': {
+      id: '/dashboard/tailadmin'
+      path: '/dashboard/tailadmin'
+      fullPath: '/dashboard/tailadmin'
+      preLoaderRoute: typeof DashboardTailadminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/portfolio': {
@@ -1473,6 +1513,7 @@ const rootRouteChildren: RootRouteChildren = {
   CrmLeadsRoute: CrmLeadsRoute,
   CrmMigrationRoute: CrmMigrationRoute,
   DashboardPortfolioRoute: DashboardPortfolioRoute,
+  DashboardTailadminRoute: DashboardTailadminRoute,
   DataExportRoute: DataExportRoute,
   Error404Route: Error404Route,
   ErrorErrorRoute: ErrorErrorRoute,
@@ -1492,6 +1533,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsProfileRoute: SettingsProfileRoute,
   SettingsSecurityRoute: SettingsSecurityRoute,
   SystemProductionRoute: SystemProductionRoute,
+  AdminIndexRoute: AdminIndexRoute,
   AgentsIndexRoute: AgentsIndexRoute,
   CrmIndexRoute: CrmIndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,

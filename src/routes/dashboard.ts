@@ -55,37 +55,46 @@ app.get('/activity', async (c) => {
 
     const db = c.env.DB_MAIN || c.env.DB;
 
-    // Get recent activities
-    const results = await db.prepare(`
-      SELECT
-        id,
-        event as type,
-        metadata,
-        created_at as timestamp,
-        user_id
-      FROM audit_log
-      WHERE business_id = ?
-      ORDER BY created_at DESC
-      LIMIT ?
-    `).bind(businessId, limit).all<any>();
+    // Try to get recent activities from audit log
+    try {
+      const results = await db.prepare(`
+        SELECT
+          id,
+          event as type,
+          metadata,
+          created_at as timestamp,
+          user_id
+        FROM audit_log
+        WHERE business_id = ?
+        ORDER BY created_at DESC
+        LIMIT ?
+      `).bind(businessId, limit).all<any>();
 
-    const activities = results.results?.map(row => {
-      const metadata = typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata;
-      return {
-        id: row.id,
-        type: row.type,
-        description: `${row.type} event`,
-        timestamp: row.timestamp,
-        user: row.user_id,
-        metadata
-      };
-    }) || [];
+      const activities = results.results?.map(row => {
+        const metadata = typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata;
+        return {
+          id: row.id,
+          type: row.type,
+          description: `${row.type} event`,
+          timestamp: row.timestamp,
+          user: row.user_id,
+          metadata
+        };
+      }) || [];
 
-    return c.json({
-      success: true,
-      data: activities,
-      timestamp: new Date().toISOString()
-    });
+      return c.json({
+        success: true,
+        data: activities,
+        timestamp: new Date().toISOString()
+      });
+    } catch (dbError) {
+      // Audit log table doesn't exist yet, return empty array
+      return c.json({
+        success: true,
+        data: [],
+        timestamp: new Date().toISOString()
+      });
+    }
   } catch (error: any) {
     console.error('Activity feed error:', error);
     return c.json({

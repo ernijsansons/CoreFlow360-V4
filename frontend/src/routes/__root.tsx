@@ -17,6 +17,21 @@ const TanStackRouterDevtools =
         }))
       )
 
+// Enhanced error description that handles all thrown value types
+const describeError = (value: unknown): string => {
+  if (value instanceof Error) {
+    return `${value.name}: ${value.message}\n${value.stack ?? ''}`
+  }
+  if (typeof value === 'string') {
+    return value
+  }
+  try {
+    return JSON.stringify(value, null, 2)
+  } catch {
+    return String(value)
+  }
+}
+
 export const Route = createRootRoute({
   component: RootComponent,
   errorComponent: ({ error, reset }) => {
@@ -26,18 +41,23 @@ export const Route = createRootRoute({
     console.error('[CoreFlow360] Error constructor:', error?.constructor?.name)
     if (error instanceof Error) {
       console.error('[CoreFlow360] Error stack:', error.stack)
+      console.error('[CoreFlow360] Error cause:', (error as any).cause)
     }
 
-    // Safely extract error message
+    // Use enhanced error description
+    const errorDetails = describeError(error)
+
+    // Safely extract error message for display
     const errorMessage = error instanceof Error
       ? error.message
       : typeof error === 'string'
         ? error
         : 'An unexpected error occurred'
 
-    const errorDetails = error instanceof Error && error.stack
-      ? error.stack
-      : JSON.stringify(error, null, 2)
+    // Extract additional context if available
+    const errorCause = (error as any)?.cause ? describeError((error as any).cause) : null
+    const errorData = (error as any)?.data ? describeError((error as any).data) : null
+    const errorResponse = (error as any)?.response ? describeError((error as any).response) : null
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -48,11 +68,39 @@ export const Route = createRootRoute({
           </div>
 
           {/* Always show error details in production for debugging */}
-          <details className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-            <summary className="cursor-pointer font-semibold text-sm mb-2">Error Details (Click to expand)</summary>
+          <details className="rounded-lg border border-destructive/50 bg-destructive/10 p-4" open>
+            <summary className="cursor-pointer font-semibold text-sm mb-2">Error Details (Always Expanded for Debugging)</summary>
             <pre className="text-xs overflow-auto mt-2 whitespace-pre-wrap break-words">
               <code>{errorDetails}</code>
             </pre>
+
+            {/* Show additional error context if available */}
+            {errorCause && (
+              <div className="mt-4 pt-4 border-t border-destructive/30">
+                <div className="font-semibold text-sm mb-2">Error Cause:</div>
+                <pre className="text-xs overflow-auto whitespace-pre-wrap break-words">
+                  <code>{errorCause}</code>
+                </pre>
+              </div>
+            )}
+
+            {errorData && (
+              <div className="mt-4 pt-4 border-t border-destructive/30">
+                <div className="font-semibold text-sm mb-2">Error Data:</div>
+                <pre className="text-xs overflow-auto whitespace-pre-wrap break-words">
+                  <code>{errorData}</code>
+                </pre>
+              </div>
+            )}
+
+            {errorResponse && (
+              <div className="mt-4 pt-4 border-t border-destructive/30">
+                <div className="font-semibold text-sm mb-2">Error Response:</div>
+                <pre className="text-xs overflow-auto whitespace-pre-wrap break-words">
+                  <code>{errorResponse}</code>
+                </pre>
+              </div>
+            )}
           </details>
 
           <div className="flex gap-2 justify-center">
@@ -112,8 +160,10 @@ function RootComponent() {
     return (
       <>
         <Outlet />
-        <SupportChat />
-        <TanStackRouterDevtools />
+        {/* Temporarily disabled SupportChat to debug rendering error */}
+        {/* <SupportChat /> */}
+        {/* Temporarily disabled DevTools to debug rendering error */}
+        {/* <TanStackRouterDevtools /> */}
       </>
     )
   }

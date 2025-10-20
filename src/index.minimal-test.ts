@@ -1,4 +1,12 @@
 // Ultra-minimal Cloudflare Worker for testing
+
+// Export AdvancedRateLimiterDO for Durable Object compatibility
+export class AdvancedRateLimiterDO {
+  constructor(state: DurableObjectState, env: any) {
+    // Minimal implementation for testing
+  }
+}
+
 export default {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -31,12 +39,28 @@ export default {
       }), { headers });
     }
 
-    return new Response(JSON.stringify({
-      error: 'Not Found',
-      path: url.pathname
-    }), {
-      status: 404,
-      headers
-    });
+    if (url.pathname === '/' || url.pathname === '') {
+      return new Response(JSON.stringify({
+        service: 'CoreFlow360 V4 Dev API',
+        status: 'online',
+        endpoints: {
+          health: '/health',
+          apiStatus: '/api/status'
+        },
+        frontend: 'https://1a63671d.coreflow360-frontend.pages.dev/',
+        message: 'This workers.dev instance only exposes the lightweight development API. Visit the frontend URL for the UI.'
+      }), { headers });
+    }
+
+    return new Response(
+      JSON.stringify({
+        error: 'Not Found',
+        path: url.pathname
+      }),
+      {
+        status: 404,
+        headers
+      }
+    );
   }
 };

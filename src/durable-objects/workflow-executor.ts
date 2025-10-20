@@ -1338,9 +1338,10 @@ export class WorkflowExecutor {
 
   private evaluateCondition(expression: string, inputData: WorkflowInputData, context: ExecutionContext): WorkflowOutputData {
     // Evaluate condition expression
-    // This would use a safe expression evaluator
+    // Using Function constructor instead of eval() for better security and bundler compatibility
     try {
-      const result = eval(expression); // In production, use a safe expression evaluator
+      const fn = new Function('return ' + expression);
+      const result = fn();
       return { conditionResult: result };
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);

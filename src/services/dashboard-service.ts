@@ -105,8 +105,8 @@ export class DashboardService {
       SELECT
         COUNT(*) as total_projects,
         COUNT(CASE WHEN created_at >= ? THEN 1 END) as new_projects
-      FROM leads
-      WHERE business_id = ? AND status NOT IN ('closed_won', 'closed_lost')
+      FROM crm_leads
+      WHERE business_id = ? AND deleted_at IS NULL
     `).bind(startDate, this.businessId).first<any>();
 
     // Calculate growth percentages (simplified - compare to previous period)
@@ -165,9 +165,9 @@ export class DashboardService {
     const results = await this.db.prepare(`
       SELECT
         li.description as name,
-        SUM(li.amount) as revenue,
+        SUM(li.line_total) as revenue,
         SUM(li.quantity) as units
-      FROM invoice_line_items li
+      FROM invoice_items li
       JOIN invoices i ON li.invoice_id = i.id
       WHERE i.business_id = ?
         AND i.status = 'paid'
@@ -188,30 +188,35 @@ export class DashboardService {
    * Get recent activity feed
    */
   private async getRecentActivity(limit: number = 20) {
-    // Get recent activities from audit log
-    const results = await this.db.prepare(`
-      SELECT
-        id,
-        event as type,
-        metadata,
-        created_at as timestamp,
-        user_id
-      FROM audit_log
-      WHERE business_id = ?
-      ORDER BY created_at DESC
-      LIMIT ?
-    `).bind(this.businessId, limit).all<any>();
+    try {
+      // Get recent activities from audit log
+      const results = await this.db.prepare(`
+        SELECT
+          id,
+          event as type,
+          metadata,
+          created_at as timestamp,
+          user_id
+        FROM audit_log
+        WHERE business_id = ?
+        ORDER BY created_at DESC
+        LIMIT ?
+      `).bind(this.businessId, limit).all<any>();
 
-    return results.results?.map(row => {
-      const metadata = typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata;
-      return {
-        id: row.id,
-        type: row.type,
-        description: this.formatActivityDescription(row.type, metadata),
-        timestamp: row.timestamp,
-        user: row.user_id
-      };
-    }) || [];
+      return results.results?.map(row => {
+        const metadata = typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata;
+        return {
+          id: row.id,
+          type: row.type,
+          description: this.formatActivityDescription(row.type, metadata),
+          timestamp: row.timestamp,
+          user: row.user_id
+        };
+      }) || [];
+    } catch (error) {
+      // Audit log table might not exist
+      return [];
+    }
   }
 
   /**

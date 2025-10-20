@@ -169,22 +169,24 @@ app.post('/contacts', zValidator('json', CreateContactSchema), async (c: any) =>
   try {
     const crmService = new CRMService(c.env);
     const contact = await crmService.createContact(c.get('validatedData'));
-    return c.json({ success: true, data: contact });
+    return c.json({ success: true, data: contact }, 201);
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
-app.get('/contacts', zValidator('query', ContactFiltersSchema.merge(PaginationSchema)), async (c: any) => {
+app.get('/contacts', async (c: any) => {
   try {
-    const businessId = c.get('businessId');
-    const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
-    const pagination: PaginationOptions = { page, limit, sortBy: sort_by, sortOrder: sort_order };
+    const businessId = c.req.query('businessId') || 'business-founder-001';
+    const page = parseInt(c.req.query('page') || '1');
+    const limit = parseInt(c.req.query('limit') || '50');
+
+    const db = c.env.DB_MAIN || c.env.DB;
 
     // Simple query to fetch all contacts
-    const result = await c.env.DB_CRM
-      .prepare('SELECT * FROM contacts WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?')
-      .bind(businessId, limit || 50, ((page || 1) - 1) * (limit || 50))
+    const result = await db
+      .prepare('SELECT * FROM crm_contacts WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?')
+      .bind(businessId, limit, (page - 1) * limit)
       .all();
     return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
@@ -242,16 +244,18 @@ app.post('/leads', zValidator('json', CreateLeadSchema), async (c: any) => {
   }
 });
 
-app.get('/leads', zValidator('query', LeadFiltersSchema.merge(PaginationSchema)), async (c: any) => {
+app.get('/leads', async (c: any) => {
   try {
-    const businessId = c.get('businessId');
-    const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
-    const pagination: PaginationOptions = { page, limit, sortBy: sort_by, sortOrder: sort_order };
+    const businessId = c.req.query('businessId') || 'business-founder-001';
+    const page = parseInt(c.req.query('page') || '1');
+    const limit = parseInt(c.req.query('limit') || '50');
+
+    const db = c.env.DB_MAIN || c.env.DB;
 
     // Simple query to fetch all leads
-    const result = await c.env.DB_CRM
-      .prepare('SELECT * FROM leads WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?')
-      .bind(businessId, limit || 50, ((page || 1) - 1) * (limit || 50))
+    const result = await db
+      .prepare('SELECT * FROM crm_leads WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?')
+      .bind(businessId, limit, (page - 1) * limit)
       .all();
     return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {

@@ -4,7 +4,7 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '@/layouts/main-layout';
 import { exportService, ExportRequest } from '@/lib/api/services/export.service';
 import { Button } from '@/components/ui/button';
@@ -69,13 +69,7 @@ function ExportPage() {
     },
   });
 
-  useEffect(() => {
-    loadExports();
-    const interval = setInterval(loadExports, 5000); // Poll every 5 seconds
-    return () => clearInterval(interval);
-  }, [selectedStatus]);
-
-  const loadExports = async () => {
+  const loadExports = useCallback(async () => {
     try {
       const params = selectedStatus !== 'all' ? { status: selectedStatus as any } : undefined;
       const response = await exportService.listExports(params);
@@ -85,7 +79,15 @@ function ExportPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedStatus]);
+
+  useEffect(() => {
+    void loadExports();
+    const interval = setInterval(() => {
+      void loadExports();
+    }, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, [loadExports]);
 
   const handleCreateExport = async () => {
     try {

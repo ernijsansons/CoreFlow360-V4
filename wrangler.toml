@@ -1,6 +1,6 @@
 name = "coreflow360-v4"
 main = "src/index.production.ts"
-compatibility_date = "2024-12-01"
+compatibility_date = "2024-09-01"
 compatibility_flags = ["nodejs_compat"]
 account_id = "d2897bdebfa128919bd89b265e6a712e"
 

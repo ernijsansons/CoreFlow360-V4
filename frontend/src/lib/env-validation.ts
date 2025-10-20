@@ -19,8 +19,9 @@ export function validateEnvironment(): EnvValidationResult {
 
   // Check required variables using direct property access (not bracket notation)
   // This is required for Vite's define config to work correctly
+  // VITE_API_URL is now optional with fallback in vite.config.ts
   if (!import.meta.env.VITE_API_URL) {
-    missing.push('VITE_API_URL')
+    warnings.push('VITE_API_URL not set, using fallback from vite.config.ts')
   }
 
   // Check optional variables (warn but don't fail)
@@ -79,13 +80,12 @@ export function validateEnvironment(): EnvValidationResult {
 
 /**
  * Gets the API base URL with fallback
+ * This matches the fallback defined in vite.config.ts
  */
 export function getApiUrl(): string {
   return (
     import.meta.env.VITE_API_URL ||
-    (import.meta.env.MODE === 'production'
-      ? 'https://coreflow360-v4-prod.ernijs-ansons.workers.dev'
-      : 'http://localhost:8787')
+    'https://coreflow360-v4-prod.ernijs-ansons.workers.dev'
   )
 }
 

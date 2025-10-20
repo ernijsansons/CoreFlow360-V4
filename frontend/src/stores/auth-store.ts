@@ -1,11 +1,12 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import type { AuthState, User } from '@/types'
 import { isTokenExpired } from '@/lib/utils'
 import { authService } from '@/lib/api/services/auth.service'
 import { useEntityStore } from './entity-store'
 import { useCacheStore } from './cache-store'
+import { createSafeJSONStorage } from '@/lib/safe-storage'
 
 interface AuthStore extends AuthState {
   login: (token: string, refreshToken: string, user: User) => void
@@ -121,7 +122,7 @@ export const useAuthStore = create<AuthStore>()(
     })),
     {
       name: 'auth-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createSafeJSONStorage(),
       partialize: (state) => ({
         token: state.token,
         refreshToken: state.refreshToken,

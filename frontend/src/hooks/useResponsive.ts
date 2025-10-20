@@ -131,7 +131,7 @@ export const useResponsive = (config: Partial<ResponsiveConfig> = {}) => {
 
   // Get adaptive layout configuration
   const getAdaptiveLayout = useCallback((
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     _baseColumns = 12,
     baseRowHeight = 60
   ): AdaptiveLayout => {
@@ -324,7 +324,7 @@ function getViewportInfo(breakpoints: Record<Breakpoint, number>): ViewportInfo 
   // Determine breakpoint
   const breakpoint = Object.entries(breakpoints)
     .reverse()
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     .find(([_, minWidth]) => width >= minWidth)?.[0] as Breakpoint || 'xs'
 
   // Determine orientation
