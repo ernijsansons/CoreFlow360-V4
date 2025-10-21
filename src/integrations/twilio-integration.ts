@@ -4,8 +4,11 @@
  * Implements Twilio API with webhooks for real-time capture
  */
 
+import { Logger } from '../shared/logger';
 import type { D1Database } from '@cloudflare/workers-types';
 import { AutoCaptureEngine, type CapturedInteraction, type Participant } from '../services/crm/auto-capture';
+
+const logger = new Logger({ component: 'twilio-integration' });
 
 // ============================================================
 // TYPES
@@ -138,7 +141,7 @@ export class TwilioIntegration {
         await this.requestTranscription(payload.CallSid!, payload.RecordingUrl);
       }
     } catch (error: any) {
-      console.error('Call webhook error:', error);
+      logger.error('Call webhook error:', error);
       throw error;
     }
   }
@@ -178,7 +181,7 @@ export class TwilioIntegration {
       const engine = new AutoCaptureEngine(this.db, this.businessId, 'system');
       await engine.captureInteraction(interaction);
     } catch (error: any) {
-      console.error('SMS webhook error:', error);
+      logger.error('SMS webhook error:', error);
       throw error;
     }
   }
@@ -250,11 +253,11 @@ export class TwilioIntegration {
 
           messagesCaptured++;
         } catch (error: any) {
-          console.error(`Message ${message.sid} error:`, error);
+          logger.error(`Message ${message.sid} error:`, error);
         }
       }
     } catch (error: any) {
-      console.error('Message sync error:', error);
+      logger.error('Message sync error:', error);
     }
 
     return messagesCaptured;
@@ -306,7 +309,7 @@ export class TwilioIntegration {
   private async requestTranscription(callSid: string, recordingUrl: string): Promise<void> {
     // In production, this would call Twilio's transcription API or a third-party service
     // For now, we'll just log that transcription was requested
-    console.log(`Transcription requested for call ${callSid}`);
+    logger.info(`Transcription requested for call ${callSid}`);
 
     // Example: Using Twilio's transcription service
     // const recordingSid = this.extractRecordingSid(recordingUrl);

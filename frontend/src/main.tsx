@@ -13,7 +13,7 @@ console.log('[CoreFlow360] React validation:', {
 });
 
 if (!React || typeof React.useEffect !== 'function') {
-  alert('FATAL: React.useEffect is ' + typeof React?.useEffect);
+  console.error('[CoreFlow360] FATAL: React.useEffect is ' + typeof React?.useEffect);
   throw new Error('React module validation failed');
 }
 
@@ -33,6 +33,50 @@ const surfaceFatal =
   ((label: string, detail: unknown) => console.error(`[CoreFlow360] ${label}:`, detail))
 
 console.log('[CoreFlow360] main.tsx: Starting application initialization')
+
+// Web Vitals monitoring - lazy load to avoid blocking
+if (typeof window !== 'undefined' && import.meta.env.PROD) {
+  import('web-vitals').then(({ onCLS, onFID, onLCP, onINP, onFCP, onTTFB }) => {
+    const sendToAnalytics = (metric: any) => {
+      // Send to Cloudflare Workers KV or Analytics Engine
+      const body = JSON.stringify({
+        name: metric.name,
+        value: metric.value,
+        rating: metric.rating,
+        delta: metric.delta,
+        id: metric.id,
+        navigationType: metric.navigationType,
+      });
+
+      // Use navigator.sendBeacon for reliability
+      // Note: Web vitals endpoint doesn't require auth in production, but can be gated by Cloudflare Access
+      const apiUrl = `${import.meta.env.VITE_API_URL || 'https://coreflow360-v4-prod.ernijs-ansons.workers.dev'}/api/v1/telemetry/web-vitals`;
+
+      // Use fetch since sendBeacon doesn't support custom headers for auth
+      fetch(apiUrl, {
+        method: 'POST',
+        body,
+        headers: {
+          'Content-Type': 'application/json',
+          // In production, this endpoint should be behind Cloudflare Access instead of API key auth
+          // to avoid exposing keys in frontend code
+        },
+        keepalive: true,
+      }).catch(err => console.warn('[CoreFlow360] Failed to send web vitals:', err));
+    };
+
+    onCLS(sendToAnalytics);
+    onFID(sendToAnalytics);
+    onLCP(sendToAnalytics);
+    onINP(sendToAnalytics);
+    onFCP(sendToAnalytics);
+    onTTFB(sendToAnalytics);
+
+    console.log('[CoreFlow360] Web Vitals monitoring initialized');
+  }).catch(err => {
+    console.warn('[CoreFlow360] Failed to load web-vitals:', err);
+  });
+}
 
 // Validate environment variables before initialization
 let envValidationPassed = false

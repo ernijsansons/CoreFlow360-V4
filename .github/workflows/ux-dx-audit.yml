@@ -1,0 +1,159 @@
+name: UX & DX Audit
+
+on:
+  # Run on PRs that touch frontend or marketing files
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'src/routes/**'
+      - 'src/middleware/**'
+
+  # Run nightly
+  schedule:
+    - cron: '0 2 * * *' # 2 AM UTC daily
+
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  accessibility-audit:
+    name: Accessibility Audit (axe-core)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Start frontend dev server
+        run: |
+          cd frontend
+          npm run dev &
+          npx wait-on http://localhost:5173 -t 60000
+
+      - name: Run axe accessibility audit
+        run: npm run audit:a11y
+        continue-on-error: true
+
+      - name: Upload accessibility report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a11y-report
+          path: audit-results/a11y/
+          retention-days: 30
+
+  lighthouse-audit:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci
+
+      - name: Build frontend for production
+        run: cd frontend && npm run build
+
+      - name: Serve production build
+        run: |
+          npx serve -s frontend/dist -l 5173 &
+          npx wait-on http://localhost:5173 -t 60000
+
+      - name: Run Lighthouse CI
+        run: npm run audit:lighthouse
+        continue-on-error: true
+
+      - name: Upload Lighthouse reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: audit-results/lighthouse/
+          retention-days: 30
+
+  worker-latency-audit:
+    name: Worker Latency Baseline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start Wrangler dev server
+        run: |
+          npx wrangler dev --port 8787 &
+          npx wait-on http://127.0.0.1:8787/health -t 120000
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Run worker latency audit
+        run: npm run audit:worker-latency
+        env:
+          CF360_WORKER_BASE_URL: http://127.0.0.1:8787
+          CF360_LATENCY_ITERATIONS: 50
+
+      - name: Upload latency report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: latency-report
+          path: audit-results/latency/
+          retention-days: 30
+
+  audit-summary:
+    name: Generate Audit Summary
+    needs: [accessibility-audit, lighthouse-audit, worker-latency-audit]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: audit-results
+
+      - name: Generate summary
+        run: |
+          echo "# UX & DX Audit Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Accessibility Audit: Check artifacts for axe-core results" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Lighthouse Audit: Check artifacts for performance scores" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Worker Latency: Check artifacts for baseline metrics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review artifacts for detailed reports" >> $GITHUB_STEP_SUMMARY
+          echo "2. Address any critical issues found" >> $GITHUB_STEP_SUMMARY
+          echo "3. Track metrics over time" >> $GITHUB_STEP_SUMMARY

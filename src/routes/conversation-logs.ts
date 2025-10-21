@@ -5,6 +5,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'conversation-logs' });
 import type { Env } from '../types/env';
 import { authenticate } from '../middleware/auth';
 
@@ -104,7 +106,7 @@ app.get('/', authenticate, async (c) => {
       }
     });
   } catch (error: any) {
-    console.error('Conversation logs fetch error:', error);
+    logger.error('Conversation logs fetch error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -150,7 +152,7 @@ app.get('/:id', authenticate, async (c) => {
       data: parsedLog
     });
   } catch (error: any) {
-    console.error('Conversation log fetch error:', error);
+    logger.error('Conversation log fetch error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -202,7 +204,7 @@ app.get('/stats/summary', authenticate, async (c) => {
       }
     });
   } catch (error: any) {
-    console.error('Conversation logs stats error:', error);
+    logger.error('Conversation logs stats error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });

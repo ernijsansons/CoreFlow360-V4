@@ -4,8 +4,11 @@
  * Implements Microsoft Graph v1.0 with proper authentication
  */
 
+import { Logger } from '../shared/logger';
 import type { D1Database } from '@cloudflare/workers-types';
 import { AutoCaptureEngine, type CapturedInteraction, type Participant } from '../services/crm/auto-capture';
+
+const logger = new Logger({ component: 'outlook-integration' });
 import {
   OutlookTokenResponseSchema,
   OutlookMessagesResponseSchema,
@@ -311,7 +314,7 @@ export class OutlookIntegration {
         }
       }
     } catch (error: any) {
-      console.error('Meeting sync error:', error);
+      logger.error('Meeting sync error:', error);
     }
 
     return meetingsCaptured;

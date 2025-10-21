@@ -1,10 +1,11 @@
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect } from 'react'
 import { RouterProvider } from '@tanstack/react-router'
 import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { ToastListener } from '@/components/toast-listener'
 import { QueryProvider } from '@/providers/query-provider'
 import { validateCSSVariables, logCSSValidation } from '@/lib/css-validation'
+import { router } from './router'
 
 function LoadingFallback() {
   return (
@@ -31,9 +32,6 @@ function LoadingFallback() {
 }
 
 export default function App() {
-  // Lazy load router to prevent module evaluation issues
-  const [router, setRouter] = useState<any>(null)
-
   useEffect(() => {
     console.log('[CoreFlow360] App component mounted')
 
@@ -59,22 +57,10 @@ export default function App() {
       console.error('[CoreFlow360] CSS validation error:', error)
     }
 
-    // Import router after React is mounted
-    import('./router').then(({ router: importedRouter }) => {
-      console.log('[CoreFlow360] Router loaded')
-      setRouter(importedRouter)
-    }).catch(error => {
-      console.error('[CoreFlow360] Error loading router:', error)
-    })
-
     return () => {
       console.log('[CoreFlow360] App component unmounting')
     }
   }, [])
-
-  if (!router) {
-    return <LoadingFallback />
-  }
 
   return (
     <ErrorBoundary>

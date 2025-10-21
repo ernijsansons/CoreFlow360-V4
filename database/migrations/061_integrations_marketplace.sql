@@ -30,6 +30,12 @@ CREATE TABLE IF NOT EXISTS integration_providers (
         'analytics',
         'ai_ml',
         'crm',
+        'ecommerce',
+        'document_management',
+        'customer_support',
+        'automation',
+        'hr_payroll',
+        'productivity',
         'other'
     )),
     category_tags TEXT, -- JSON array: ['b2b', 'contact_data', 'company_data']

@@ -3,6 +3,25 @@ import { PublicHeader } from '@/components/layouts/PublicHeader'
 
 export const Route = createFileRoute('/about')({
   component: AboutPage,
+  head: () => ({
+    meta: [
+      {
+        title: 'About CoreFlow360 | AI-First Platform for Serial Entrepreneurs',
+      },
+      {
+        name: 'description',
+        content: 'Learn about CoreFlow360\'s mission to empower serial entrepreneurs with autonomous AI agents. Built for founders scaling multiple businesses.',
+      },
+      {
+        property: 'og:title',
+        content: 'About CoreFlow360 - Built for Serial Entrepreneurs',
+      },
+      {
+        property: 'og:description',
+        content: 'AI-first platform empowering founders to manage multiple businesses with autonomous agents.',
+      },
+    ],
+  }),
 })
 
 function AboutPage() {

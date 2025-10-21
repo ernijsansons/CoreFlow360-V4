@@ -4,6 +4,25 @@ import { PublicHeader } from '@/components/layouts/PublicHeader'
 
 export const Route = createFileRoute('/pricing')({
   component: PricingPage,
+  head: () => ({
+    meta: [
+      {
+        title: 'Pricing - CoreFlow360 | Simple, Transparent Plans for Every Business',
+      },
+      {
+        name: 'description',
+        content: 'Start free, scale as you grow. Transparent pricing for AI-powered business management. No hidden fees. Plans for startups to enterprises.',
+      },
+      {
+        property: 'og:title',
+        content: 'CoreFlow360 Pricing - Plans for Every Business',
+      },
+      {
+        property: 'og:description',
+        content: 'Simple, transparent pricing. Start free and scale as you grow with AI-powered business management.',
+      },
+    ],
+  }),
 })
 
 function PricingPage() {

@@ -3,7 +3,10 @@
  * Tracks application metrics, performance, and health status
  */
 
+import { Logger } from '../shared/logger';
 import type { AppContext } from '../types/hono-context';
+
+const logger = new Logger({ component: 'performance-monitor' });
 
 export interface PerformanceMetrics {
   requestId: string;
@@ -168,7 +171,7 @@ export class PerformanceMonitor {
           expirationTtl: 24 * 60 * 60 // 24 hours
         });
       } catch (error) {
-        console.error('Failed to persist metrics:', error);
+        logger.error('Failed to persist metrics:', error);
       }
     }
 
@@ -192,7 +195,7 @@ export class PerformanceMonitor {
           ]
         });
       } catch (error) {
-        console.error('Failed to write to analytics:', error);
+        logger.error('Failed to write to analytics:', error);
       }
     }
   }
@@ -423,7 +426,7 @@ export class PerformanceMonitor {
       severity: this.getAlertSeverity(type)
     };
 
-    console.warn('[ALERT]', JSON.stringify(alert, null, 2));
+    logger.warn('[ALERT]', JSON.stringify(alert, null, 2));
 
     // Store alert
     if (this.kv) {

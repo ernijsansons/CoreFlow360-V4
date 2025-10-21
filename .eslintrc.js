@@ -108,9 +108,31 @@ module.exports = {
       },
     },
     {
-      files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts'],
+      files: [
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/*.spec.ts',
+        '**/tests/**/*.ts',
+        '**/src/tests/**/*.ts',
+        'tests/**/*.ts', // Root level tests directory
+      ],
+      globals: {
+        // Vitest globals
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        vi: 'readonly',
+        // Cloudflare Workers test globals
+        task: 'readonly',
+      },
       rules: {
         'no-console': 'off',
+        'no-undef': 'off', // Let TypeScript handle it
       },
     },
     {

@@ -2,15 +2,15 @@ name: CoreFlow360 V4 CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main]
+    branches: [main, master]
   schedule:
     # Run chaos tests daily at 2 AM UTC
     - cron: '0 2 * * *'
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
 
@@ -59,7 +59,7 @@ jobs:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
 
       - name: Upload Generated Tests
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: generated-tests
           path: tests/generated/
@@ -81,7 +81,7 @@ jobs:
           cache: 'npm'
 
       - name: Download Generated Tests
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: generated-tests
           path: tests/generated/

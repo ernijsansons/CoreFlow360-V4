@@ -4,6 +4,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'crm-signals-webhooks' });
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { JobChangeDetectionService } from '../services/crm/job-change-detection.service';
@@ -39,7 +41,7 @@ app.post('/webhooks/job-change', async (c) => {
       data: jobChange
     });
   } catch (error: any) {
-    console.error('Job change webhook error:', error);
+    logger.error('Job change webhook error:', error);
     return c.json({
       success: false,
       error: 'Failed to process job change webhook',
@@ -243,7 +245,7 @@ app.post('/webhooks/bombora-intent', async (c) => {
 
     return c.json({ success: true, message: 'Bombora intent signal tracked', data: { id } });
   } catch (error: any) {
-    console.error('Bombora webhook error:', error);
+    logger.error('Bombora webhook error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });

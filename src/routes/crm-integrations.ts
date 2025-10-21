@@ -5,6 +5,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'crm-integrations' });
 import type { Env } from '@/types/env';
 import { GmailIntegration } from '../integrations/gmail-integration';
 import { OutlookIntegration } from '../integrations/outlook-integration';
@@ -296,7 +298,7 @@ app.post('/twilio/webhook/call', async (c) => {
       'Content-Type': 'text/xml'
     });
   } catch (error: any) {
-    console.error('Twilio call webhook error:', error);
+    logger.error('Twilio call webhook error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -348,7 +350,7 @@ app.post('/twilio/webhook/sms', async (c) => {
       'Content-Type': 'text/xml'
     });
   } catch (error: any) {
-    console.error('Twilio SMS webhook error:', error);
+    logger.error('Twilio SMS webhook error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });

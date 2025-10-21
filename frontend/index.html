@@ -6,17 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CoreFlow360 V4 - AI-First Business Platform</title>
 
-    <!-- Google Analytics 4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PLACEHOLDER"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-PLACEHOLDER', {
-        send_page_view: true,
-        anonymize_ip: true,
-        cookie_flags: 'SameSite=None;Secure'
-      });
+    <!-- Microsoft Clarity - Privacy-compliant analytics -->
+    <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){
+        // Only load Clarity if explicitly enabled via environment variable
+        const clarityId = typeof import.meta !== 'undefined' && import.meta.env?.VITE_CLARITY_ID;
+        if (!clarityId || clarityId === 'disabled') {
+          console.log('[CoreFlow360] Analytics disabled - no tracking ID configured');
+          return;
+        }
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window,document,"clarity","script",typeof import.meta !== 'undefined' && import.meta.env?.VITE_CLARITY_ID);
     </script>
 
     <style>
@@ -78,21 +80,15 @@
             // Ignore console errors if console has been hijacked
           }
 
+          // Create user-friendly error panel without blocking alerts
           let panel = document.getElementById('cf360-fatal-dump');
           if (!panel) {
-            panel = document.createElement('pre');
+            panel = document.createElement('div');
             panel.id = 'cf360-fatal-dump';
             panel.style.cssText =
-              'position:fixed;top:0;left:0;right:0;white-space:pre-wrap;background:#111827;color:#f87171;padding:16px;font:14px/1.4 monospace;overflow:auto;border-bottom:4px solid #f87171;z-index:2147483647;max-height:300px;';
+              'position:fixed;top:0;left:0;right:0;background:#ef4444;color:white;padding:16px 24px;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;z-index:2147483647;box-shadow:0 4px 6px rgba(0,0,0,0.1);';
+            panel.innerHTML = '<strong>Application Error</strong><p style="margin:8px 0 0;font-size:13px;opacity:0.95;">An error occurred. Please refresh the page or contact support if the issue persists.</p><button onclick="this.parentElement.remove()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.2);border:none;color:white;padding:4px 12px;border-radius:4px;cursor:pointer;">Dismiss</button>';
             document.body.prepend(panel);
-          }
-          panel.textContent = '[CoreFlow360] ' + label + '\n\n' + text;
-
-          // Alert to ensure visibility even if console is hidden
-          try {
-            alert('[CoreFlow360] ' + label + '\n' + text);
-          } catch (e) {
-            // Swallow if alerts are disabled
           }
         };
 

@@ -88,7 +88,8 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 /**
  * Usage Examples with Design Tokens:
  * 
- * // Basic card with semantic tokens
+ * Basic card with semantic tokens:
+ * ```jsx
  * <Card>
  *   <CardHeader>
  *     <CardTitle>Settings</CardTitle>
@@ -102,4 +103,5 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
  *     <Button variant="ghost">Cancel</Button>
  *   </CardFooter>
  * </Card>
+ * ```
  */

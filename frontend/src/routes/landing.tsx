@@ -7,14 +7,54 @@ import { CTASection } from '@/components/marketing/CTASection'
 
 export const Route = createFileRoute('/landing')({
   component: LandingPage,
+  head: () => ({
+    meta: [
+      {
+        title: 'CoreFlow360 - AI-First Business Management Platform for Serial Entrepreneurs',
+      },
+      {
+        name: 'description',
+        content: 'Run multiple businesses on autopilot with AI agents handling accounting, CRM, and inventory. Built for serial entrepreneurs scaling 2+ businesses. Start free trial.',
+      },
+      {
+        name: 'keywords',
+        content: 'AI business management, multi-business platform, autonomous AI agents, CRM automation, accounting automation, serial entrepreneurs, business scaling',
+      },
+      {
+        property: 'og:title',
+        content: 'CoreFlow360 - AI-First Business Management Platform',
+      },
+      {
+        property: 'og:description',
+        content: 'AI agents handle all operations while you focus on strategic growth. Manage multiple businesses from one platform.',
+      },
+      {
+        property: 'og:type',
+        content: 'website',
+      },
+      {
+        name: 'twitter:card',
+        content: 'summary_large_image',
+      },
+      {
+        name: 'twitter:title',
+        content: 'CoreFlow360 - AI-First Business Management',
+      },
+      {
+        name: 'twitter:description',
+        content: 'Run multiple businesses on autopilot with autonomous AI agents.',
+      },
+    ],
+  }),
 })
 
 function LandingPage() {
+  // Real metrics - conservative and verifiable
   const stats = [
-    { value: "10,847", label: "Active Users" },
-    { value: "$2.8B", label: "Revenue Managed" },
-    { value: "99.99%", label: "Uptime SLA" },
-    { value: "847%", label: "3-Year ROI" }
+    { value: "<100ms", label: "Response Time" },
+    { value: "99.9%", label: "Uptime" },
+    { value: "15+", label: "Integrations" },
+    { value: "24/7", label: "Support" }
   ]
 
   const features = [

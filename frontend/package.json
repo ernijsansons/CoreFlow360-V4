@@ -89,7 +89,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.10.0",
+    "@axe-core/playwright": "^4.8.5",
     "@chromatic-com/storybook": "^4.1.1",
     "@cloudflare/pages-plugin-cloudflare-access": "^1.0.5",
     "@cloudflare/workers-types": "^4.20250921.0",

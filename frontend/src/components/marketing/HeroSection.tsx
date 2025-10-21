@@ -1,6 +1,14 @@
 import React from 'react';
+import { Link } from '@tanstack/react-router';
 import { ArrowRight, Play } from 'lucide-react';
 import { Button } from '../ui/button';
+
+// TypeScript declaration for Google Analytics
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
 
 interface HeroSectionProps {
   headline: string;
@@ -15,6 +23,17 @@ export function HeroSection({
   ctaPrimary = "Start Free Trial",
   ctaSecondary = "Watch Demo"
 }: HeroSectionProps) {
+  // Analytics tracking
+  const trackCTAClick = (action: string) => {
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'cta_click', {
+        event_category: 'engagement',
+        event_label: action,
+        value: action === 'primary' ? 10 : 5
+      });
+    }
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-brand-primary-50 to-brand-accent-50">
       {/* Background Pattern */}
@@ -44,11 +63,13 @@ export function HeroSection({
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="bg-gradient-to-r from-brand-primary-600 to-brand-accent-600 hover:from-brand-primary-700 hover:to-brand-accent-700 px-8 py-6 text-lg">
-              {ctaPrimary}
-              <ArrowRight className="ml-2" size={20} />
-            </Button>
-            <Button size="lg" variant="outline" className="px-8 py-6 text-lg">
+            <Link to="/auth/register" onClick={() => trackCTAClick('primary')}>
+              <Button size="lg" className="bg-gradient-to-r from-brand-primary-600 to-brand-accent-600 hover:from-brand-primary-700 hover:to-brand-accent-700 px-8 py-6 text-lg" type="button">
+                {ctaPrimary}
+                <ArrowRight className="ml-2" size={20} />
+              </Button>
+            </Link>
+            <Button size="lg" variant="outline" className="px-8 py-6 text-lg" type="button" onClick={() => trackCTAClick('demo')}>
               <Play className="mr-2" size={20} />
               {ctaSecondary}
             </Button>

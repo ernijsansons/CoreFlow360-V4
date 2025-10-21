@@ -4,8 +4,11 @@
  * Implements Microsoft Graph API for Teams data access
  */
 
+import { Logger } from '../shared/logger';
 import type { D1Database } from '@cloudflare/workers-types';
 import { AutoCaptureEngine, type CapturedInteraction, type Participant } from '../services/crm/auto-capture';
+
+const logger = new Logger({ component: 'teams-integration' });
 
 // ============================================================
 // TYPES
@@ -364,11 +367,11 @@ export class TeamsIntegration {
 
           meetingsCaptured++;
         } catch (error: any) {
-          console.error(`Meeting ${meeting.id} error:`, error);
+          logger.error(`Meeting ${meeting.id} error:`, error);
         }
       }
     } catch (error: any) {
-      console.error('Meeting sync error:', error);
+      logger.error('Meeting sync error:', error);
     }
 
     return meetingsCaptured;
@@ -443,7 +446,7 @@ export class TeamsIntegration {
         }
       }
     } catch (error: any) {
-      console.error('Teams webhook error:', error);
+      logger.error('Teams webhook error:', error);
       throw error;
     }
   }

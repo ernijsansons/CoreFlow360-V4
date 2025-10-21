@@ -19,12 +19,7 @@ AGENT_TIMEOUT_MS = "30000"
 ALLOWED_ORIGINS = "https://main.coreflow360-frontend.pages.dev,https://coreflow360-frontend.pages.dev,https://app.coreflow360.com,https://www.coreflow360.com"
 
 # Production-specific bindings
-[[env.production.d1_databases]]
-binding = "DB"
-database_name = "coreflow360-agents"
-database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
-migrations_dir = "database/migrations"
-
+# Consolidated: DB and DB_MAIN now use single binding to avoid confusion
 [[env.production.d1_databases]]
 binding = "DB_MAIN"
 database_name = "coreflow360-agents"
@@ -85,6 +80,15 @@ bucket_name = "coreflow360-documents"
 binding = "R2_BACKUPS"
 bucket_name = "coreflow360-backups"
 
+# Analytics Engine for performance monitoring
+[[env.production.analytics_engine_datasets]]
+binding = "ANALYTICS_ENGINE"
+
+# Vectorize for semantic search in Knowledge Base Agent
+[[env.production.vectorize]]
+binding = "VECTORIZE_INDEX"
+index_name = "knowledge-base-embeddings-prod"
+
 [env.production.ai]
 binding = "AI"
 
@@ -102,12 +106,7 @@ MAX_AGENT_CONCURRENCY = "5"
 AGENT_TIMEOUT_MS = "20000"
 
 # Staging-specific bindings
-[[env.staging.d1_databases]]
-binding = "DB"
-database_name = "coreflow360-agents"
-database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
-migrations_dir = "database/migrations"
-
+# Consolidated: DB and DB_MAIN now use single binding to avoid confusion
 [[env.staging.d1_databases]]
 binding = "DB_MAIN"
 database_name = "coreflow360-agents"
@@ -168,6 +167,15 @@ bucket_name = "coreflow360-documents"
 binding = "R2_BACKUPS"
 bucket_name = "coreflow360-backups"
 
+# Analytics Engine for performance monitoring
+[[env.staging.analytics_engine_datasets]]
+binding = "ANALYTICS_ENGINE"
+
+# Vectorize for semantic search in Knowledge Base Agent
+[[env.staging.vectorize]]
+binding = "VECTORIZE_INDEX"
+index_name = "knowledge-base-embeddings-staging"
+
 [env.staging.ai]
 binding = "AI"
 
@@ -175,13 +183,7 @@ binding = "AI"
 name = "coreflow360-v4-dev"
 vars = { ENVIRONMENT = "development", LOG_LEVEL = "debug", SENTRY_ENVIRONMENT = "development" }
 
-# D1 Database bindings - Updated with real database IDs
-[[d1_databases]]
-binding = "DB"
-database_name = "coreflow360-agents"
-database_id = "c56bb204-78bc-4357-a704-419aa9f11e6f"
-migrations_dir = "database/migrations"
-
+# D1 Database bindings - Consolidated to single binding
 [[d1_databases]]
 binding = "DB_MAIN"
 database_name = "coreflow360-agents"
@@ -242,6 +244,11 @@ bucket_name = "coreflow360-documents"
 [[r2_buckets]]
 binding = "R2_BACKUPS"
 bucket_name = "coreflow360-backups"
+
+# Vectorize for semantic search in Knowledge Base Agent (development)
+[[vectorize]]
+binding = "VECTORIZE_INDEX"
+index_name = "knowledge-base-embeddings-dev"
 
 # AI binding
 [ai]

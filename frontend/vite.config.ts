@@ -62,6 +62,34 @@ export default defineConfig({
         manualChunks: (id) => {
           // CRITICAL: DO NOT separate React into its own chunk
           // This was causing async loading issues where main bundle executed before React loaded
+
+          // Split marketing routes from authenticated app routes
+          if (!id.includes('node_modules')) {
+            // Marketing pages (public, unauthenticated)
+            if (id.includes('/routes/landing') ||
+                id.includes('/routes/pricing') ||
+                id.includes('/routes/about') ||
+                id.includes('/routes/contact') ||
+                id.includes('/routes/help') ||
+                id.includes('/components/marketing/')) {
+              return 'marketing';
+            }
+
+            // Authenticated app routes
+            if (id.includes('/routes/dashboard') ||
+                id.includes('/routes/crm') ||
+                id.includes('/routes/finance') ||
+                id.includes('/routes/settings') ||
+                id.includes('/routes/admin')) {
+              return 'app';
+            }
+
+            // Auth pages (lightweight, frequently accessed)
+            if (id.includes('/routes/auth/')) {
+              return 'auth';
+            }
+          }
+
           if (id.includes('node_modules')) {
             // Let React stay in the main index chunk
             if (id.includes('react') || id.includes('react-dom')) {

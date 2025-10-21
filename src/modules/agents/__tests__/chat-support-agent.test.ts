@@ -182,25 +182,58 @@ describe('ChatSupportAgent', () => {
     });
 
     it('should include suggested actions in response', async () => {
+      // Mock chat session retrieval
+      mockEnv.DB_MAIN.prepare.mockReturnValueOnce({
+        bind: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue({
+          id: 'session-123',
+          business_id: 'biz-123',
+          customer_id: 'cust-123',
+          customer_name: 'John Doe',
+          customer_email: 'john@example.com',
+          channel: 'web',
+          status: 'active',
+          ai_assist_level: 'full',
+          messages: '[]',
+          context: JSON.stringify({
+            customerId: 'cust-123',
+            customerProfile: {
+              name: 'John Doe',
+              email: 'john@example.com',
+              tier: 'pro'
+            },
+            previousConversations: [],
+            businessHours: true,
+            availableAgents: 2
+          }),
+          sentiment: 'neutral',
+          urgency: 'medium',
+          intents: '[]',
+          resolved_issues: '[]',
+          suggested_articles: '[]',
+          metadata: '{}',
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z'
+        })
+      });
+
+      // Mock storing messages
+      mockEnv.DB_MAIN.prepare.mockReturnValue({
+        bind: vi.fn().mockReturnThis(),
+        run: vi.fn().mockResolvedValue({ success: true })
+      });
+
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
           content: [
             {
-              text: 'Here is how to reset your password...'
-            }
-          ]
-        })
-      });
-
-      mockEnv.DB_MAIN.prepare.mockReturnValue({
-        bind: vi.fn().mockReturnThis(),
-        all: vi.fn().mockResolvedValue({
-          results: [
-            {
-              id: 'art-1',
-              title: 'Password Reset Guide',
-              slug: 'password-reset-guide'
+              text: JSON.stringify({
+                message: 'Here is how to reset your password...',
+                confidence: 0.9,
+                suggestedActions: ['reset_password', 'verify_email'],
+                requiresHumanAgent: false
+              })
             }
           ]
         })
@@ -212,7 +245,7 @@ describe('ChatSupportAgent', () => {
         input: {
           data: {
             sessionId: 'session-123',
-            customerMessage: 'How do I reset password?',
+            message: 'How do I reset password?',
             conversationHistory: []
           }
         },
@@ -225,12 +258,58 @@ describe('ChatSupportAgent', () => {
     });
 
     it('should detect when human handoff is needed', async () => {
+      // Mock chat session retrieval
+      mockEnv.DB_MAIN.prepare.mockReturnValueOnce({
+        bind: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue({
+          id: 'session-123',
+          business_id: 'biz-123',
+          customer_id: 'cust-123',
+          customer_name: 'John Doe',
+          customer_email: 'john@example.com',
+          channel: 'web',
+          status: 'active',
+          ai_assist_level: 'full',
+          messages: '[]',
+          context: JSON.stringify({
+            customerId: 'cust-123',
+            customerProfile: {
+              name: 'John Doe',
+              email: 'john@example.com',
+              tier: 'pro'
+            },
+            previousConversations: [],
+            businessHours: true,
+            availableAgents: 2
+          }),
+          sentiment: 'negative',
+          urgency: 'high',
+          intents: '[]',
+          resolved_issues: '[]',
+          suggested_articles: '[]',
+          metadata: '{}',
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z'
+        })
+      });
+
+      // Mock storing messages
+      mockEnv.DB_MAIN.prepare.mockReturnValue({
+        bind: vi.fn().mockReturnThis(),
+        run: vi.fn().mockResolvedValue({ success: true })
+      });
+
       global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: async () => ({
           content: [
             {
-              text: 'This requires account access verification. I need to connect you with our security team.'
+              text: JSON.stringify({
+                message: 'This requires account access verification. I need to connect you with our security team.',
+                confidence: 0.95,
+                requiresHumanAgent: true,
+                escalationReason: 'account_deletion_request'
+              })
             }
           ]
         })
@@ -242,7 +321,7 @@ describe('ChatSupportAgent', () => {
         input: {
           data: {
             sessionId: 'session-123',
-            customerMessage: 'I need to delete my account immediately',
+            message: 'I need to delete my account immediately',
             conversationHistory: []
           }
         },
@@ -258,13 +337,53 @@ describe('ChatSupportAgent', () => {
       const noAIEnv = { ...mockEnv, ANTHROPIC_API_KEY: undefined };
       const agentNoAI = new ChatSupportAgent(noAIEnv);
 
+      // Mock chat session retrieval
+      mockEnv.DB_MAIN.prepare.mockReturnValueOnce({
+        bind: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue({
+          id: 'session-123',
+          business_id: 'biz-123',
+          customer_id: 'cust-123',
+          customer_name: 'John Doe',
+          customer_email: 'john@example.com',
+          channel: 'web',
+          status: 'active',
+          ai_assist_level: 'none',
+          messages: '[]',
+          context: JSON.stringify({
+            customerId: 'cust-123',
+            customerProfile: {
+              name: 'John Doe',
+              email: 'john@example.com'
+            },
+            previousConversations: [],
+            businessHours: true,
+            availableAgents: 2
+          }),
+          sentiment: 'neutral',
+          urgency: 'low',
+          intents: '[]',
+          resolved_issues: '[]',
+          suggested_articles: '[]',
+          metadata: '{}',
+          created_at: '2024-01-01T00:00:00Z',
+          updated_at: '2024-01-01T00:00:00Z'
+        })
+      });
+
+      // Mock storing messages
+      mockEnv.DB_MAIN.prepare.mockReturnValue({
+        bind: vi.fn().mockReturnThis(),
+        run: vi.fn().mockResolvedValue({ success: true })
+      });
+
       const task: AgentTask = {
         id: 'task-fallback-001',
         capability: 'chat_response',
         input: {
           data: {
             sessionId: 'session-123',
-            customerMessage: 'Hello',
+            message: 'Hello',
             conversationHistory: []
           }
         },

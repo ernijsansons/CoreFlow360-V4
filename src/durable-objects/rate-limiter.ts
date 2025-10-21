@@ -9,6 +9,10 @@
  * - Automatic pattern analysis
  */
 
+import { Logger } from '../shared/logger';
+
+const logger = new Logger({ component: 'rate-limiter-do' });
+
 export interface RateLimitRequest {
   fingerprint: string;
   ip: string;
@@ -97,7 +101,7 @@ export class RateLimiterDurableObject {
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Rate limiter error:', error);
+      logger.error('Rate limiter error:', error);
       return new Response(JSON.stringify({ error: errorMessage }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
@@ -320,7 +324,7 @@ export class RateLimiterDurableObject {
     this.blocks.set(fingerprint, blockInfo);
     await this.saveState();
 
-    console.warn(`Auto-blocked ${fingerprint} for ${reason}. Duration: ${duration}ms`);
+    logger.warn(`Auto-blocked ${fingerprint} for ${reason}. Duration: ${duration}ms`);
   }
 
   /**

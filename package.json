@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "type": "module",
     "engines": {
-        "node": ">=20.0.0"
+        "node": ">=22.0.0"
     },
     "engineStrict": true,
     "scripts": {
@@ -37,6 +37,9 @@
         "build:production": "cross-env NODE_ENV=production npm run build",
         "bundle": "esbuild src/index.ts --bundle --outfile=dist/worker.js --format=esm --target=es2022 --platform=neutral --external:crypto --external:events --external:child_process --external:http --external:https --external:node:* --external:qs --external:thirty-two --external:stripe",
         "bundle:analyze": "npm run bundle -- --analyze",
+        "audit:a11y": "node ./scripts/audit/run-axe-audit.mjs",
+        "audit:lighthouse": "lhci autorun --config=./scripts/audit/lighthouserc.json",
+        "audit:worker-latency": "node ./scripts/audit/worker-latency.mjs",
         "test": "vitest",
         "test:coverage": "vitest run --coverage",
         "test:watch": "vitest --watch",
@@ -62,7 +65,9 @@
         "test:ai-safety:report": "python scripts/petri-report-generator.py",
         "test:operational": "vitest run tests/operational/",
         "test:setup": "echo 'Setting up test environment...' && node -e 'console.log(\"Test environment ready\")'",
-        "test:unit": "vitest run",
+        "test:generate": "echo 'AI test generation not implemented yet - skipping'",
+        "test:mutation:generate": "echo 'Mutation test generation not implemented yet - skipping'",
+        "typecheck": "npm run type-check",
         "test:mutation": "echo 'Mutation testing not implemented yet - skipping'",
         "test:contract": "echo 'Contract testing not implemented yet - skipping'",
         "test:e2e": "vitest run tests/e2e/ || echo 'E2E tests not yet implemented'",
@@ -177,6 +182,8 @@
     },
     "devDependencies": {
         "@cloudflare/workers-types": "^4.20250924.0",
+        "@axe-core/playwright": "^4.8.5",
+        "@lhci/cli": "^0.14.0",
         "@faker-js/faker": "^10.0.0",
         "@testing-library/jest-dom": "^6.8.0",
         "@testing-library/react": "^16.3.0",

@@ -5,6 +5,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'crm-enrichment' });
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { EnrichmentService } from '../services/crm/enrichment.service';
@@ -81,7 +83,7 @@ app.post('/contact', zValidator('json', EnrichContactSchema), async (c) => {
       data: result
     });
   } catch (error: any) {
-    console.error('Enrichment error:', error);
+    logger.error('Enrichment error:', error);
     return c.json({
       success: false,
       error: 'Failed to enrich contact',
@@ -114,7 +116,7 @@ app.post('/queue', zValidator('json', QueueEnrichmentSchema), async (c) => {
       queue_position: 'pending'
     });
   } catch (error: any) {
-    console.error('Queue enrichment error:', error);
+    logger.error('Queue enrichment error:', error);
     return c.json({
       success: false,
       error: 'Failed to queue enrichment',
@@ -153,7 +155,7 @@ app.get('/queue/status', async (c) => {
       }
     });
   } catch (error: any) {
-    console.error('Queue status error:', error);
+    logger.error('Queue status error:', error);
     return c.json({
       success: false,
       error: 'Failed to get queue status',
@@ -179,7 +181,7 @@ app.post('/queue/process', async (c) => {
       processed_count: processed
     });
   } catch (error: any) {
-    console.error('Process queue error:', error);
+    logger.error('Process queue error:', error);
     return c.json({
       success: false,
       error: 'Failed to process queue',
@@ -220,7 +222,7 @@ app.get('/history/:entityType/:entityId', async (c) => {
       total: history.results?.length || 0
     });
   } catch (error: any) {
-    console.error('Get history error:', error);
+    logger.error('Get history error:', error);
     return c.json({
       success: false,
       error: 'Failed to get enrichment history',
@@ -248,7 +250,7 @@ app.get('/analytics/success-rates', async (c) => {
       period_days: days
     });
   } catch (error: any) {
-    console.error('Success rates error:', error);
+    logger.error('Success rates error:', error);
     return c.json({
       success: false,
       error: 'Failed to get success rates',
@@ -282,7 +284,7 @@ app.get('/analytics/needs-enrichment', async (c) => {
       total: contacts.results?.length || 0
     });
   } catch (error: any) {
-    console.error('Needs enrichment error:', error);
+    logger.error('Needs enrichment error:', error);
     return c.json({
       success: false,
       error: 'Failed to get contacts needing enrichment',
@@ -318,7 +320,7 @@ app.get('/completeness/:entityType/:entityId', async (c) => {
       data: score
     });
   } catch (error: any) {
-    console.error('Completeness error:', error);
+    logger.error('Completeness error:', error);
     return c.json({
       success: false,
       error: 'Failed to get completeness score',
@@ -387,7 +389,7 @@ app.post('/credentials', zValidator('json', SaveCredentialsSchema), async (c) =>
       message: `Credentials saved for ${data_source}`
     });
   } catch (error: any) {
-    console.error('Save credentials error:', error);
+    logger.error('Save credentials error:', error);
     return c.json({
       success: false,
       error: 'Failed to save credentials',
@@ -418,7 +420,7 @@ app.get('/credentials', async (c) => {
       data: credentials.results || []
     });
   } catch (error: any) {
-    console.error('Get credentials error:', error);
+    logger.error('Get credentials error:', error);
     return c.json({
       success: false,
       error: 'Failed to get credentials',
@@ -446,7 +448,7 @@ app.delete('/credentials/:source', async (c) => {
       message: `Credentials deleted for ${source}`
     });
   } catch (error: any) {
-    console.error('Delete credentials error:', error);
+    logger.error('Delete credentials error:', error);
     return c.json({
       success: false,
       error: 'Failed to delete credentials',

@@ -5,6 +5,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'dashboard' });
 import { DashboardService } from '../services/dashboard-service';
 import type { Env } from '../types/env';
 
@@ -33,7 +35,7 @@ app.get('/stats', async (c) => {
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {
-    console.error('Dashboard stats error:', error);
+    logger.error('Dashboard stats error:', error);
     return c.json({
       success: false,
       error: error.message || 'Failed to fetch dashboard statistics',
@@ -96,7 +98,7 @@ app.get('/activity', async (c) => {
       });
     }
   } catch (error: any) {
-    console.error('Activity feed error:', error);
+    logger.error('Activity feed error:', error);
     return c.json({
       success: false,
       error: error.message || 'Failed to fetch activity feed',
@@ -150,7 +152,7 @@ app.get('/tasks', async (c) => {
       });
     }
   } catch (error: any) {
-    console.error('Tasks summary error:', error);
+    logger.error('Tasks summary error:', error);
     return c.json({
       success: false,
       error: error.message || 'Failed to fetch tasks summary',
@@ -217,7 +219,7 @@ app.get('/charts/:metric', async (c) => {
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {
-    console.error('Chart data error:', error);
+    logger.error('Chart data error:', error);
     return c.json({
       success: false,
       error: error.message || 'Failed to fetch chart data',

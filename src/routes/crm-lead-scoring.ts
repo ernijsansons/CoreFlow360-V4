@@ -5,6 +5,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'crm-lead-scoring' });
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { LeadScoringService } from '../services/crm/lead-scoring.service';
@@ -69,7 +71,7 @@ app.post('/calculate', zValidator('json', CalculateScoreSchema), async (c) => {
       data: score
     });
   } catch (error: any) {
-    console.error('Calculate score error:', error);
+    logger.error('Calculate score error:', error);
     return c.json({
       success: false,
       error: 'Failed to calculate lead score',
@@ -118,7 +120,7 @@ app.get('/:entityType/:entityId', async (c) => {
       }
     });
   } catch (error: any) {
-    console.error('Get score error:', error);
+    logger.error('Get score error:', error);
     return c.json({
       success: false,
       error: 'Failed to retrieve lead score',
@@ -153,7 +155,7 @@ app.get('/high-value', async (c) => {
       total: leads.results?.length || 0
     });
   } catch (error: any) {
-    console.error('Get high-value leads error:', error);
+    logger.error('Get high-value leads error:', error);
     return c.json({
       success: false,
       error: 'Failed to get high-value leads',
@@ -194,7 +196,7 @@ app.post('/outcome', zValidator('json', RecordOutcomeSchema), async (c) => {
       message: 'Outcome recorded successfully'
     });
   } catch (error: any) {
-    console.error('Record outcome error:', error);
+    logger.error('Record outcome error:', error);
     return c.json({
       success: false,
       error: 'Failed to record outcome',
@@ -245,7 +247,7 @@ app.post('/models', zValidator('json', CreateModelSchema), async (c) => {
       data: { id, ...data }
     }, 201);
   } catch (error: any) {
-    console.error('Create model error:', error);
+    logger.error('Create model error:', error);
     return c.json({
       success: false,
       error: 'Failed to create scoring model',
@@ -273,7 +275,7 @@ app.get('/models', async (c) => {
       data: models.results || []
     });
   } catch (error: any) {
-    console.error('Get models error:', error);
+    logger.error('Get models error:', error);
     return c.json({
       success: false,
       error: 'Failed to get scoring models',
@@ -310,7 +312,7 @@ app.post('/models/:modelId/activate', async (c) => {
       message: 'Model activated successfully'
     });
   } catch (error: any) {
-    console.error('Activate model error:', error);
+    logger.error('Activate model error:', error);
     return c.json({
       success: false,
       error: 'Failed to activate model',
@@ -358,7 +360,7 @@ app.post('/rules', zValidator('json', AddScoringRuleSchema), async (c) => {
       data: { id, ...data }
     }, 201);
   } catch (error: any) {
-    console.error('Add rule error:', error);
+    logger.error('Add rule error:', error);
     return c.json({
       success: false,
       error: 'Failed to add scoring rule',

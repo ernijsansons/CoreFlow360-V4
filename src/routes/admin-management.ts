@@ -13,6 +13,9 @@
 
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
+import { Logger } from '../shared/logger';
+
+const logger = new Logger({ component: 'admin-management' });
 
 const adminManagement = new Hono<{ Bindings: Env }>();
 
@@ -108,7 +111,7 @@ adminManagement.get('/users', async (c) => {
     });
 
   } catch (error) {
-    console.error('List Users Error:', error);
+    logger.error('List Users Error:', error);
     return c.json({
       success: false,
       error: 'Failed to list users',
@@ -188,7 +191,7 @@ adminManagement.get('/users/:id', async (c) => {
     });
 
   } catch (error) {
-    console.error('Get User Error:', error);
+    logger.error('Get User Error:', error);
     return c.json({
       success: false,
       error: 'Failed to get user details',
@@ -283,7 +286,7 @@ adminManagement.patch('/users/:id', async (c) => {
     });
 
   } catch (error) {
-    console.error('Update User Error:', error);
+    logger.error('Update User Error:', error);
     return c.json({
       success: false,
       error: 'Failed to update user',
@@ -342,7 +345,7 @@ adminManagement.post('/users/:id/suspend', async (c) => {
     });
 
   } catch (error) {
-    console.error('Suspend User Error:', error);
+    logger.error('Suspend User Error:', error);
     return c.json({
       success: false,
       error: 'Failed to suspend user',
@@ -391,7 +394,7 @@ adminManagement.post('/users/:id/reactivate', async (c) => {
     });
 
   } catch (error) {
-    console.error('Reactivate User Error:', error);
+    logger.error('Reactivate User Error:', error);
     return c.json({
       success: false,
       error: 'Failed to reactivate user',
@@ -486,7 +489,7 @@ adminManagement.get('/businesses', async (c) => {
     });
 
   } catch (error) {
-    console.error('List Businesses Error:', error);
+    logger.error('List Businesses Error:', error);
     return c.json({
       success: false,
       error: 'Failed to list businesses',
@@ -576,7 +579,7 @@ adminManagement.get('/audit-logs', async (c) => {
     });
 
   } catch (error) {
-    console.error('Query Audit Logs Error:', error);
+    logger.error('Query Audit Logs Error:', error);
     return c.json({
       success: false,
       error: 'Failed to query audit logs',
@@ -628,7 +631,7 @@ adminManagement.get('/sessions', async (c) => {
     });
 
   } catch (error) {
-    console.error('List Sessions Error:', error);
+    logger.error('List Sessions Error:', error);
     return c.json({
       success: false,
       error: 'Failed to list sessions',
@@ -676,7 +679,7 @@ adminManagement.delete('/sessions/:id', async (c) => {
     });
 
   } catch (error) {
-    console.error('Revoke Session Error:', error);
+    logger.error('Revoke Session Error:', error);
     return c.json({
       success: false,
       error: 'Failed to revoke session',

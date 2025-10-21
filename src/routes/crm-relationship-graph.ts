@@ -5,6 +5,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'crm-relationship-graph' });
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { RelationshipGraphService } from '../services/crm/relationship-graph.service';
@@ -95,7 +97,7 @@ app.post('/', zValidator('json', CreateRelationshipSchema), async (c) => {
       data: relationship
     }, 201);
   } catch (error: any) {
-    console.error('Create relationship error:', error);
+    logger.error('Create relationship error:', error);
     return c.json({
       success: false,
       error: 'Failed to create relationship',
@@ -130,7 +132,7 @@ app.get('/:entityType/:entityId', async (c) => {
       total: relationships.length
     });
   } catch (error: any) {
-    console.error('Get relationships error:', error);
+    logger.error('Get relationships error:', error);
     return c.json({
       success: false,
       error: 'Failed to get relationships',
@@ -191,7 +193,7 @@ app.get('/path/:startId/:endId', async (c) => {
       }
     });
   } catch (error: any) {
-    console.error('Find path error:', error);
+    logger.error('Find path error:', error);
     return c.json({
       success: false,
       error: 'Failed to find path',
@@ -228,7 +230,7 @@ app.get('/paths/:contactId', async (c) => {
       total: paths.results?.length || 0
     });
   } catch (error: any) {
-    console.error('Get paths error:', error);
+    logger.error('Get paths error:', error);
     return c.json({
       success: false,
       error: 'Failed to get paths',
@@ -271,7 +273,7 @@ app.get('/insights/:entityType/:entityId', async (c) => {
       total: insights.length
     });
   } catch (error: any) {
-    console.error('Get insights error:', error);
+    logger.error('Get insights error:', error);
     return c.json({
       success: false,
       error: 'Failed to get insights',
@@ -299,7 +301,7 @@ app.post('/insights/generate/:contactId', async (c) => {
       message: `Generated ${insights.length} new insights`
     });
   } catch (error: any) {
-    console.error('Generate insights error:', error);
+    logger.error('Generate insights error:', error);
     return c.json({
       success: false,
       error: 'Failed to generate insights',
@@ -328,7 +330,7 @@ app.patch('/insights/:insightId/act', async (c) => {
       message: 'Insight marked as acted upon'
     });
   } catch (error: any) {
-    console.error('Update insight error:', error);
+    logger.error('Update insight error:', error);
     return c.json({
       success: false,
       error: 'Failed to update insight',
@@ -357,7 +359,7 @@ app.patch('/insights/:insightId/dismiss', async (c) => {
       message: 'Insight dismissed'
     });
   } catch (error: any) {
-    console.error('Dismiss insight error:', error);
+    logger.error('Dismiss insight error:', error);
     return c.json({
       success: false,
       error: 'Failed to dismiss insight',
@@ -388,7 +390,7 @@ app.post('/:relationshipId/activity', zValidator('json', LogActivitySchema), asy
       message: 'Activity logged successfully'
     });
   } catch (error: any) {
-    console.error('Log activity error:', error);
+    logger.error('Log activity error:', error);
     return c.json({
       success: false,
       error: 'Failed to log activity',
@@ -419,7 +421,7 @@ app.get('/:relationshipId/activity', async (c) => {
       total: activities.results?.length || 0
     });
   } catch (error: any) {
-    console.error('Get activity error:', error);
+    logger.error('Get activity error:', error);
     return c.json({
       success: false,
       error: 'Failed to get activity',
@@ -458,7 +460,7 @@ app.get('/analytics/network-strength/:contactId', async (c) => {
       data: stats
     });
   } catch (error: any) {
-    console.error('Get network strength error:', error);
+    logger.error('Get network strength error:', error);
     return c.json({
       success: false,
       error: 'Failed to get network strength',
@@ -505,7 +507,7 @@ app.get('/analytics/company-map/:companyId', async (c) => {
       }
     });
   } catch (error: any) {
-    console.error('Get company map error:', error);
+    logger.error('Get company map error:', error);
     return c.json({
       success: false,
       error: 'Failed to get company map',
@@ -535,7 +537,7 @@ app.get('/analytics/top-connectors', async (c) => {
       total: topConnectors.results?.length || 0
     });
   } catch (error: any) {
-    console.error('Get top connectors error:', error);
+    logger.error('Get top connectors error:', error);
     return c.json({
       success: false,
       error: 'Failed to get top connectors',

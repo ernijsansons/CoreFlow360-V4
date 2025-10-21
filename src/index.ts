@@ -25,6 +25,7 @@ import { TokenBlacklist } from './modules/auth/token-blacklist';
 import { JWTSecretRotation } from './modules/auth/jwt-secret-rotation';
 import { EnterpriseRateLimiter } from './security/enterprise-rate-limiter';
 import { RateLimitMonitor } from './security/rate-limit-monitor';
+import { Logger } from './shared/logger';
 import type { Ai } from '@cloudflare/ai';
 import type {
   D1Database,
@@ -59,6 +60,9 @@ let rateLimitMonitor: RateLimitMonitor | null = null;
 let initializationComplete = false;
 let initializationTime: number | null = null;
 
+// Logger instance
+const logger = new Logger({ component: 'WorkerIndex' });
+
 // Router instance
 const router = Router();
 
@@ -70,12 +74,12 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
 
   // CRITICAL SECURITY: Validate environment before any other initialization
   try {
-    console.log('🔒 Validating environment security configuration...');
+    logger.info('🔒 Validating environment security configuration...');
     EnvironmentValidator.validate(env);
-    console.log('✅ Environment validation passed - JWT Authentication Bypass vulnerability mitigated');
+    logger.info('✅ Environment validation passed - JWT Authentication Bypass vulnerability mitigated');
   } catch (error: any) {
-    console.error('🚨 CRITICAL SECURITY ERROR: Environment validation failed');
-    console.error(error);
+    logger.error('🚨 CRITICAL SECURITY ERROR: Environment validation failed');
+    logger.error(error);
     throw new Error('Application startup blocked due to security configuration errors');
   }
   
@@ -113,7 +117,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       Promise.resolve().then(async () => {
         if (env.KV_AUTH) {
           tokenBlacklist = new TokenBlacklist(env);
-          console.log('🛡️ Token blacklist system initialized');
+          logger.info('🛡️ Token blacklist system initialized');
         }
         return tokenBlacklist;
       }),
@@ -122,7 +126,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       Promise.resolve().then(async () => {
         if (env.KV_AUTH) {
           jwtRotation = new JWTSecretRotation(env);
-          console.log('🔄 JWT secret rotation system initialized');
+          logger.info('🔄 JWT secret rotation system initialized');
         }
         return jwtRotation;
       }),
@@ -130,7 +134,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       // SECURITY: Initialize enterprise rate limiting
       Promise.resolve().then(async () => {
         enterpriseRateLimiter = new EnterpriseRateLimiter(env);
-        console.log('🛡️ Enterprise rate limiting system initialized');
+        logger.info('🛡️ Enterprise rate limiting system initialized');
         return enterpriseRateLimiter;
       }),
 
@@ -138,7 +142,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       Promise.resolve().then(async () => {
         if (env.KV_RATE_LIMIT_METRICS && env.DB_MAIN) {
           rateLimitMonitor = new RateLimitMonitor(env);
-          console.log('📊 Rate limiting monitoring system initialized');
+          logger.info('📊 Rate limiting monitoring system initialized');
         }
         return rateLimitMonitor;
       })
@@ -150,7 +154,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
     // Check if core services initialized successfully
     const failedCore = coreResults.filter((result: any) => result.status === 'rejected');
     if (failedCore.length > 0) {
-      console.warn('Some core services failed to initialize:', failedCore);
+      logger.warn('Some core services failed to initialize:', failedCore);
     }
     
     // Phase 2: Initialize dependent services in parallel (depend on core services)
@@ -163,7 +167,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
           ws = await createWebSocketService((env as any).REALTIME, 'default');
           return ws;
         })
-          .catch((error: any) => { console.warn('WebSocket service failed:', error); return null; })
+          .catch((error: any) => { logger.warn('WebSocket service failed:', error); return null; })
       );
     }
     
@@ -173,7 +177,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
           queue = await createQueueHandler();
           return queue;
         })
-          .catch((error: any) => { console.warn('Queue handler failed:', error); return null; })
+          .catch((error: any) => { logger.warn('Queue handler failed:', error); return null; })
       );
     }
     
@@ -183,7 +187,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
           analytics = await createAnalyticsDashboard(env.ANALYTICS as any, (env as any).PERFORMANCE_ANALYTICS, db!, ai!);
           return analytics;
         })
-          .catch((error: any) => { console.warn('Analytics dashboard failed:', error); return null; })
+          .catch((error: any) => { logger.warn('Analytics dashboard failed:', error); return null; })
       );
     }
     
@@ -217,10 +221,10 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
     
     const successRate = (successfulServices / totalServices) * 100;
     
-    console.log(`✅ Service initialization completed in ${initializationTime.toFixed(2)}ms (${successRate.toFixed(1)}% success rate)`);
-    console.log(`   Core: ${cf ? '✓' : '✗'} CF, ${db ? '✓' : '✗'} DB, ${ai ? '✓' : '✗'} AI`);
-    console.log(`   Security: ${tokenBlacklist ? '✓' : '✗'} Blacklist, ${jwtRotation ? '✓' : '✗'} JWT Rotation, ${enterpriseRateLimiter ? '✓' : '✗'} RateLimit, ${rateLimitMonitor ? '✓' : '✗'} Monitor`);
-    console.log(`   Extended: ${ws ? '✓' : '✗'} WS, ${queue ? '✓' : '✗'} Queue, ${analytics ? '✓' : '✗'} Analytics`);
+    logger.info(`✅ Service initialization completed in ${initializationTime.toFixed(2)}ms (${successRate.toFixed(1)}% success rate)`);
+    logger.info(`   Core: ${cf ? '✓' : '✗'} CF, ${db ? '✓' : '✗'} DB, ${ai ? '✓' : '✗'} AI`);
+    logger.info(`   Security: ${tokenBlacklist ? '✓' : '✗'} Blacklist, ${jwtRotation ? '✓' : '✗'} JWT Rotation, ${enterpriseRateLimiter ? '✓' : '✗'} RateLimit, ${rateLimitMonitor ? '✓' : '✗'} Monitor`);
+    logger.info(`   Extended: ${ws ? '✓' : '✗'} WS, ${queue ? '✓' : '✗'} Queue, ${analytics ? '✓' : '✗'} Analytics`);
     
     // Track detailed initialization performance
     if (analytics) {
@@ -234,7 +238,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
   } catch (error: any) {
     const failureTime = performance.now() - startTime;
     initializationComplete = false;
-    console.error(`❌ Critical service initialization failure after ${failureTime.toFixed(2)}ms:`, error);
+    logger.error(`❌ Critical service initialization failure after ${failureTime.toFixed(2)}ms:`, error);
     
     // Track initialization failure with context
     if (analytics) {
@@ -250,7 +254,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       throw new Error(`Critical services failed: DB=${!!db}, CF=${!!cf}`);
     }
     
-    console.warn('Continuing with partial initialization...');
+    logger.warn('Continuing with partial initialization...');
     initializationComplete = true;
   }
 }
@@ -394,11 +398,11 @@ const requestProcessor = {
       
       // Log slow requests
       if (responseTime > 200) {
-        console.warn(`⚠️ Slow request: ${method} ${pathname} - ${responseTime.toFixed(2)}ms (${status})`);
+        logger.warn(`⚠️ Slow request: ${method} ${pathname} - ${responseTime.toFixed(2)}ms (${status})`);
       }
     } catch (error: any) {
       // Don't block on tracking failures
-      console.debug('Performance tracking failed:', error);
+      logger.debug('Performance tracking failed:', error);
     }
   },
 
@@ -528,7 +532,7 @@ export default {
             });
           }
         } catch (rateLimitError) {
-          console.warn('Rate limiting error, proceeding with request:', rateLimitError);
+          logger.warn('Rate limiting error, proceeding with request:', rateLimitError);
         }
       }
 
@@ -561,7 +565,7 @@ export default {
       const responseTime = performance.now() - requestStart;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
-      console.error(`❌ Request error [${method} ${url.pathname}] (${responseTime.toFixed(2)}ms):`, errorMessage);
+      logger.error(`❌ Request error [${method} ${url.pathname}] (${responseTime.toFixed(2)}ms):`, errorMessage);
       
       // Non-blocking error tracking
       ctx.waitUntil(requestProcessor.trackRequestError(method, url.pathname, responseTime, errorMessage));
@@ -586,14 +590,14 @@ export default {
   // Queue consumer
   async queue(batch: MessageBatch, env: Env, ctx: ExecutionContext): Promise<void> {
     if (!queue) {
-      console.error('Queue handler not initialized');
+      logger.error('Queue handler not initialized');
       return;
     }
     
     try {
       await (queue as any).processBatch(batch);
     } catch (error: any) {
-      console.error('Queue processing error:', error);
+      logger.error('Queue processing error:', error);
     }
   },
 
@@ -606,7 +610,7 @@ export default {
     try {
       return await (ws as any).handleRequest(request);
     } catch (error: any) {
-      console.error('WebSocket error:', error);
+      logger.error('WebSocket error:', error);
       return new Response('WebSocket error', { status: 500 });
     }
   }

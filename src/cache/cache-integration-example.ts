@@ -1,6 +1,9 @@
 import { createCacheService, CacheService } from './cache-service';
 import { SmartCaching } from '../cloudflare/performance/SmartCaching';
 import type { KVNamespace } from '@cloudflare/workers-types';
+import { Logger } from '../shared/logger';
+
+const logger = new Logger({ component: 'cache-integration' });
 
 // Define a compatible interface that works with both systems
 interface CacheEnv {
@@ -186,7 +189,7 @@ export class HybridCacheManager {
         overall: simpleHealthy && smartHealthy
       };
     } catch (error: any) {
-      console.error('Cache health check failed:', error);
+      logger.error('Cache health check failed:', error);
       return {
         simple: false,
         smart: false,
@@ -222,7 +225,7 @@ export class CacheUsageExamples {
     // Store preferences using simple cache (lightweight data)
     await this.cacheManager.setUserPreferences(userId, preferences);
 
-    console.log(`User ${userId} logged in with session ${sessionId}`);
+    logger.info(`User ${userId} logged in with session ${sessionId}`);
   }
 
   /**

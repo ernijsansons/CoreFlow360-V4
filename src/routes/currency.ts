@@ -5,6 +5,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'currency' });
 import type { Env } from '../types/env';
 import { CurrencyService } from '../services/currency/currency-service';
 import { MultiCurrencyAccountingService } from '../services/currency/multi-currency-accounting-service';
@@ -41,7 +43,7 @@ currency.get('/list', async (c) => {
       data: { currencies },
     });
   } catch (error: any) {
-    console.error('Error listing currencies:', error);
+    logger.error('Error listing currencies:', error);
     return c.json(
       {
         success: false,
@@ -67,7 +69,7 @@ currency.get('/settings', async (c) => {
       data: settings,
     });
   } catch (error: any) {
-    console.error('Error getting currency settings:', error);
+    logger.error('Error getting currency settings:', error);
     return c.json(
       {
         success: false,
@@ -112,7 +114,7 @@ currency.put('/settings', async (c) => {
       data: { message: 'Currency settings updated successfully' },
     });
   } catch (error: any) {
-    console.error('Error updating currency settings:', error);
+    logger.error('Error updating currency settings:', error);
     return c.json(
       {
         success: false,
@@ -145,7 +147,7 @@ currency.get('/exchange-rate/:from/:to', async (c) => {
       },
     });
   } catch (error: any) {
-    console.error('Error getting exchange rate:', error);
+    logger.error('Error getting exchange rate:', error);
     return c.json(
       {
         success: false,
@@ -186,7 +188,7 @@ currency.post('/convert', async (c) => {
       data: result,
     });
   } catch (error: any) {
-    console.error('Error converting amount:', error);
+    logger.error('Error converting amount:', error);
     return c.json(
       {
         success: false,
@@ -215,7 +217,7 @@ currency.post('/refresh-rates', async (c) => {
       },
     });
   } catch (error: any) {
-    console.error('Error refreshing exchange rates:', error);
+    logger.error('Error refreshing exchange rates:', error);
     return c.json(
       {
         success: false,
@@ -263,7 +265,7 @@ currency.get('/exchange-rate-history/:from/:to', async (c) => {
       },
     });
   } catch (error: any) {
-    console.error('Error getting exchange rate history:', error);
+    logger.error('Error getting exchange rate history:', error);
     return c.json(
       {
         success: false,
@@ -298,7 +300,7 @@ currency.get('/account-balance/:accountId', async (c) => {
       data: { balances },
     });
   } catch (error: any) {
-    console.error('Error getting account balance:', error);
+    logger.error('Error getting account balance:', error);
     return c.json(
       {
         success: false,
@@ -325,7 +327,7 @@ currency.post('/revalue-balances', async (c) => {
       data: result,
     });
   } catch (error: any) {
-    console.error('Error revaluing balances:', error);
+    logger.error('Error revaluing balances:', error);
     return c.json(
       {
         success: false,
@@ -356,7 +358,7 @@ currency.get('/trial-balance', async (c) => {
       data: { trial_balance: trialBalance },
     });
   } catch (error: any) {
-    console.error('Error getting trial balance:', error);
+    logger.error('Error getting trial balance:', error);
     return c.json(
       {
         success: false,
@@ -388,7 +390,7 @@ currency.get('/gains-losses', async (c) => {
       data: { gains_losses: gainsLosses },
     });
   } catch (error: any) {
-    console.error('Error getting gains/losses:', error);
+    logger.error('Error getting gains/losses:', error);
     return c.json(
       {
         success: false,
@@ -415,7 +417,7 @@ currency.get('/exposure', async (c) => {
       data: { exposure },
     });
   } catch (error: any) {
-    console.error('Error getting currency exposure:', error);
+    logger.error('Error getting currency exposure:', error);
     return c.json(
       {
         success: false,

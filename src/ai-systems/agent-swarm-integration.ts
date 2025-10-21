@@ -8,7 +8,6 @@ import { Logger } from '../shared/logger';
 import { EdgeAIOrchestrator } from './edge-ai-orchestrator';
 import { AgentOrchestrationFramework } from './agent-orchestration-framework';
 import { AgentCoordinationSystem } from './agent-coordination-system';
-import { verificationQualitySystem } from './verification-quality-system';
 import { AgentSwarmDemo } from './agent-swarm-demo';
 
 export interface AgentSwarmConfig {
@@ -540,7 +539,7 @@ export class AgentSwarmIntegration {
   /**
    * Process coordination results into swarm results
    */
-  private async processCoordinationResults(coordinationResult: any, request: SwarmRequest): Promise<SwarmResults> {
+  private async processCoordinationResults(coordinationResult: any, _request: SwarmRequest): Promise<SwarmResults> {
     const deliverables: Deliverable[] = [];
 
     // Process agent contributions into deliverables

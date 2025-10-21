@@ -4,6 +4,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'crm-data-quality' });
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { DuplicateDetectionEngine } from '../services/crm/duplicate-detection';
@@ -105,7 +107,7 @@ app.post('/duplicates/find', zValidator('json', FindDuplicatesSchema), async (c:
       }
     });
   } catch (error: any) {
-    console.error('Duplicate detection error:', error);
+    logger.error('Duplicate detection error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -161,7 +163,7 @@ app.post('/duplicates/scan', async (c: any) => {
       }
     });
   } catch (error: any) {
-    console.error('Batch duplicate scan error:', error);
+    logger.error('Batch duplicate scan error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -249,7 +251,7 @@ app.post('/duplicates/merge', zValidator('json', MergeEntitiesSchema), async (c:
       data: result
     });
   } catch (error: any) {
-    console.error('Merge error:', error);
+    logger.error('Merge error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -367,7 +369,7 @@ app.post('/validate', zValidator('json', ValidateEntitySchema), async (c: any) =
       }
     });
   } catch (error: any) {
-    console.error('Validation error:', error);
+    logger.error('Validation error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -388,7 +390,7 @@ app.get('/report', async (c: any) => {
       data: report
     });
   } catch (error: any) {
-    console.error('Report generation error:', error);
+    logger.error('Report generation error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -470,7 +472,7 @@ app.post('/auto-fix', zValidator('json', AutoFixSchema), async (c: any) => {
       }
     });
   } catch (error: any) {
-    console.error('Auto-fix error:', error);
+    logger.error('Auto-fix error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -543,7 +545,7 @@ app.get('/dashboard', async (c: any) => {
       }
     });
   } catch (error: any) {
-    console.error('Dashboard error:', error);
+    logger.error('Dashboard error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });

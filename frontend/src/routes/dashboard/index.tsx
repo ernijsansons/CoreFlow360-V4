@@ -229,8 +229,27 @@ function MainDashboard() {
           </div>
         )}
 
+        {/* Empty State - No Data Available */}
+        {!isLoading && !isError && !dashboardData && (
+          <Card className="text-center py-12">
+            <CardContent className="space-y-4">
+              <Activity className="h-16 w-16 mx-auto text-gray-300 dark:text-gray-600" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Dashboard Data Yet</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Start using CoreFlow360 to see your business metrics and insights here.
+                </p>
+                <Button onClick={handleRefresh}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Dashboard
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Alert */}
-        {!isError && (
+        {!isError && dashboardData && (
           <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
             <Bell className="h-4 w-4" />
             <AlertDescription>
@@ -242,7 +261,8 @@ function MainDashboard() {
         </Alert>
         )}
 
-        {/* KPI Cards */}
+        {/* KPI Cards - Only show when data is available */}
+        {dashboardData && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {kpiData.map((kpi, index) => {
             const Icon = kpi.icon
@@ -274,8 +294,10 @@ function MainDashboard() {
             )
           })}
         </div>
+        )}
 
-        {/* Main Content Tabs */}
+        {/* Main Content Tabs - Only show when data is available */}
+        {dashboardData && (
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -473,6 +495,7 @@ function MainDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+        )}
       </div>
   )
 }

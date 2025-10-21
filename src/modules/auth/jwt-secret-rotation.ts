@@ -1,6 +1,9 @@
+import { Logger } from '../../shared/logger';
 import { Env } from '../../types/env';
 import * as jose from 'jose';
 import { JWTSecretManager } from '../../shared/security/jwt-secret-manager';
+
+const logger = new Logger({ component: 'jwt-secret-rotation' });
 
 export interface JWTSecretConfig {
   current: string;
@@ -99,7 +102,7 @@ export class JWTSecretRotation {
     await this.kvNamespace.put(this.configKey, JSON.stringify(newConfig));
 
     // Notify monitoring
-    console.log('JWT secret rotated successfully - New secret validated and stored securely');
+    logger.info('JWT secret rotated successfully - New secret validated and stored securely');
   }
 
   private generateSecret(): string {

@@ -10,6 +10,8 @@ export default [
       '.wrangler/',
       'coverage/',
       '__graveyard__/',
+      '**/*-old.ts', // Ignore deprecated/old files
+      '**/*-old.js',
     ]
   },
   js.configs.recommended,
@@ -206,7 +208,13 @@ export default [
     }
   },
   {
-    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts'],
+    files: [
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/*.spec.ts',
+      'tests/**/*.ts',
+      'src/tests/**/*.ts'
+    ],
     languageOptions: {
       globals: {
         describe: 'readonly',
@@ -219,6 +227,7 @@ export default [
         afterAll: 'readonly',
         vi: 'readonly',
         jest: 'readonly',
+        task: 'readonly',
         console: 'readonly',
         global: 'readonly',
         Request: 'readonly',

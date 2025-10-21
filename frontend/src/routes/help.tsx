@@ -3,6 +3,25 @@ import { useState } from 'react'
 
 export const Route = createFileRoute('/help')({
   component: HelpCenterPage,
+  head: () => ({
+    meta: [
+      {
+        title: 'Help Center - CoreFlow360 | Support & Documentation',
+      },
+      {
+        name: 'description',
+        content: 'Get help with CoreFlow360. Browse documentation, tutorials, and guides for AI-powered business management. 24/7 support available.',
+      },
+      {
+        property: 'og:title',
+        content: 'CoreFlow360 Help Center - Support & Documentation',
+      },
+      {
+        property: 'og:description',
+        content: 'Find answers, tutorials, and guides for using CoreFlow360. Expert support available 24/7.',
+      },
+    ],
+  }),
 })
 
 function HelpCenterPage() {
