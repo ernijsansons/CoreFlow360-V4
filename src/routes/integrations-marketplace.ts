@@ -4,6 +4,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'integrations-marketplace' });
 import { z } from 'zod';
 import type { Env } from '../types/env';
 
@@ -108,7 +110,7 @@ app.get('/providers', async (c) => {
       },
     });
   } catch (error: any) {
-    console.error('List providers error:', error);
+    logger.error('List providers error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -167,7 +169,7 @@ app.get('/providers/:id', async (c) => {
       },
     });
   } catch (error: any) {
-    console.error('Get provider error:', error);
+    logger.error('Get provider error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -242,7 +244,7 @@ app.get('/connections', async (c) => {
       },
     });
   } catch (error: any) {
-    console.error('List connections error:', error);
+    logger.error('List connections error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -321,7 +323,7 @@ app.post('/connections', async (c) => {
       },
     });
   } catch (error: any) {
-    console.error('Connect integration error:', error);
+    logger.error('Connect integration error:', error);
     if (error instanceof z.ZodError) {
       return c.json({ success: false, error: error.errors }, 400);
     }
@@ -395,7 +397,7 @@ app.patch('/connections/:id', async (c) => {
       data: { id: connectionId, message: 'Connection updated successfully' },
     });
   } catch (error: any) {
-    console.error('Update connection error:', error);
+    logger.error('Update connection error:', error);
     if (error instanceof z.ZodError) {
       return c.json({ success: false, error: error.errors }, 400);
     }
@@ -427,7 +429,7 @@ app.delete('/connections/:id', async (c) => {
       data: { message: 'Integration disconnected successfully' },
     });
   } catch (error: any) {
-    console.error('Delete connection error:', error);
+    logger.error('Delete connection error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });
@@ -494,7 +496,7 @@ app.get('/connections/:id/usage', async (c) => {
       },
     });
   } catch (error: any) {
-    console.error('Get usage error:', error);
+    logger.error('Get usage error:', error);
     return c.json({ success: false, error: error.message }, 500);
   }
 });

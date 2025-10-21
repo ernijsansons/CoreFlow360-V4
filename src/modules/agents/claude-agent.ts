@@ -89,6 +89,7 @@ export class ClaudeAgent implements IAgent {
 
   // Configuration
   private apiKey: string;
+  private apiProvider: 'anthropic' | 'deepseek' = 'anthropic';
   private baseUrl = 'https://api.anthropic.com/v1';
   private model = 'claude-3-5-sonnet-20241022';
   private fallbackModels = ['claude-3-haiku-20240307'];
@@ -181,7 +182,7 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
     lastCheck: Date.now(),
   };
 
-  constructor(config: { apiKey: string; [key: string]: any } | string, capabilityManager?: CapabilityManager) {
+  constructor(config: { apiKey: string; deepseekApiKey?: string; [key: string]: any } | string, capabilityManager?: CapabilityManager) {
     // Handle backward compatibility: if first param is string, it's the old apiKey-only constructor
     if (typeof config === 'string') {
       this.apiKey = config;
@@ -193,9 +194,20 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
       this.maxConcurrency = 20;
     } else {
       // New AgentConfig-based constructor
-      this.apiKey = config.apiKey;
-      this.id = config.id || 'claude-3-5-sonnet';
-      this.name = config.name || 'Claude 3.5 Sonnet';
+      // Auto-detect which API provider to use based on available keys
+      if (config.deepseekApiKey) {
+        this.apiKey = config.deepseekApiKey;
+        this.apiProvider = 'deepseek';
+        this.baseUrl = 'https://api.deepseek.com/v1';
+        this.model = 'deepseek-chat';
+        this.fallbackModels = ['deepseek-coder'];
+      } else {
+        this.apiKey = config.apiKey;
+        this.apiProvider = 'anthropic';
+      }
+
+      this.id = config.id || (this.apiProvider === 'deepseek' ? 'deepseek-chat' : 'claude-3-5-sonnet');
+      this.name = config.name || (this.apiProvider === 'deepseek' ? 'DeepSeek Chat' : 'Claude 3.5 Sonnet');
       this.capabilities = config.capabilities || ['analysis', 'generation', 'reasoning', 'planning'];
       this.departments = config.departments || ['all'];
       this.costPerCall = config.costPerCall || 0.015;
@@ -524,18 +536,30 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
 
     try {
       // Test API connectivity with a minimal request
-      const response = await fetch(`${this.baseUrl}/messages`, {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      let endpoint = '/messages';
+      let requestBody: any = {
+        max_tokens: 10,
+        messages: [{ role: 'user', content: 'Hello' }],
+      };
+
+      if (this.apiProvider === 'anthropic') {
+        headers['x-api-key'] = this.apiKey;
+        headers['anthropic-version'] = '2023-06-01';
+        requestBody.model = 'claude-3-haiku-20240307';
+      } else if (this.apiProvider === 'deepseek') {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+        endpoint = '/chat/completions';
+        requestBody.model = 'deepseek-chat';
+      }
+
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.apiKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-3-haiku-20240307', // Use cheapest model for health check
-          max_tokens: 10,
-          messages: [{ role: 'user', content: 'Hello' }],
-        }),
+        headers,
+        body: JSON.stringify(requestBody),
         signal: AbortSignal.timeout(10000), // 10 second timeout
       });
 
@@ -816,19 +840,35 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
       messages: [{ role: 'user', content: prompt }],
     };
 
-    const response = await this.makeAPIRequest('/messages', requestBody, signal);
+    // Use correct endpoint based on provider
+    const endpoint = this.apiProvider === 'deepseek' ? '/chat/completions' : '/messages';
+    const response = await this.makeAPIRequest(endpoint, requestBody, signal);
 
     if (!response.ok) {
       await this.handleAPIError(response);
     }
 
-    const result: ClaudeAPIResponse = await response.json();
+    const result: any = await response.json();
 
-    // Extract content
-    const content = result.content
-      .filter((block: any) => block.type === 'text')
-      .map((block: any) => block.text)
-      .join('\n');
+    // Extract content based on provider
+    let content: string;
+    let tokensUsed: number;
+    let modelUsed: string;
+
+    if (this.apiProvider === 'deepseek') {
+      // DeepSeek uses OpenAI format
+      content = result.choices?.[0]?.message?.content || '';
+      tokensUsed = result.usage?.total_tokens || 0;
+      modelUsed = result.model || this.model;
+    } else {
+      // Claude/Anthropic format
+      content = result.content
+        .filter((block: any) => block.type === 'text')
+        .map((block: any) => block.text)
+        .join('\n');
+      tokensUsed = result.usage.input_tokens + result.usage.output_tokens;
+      modelUsed = result.model;
+    }
 
     return {
       data: content,
@@ -836,8 +876,8 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
       reasoning: this.extractReasoning(content),
       sources: this.extractSources(content),
       metrics: {
-        tokensUsed: result.usage.input_tokens + result.usage.output_tokens,
-        modelUsed: result.model,
+        tokensUsed,
+        modelUsed,
       },
     };
   }
@@ -856,7 +896,9 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
       stream: true,
     };
 
-    const response = await this.makeAPIRequest('/messages', requestBody, signal);
+    // Use correct endpoint based on provider
+    const endpoint = this.apiProvider === 'deepseek' ? '/chat/completions' : '/messages';
+    const response = await this.makeAPIRequest(endpoint, requestBody, signal);
 
     if (!response.ok) {
       await this.handleAPIError(response);
@@ -929,16 +971,41 @@ Provide operational insights that improve efficiency, reduce costs, and mitigate
   ): Promise<Response> {
     const url = `${this.baseUrl}${endpoint}`;
 
+    // Build headers based on API provider
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (this.apiProvider === 'anthropic') {
+      headers['x-api-key'] = this.apiKey;
+      headers['anthropic-version'] = '2023-06-01';
+    } else if (this.apiProvider === 'deepseek') {
+      headers['Authorization'] = `Bearer ${this.apiKey}`;
+    }
+
+    // Transform body for DeepSeek compatibility (uses OpenAI-compatible format)
+    let requestBody = body;
+    if (this.apiProvider === 'deepseek') {
+      requestBody = this.transformToDeepSeekFormat(body);
+    }
+
     return fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': this.apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify(body),
+      headers,
+      body: JSON.stringify(requestBody),
       signal,
     });
+  }
+
+  private transformToDeepSeekFormat(claudeBody: Record<string, unknown>): Record<string, unknown> {
+    // DeepSeek uses OpenAI-compatible format
+    return {
+      model: claudeBody.model || this.model,
+      messages: claudeBody.messages,
+      max_tokens: claudeBody.max_tokens,
+      temperature: claudeBody.temperature,
+      stream: claudeBody.stream || false,
+    };
   }
 
   private async handleAPIError(response: Response): Promise<never> {

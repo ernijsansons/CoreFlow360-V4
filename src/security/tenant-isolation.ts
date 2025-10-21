@@ -1,3 +1,6 @@
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'tenant-isolation' });
+
 /**
  * Comprehensive Tenant Isolation System - Fortune 50 Level Security
  * 
@@ -397,7 +400,7 @@ export class TenantIsolationManager {
     };
 
     // In production, this would be sent to a secure logging service
-    console.error('TENANT ISOLATION VIOLATION:', logEntry);
+    logger.error('TENANT ISOLATION VIOLATION:', logEntry);
     
     // Could also send to external monitoring service
     // await this.sendToMonitoringService(logEntry);
@@ -425,7 +428,7 @@ export class TenantIsolationManager {
     };
 
     // In production, this would be sent to audit logging service
-    console.log('TENANT ACCESS:', logEntry);
+    logger.info('TENANT ACCESS:', logEntry);
   }
 }
 

@@ -1,3 +1,6 @@
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'security-utilities' });
+
 /**
  * Comprehensive Security Utilities Module for CoreFlow360 V4
  * Implements all critical security functions following OWASP standards
@@ -94,7 +97,7 @@ export class PasswordSecurity {
       // Constant-time comparison to prevent timing attacks
       return this.constantTimeCompare(computedHashBytes, storedHashBytes);
     } catch (error) {
-      console.error('Password verification error:', error);
+      logger.error('Password verification error:', error);
       return false;
     }
   }
@@ -240,7 +243,7 @@ export class ApiKeySecurity {
       // Use constant-time comparison
       return PasswordSecurity['constantTimeCompare'](computedHashBytes, storedHashBytes);
     } catch (error) {
-      console.error('API key verification error:', error);
+      logger.error('API key verification error:', error);
       return false;
     }
   }

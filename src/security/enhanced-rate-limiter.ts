@@ -1,3 +1,6 @@
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'enhanced-rate-limiter' });
+
 /**
  * Enhanced Enterprise Rate Limiting System
  * OWASP 2025 Compliant - DDoS and Abuse Prevention
@@ -224,7 +227,7 @@ export class EnhancedRateLimiter {
       }
 
       const processingTime = Date.now() - startTime;
-      console.log(`Rate limit check completed in ${processingTime}ms. Risk score: ${riskScore.toFixed(2)}`);
+      logger.info(`Rate limit check completed in ${processingTime}ms. Risk score: ${riskScore.toFixed(2)}`);
 
       return {
         allowed,
@@ -234,7 +237,7 @@ export class EnhancedRateLimiter {
       };
 
     } catch (error) {
-      console.error('Rate limit check failed:', error);
+      logger.error('Rate limit check failed:', error);
 
       // Fail closed - deny on error
       return {
@@ -520,7 +523,7 @@ export class EnhancedRateLimiter {
       expirationTtl: Math.ceil(duration / 1000)
     });
 
-    console.warn(`Blocked fingerprint ${fingerprint} for ${reason}. Duration: ${duration}ms`);
+    logger.warn(`Blocked fingerprint ${fingerprint} for ${reason}. Duration: ${duration}ms`);
   }
 
   /**

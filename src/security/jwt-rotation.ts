@@ -1,3 +1,6 @@
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'jwt-rotation' });
+
 /**
  * Enterprise-Grade JWT Secret Rotation System
  * OWASP 2025 Compliant - Addresses CVSS 9.8 JWT Authentication Bypass
@@ -135,12 +138,12 @@ export class JWTRotation {
       // Log rotation event
       await this.logAuditEvent('rotation', newVersion, 'Scheduled secret rotation completed');
 
-      console.log(`JWT secret rotation completed. New version: ${newVersion}, Entropy: ${validation.entropy.toFixed(2)} bits`);
+      logger.info(`JWT secret rotation completed. New version: ${newVersion}, Entropy: ${validation.entropy.toFixed(2)} bits`);
 
       return secretVersion;
 
     } catch (error) {
-      console.error('JWT secret rotation failed:', error);
+      logger.error('JWT secret rotation failed:', error);
       throw new Error(`Secret rotation failed: ${(error as any).message}`);
     }
   }
@@ -172,7 +175,7 @@ export class JWTRotation {
       return secretVersion.secret;
 
     } catch (error) {
-      console.error('Failed to get active secret:', error);
+      logger.error('Failed to get active secret:', error);
       throw new Error('JWT secret retrieval failed');
     }
   }
@@ -221,7 +224,7 @@ export class JWTRotation {
       throw new Error('Emergency rotation is disabled');
     }
 
-    console.error(`SECURITY ALERT: Emergency JWT rotation initiated. Reason: ${reason}`);
+    logger.error(`SECURITY ALERT: Emergency JWT rotation initiated. Reason: ${reason}`);
 
     try {
       // Generate new secret immediately
@@ -263,12 +266,12 @@ export class JWTRotation {
         revokedVersions: Array.from({ length: currentVersion }, (_, i) => i + 1)
       });
 
-      console.log(`Emergency rotation completed. All previous secrets revoked. New version: ${newVersion}`);
+      logger.info(`Emergency rotation completed. All previous secrets revoked. New version: ${newVersion}`);
 
       return secretVersion;
 
     } catch (error) {
-      console.error('Emergency rotation failed:', error);
+      logger.error('Emergency rotation failed:', error);
       throw new Error(`Emergency rotation failed: ${(error as any).message}`);
     }
   }

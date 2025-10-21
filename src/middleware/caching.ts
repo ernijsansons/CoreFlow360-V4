@@ -8,7 +8,7 @@ import { MiddlewareHandler } from 'hono';
 import { SmartCaching } from '../cloudflare/performance/SmartCaching';
 import type { Env } from '../types/env';
 
-const logger = new Logger('Caching');
+const logger = new Logger({ component: 'Caching' });
 
 interface CacheOptions {
   /**
@@ -73,8 +73,7 @@ export function cachingMiddleware(options: CacheOptions = {}): MiddlewareHandler
 
       // Try to get from cache
       const cachedResult = await smartCache.get<any>(cacheKey, {
-        ttl,
-        source: 'kv',
+        highFrequency: true,
       });
 
       if (cachedResult.hit && cachedResult.data) {
@@ -100,14 +99,14 @@ export function cachingMiddleware(options: CacheOptions = {}): MiddlewareHandler
 
           await smartCache.set(cacheKey, responseBody, {
             ttl,
-            source: 'kv',
+            highFrequency: true,
           });
 
           // Add cache headers to response
           c.res.headers.set('X-Cache-Status', 'MISS');
           c.res.headers.set('Cache-Control', `public, max-age=${ttl}, stale-while-revalidate=60`);
         } catch (err) {
-          logger.warn('[Cache] Failed to cache response:', err);
+          logger.warn('[Cache] Failed to cache response:', err as Error);
         }
       }
 

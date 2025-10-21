@@ -284,8 +284,8 @@ export class SupportTicketAgent {
       }],
       metadata: {
         source: (task.input.data as any).source || 'web',
-        userAgent: context.requestContext!.userAgent,
-        ipAddress: context.requestContext!.ipAddress
+        userAgent: context.requestContext?.userAgent || 'unknown',
+        ipAddress: context.requestContext?.ipAddress || 'unknown'
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -327,8 +327,8 @@ Subject: ${subject}
 Description: ${description}
 
 Customer Context:
-- Company: ${context.businessData!.companyName}
-- Industry: ${context.businessData!.industry}
+- Company: ${context.businessData?.companyName || 'Unknown Company'}
+- Industry: ${context.businessData?.industry || 'Unknown Industry'}
 
 Analyze and return JSON with:
 {

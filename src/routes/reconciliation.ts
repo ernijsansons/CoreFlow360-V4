@@ -5,6 +5,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'reconciliation' });
 import type { Env } from '../types/env';
 import { ReconciliationService } from '../services/reconciliation/reconciliation-service';
 import { StatementParser } from '../services/reconciliation/statement-parser';
@@ -59,7 +61,7 @@ reconciliation.get('/accounts', async (c) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching accounts:', error);
+    logger.error('Error fetching accounts:', error);
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch accounts',
@@ -101,7 +103,7 @@ reconciliation.post('/', async (c) => {
       },
     }, 201);
   } catch (error) {
-    console.error('Error creating reconciliation:', error);
+    logger.error('Error creating reconciliation:', error);
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to create reconciliation',
@@ -163,7 +165,7 @@ reconciliation.post('/:id/upload-statement', async (c) => {
       },
     });
   } catch (error) {
-    console.error('Error uploading statement:', error);
+    logger.error('Error uploading statement:', error);
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to upload statement',
@@ -192,7 +194,7 @@ reconciliation.post('/:id/auto-match', async (c) => {
       },
     });
   } catch (error) {
-    console.error('Error auto-matching:', error);
+    logger.error('Error auto-matching:', error);
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to auto-match',
@@ -232,7 +234,7 @@ reconciliation.post('/:id/match', async (c) => {
       message: 'Match applied successfully',
     });
   } catch (error) {
-    console.error('Error applying match:', error);
+    logger.error('Error applying match:', error);
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to apply match',
@@ -260,7 +262,7 @@ reconciliation.get('/:id', async (c) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching reconciliation:', error);
+    logger.error('Error fetching reconciliation:', error);
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch reconciliation',
@@ -306,7 +308,7 @@ reconciliation.get('/:id/transactions', async (c) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching transactions:', error);
+    logger.error('Error fetching transactions:', error);
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to fetch transactions',
@@ -340,7 +342,7 @@ reconciliation.post('/:id/detect-discrepancies', async (c) => {
       },
     });
   } catch (error) {
-    console.error('Error detecting discrepancies:', error);
+    logger.error('Error detecting discrepancies:', error);
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to detect discrepancies',
@@ -377,7 +379,7 @@ reconciliation.post('/:id/complete', async (c) => {
       data: { stats },
     });
   } catch (error) {
-    console.error('Error completing reconciliation:', error);
+    logger.error('Error completing reconciliation:', error);
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to complete reconciliation',
@@ -427,7 +429,7 @@ reconciliation.get('/', async (c) => {
       },
     });
   } catch (error) {
-    console.error('Error listing reconciliations:', error);
+    logger.error('Error listing reconciliations:', error);
     return c.json({
       success: false,
       error: error instanceof Error ? error.message : 'Failed to list reconciliations',

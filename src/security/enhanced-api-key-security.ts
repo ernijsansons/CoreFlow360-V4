@@ -1,3 +1,6 @@
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'enhanced-api-key-security' });
+
 /**
  * Enhanced API Key Security with PBKDF2 (Cloudflare Workers Compatible)
  * SECURITY: Replaces weak SHA-256 hashing with PBKDF2
@@ -173,7 +176,7 @@ export class EnhancedApiKeySecurity {
       return { valid: false, error: 'Invalid API key' };
 
     } catch (error: any) {
-      console.error('API key validation error:', error);
+      logger.error('API key validation error:', error);
       return { valid: false, error: 'Validation failed' };
     }
   }

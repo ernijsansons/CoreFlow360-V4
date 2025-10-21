@@ -4,6 +4,7 @@ import { HeroSection } from '@/components/marketing/HeroSection'
 import { StatsBanner } from '@/components/marketing/StatsBanner'
 import { FeatureGrid } from '@/components/marketing/FeatureGrid'
 import { CTASection } from '@/components/marketing/CTASection'
+import { TestimonialsSection } from '@/components/marketing/TestimonialsSection'
 
 export const Route = createFileRoute('/landing')({
   component: LandingPage,
@@ -116,9 +117,11 @@ function LandingPage() {
         <FeatureGrid features={features} columns={3} />
       </section>
 
+      <TestimonialsSection />
+
       <CTASection
         headline="Ready to Scale Without Operational Burden?"
-        subheadline="Join 10,000+ entrepreneurs running multiple businesses effortlessly"
+        subheadline="Join ambitious founders managing multiple businesses effortlessly"
         ctaText="Start Your Free Trial"
         variant="gradient"
       />

@@ -5,6 +5,7 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { compress } from 'hono/compress';
@@ -33,6 +34,7 @@ import aiAuditRoutes from './ai-audit';
 import aiMonitoringRoutes from './ai-monitoring';
 import observabilityRoutes from './observability';
 import rateLimitingRoutes from './rate-limiting';
+import analyticsDashboardRoutes from './analytics-dashboard';
 
 // Priority 1 routes - High usage
 import dashboardRoutes from './dashboard';
@@ -153,6 +155,7 @@ v1.route('/ai-audit', aiAuditRoutes);
 v1.route('/ai-monitoring', aiMonitoringRoutes);
 v1.route('/observability', observabilityRoutes);
 v1.route('/rate-limiting', rateLimitingRoutes);
+v1.route('/analytics', analyticsDashboardRoutes);
 
 // Priority 1 routes - High usage
 v1.route('/dashboard', dashboardRoutes);
@@ -206,7 +209,7 @@ api.all('*', (c) => {
 
 // Error handler
 api.onError((err, c) => {
-  console.error('API Error:', err);
+  logger.error('API Error:', err);
 
   return c.json({
     success: false,

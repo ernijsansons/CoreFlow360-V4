@@ -5,6 +5,8 @@
  */
 
 import { Hono } from 'hono';
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'plaid' });
 import type { Env } from '../types/env';
 import { PlaidClient } from '../services/plaid/plaid-client';
 import { PlaidSyncService } from '../services/plaid/plaid-sync-service';
@@ -66,7 +68,7 @@ plaid.post('/link-token', async (c) => {
       },
     });
   } catch (error: any) {
-    console.error('Error creating link token:', error);
+    logger.error('Error creating link token:', error);
     return c.json(
       {
         success: false,
@@ -105,7 +107,7 @@ plaid.post('/connections', async (c) => {
       data: { connection_id: connectionId },
     });
   } catch (error: any) {
-    console.error('Error creating connection:', error);
+    logger.error('Error creating connection:', error);
     return c.json(
       {
         success: false,
@@ -132,7 +134,7 @@ plaid.get('/connections', async (c) => {
       data: { connections },
     });
   } catch (error: any) {
-    console.error('Error listing connections:', error);
+    logger.error('Error listing connections:', error);
     return c.json(
       {
         success: false,
@@ -166,7 +168,7 @@ plaid.get('/connections/:id', async (c) => {
       data: { connection },
     });
   } catch (error: any) {
-    console.error('Error getting connection:', error);
+    logger.error('Error getting connection:', error);
     return c.json(
       {
         success: false,
@@ -193,7 +195,7 @@ plaid.delete('/connections/:id', async (c) => {
       data: { message: 'Connection disconnected successfully' },
     });
   } catch (error: any) {
-    console.error('Error disconnecting connection:', error);
+    logger.error('Error disconnecting connection:', error);
     return c.json(
       {
         success: false,
@@ -224,7 +226,7 @@ plaid.get('/connections/:id/accounts', async (c) => {
       data: { accounts },
     });
   } catch (error: any) {
-    console.error('Error getting accounts:', error);
+    logger.error('Error getting accounts:', error);
     return c.json(
       {
         success: false,
@@ -255,7 +257,7 @@ plaid.put('/accounts/:id', async (c) => {
       data: { message: 'Account updated successfully' },
     });
   } catch (error: any) {
-    console.error('Error updating account:', error);
+    logger.error('Error updating account:', error);
     return c.json(
       {
         success: false,
@@ -286,7 +288,7 @@ plaid.post('/connections/:id/sync', async (c) => {
       data: result,
     });
   } catch (error: any) {
-    console.error('Error syncing connection:', error);
+    logger.error('Error syncing connection:', error);
     return c.json(
       {
         success: false,
@@ -319,7 +321,7 @@ plaid.get('/accounts/:id/transactions', async (c) => {
       data: { transactions: results },
     });
   } catch (error: any) {
-    console.error('Error getting transactions:', error);
+    logger.error('Error getting transactions:', error);
     return c.json(
       {
         success: false,
@@ -373,7 +375,7 @@ plaid.post('/webhook', async (c) => {
 
     return c.json({ success: true });
   } catch (error: any) {
-    console.error('Error handling webhook:', error);
+    logger.error('Error handling webhook:', error);
     return c.json(
       {
         success: false,

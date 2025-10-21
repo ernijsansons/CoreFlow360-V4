@@ -1,3 +1,6 @@
+import { Logger } from '../shared/logger';
+const logger = new Logger({ component: 'sql-injection-prevention' });
+
 /**
  * SQL Injection Prevention System - Fortune 50 Level Security
  * 
@@ -412,7 +415,7 @@ export class SQLInjectionPrevention {
       userAgent: 'unknown'
     };
 
-    console.error('SQL INJECTION ATTEMPT DETECTED:', logEntry);
+    logger.error('SQL INJECTION ATTEMPT DETECTED:', logEntry);
     
     // In production, this would be sent to security monitoring
     // await this.sendToSecurityMonitoring(logEntry);
