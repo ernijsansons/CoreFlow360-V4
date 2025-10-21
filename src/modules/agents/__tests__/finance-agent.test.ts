@@ -1661,6 +1661,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce({ invoice_number: 'INV-0041' }) // Last invoice
           .mockResolvedValueOnce({ id: 'acc-ar-001' }) // AR account
           .mockResolvedValueOnce({ id: 'acc-rev-001' }) // Revenue account
@@ -1700,6 +1701,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null) // No previous invoice
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -1743,6 +1745,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: journalEntryMock,
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -1779,6 +1782,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -1816,6 +1820,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -1864,6 +1869,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -1909,6 +1915,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -1948,6 +1955,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -2054,6 +2062,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -2092,6 +2101,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -2130,6 +2140,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -2166,6 +2177,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce({ invoice_number: 'INV-100' })
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })
@@ -2203,6 +2215,7 @@ describe('FinanceAgent - Invoice Generation', () => {
         bind: vi.fn().mockReturnThis(),
         run: vi.fn().mockResolvedValue({ success: true }),
         first: vi.fn()
+          .mockResolvedValueOnce({ id: 'cust-001' }) // Customer validation
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({ id: 'acc-ar-001' })
           .mockResolvedValueOnce({ id: 'acc-rev-001' })

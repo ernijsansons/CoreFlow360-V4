@@ -529,20 +529,36 @@ export class FinanceAgent {
     const requiresReview = matches.filter(m => m.confidence < 0.95 && m.confidence >= 0.7);
     const rejected = matches.filter(m => m.confidence < 0.7);
 
-    // 5. Update matched transactions
+    // 5. Find bank transactions that had no matches at all
+    const matchedBankTxnIds = new Set(matches.map(m => m.bankTxn.id));
+    const noMatches = bankTxns.filter(txn => !matchedBankTxnIds.has(txn.id));
+
+    // 6. Update matched transactions
     for (const match of autoMatched) {
       await this.applyMatch(match.bankTxn, match.ledgerEntry, match.confidence);
     }
 
-    // 6. Calculate reconciliation statistics
+    // 7. Calculate reconciliation statistics
     const stats = {
       totalBankTxns: bankTxns.length,
       totalLedgerEntries: ledgerEntries.length,
       autoMatched: autoMatched.length,
       requiresReview: requiresReview.length,
-      unmatched: bankTxns.length - autoMatched.length - requiresReview.length,
+      unmatched: rejected.length + noMatches.length,
       matchRate: bankTxns.length > 0 ? (autoMatched.length / bankTxns.length) * 100 : 0
     };
+
+    // Combine low-confidence matches and no-matches into unmatched array
+    const unmatchedArray = [
+      ...rejected.map(m => ({
+        bankTxnId: m.bankTxn.id,
+        reason: `Low confidence match (${(m.confidence * 100).toFixed(1)}%)`
+      })),
+      ...noMatches.map(txn => ({
+        bankTxnId: txn.id,
+        reason: 'No matching ledger entry found'
+      }))
+    ];
 
     return {
       success: true,
@@ -559,10 +575,7 @@ export class FinanceAgent {
         confidence: m.confidence,
         reason: this.explainMatch(m)
       })),
-      unmatched: rejected.map(m => ({
-        bankTxnId: m.bankTxn.id,
-        reason: `Low confidence match (${(m.confidence * 100).toFixed(1)}%)`
-      }))
+      unmatched: unmatchedArray
     };
   }
 
@@ -631,7 +644,7 @@ export class FinanceAgent {
         // Match criteria:
         // 1. Amount matches (within $0.01)
         // 2. Date within 3 days
-        // 3. Description similarity >= 0.7
+        // 3. Description similarity >= 0.4 (lowered to catch medium-confidence matches)
 
         const amountMatch = Math.abs(Math.abs(entry.amount) - Math.abs(bankTxn.amount)) < 0.01;
         const dateMatch = this.isWithinDateRange(entry.date, bankTxn.transaction_date, 3);
@@ -640,7 +653,7 @@ export class FinanceAgent {
           bankTxn.description
         );
 
-        return amountMatch && dateMatch && descriptionSimilarity >= 0.6;
+        return amountMatch && dateMatch && descriptionSimilarity >= 0.4;
       });
 
       if (candidates.length === 1) {
@@ -812,8 +825,15 @@ export class FinanceAgent {
       original_invoice_id
     } = task.input.data as any;
 
-    // 0. Customer validation note: In production, add customer existence validation here
-    // For testing compatibility, customer validation is handled by the frontend/API layer
+    // 0. Validate customer exists
+    const customer = await this.db
+      .prepare('SELECT id FROM customers WHERE id = ? AND business_id = ?')
+      .bind(customer_id, context.businessId)
+      .first();
+
+    if (!customer) {
+      throw new Error('Customer not found');
+    }
 
     // Determine if this is a credit memo
     const isCreditMemo = invoice_type === 'credit_memo';
