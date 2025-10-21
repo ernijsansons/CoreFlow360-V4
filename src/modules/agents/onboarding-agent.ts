@@ -128,6 +128,21 @@ export class OnboardingAgent {
     this.anthropicApiKey = env.ANTHROPIC_API_KEY;
   }
 
+  async getConfig() {
+    return {
+      id: this.id,
+      name: this.name,
+      type: this.type,
+      version: this.version,
+      capabilities: this.capabilities,
+      departments: this.departments,
+      tags: this.tags,
+      maxConcurrency: this.maxConcurrency,
+      costPerCall: this.costPerCall,
+      averageLatency: this.averageLatency
+    };
+  }
+
   async executeTask(task: AgentTask, context: BusinessContext): Promise<AgentResult> {
     const startTime = Date.now();
 
@@ -255,15 +270,15 @@ export class OnboardingAgent {
     // Parse file data
     const parsedData = await this.parseFileData(fileData, format);
 
-    // Apply field mapping if provided
-    const mappedData = fieldMappings ? this.applyFieldMapping(parsedData, fieldMappings) : parsedData;
-
-    // Validate data structure
+    // Validate data structure BEFORE mapping (validate source fields)
     const validationResult = await this.validateImportData(
-      mappedData,
+      parsedData,
       dataType,
       context.businessId
     );
+
+    // Apply field mapping AFTER validation
+    const mappedData = fieldMappings ? this.applyFieldMapping(parsedData, fieldMappings) : parsedData;
 
     if (!validationResult.valid) {
       return {
