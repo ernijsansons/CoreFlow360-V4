@@ -6,7 +6,7 @@
 import type { D1Database } from '@cloudflare/workers-types';
 import { z } from 'zod';
 import { auditLogger } from '../../shared/logger';
-import { PIIRedactor, InputValidator, SecurityError, type SecurityContext } from '../../shared/security-utils';
+import { PIIRedactor, SecurityError, type SecurityContext } from '../../shared/security-utils';
 
 /**
  * Audit event types

@@ -1,4 +1,4 @@
-import { ExportConfig, ComplianceReport, AnalyticsData } from '../../types/telemetry';
+import { ExportConfig, ComplianceReport } from '../../types/telemetry';
 import { TelemetryCollector } from './collector';
 import { MetricsCollector } from './metrics';
 
@@ -727,12 +727,12 @@ class ExportIntegrationService {
     }
   }
 
-  private async testPrometheusIntegration(integration: Integration): Promise<boolean> {
+  private async testPrometheusIntegration(_integration: Integration): Promise<boolean> {
     // Test Prometheus endpoint
     return true;
   }
 
-  private async testDatadogIntegration(integration: Integration): Promise<boolean> {
+  private async testDatadogIntegration(_integration: Integration): Promise<boolean> {
     // Test Datadog API
     return true;
   }

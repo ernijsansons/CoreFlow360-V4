@@ -594,7 +594,7 @@ class InvoiceEmailManager {
     return templates[templateId] || templates.default;
   }
 
-  private async deliverEmail(email: {
+  private async deliverEmail(_email: {
     to: string;
     from: string;
     fromName: string;

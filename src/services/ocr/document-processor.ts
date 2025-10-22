@@ -5,7 +5,10 @@
  * Uses Cloudflare AI Workers for OCR
  */
 
-import type { Env } from '../../types/env';
+import type { Env } from '../../types/env';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-ocr-document-processor" });
+
+
 
 export interface DocumentOCRResult {
   success: boolean;
@@ -54,7 +57,7 @@ export class DocumentProcessor {
   async processDocument(
     fileBuffer: ArrayBuffer,
     fileType: string,
-    businessId: string
+    _businessId: string
   ): Promise<DocumentOCRResult> {
     const startTime = Date.now();
 
@@ -85,7 +88,7 @@ export class DocumentProcessor {
         processing_time_ms: processingTime
       };
     } catch (error) {
-      console.error('Document processing error:', error);
+      logger.error('Document processing error:', error);
       return {
         success: false,
         document_type: 'unknown',
@@ -102,7 +105,7 @@ export class DocumentProcessor {
    */
   private async extractTextFromImage(
     fileBuffer: ArrayBuffer,
-    fileType: string
+    _fileType: string
   ): Promise<string> {
     try {
       // Use Cloudflare Workers AI for OCR
@@ -122,7 +125,7 @@ export class DocumentProcessor {
 
       throw new Error('No text extracted from image');
     } catch (error) {
-      console.error('OCR extraction error:', error);
+      logger.error('OCR extraction error:', error);
       throw error;
     }
   }
@@ -155,7 +158,7 @@ Respond with ONLY one word: invoice, receipt, bill, or unknown.`;
 
       return 'unknown';
     } catch (error) {
-      console.error('Classification error:', error);
+      logger.error('Classification error:', error);
       return 'unknown';
     }
   }
@@ -219,12 +222,12 @@ Return ONLY valid JSON. If a field is not found, omit it or set to null.`;
           extractedData = JSON.parse(jsonMatch[0]);
         }
       } catch (parseError) {
-        console.error('JSON parse error:', parseError);
+        logger.error('JSON parse error:', parseError);
       }
 
       return extractedData;
     } catch (error) {
-      console.error('Data extraction error:', error);
+      logger.error('Data extraction error:', error);
       return {};
     }
   }
@@ -360,7 +363,7 @@ Return ONLY valid JSON. If a field is not found, omit it or set to null.`;
 
       return documentId;
     } catch (error) {
-      console.error('Error saving processed document:', error);
+      logger.error('Error saving processed document:', error);
       throw error;
     }
   }

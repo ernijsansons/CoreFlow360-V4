@@ -4,8 +4,10 @@
  * Smart routing, caching, security, and performance optimization
  */
 
-import type { ExecutionContext, MessageBatch, ScheduledEvent, Message,
-  DurableObjectNamespace, R2Bucket, AnalyticsEngineDataset, KVNamespace } from '../types/cloudflare';
+import type { ExecutionContext,
+  MessageBatch,
+  ScheduledEvent,
+  Message } from '../types/cloudflare';
 import type { Env } from '../../types/env';
 import { CloudflareIntegration } from '../CloudflareIntegration';
 import { createCors } from '../utils/cors';
@@ -222,12 +224,10 @@ async function handleAPIRequest(
 async function handleWebSocketRequest(
   request: Request,
   env: Env,
-  ctx: ExecutionContext,
-  cf: CloudflareIntegration,
-  logger: any
+  _ctx: ExecutionContext,
+  _cf: CloudflareIntegration,
+  _logger: any
 ): Promise<Response> {
-  const url = new URL(request.url);
-
   // Get Durable Object for real-time coordination
   if (!env.REALTIME_COORDINATOR) {
     return new Response('REALTIME_COORDINATOR not configured', { status: 503 });
@@ -286,7 +286,7 @@ async function handleAdminRequest(
   env: Env,
   ctx: ExecutionContext,
   cf: CloudflareIntegration,
-  logger: any
+  _logger: any
 ): Promise<Response> {
   // Enhanced security for admin endpoints
   const ip = request.headers.get('CF-Connecting-IP');
@@ -424,7 +424,7 @@ async function handleQueueMessage(
   env: Env,
   logger: any
 ): Promise<void> {
-  const { body, id, timestamp } = message;
+  const { body, id } = message;
 
   try {
     switch (body.type) {
@@ -555,26 +555,26 @@ function getContentType(filename: string): string {
   return contentTypes[ext || ''] || 'application/octet-stream';
 }
 
-async function loadModuleHandler(module: string, env: Env): Promise<any> {
+async function loadModuleHandler(_module: string, _env: Env): Promise<any> {
   // Dynamic module loading based on module name
   // This would be implemented based on your actual module structure
   return null;
 }
 
-async function validateAdminAuth(authHeader: string, env: Env): Promise<boolean> {
+async function validateAdminAuth(_authHeader: string, _env: Env): Promise<boolean> {
   // Implement admin authentication validation
   return false;
 }
 
-async function processEmailMessage(body: any, env: Env, logger: any): Promise<void> {
+async function processEmailMessage(_body: any, _env: Env, _logger: any): Promise<void> {
   // Implement email processing
 }
 
-async function processWebhookMessage(body: any, env: Env, logger: any): Promise<void> {
+async function processWebhookMessage(_body: any, _env: Env, _logger: any): Promise<void> {
   // Implement webhook processing
 }
 
-async function processAnalyticsMessage(body: any, env: Env, logger: any): Promise<void> {
+async function processAnalyticsMessage(_body: any, _env: Env, _logger: any): Promise<void> {
   // Implement analytics processing
 }
 

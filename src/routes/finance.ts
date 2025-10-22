@@ -332,9 +332,9 @@ app.get('/reports/profit-loss', zValidator('query', ReportParametersSchema), asy
 
 app.get('/reports/balance-sheet', zValidator('query', ReportParametersSchema), async (c: any) => {
   try {
-    const managers = await initializeManagers(c.env);
+    // const _managers = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
-    const businessName = c.req.header('X-Business-Name') || 'Company';
+    // const _businessName = c.req.header('X-Business-Name') || 'Company';
     const params = c.req.valid('query');
 
     // Note: BalanceSheetGenerator needs to be imported/created
@@ -344,7 +344,7 @@ app.get('/reports/balance-sheet', zValidator('query', ReportParametersSchema), a
       data: {
         message: 'Balance sheet generation in progress',
         businessId,
-        businessName,
+        // businessName,
         period: params
       }
     });
@@ -358,9 +358,9 @@ app.get('/reports/balance-sheet', zValidator('query', ReportParametersSchema), a
 
 app.get('/reports/cash-flow', zValidator('query', ReportParametersSchema), async (c: any) => {
   try {
-    const managers = await initializeManagers(c.env);
+    // const _managers = await initializeManagers(c.env);
     const businessId = c.req.header('X-Business-ID') || 'default';
-    const businessName = c.req.header('X-Business-Name') || 'Company';
+    // const _businessName = c.req.header('X-Business-Name') || 'Company';
     const params = c.req.valid('query');
 
     const generator = new CashFlowGenerator(c.env.DB_MAIN);

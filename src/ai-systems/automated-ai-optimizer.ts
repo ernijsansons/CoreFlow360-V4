@@ -7,8 +7,6 @@ import { Logger } from '../shared/logger';
 import type { Context } from 'hono';
 import type { AutoOptimization } from './quantum-ai-auditor';
 
-const logger = new Logger({ component: 'automated-ai-optimizer' });
-
 export interface OptimizationStrategy {
   id: string;
   name: string;
@@ -284,7 +282,7 @@ export class AutomatedAIOptimizer {
 
   private async generatePerformanceOptimizations(
     currentMetrics: any,
-    issues: any[]
+    _issues: any[]
   ): Promise<OptimizationStrategy[]> {
     const strategies: OptimizationStrategy[] = [];
 
@@ -413,7 +411,7 @@ export class AutomatedAIOptimizer {
 
   private async generateCostOptimizations(
     currentMetrics: any,
-    issues: any[]
+    _issues: any[]
   ): Promise<OptimizationStrategy[]> {
     const strategies: OptimizationStrategy[] = [];
 
@@ -493,7 +491,7 @@ export class AutomatedAIOptimizer {
 
   private async generateAccuracyOptimizations(
     currentMetrics: any,
-    issues: any[]
+    _issues: any[]
   ): Promise<OptimizationStrategy[]> {
     const strategies: OptimizationStrategy[] = [];
 
@@ -566,7 +564,7 @@ export class AutomatedAIOptimizer {
 
   private async generateSafetyOptimizations(
     currentMetrics: any,
-    issues: any[]
+    _issues: any[]
   ): Promise<OptimizationStrategy[]> {
     const strategies: OptimizationStrategy[] = [];
 
@@ -639,7 +637,7 @@ export class AutomatedAIOptimizer {
 
   private async generateEfficiencyOptimizations(
     currentMetrics: any,
-    issues: any[]
+    _issues: any[]
   ): Promise<OptimizationStrategy[]> {
     const strategies: OptimizationStrategy[] = [];
 

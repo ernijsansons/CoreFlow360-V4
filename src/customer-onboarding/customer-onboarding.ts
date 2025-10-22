@@ -70,7 +70,7 @@ async function createOnboardingFlow(engine: CustomerOnboardingEngine, customerId
   const flow = await engine.createOnboardingFlow(customerId, customerData);
 
 
-  flow.steps.forEach((step, index) => {
+  flow.steps.forEach((_step, _index) => {
   });
 
 }
@@ -80,10 +80,10 @@ async function startOnboarding(engine: CustomerOnboardingEngine, customerId: str
   const flow = await engine.startOnboarding(customerId);
 
 
-  flow.currentStep.requirements.forEach((req, index) => {
+  flow.currentStep.requirements.forEach((_req, _index) => {
   });
 
-  flow.currentStep.aiGuidance.tips.forEach((tip) => {
+  flow.currentStep.aiGuidance.tips.forEach((_tip) => {
   });
 }
 
@@ -99,17 +99,6 @@ async function showOnboardingStatus(engine: CustomerOnboardingEngine, customerId
   if (flow.completedAt) {
   }
 
-  flow.steps.forEach((step, index) => {
-    const status = step.status === 'COMPLETED' ? '✅' :
-                  step.status === 'IN_PROGRESS' ? '🔄' :
-                  step.status === 'FAILED' ? '❌' : '⏳';
-
-    if (step.actualTime) {
-    }
-  });
-
-  // Show analytics
-  const analytics = await engine.getOnboardingAnalytics(customerId);
 }
 
 async function completeStep(engine: CustomerOnboardingEngine, customerId: string, stepId: string): Promise<void> {
@@ -149,7 +138,7 @@ async function runDemoScenario(engine: CustomerOnboardingEngine, _customerId: st
   }
 
 
-  scenario.objectives.forEach((objective, index) => {
+  scenario.objectives.forEach((_objective, _index) => {
   });
 
   for (let i = 0; i < scenario.steps.length; i++) {
@@ -192,19 +181,19 @@ async function chatWithAI(engine: CustomerOnboardingEngine, _customerId: string,
 
 
   if (response.tips.length > 0) {
-    response.tips.forEach((tip: string, index: number) => {
+    response.tips.forEach((_tip: string, _index: number) => {
     });
   }
 
   if (response.bestPractices.length > 0) {
-    response.bestPractices.forEach((practice: string, index: number) => {
+    response.bestPractices.forEach((_practice: string, _index: number) => {
     });
   }
 }
 
 async function showAnalytics(engine: CustomerOnboardingEngine, customerId: string): Promise<void> {
 
-  const analytics = await engine.getOnboardingAnalytics(customerId);
+  await engine.getOnboardingAnalytics(customerId);
 
 
   // Show demo analytics if available
@@ -213,7 +202,7 @@ async function showAnalytics(engine: CustomerOnboardingEngine, customerId: strin
 
   for (const [demoId, demo] of demoEnvs) {
     if (demo.customerId === customerId) {
-      const demoAnalytics = await demoManager.getDemoAnalytics(demoId);
+      await demoManager.getDemoAnalytics(demoId);
 
       break;
     }
@@ -224,7 +213,7 @@ async function showAnalytics(engine: CustomerOnboardingEngine, customerId: strin
   const aiAnalytics = await aiAssistant.getAssistantAnalytics();
 
 
-  aiAnalytics.commonQueries.forEach((query: string, index: number) => {
+  aiAnalytics.commonQueries.forEach((_query: string, _index: number) => {
   });
 }
 

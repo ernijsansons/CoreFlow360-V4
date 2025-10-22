@@ -1,6 +1,6 @@
 // Database type extensions and helpers
 
-import { D1Result, D1Database } from '@cloudflare/workers-types';
+import { D1Result } from '@cloudflare/workers-types';
 
 // Extended D1Result with changes property
 export interface D1ResultWithChanges<T = unknown> extends D1Result<T> {

@@ -14,7 +14,7 @@
  */
 
 import { Hono } from 'hono';
-import type { StatusCode } from 'hono/utils/http-status';
+
 import { cors } from 'hono/cors';
 import { compress } from 'hono/compress';
 import { etag } from 'hono/etag';
@@ -30,14 +30,8 @@ import { createRBACSystem } from './security/rbac-system';
 import { createErrorHandler } from './middleware/error-handler';
 import { createStructuredLogger, LogLevel } from './middleware/structured-logger';
 import { createPerformanceMonitor } from './monitoring/performance-monitor';
-import {
-  addSecurityHeaders,
-  getCorsHeaders,
-  advancedRateLimit,
-  validateRequest,
-  preventXSS,
-  sanitizeInput
-} from './middleware/security';
+import { advancedRateLimit,
+  sanitizeInput } from './middleware/security';
 
 // Business modules
 import { AuthSystem } from './auth/auth-system';
@@ -45,7 +39,10 @@ import { SecureDatabase } from './database/secure-database';
 
 // Types - Use canonical Env definition
 import type { Env } from './types/env';
-import type { AppContext, Next } from './types/hono-context';
+import type { AppContext, Next } from './types/hono-context';import { Logger } from "./shared/logger";
+const logger = new Logger({ component: "indexsecure" });
+
+
 
 // Export Durable Object for rate limiting
 export { RateLimiterDurableObject as AdvancedRateLimiterDO } from './durable-objects/rate-limiter';
@@ -175,7 +172,7 @@ function createApp(env: Env) {
       {
         requests: 100,
         window: 60,
-        keyGenerator: (req) => {
+        keyGenerator: (_req) => {
           const ip = c.req.header('CF-Connecting-IP') || 'unknown';
           const userId = c.get('userId') || 'anonymous';
           return `${ip}:${userId}`;
@@ -256,6 +253,7 @@ function createApp(env: Env) {
         jwtRotation.getActiveSecret()
       ]);
 
+      void checks;
       return c.json({ status: 'ready', timestamp: Date.now() });
     } catch (error) {
       logger.error('Readiness check failed', error);
@@ -483,7 +481,7 @@ export default {
   },
 
   // Scheduled handler for JWT rotation
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
     const jwtRotation = new JWTRotation(env);
 
     switch (event.cron) {
@@ -491,7 +489,7 @@ export default {
         await jwtRotation.rotateSecrets();
         break;
       default:
-        console.log('Unknown cron trigger:', event.cron);
+        logger.info('Unknown cron trigger:', event.cron);
     }
   }
 };

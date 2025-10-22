@@ -3,7 +3,7 @@
  * Comprehensive security headers with dynamic configuration
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CSPGenerator, RequestContext } from './csp-generator';
 

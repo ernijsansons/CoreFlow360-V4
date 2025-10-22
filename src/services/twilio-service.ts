@@ -1,10 +1,6 @@
-import type {
-  VoiceAgentConfig,
+import type { VoiceAgentConfig,
   TwilioCallConfig,
-  CallResult,
-  CallStatus,
-  VoiceAgentResponse
-} from '../types/voice-agent';
+  CallStatus } from '../types/voice-agent';
 import type { Lead } from '../types/crm';
 
 export interface TwilioResponse {
@@ -401,6 +397,7 @@ class TwilioService {
     try {
       // Get account usage
       const usage = await this.makeApiCall('GET', '/Usage/Records.json?Category=calls&Granularity=daily&Limit=1');
+      void usage;
 
       // Get concurrent calls (this would need to be tracked separately)
       const concurrentCalls = 0; // Placeholder - would track active calls
@@ -435,6 +432,7 @@ class TwilioService {
 
   // Call queue management
   async addToCallQueue(leadId: string, priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium'): Promise<boolean> {
+  void priority;
     try {
       // This would integrate with a queue system (Redis, Cloudflare Queues, etc.)
       // For now, just return success

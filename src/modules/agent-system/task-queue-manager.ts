@@ -5,7 +5,7 @@
 
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
-import { AgentTask, BusinessContext } from './types';
+import { AgentTask } from './types';
 import { generateSecureToken, sanitizeBusinessId } from './security-utils';
 import { AuditLogger, AuditEventType } from './audit-logger';
 
@@ -409,7 +409,7 @@ class TaskQueueManager {
   /**
    * Execute task (placeholder - actual execution handled by orchestrator)
    */
-  private async executeTask(task: AgentTask): Promise<void> {
+  private async executeTask(_task: AgentTask): Promise<void> {
     // This would call the orchestrator's executeTask method
     // For now, simulate with a delay
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));

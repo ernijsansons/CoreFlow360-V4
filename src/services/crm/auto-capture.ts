@@ -4,7 +4,10 @@
  * Inspired by Salesforce Einstein Activity Capture and HubSpot Email Tracking
  */
 
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database } from '@cloudflare/workers-types';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-crm-auto-capture" });
+
+
 
 // ============================================================
 // TYPES
@@ -152,7 +155,7 @@ export class AutoCaptureEngine {
     // In production, this would be sent to a queue (Cloudflare Queues)
     // For now, we'll process immediately in background
     this.processInteractionAsync(id).catch(error => {
-      console.error(`Failed to process interaction ${id}:`, error);
+      logger.error(`Failed to process interaction ${id}:`, error);
     });
 
     return id;
@@ -259,7 +262,7 @@ export class AutoCaptureEngine {
 
   private async linkToEntities(
     participants: Participant[],
-    log: any
+    _log: any
   ): Promise<{
     company_id?: string;
     contact_id?: string;

@@ -5,7 +5,7 @@
  */
 
 import type { D1Database, VectorizeIndex } from '@cloudflare/workers-types';
-import type { IAgent, AgentTask, BusinessContext, AgentResult, AgentConfig } from './types';
+import type { AgentTask, BusinessContext, AgentResult, AgentConfig } from './types';
 import { Logger } from '../../shared/logger';
 import { CorrelationId } from '../../shared/security-utils';
 
@@ -207,7 +207,7 @@ export class KnowledgeBaseAgent {
    */
   private async semanticSearch(task: AgentTask, context: BusinessContext): Promise<SearchResult[]> {
     const searchQuery: SearchQuery = task.input.data as any as SearchQuery;
-    const { query, maxResults = 10, minRelevance = 0.7, includeInternal = false } = searchQuery;
+    // const { query: _query, maxResults: _maxResults = 10, minRelevance: _minRelevance = 0.7, includeInternal: _includeInternal = false } = searchQuery;
 
     // Try vector search if available
     if (this.vectorizeIndex && this.anthropicApiKey) {
@@ -264,7 +264,7 @@ export class KnowledgeBaseAgent {
     searchQuery: SearchQuery,
     context: BusinessContext
   ): Promise<SearchResult[]> {
-    const { query, category, tags, language = 'en', maxResults = 10 } = searchQuery;
+    const { query, category, language = 'en', maxResults = 10 } = searchQuery;
 
     // Build SQL query
     let sql = `
@@ -632,8 +632,8 @@ Return JSON with suggestions.`;
   /**
    * Auto-categorize article
    */
-  private async autoCategorize(task: AgentTask, context: BusinessContext): Promise<any> {
-    const { content } = task.input.data as any as any;
+  private async autoCategorize(_task: AgentTask, _context: BusinessContext): Promise<any> {
+    // const { content: _content } = task.input.data as any as any;
 
     // Simple categorization
     const categories = ['technical', 'billing', 'getting_started', 'advanced', 'troubleshooting'];
@@ -848,12 +848,12 @@ Return JSON with suggestions.`;
     return result || { subject: '', description: '' };
   }
 
-  private async getUnresolvedQueries(businessId: string): Promise<any[]> {
+  private async getUnresolvedQueries(_businessId: string): Promise<any[]> {
     // Query for common ticket subjects that had low resolution rates
     return [];
   }
 
-  async estimateCost(task: AgentTask): Promise<number> {
+  async estimateCost(_task: AgentTask): Promise<number> {
     return this.costPerCall;
   }
 

@@ -619,7 +619,7 @@ export class InvoiceApprovalWorkflow {
   /**
    * Get default approval levels
    */
-  private async getDefaultApprovalLevels(businessId: string): Promise<ApprovalLevel[]> {
+  private async getDefaultApprovalLevels(_businessId: string): Promise<ApprovalLevel[]> {
     // Return simple default approval level
     return [{
       level: 1,

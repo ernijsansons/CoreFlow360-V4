@@ -7,15 +7,12 @@
 import { PermissionResolver } from './permission-resolver';
 import { PolicyEvaluator } from './policy-evaluator';
 import { ABACCache } from './cache';
-import type {
-  Subject,
+import type { Subject,
   Resource,
-  Action,
   Capability,
   EvaluationResult,
   PolicyRule,
-  PermissionBundle,
-} from './types';
+  PermissionBundle } from './types';
 
 /**
  * Main ABAC Permission Engine
@@ -68,7 +65,7 @@ export class ABACPermissionEngine {
    */
   async getPermissionBundle(
     subject: Subject,
-    context?: Record<string, unknown>
+    _context?: Record<string, unknown>
   ): Promise<PermissionBundle> {
     // Get all capabilities for this subject's roles by evaluating all known capabilities
     // This is a placeholder - in production, you'd query all capabilities from a registry

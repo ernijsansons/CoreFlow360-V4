@@ -306,7 +306,7 @@ export class TwilioIntegration {
   /**
    * Request call transcription
    */
-  private async requestTranscription(callSid: string, recordingUrl: string): Promise<void> {
+  private async requestTranscription(callSid: string, _recordingUrl: string): Promise<void> {
     // In production, this would call Twilio's transcription API or a third-party service
     // For now, we'll just log that transcription was requested
     logger.info(`Transcription requested for call ${callSid}`);
@@ -504,10 +504,10 @@ export class TwilioIntegration {
    * Validate webhook signature (for production use)
    */
   static validateWebhookSignature(
-    signature: string,
-    url: string,
-    params: Record<string, string>,
-    authToken: string
+    _signature: string,
+    _url: string,
+    _params: Record<string, string>,
+    _authToken: string
   ): boolean {
     // In production, implement Twilio's signature validation
     // See: https://www.twilio.com/docs/usage/security#validating-requests

@@ -5,8 +5,7 @@
 
 import { Logger } from '../shared/logger';
 import type { Context } from 'hono';
-import type {
-  ReplicationAuditReport,
+import type { ReplicationAuditReport,
   ReplicationConsistency,
   DataResidencyCompliance,
   ReplicationPerformance,
@@ -19,7 +18,6 @@ import type {
   TableDiscrepancy,
   ConflictDetection,
   ReplicationConflict,
-  ConflictResolution,
   ResolutionStrategy,
   ConflictHistoryStats,
   ResidencyViolation,
@@ -30,8 +28,7 @@ import type {
   ConflictPattern,
   ConflictHotspot,
   ConflictPrediction,
-  ReplicationRecommendation
-} from './quantum-data-auditor';
+  ReplicationRecommendation } from './quantum-data-auditor';
 
 export interface ReplicationAnalysisConfig {
   consistency: {
@@ -276,6 +273,7 @@ export class ReplicationConsistencyAnalyzer {
   private async validateSync(): Promise<SyncValidation> {
     const monitoredTables = ['businesses', 'business_leads', 'financial_transactions', 'agents'];
     const outOfSyncTables: OutOfSyncTable[] = [];
+    let lastFullSync = new Date(Date.now() - 24 * 60 * 60 * 1000); // Default to 24 hours ago
 
     try {
       for (const table of monitoredTables) {
@@ -293,9 +291,9 @@ export class ReplicationConsistencyAnalyzer {
         AND status = 'completed'
       `).first();
 
-      const lastFullSync = lastFullSyncResult ?
-        new Date((lastFullSyncResult as any).last_full_sync) :
-        new Date(Date.now() - 24 * 60 * 60 * 1000); // Default to 24 hours ago
+      if (lastFullSyncResult && (lastFullSyncResult as any).last_full_sync) {
+        lastFullSync = new Date((lastFullSyncResult as any).last_full_sync);
+      }
 
     } catch (error: any) {
       this.logger.error('Error validating sync status', error);
@@ -305,7 +303,7 @@ export class ReplicationConsistencyAnalyzer {
       syncedTables: monitoredTables.length - outOfSyncTables.length,
       totalTables: monitoredTables.length,
       outOfSyncTables,
-      lastFullSync: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+      lastFullSync,
       incrementalSyncStatus: outOfSyncTables.length === 0 ? 'healthy' : 'degraded'
     };
   }
@@ -387,7 +385,7 @@ export class ReplicationConsistencyAnalyzer {
     try {
       // Sample a few records to check for differences
       const sampleSize = 10;
-      const sampleRecords = await this.context.env.DB.prepare(`
+      await this.context.env.DB.prepare(`
         SELECT id, updated_at FROM ${table}
         ORDER BY updated_at DESC
         LIMIT ?
@@ -441,9 +439,6 @@ export class ReplicationConsistencyAnalyzer {
           }
         });
       }
-
-      // Get historical conflict statistics
-      const conflictStats = await this.getConflictStats();
 
     } catch (error: any) {
       this.logger.error('Error detecting conflicts', error);
@@ -928,7 +923,7 @@ export class ReplicationConsistencyAnalyzer {
   }
 
   private calculateConsistencyScore(lag: LagAnalysis, sync:
-  SyncValidation, conflicts: ConflictDetection, resolution: ResolutionStrategy): number {
+  SyncValidation, conflicts: ConflictDetection, _resolution: ResolutionStrategy): number {
     let score = 100;
 
     // Deduct for lag violations

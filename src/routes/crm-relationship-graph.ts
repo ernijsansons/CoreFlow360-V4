@@ -441,6 +441,7 @@ app.get('/:relationshipId/activity', async (c) => {
 app.get('/analytics/network-strength/:contactId', async (c) => {
   try {
     const businessId = c.req.header('X-Business-ID') || 'business-founder-001';
+    void businessId;
     const contactId = c.req.param('contactId');
 
     const stats = await c.env.DB_MAIN.prepare(`
@@ -523,6 +524,7 @@ app.get('/analytics/company-map/:companyId', async (c) => {
 app.get('/analytics/top-connectors', async (c) => {
   try {
     const businessId = c.req.header('X-Business-ID') || 'business-founder-001';
+    void businessId;
     const limit = parseInt(c.req.query('limit') || '10');
 
     const topConnectors = await c.env.DB_MAIN.prepare(`

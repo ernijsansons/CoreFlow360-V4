@@ -4,7 +4,7 @@
  * No "quantum" nonsense - just what works in production
  */
 
-import type { AnalyticsEngineDataset, KVNamespace } from './types/cloudflare';
+
 import type { Env } from '../types/env';
 
 export class CloudflareIntegration {
@@ -428,8 +428,6 @@ export class CloudflareSecurity {
     }
 
     const hasCSRFToken = request.headers.has('X-CSRF-Token');
-    const hasAuth = request.headers.has('Authorization');
-
     if (request.method !== 'GET' && !hasCSRFToken) {
       return {
         name: 'security_headers',

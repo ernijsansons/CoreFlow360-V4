@@ -1,9 +1,6 @@
 // @ts-nocheck
 import { Hono } from 'hono';
-import {
-  ConnectionConfig,
-  MigrationStatus
-} from '../types/migration';
+import { ConnectionConfig } from '../types/migration';
 
 // GRUG: Missing types - create inline
 interface MigrationRequest {
@@ -18,8 +15,8 @@ interface ValidationResult {
 }
 import { ConnectorRegistry } from '../services/migration/connectors';
 import { AISchemaMapper } from '../services/migration/ai-schema-mapper';
-import { TransformationEngine } from '../services/migration/transformation-engine';
-import { SyncEngine } from '../services/migration/sync-engine';
+
+
 import { RollbackManager } from '../services/migration/rollback-manager';
 import { MigrationTester } from '../services/migration/migration-tester';
 import { ProgressTracker } from '../services/migration/progress-tracker';
@@ -112,7 +109,7 @@ migration.post('/schema/discover', async (c: any) => {
 
 migration.post('/schema/map', async (c: any) => {
   try {
-    const { sourceSchema, targetSchema, options } = await c.req.json();
+    const { sourceSchema, targetSchema } = await c.req.json();
     const env = c.env;
 
     // GRUG: AISchemaMapper takes Env object, not just AI binding
@@ -363,7 +360,7 @@ migration.get('/migrations', async (c: any) => {
 migration.post('/migration/:id/rollback', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
-    const { snapshotId, reason } = await c.req.json();
+    const { snapshotId } = await c.req.json();
     const env = c.env;
 
     // GRUG: rollback takes 2 args, not 3
@@ -399,7 +396,7 @@ migration.get('/migration/:id/snapshots', async (c: any) => {
 migration.post('/migration/:id/test', async (c: any) => {
   try {
     const migrationId = c.req.param('id');
-    const { testType, options } = await c.req.json();
+    const { testType } = await c.req.json();
     const env = c.env;
 
     // Get migration request

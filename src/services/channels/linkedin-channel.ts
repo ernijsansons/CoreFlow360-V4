@@ -188,7 +188,7 @@ export class LinkedInChannel extends BaseChannel {
   private async sendViaLinkedIn(
     recipient: Lead | Contact,
     message: string,
-    isConnected: boolean
+    _isConnected: boolean
   ): Promise<void> {
     if (!this.config.automation_enabled) {
       // Queue for manual sending

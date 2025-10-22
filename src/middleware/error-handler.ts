@@ -4,7 +4,10 @@
  * Implements structured error responses and logging
  */
 
-import type { AppContext, Next } from '../types/hono-context';
+import type { AppContext, Next } from '../types/hono-context';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "middleware-error-handler" });
+
+
 
 export interface ErrorResponse {
   error: {
@@ -267,9 +270,9 @@ export class ErrorHandler {
 
     // Console log for immediate visibility
     if ((context.statusCode && context.statusCode >= 500) || !error.isOperational) {
-      console.error('[ERROR]', JSON.stringify(logEntry, null, 2));
+      logger.error('[ERROR]', JSON.stringify(logEntry, null, 2));
     } else {
-      console.warn('[WARNING]', JSON.stringify(logEntry, null, 2));
+      logger.warn('[WARNING]', JSON.stringify(logEntry, null, 2));
     }
 
     // Store in KV if available
@@ -281,7 +284,7 @@ export class ErrorHandler {
           { expirationTtl: 7 * 24 * 60 * 60 } // 7 days retention
         );
       } catch (kvError) {
-        console.error('Failed to log error to KV:', kvError);
+        logger.error('Failed to log error to KV:', kvError);
       }
     }
   }
@@ -302,7 +305,7 @@ export class ErrorHandler {
     const timestamp = new Date().toISOString();
 
     // Log error
-    console.error('[UNEXPECTED ERROR]', {
+    logger.error('[UNEXPECTED ERROR]', {
       requestId,
       timestamp,
       message: error.message,
@@ -348,6 +351,7 @@ export class ErrorHandler {
    * Validate and throw appropriate errors
    */
   static validate(condition: boolean, message: string, statusCode = 400): void {
+  void statusCode;
     if (!condition) {
       throw new ValidationError(message);
     }
@@ -396,7 +400,7 @@ export async function errorRecoveryMiddleware(c: AppContext, next: Next) {
       }
 
       // Log retry attempt
-      console.warn(`Retry attempt ${attempt}/${maxRetries} for request ${c.req.path}`);
+      logger.warn(`Retry attempt ${attempt}/${maxRetries} for request ${c.req.path}`);
 
       // Wait before retry (exponential backoff)
       if (attempt < maxRetries) {
@@ -446,7 +450,7 @@ export class CircuitBreaker {
 
       if (this.failures >= this.threshold) {
         this.state = 'open';
-        console.error(`Circuit breaker opened after ${this.failures} failures`);
+        logger.error(`Circuit breaker opened after ${this.failures} failures`);
       }
 
       throw error;

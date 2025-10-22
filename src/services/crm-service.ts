@@ -1,7 +1,6 @@
 import { CRMDatabase } from '../database/crm-database';
 import type { Env } from '../types/env';
-import type {
-  Company,
+import type { Company,
   Contact,
   Lead,
   AITask,
@@ -27,15 +26,11 @@ import type {
   AnalyzeConversationPayload,
   QualificationResult,
   ConversationContext,
-  QualifyLeadTaskPayload,
   QualificationStatus,
   Meeting,
   MeetingBookingRequest,
   CalendarSlot,
-  MeetingType,
-  MeetingTemplate,
   Voicemail,
-  VoicemailTemplate,
   VoicemailCampaign,
   VoicemailRequest,
   VoicemailCampaignRequest,
@@ -54,8 +49,10 @@ import type {
   VoiceEmotion,
   VoicemailDeliveryStatus,
   VoicemailCampaignType,
-  CampaignStatus
-} from '../types/crm';
+  CampaignStatus } from '../types/crm';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-crm-service" });
+
+
 
 export class CRMService {
   private db: CRMDatabase;
@@ -136,7 +133,7 @@ export class CRMService {
     }
   }
 
-  async updateCompany(id: string, data: Partial<Company>): Promise<CRMResponse<Company>> {
+  async updateCompany(_id: string, _data: Partial<Company>): Promise<CRMResponse<Company>> {
     try {
       // Note: CRMDatabase doesn't have generic updateCompany, only updateCompanyAIData
       // For now, return not implemented
@@ -146,7 +143,7 @@ export class CRMService {
     }
   }
 
-  async deleteCompany(id: string): Promise<CRMResponse<boolean>> {
+  async deleteCompany(_id: string): Promise<CRMResponse<boolean>> {
     try {
       // Note: CRMDatabase doesn't have delete methods exposed
       return { success: false, error: 'Delete company not yet implemented in database layer' };
@@ -186,7 +183,7 @@ export class CRMService {
     }
   }
 
-  async updateContact(id: string, data: Partial<Contact>): Promise<CRMResponse<Contact>> {
+  async updateContact(_id: string, _data: Partial<Contact>): Promise<CRMResponse<Contact>> {
     try {
       // Note: CRMDatabase doesn't have generic updateContact
       return { success: false, error: 'Update contact not yet implemented in database layer' };
@@ -195,7 +192,7 @@ export class CRMService {
     }
   }
 
-  async deleteContact(id: string): Promise<CRMResponse<boolean>> {
+  async deleteContact(_id: string): Promise<CRMResponse<boolean>> {
     try {
       // Note: CRMDatabase doesn't have delete methods
       return { success: false, error: 'Delete contact not yet implemented in database layer' };
@@ -284,7 +281,7 @@ export class CRMService {
     }
   }
 
-  async deleteLead(id: string): Promise<CRMResponse<boolean>> {
+  async deleteLead(_id: string): Promise<CRMResponse<boolean>> {
     try {
       // Note: CRMDatabase doesn't have delete methods
       return { success: false, error: 'Delete lead not yet implemented in database layer' };
@@ -389,7 +386,7 @@ export class CRMService {
     }
   }
 
-  async deleteAITask(id: string): Promise<CRMResponse<boolean>> {
+  async deleteAITask(_id: string): Promise<CRMResponse<boolean>> {
     try {
       // Note: CRMDatabase doesn't have delete methods
       return { success: false, error: 'Delete task not yet implemented in database layer' };
@@ -412,7 +409,7 @@ export class CRMService {
     }
   }
 
-  async getConversation(id: string): Promise<CRMResponse<Conversation>> {
+  async getConversation(_id: string): Promise<CRMResponse<Conversation>> {
     try {
       // Note: CRMDatabase doesn't have getConversation
       return { success: false, error: 'Get conversation not yet implemented in database layer' };
@@ -442,7 +439,7 @@ export class CRMService {
     }
   }
 
-  async searchConversations(filters: ConversationFilters, pagination?: PaginationOptions): Promise<PaginatedResponse<Conversation>> {
+  async searchConversations(_filters: ConversationFilters, _pagination?: PaginationOptions): Promise<PaginatedResponse<Conversation>> {
     try {
       // Note: CRMDatabase doesn't have conversation search
       return {
@@ -465,6 +462,7 @@ export class CRMService {
         id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         created_at: new Date().toISOString()
       };
+      void newActivity;
 
       // Note: CRMDatabase doesn't have leadActivities methods
       return { success: false, error: 'Add lead activity not yet implemented in database layer' };
@@ -473,7 +471,7 @@ export class CRMService {
     }
   }
 
-  async getLeadActivities(leadId: string, pagination?: PaginationOptions): Promise<PaginatedResponse<LeadActivity>> {
+  async getLeadActivities(_leadId: string, _pagination?: PaginationOptions): Promise<PaginatedResponse<LeadActivity>> {
     try {
       // Note: CRMDatabase doesn't have leadActivities methods
       return {
@@ -489,7 +487,7 @@ export class CRMService {
   }
 
   // AI Operations
-  async researchCompany(payload: ResearchCompanyPayload): Promise<CRMResponse<Company>> {
+  async researchCompany(_payload: ResearchCompanyPayload): Promise<CRMResponse<Company>> {
     try {
       // Mock company research - would use AI in production
       const company: Company = {
@@ -553,14 +551,14 @@ export class CRMService {
   async sendFollowup(payload: SendFollowupPayload): Promise<CRMResponse<boolean>> {
     try {
       // Mock followup sending - would integrate with email/SMS in production
-      console.log(`Sending followup to lead ${payload.lead_id}: ${payload.template_type}`);
+      logger.info(`Sending followup to lead ${payload.lead_id}: ${payload.template_type}`);
       return { success: true, data: true };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async analyzeConversation(payload: AnalyzeConversationPayload): Promise<CRMResponse<ConversationContext>> {
+  async analyzeConversation(_payload: AnalyzeConversationPayload): Promise<CRMResponse<ConversationContext>> {
     try {
       // Mock conversation analysis - would use AI in production
       const context: ConversationContext = {
@@ -624,7 +622,7 @@ export class CRMService {
     }
   }
 
-  async getMeeting(id: string): Promise<CRMResponse<Meeting>> {
+  async getMeeting(_id: string): Promise<CRMResponse<Meeting>> {
     try {
       // Note: CRMDatabase doesn't have meeting methods
       return { success: false, error: 'Get meeting not yet implemented in database layer' };
@@ -633,7 +631,7 @@ export class CRMService {
     }
   }
 
-  async updateMeeting(id: string, data: Partial<Meeting>): Promise<CRMResponse<Meeting>> {
+  async updateMeeting(_id: string, _data: Partial<Meeting>): Promise<CRMResponse<Meeting>> {
     try {
       // Note: CRMDatabase doesn't have meeting methods
       return { success: false, error: 'Update meeting not yet implemented in database layer' };
@@ -642,7 +640,7 @@ export class CRMService {
     }
   }
 
-  async cancelMeeting(id: string): Promise<CRMResponse<boolean>> {
+  async cancelMeeting(_id: string): Promise<CRMResponse<boolean>> {
     try {
       // Note: CRMDatabase doesn't have meeting methods
       return { success: false, error: 'Cancel meeting not yet implemented in database layer' };
@@ -651,7 +649,7 @@ export class CRMService {
     }
   }
 
-  async getAvailableSlots(leadId: string, date: string, duration: number): Promise<CRMResponse<CalendarSlot[]>> {
+  async getAvailableSlots(leadId: string, date: string, _duration: number): Promise<CRMResponse<CalendarSlot[]>> {
     try {
       // Mock available slots - would integrate with calendar in production
       const slots: CalendarSlot[] = [
@@ -727,7 +725,7 @@ export class CRMService {
     }
   }
 
-  async getVoicemail(id: string): Promise<CRMResponse<Voicemail>> {
+  async getVoicemail(_id: string): Promise<CRMResponse<Voicemail>> {
     try {
       // Note: CRMDatabase doesn't have voicemail methods
       return { success: false, error: 'Get voicemail not yet implemented in database layer' };
@@ -795,7 +793,7 @@ export class CRMService {
   }
 
   // Metrics and Analytics
-  async getLeadMetrics(filters?: LeadFilters): Promise<CRMResponse<LeadMetrics>> {
+  async getLeadMetrics(_filters?: LeadFilters): Promise<CRMResponse<LeadMetrics>> {
     try {
       // Mock lead metrics - would calculate from actual data in production
       const metrics: LeadMetrics = {
@@ -815,7 +813,7 @@ export class CRMService {
     }
   }
 
-  async getContactMetrics(filters?: ContactFilters): Promise<CRMResponse<ContactMetrics>> {
+  async getContactMetrics(_filters?: ContactFilters): Promise<CRMResponse<ContactMetrics>> {
     try {
       // Mock contact metrics - would calculate from actual data in production
       const metrics: ContactMetrics = {
@@ -867,18 +865,18 @@ export class CRMService {
   async emitEvent(event: CRMEvent): Promise<void> {
     try {
       // Mock event emission - would integrate with event system in production
-      console.log('CRM Event:', event);
+      logger.info('CRM Event:', event);
     } catch (error: any) {
-      console.error('Failed to emit CRM event:', error);
+      logger.error('Failed to emit CRM event:', error);
     }
   }
 
-  async onEvent(eventType: string, callback: (event: CRMEvent) => void): Promise<void> {
+  async onEvent(eventType: string, _callback: (event: CRMEvent) => void): Promise<void> {
     try {
       // Mock event subscription - would integrate with event system in production
-      console.log(`Subscribed to CRM event: ${eventType}`);
+      logger.info(`Subscribed to CRM event: ${eventType}`);
     } catch (error: any) {
-      console.error('Failed to subscribe to CRM event:', error);
+      logger.error('Failed to subscribe to CRM event:', error);
     }
   }
 
@@ -904,9 +902,9 @@ export class CRMService {
   async cleanup(): Promise<void> {
     try {
       // Mock cleanup - would close database connections in production
-      console.log('CRM Service cleanup completed');
+      logger.info('CRM Service cleanup completed');
     } catch (error: any) {
-      console.error('CRM Service cleanup failed:', error);
+      logger.error('CRM Service cleanup failed:', error);
     }
   }
 }

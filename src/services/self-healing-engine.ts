@@ -240,7 +240,7 @@ export class SelfHealingEngine {
     return null;
   }
 
-  private async executeAction(action: SelfHealingAction, alert: Alert): Promise<{ success: boolean; message: string }> {
+  private async executeAction(action: SelfHealingAction, _alert: Alert): Promise<{ success: boolean; message: string }> {
     try {
       switch (action.type) {
         case 'SCALE_UP':
@@ -624,7 +624,7 @@ export class SelfHealingEngine {
     return result.results;
   }
 
-  private async getRecentDeployments(businessId: string, serviceName: string): Promise<any[]> {
+  private async getRecentDeployments(_businessId: string, _serviceName: string): Promise<any[]> {
     // This would query your deployment tracking system
     // For now, return empty array
     return [];
@@ -634,7 +634,7 @@ export class SelfHealingEngine {
     return { status: 'active', healingActions: 0 };
   }
 
-  async triggerHealing(issue: any): Promise<any> {
+  async triggerHealing(_issue: any): Promise<any> {
     return { success: true, action: 'healing_initiated' };
   }
 

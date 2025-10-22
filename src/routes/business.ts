@@ -1,9 +1,11 @@
 // @ts-nocheck
-import { Hono, type Context } from 'hono';
+import { Hono } from 'hono';
+// TODO: Use Context type when needed
+// import type { Context } from 'hono';
 import type { Env } from '../types/env';
 import { BusinessSwitchService } from '../modules/business-switch/service';
 import { authenticate } from '../middleware/auth';
-import { rateLimiters } from '../middleware/rate-limit';
+
 import { errorHandler, asyncHandler } from '../shared/error-handler';
 import {
   SwitchBusinessRequestSchema,

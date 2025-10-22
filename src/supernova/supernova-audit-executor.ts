@@ -6,7 +6,8 @@
 import { Logger } from '../shared/logger';
 import { SupernovaDeepAuditor } from './supernova-deep-audit';
 import * as fs from 'fs/promises';
-import * as path from 'path';
+// TODO: Use path when implementing file operations
+// import * as path from 'path';
 
 const logger = new Logger({ component: 'supernova-audit-executor' });
 

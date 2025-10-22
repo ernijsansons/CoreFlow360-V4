@@ -207,7 +207,7 @@ class TranscriptionService {
    */
   private async callWhisperAPI(
     audioBuffer: ArrayBuffer,
-    request: TranscriptionRequest
+    _request: TranscriptionRequest
   ): Promise<any> {
     try {
       // Check if AI binding is available
@@ -238,7 +238,7 @@ class TranscriptionService {
    */
   private async preprocessAudio(
     audioBuffer: ArrayBuffer,
-    format: string
+    _format: string
   ): Promise<ArrayBuffer> {
     // Basic audio preprocessing
     // In production, you might want to:

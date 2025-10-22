@@ -5,17 +5,9 @@ import type { Env } from '../types/env';
 import { QuantumDataAuditor } from '../data-integrity/quantum-data-auditor';
 import { AutomatedDataFixer } from '../data-integrity/automated-data-fixer';
 import { Logger } from '../shared/logger';
-import type {
-  DataAuditReport,
-  DataIssue as AuditorDataIssue
-} from '../data-integrity/quantum-data-auditor';
-import type {
-  FixStrategy,
-  FixPreview,
-  FixExecution,
-  AutomatedDataFixerConfig,
-  DataIssue as FixerDataIssue
-} from '../data-integrity/automated-data-fixer';
+import type { DataIssue as AuditorDataIssue } from '../data-integrity/quantum-data-auditor';
+import type { AutomatedDataFixerConfig,
+  DataIssue as FixerDataIssue } from '../data-integrity/automated-data-fixer';
 
 type AppContext = Context<{ Bindings: Env; Variables: { userId?: string; businessId?: string } }>;
 

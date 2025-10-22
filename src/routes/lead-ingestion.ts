@@ -4,14 +4,11 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { LeadIngestionService } from '../services/lead-ingestion-service';
 import type { Env } from '../types/env';
-import type {
-  MetaLeadPayload,
+import type { MetaLeadPayload,
   ChatMessage,
   ParsedEmail,
   LeadInput,
-  FormSubmission,
-  ChatAIResponse
-} from '../types/lead-ingestion';
+  FormSubmission } from '../types/lead-ingestion';
 
 const app = new Hono<{ Bindings: Env }>();
 

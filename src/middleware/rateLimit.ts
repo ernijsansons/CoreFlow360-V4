@@ -1,3 +1,6 @@
+import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "middleware-rateLimit" });
+
 /**
  * Distributed Rate Limiting Middleware for CoreFlow360 V4
  *
@@ -545,7 +548,7 @@ export async function rateLimit(
     return result;
     
   } catch (error) {
-    console.error('Rate limiting error:', error);
+    logger.error('Rate limiting error:', error);
     
     // SECURITY: Fail closed - deny request if rate limiting fails
     return {

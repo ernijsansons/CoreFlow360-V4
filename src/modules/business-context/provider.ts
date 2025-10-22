@@ -4,8 +4,7 @@
  */
 
 import type { D1Database } from '@cloudflare/workers-types';
-import {
-  BusinessContextData,
+import { BusinessContextData,
   CompanyProfile,
   DepartmentProfile,
   UserProfile,
@@ -14,18 +13,16 @@ import {
   ContextualPrompts,
   RealTimeMetrics,
   ContextEnrichmentConfig,
-  BusinessContextError,
   BusinessAccessError,
   ContextNotFoundError,
   DEFAULT_CONTEXT_CONFIG,
-  CONTEXT_CONSTANTS
-} from './types';
+  CONTEXT_CONSTANTS } from './types';
 import { ContextCache } from './cache';
 import { CompanyAnalyzer } from './company-analyzer';
 import { DepartmentProfiler } from './department-profiler';
 import { ContextEnricher } from './context-enricher';
 import { Logger } from '../../shared/logger';
-import { CorrelationId } from '../../shared/security-utils';
+
 
 export class BusinessContextProvider {
   private logger: Logger;
@@ -556,7 +553,7 @@ export class BusinessContextProvider {
     return Math.min(1.0, score);
   }
 
-  private async getUserPermissions(userId: string, businessId: string): Promise<UserProfile['permissions']> {
+  private async getUserPermissions(_userId: string, _businessId: string): Promise<UserProfile['permissions']> {
     // Get user permissions from database or capability system
     // This is a simplified implementation
     return {
@@ -567,27 +564,27 @@ export class BusinessContextProvider {
     };
   }
 
-  private async getUserProjects(userId: string, businessId: string): Promise<string[]> {
+  private async getUserProjects(_userId: string, _businessId: string): Promise<string[]> {
     // Get user's current projects
     return [];
   }
 
-  private async getUserRecentTasks(userId: string, businessId: string): Promise<string[]> {
+  private async getUserRecentTasks(_userId: string, _businessId: string): Promise<string[]> {
     // Get user's recent tasks
     return [];
   }
 
-  private async getRealTimeFinancialMetrics(businessId: string): Promise<RealTimeMetrics['financial']> {
+  private async getRealTimeFinancialMetrics(_businessId: string): Promise<RealTimeMetrics['financial']> {
     // Get real-time financial data
     return {};
   }
 
-  private async getRealTimeOperationalMetrics(businessId: string): Promise<RealTimeMetrics['operational']> {
+  private async getRealTimeOperationalMetrics(_businessId: string): Promise<RealTimeMetrics['operational']> {
     // Get real-time operational data
     return {};
   }
 
-  private async getRealTimeDepartmentalMetrics(businessId: string, department: string): Promise<any> {
+  private async getRealTimeDepartmentalMetrics(_businessId: string, _department: string): Promise<any> {
     // Get real-time departmental data
     return {
       productivity: 75,

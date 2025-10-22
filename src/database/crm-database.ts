@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import type { Env } from '../types/env';
 import { circuitBreakerRegistry, CircuitBreakerConfigs } from '../shared/circuit-breaker';
-import { errorHandler, ErrorFactories, ApplicationError } from '../shared/error-handling';
+import { ErrorFactories } from '../shared/error-handling';
 import { Logger } from '../shared/logger';
-import { TransactionManager, withTransaction, type TransactionOptions } from '../shared/transaction-manager';
+import { TransactionManager } from '../shared/transaction-manager';
+// TODO: Implement transaction options when needed
+// import type { TransactionOptions } from '../shared/transaction-manager';
 
 // Input validation schemas
 export const CreateCompanySchema = z.object({
@@ -303,6 +305,27 @@ export class CRMDatabase {
     });
   }
 
+  private isRunSuccessful(result: any): boolean {
+    if (!result) return false;
+    if (typeof result.success === 'boolean') {
+      return result.success;
+    }
+    if (result.meta && typeof result.meta.success === 'boolean') {
+      return result.meta.success;
+    }
+    return false;
+  }
+
+  private getAffectedRows(result: any): number {
+    if (result?.meta?.changes != null) {
+      return result.meta.changes;
+    }
+    if (typeof result?.changes === 'number') {
+      return result.changes;
+    }
+    return 0;
+  }
+
   /**
    * Track query performance metrics
    */
@@ -481,7 +504,7 @@ export class CRMDatabase {
     try {
       const validation = CreateCompanySchema.safeParse(data);
       if (!validation.success) {
-        return { success: false, error: validation.error.message };
+        return { success: false, error: `Validation error: ${validation.error.message}` };
       }
 
       const id = this.generateId();
@@ -494,7 +517,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.meta.success) {
+      if (!this.isRunSuccessful(result)) {
         return { success: false, error: 'Failed to create company' };
       }
 
@@ -510,7 +533,7 @@ export class CRMDatabase {
         'SELECT * FROM companies WHERE id = ? AND business_id = ?',
         [id, businessId],
         'first',
-        true
+        false
       );
 
       if (!result) {
@@ -554,7 +577,7 @@ export class CRMDatabase {
       // Invalidate cache for this company
       this.invalidateCache(`companies WHERE id = ? AND business_id = ?`);
 
-      return { success: Boolean(result.meta.success), data: { updated: result.meta.changes } };
+      return { success: this.isRunSuccessful(result), data: { updated: this.getAffectedRows(result) } };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -578,7 +601,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.meta.success) {
+      if (!this.isRunSuccessful(result)) {
         return { success: false, error: 'Failed to create contact' };
       }
 
@@ -630,7 +653,7 @@ export class CRMDatabase {
     try {
       const validation = CreateLeadSchema.safeParse(data);
       if (!validation.success) {
-        return { success: false, error: validation.error.message };
+        return { success: false, error: `Validation error: ${validation.error.message}` };
       }
 
       const id = this.generateId();
@@ -643,7 +666,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.meta.success) {
+      if (!this.isRunSuccessful(result)) {
         return { success: false, error: 'Failed to create lead' };
       }
 
@@ -752,9 +775,7 @@ export class CRMDatabase {
   async updateLeadStatus(id: string, status: string, aiSummary?: string): Promise<DatabaseResult> {
     try {
       const result = await this.executeWithOptimization<any>(
-        `UPDATE leads
-         SET status = ?, ai_qualification_summary = COALESCE(?, ai_qualification_summary), updated_at = CURRENT_TIMESTAMP
-         WHERE id = ?`,
+        'UPDATE leads SET status = ?, ai_qualification_summary = COALESCE(?, ai_qualification_summary), updated_at = CURRENT_TIMESTAMP WHERE id = ?',
         [status, aiSummary, id],
         'run',
         false
@@ -763,7 +784,7 @@ export class CRMDatabase {
       // Invalidate cache for leads queries
       this.invalidateCache('FROM leads');
 
-      return { success: Boolean(result.meta.success), data: { updated: result.meta.changes } };
+      return { success: this.isRunSuccessful(result), data: { updated: this.getAffectedRows(result) } };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -774,7 +795,7 @@ export class CRMDatabase {
     try {
       const validation = CreateAITaskSchema.safeParse(data);
       if (!validation.success) {
-        return { success: false, error: validation.error.message };
+        return { success: false, error: `Validation error: ${validation.error.message}` };
       }
 
       const id = this.generateId();
@@ -787,7 +808,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(validation.data))
         .run();
 
-      if (!result.meta.success) {
+      if (!this.isRunSuccessful(result)) {
         return { success: false, error: 'Failed to create AI task' };
       }
 
@@ -853,7 +874,7 @@ export class CRMDatabase {
         .bind(...params)
         .run();
 
-      return { success: Boolean(result.meta.success), data: { updated: result.meta.changes } };
+      return { success: this.isRunSuccessful(result), data: { updated: this.getAffectedRows(result) } };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
@@ -883,7 +904,7 @@ export class CRMDatabase {
         .bind(id, ...Object.values(data))
         .run();
 
-      if (!result.meta.success) {
+      if (!this.isRunSuccessful(result)) {
         return { success: false, error: 'Failed to create conversation' };
       }
 
@@ -917,7 +938,7 @@ export class CRMDatabase {
         .bind(...values, id)
         .run();
 
-      return { success: Boolean(result.meta.success), data: { updated: result.meta.changes } };
+      return { success: this.isRunSuccessful(result), data: { updated: this.getAffectedRows(result) } };
     } catch (error: any) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }

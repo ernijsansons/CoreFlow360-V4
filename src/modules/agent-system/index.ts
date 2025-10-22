@@ -562,16 +562,16 @@ export class ExampleSpecializedAgent {
   readonly costPerCall = 0.001;
   readonly maxConcurrency = 100;
 
-  async execute(task: AgentTask, context: BusinessContext): Promise<any> {
+  async execute(_task: AgentTask, _context: BusinessContext): Promise<any> {
     // Your future implementation here
     throw new Error('Not implemented yet - placeholder for future specialized agent');
   }
 
-  validateInput(input: unknown): any {
+  validateInput(_input: unknown): any {
     return { valid: true };
   }
 
-  estimateCost(task: AgentTask): number {
+  estimateCost(_task: AgentTask): number {
     return this.costPerCall;
   }
 

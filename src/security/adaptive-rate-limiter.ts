@@ -3,7 +3,7 @@
  * Dynamic rate limiting based on behavior analysis and threat detection
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 
@@ -268,7 +268,7 @@ export class AdaptiveRateLimiter {
   /**
    * Check individual rate limit
    */
-  private async checkLimit(key: RateLimitKey, request: Request): Promise<RateLimitCheck> {
+  private async checkLimit(key: RateLimitKey, _request: Request): Promise<RateLimitCheck> {
     const config = this.getLimitConfig(key);
     const state = this.getOrCreateState(key);
 
@@ -685,12 +685,12 @@ export class AdaptiveRateLimiter {
     return recentRequests.length > 30; // More than 30 requests per minute
   }
 
-  private async isKnownBadIP(ip: string): Promise<boolean> {
+  private async isKnownBadIP(_ip: string): Promise<boolean> {
     // Would check threat intelligence feeds
     return false;
   }
 
-  private async checkGeoAnomaly(keys: RateLimitKey[], headers: Record<string, string>): Promise<boolean> {
+  private async checkGeoAnomaly(_keys: RateLimitKey[], _headers: Record<string, string>): Promise<boolean> {
     // Would check if location is unusual for this user
     return false;
   }
@@ -719,6 +719,7 @@ export class AdaptiveRateLimiter {
     let totalRequests = 0;
     let totalUsers = 0;
     let totalErrors = 0;
+    void totalErrors;
 
     for (const [key, state] of this.limits.entries()) {
       const recentRequests = state.requests.filter((r: any) => r > Date.now() - 60000);

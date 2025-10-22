@@ -24,7 +24,7 @@ export class AgentProxy {
    * Middleware to proxy requests to the agent system
    */
   middleware() {
-    return async (c: Context, next: Next) => {
+    return async (c: Context, _next: Next) => {
       const originalPath = c.req.path;
       const targetPath = this.config.rewrite ? this.config.rewrite(originalPath) : originalPath;
       const targetUrl = `${this.config.target}${targetPath}`;
@@ -139,11 +139,11 @@ export class AgentProxy {
         };
 
         // Handle errors and closing
-        clientWs.onerror = (error: any) => {
+        clientWs.onerror = (_error: any) => {
           targetWs.close();
         };
 
-        targetWs.onerror = (error: any) => {
+        targetWs.onerror = (_error: any) => {
           clientWs.close();
         };
 

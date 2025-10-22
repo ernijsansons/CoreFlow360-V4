@@ -222,6 +222,7 @@ class CallAnalyticsService {
 
     const allCalls = Array.from(this.callResults.values());
     const recentCalls = allCalls.filter((call: any) => {
+    void recentCalls;
       const callDate = new Date(call.created_at);
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       return callDate >= thirtyDaysAgo;
@@ -545,7 +546,7 @@ class CallAnalyticsService {
     this.dailyStats.set(dateKey, existing);
   }
 
-  private async updateWeeklyTrends(weekKey: string, callResult: CallResult): Promise<void> {
+  private async updateWeeklyTrends(_weekKey: string, _callResult: CallResult): Promise<void> {
     // Implementation for weekly trends calculation
     // This would compare current week performance to previous weeks
   }
@@ -563,7 +564,7 @@ class CallAnalyticsService {
   }
 
   // Performance calculation methods
-  private calculateScriptAdherence(calls: CallResult[]): number {
+  private calculateScriptAdherence(_calls: CallResult[]): number {
     // Placeholder implementation - would analyze transcript against script
     return 82;
   }
@@ -578,12 +579,12 @@ class CallAnalyticsService {
     return totalObjections > 0 ? (resolvedObjections / totalObjections) * 100 : 100;
   }
 
-  private calculateConversationFlowScore(calls: CallResult[]): number {
+  private calculateConversationFlowScore(_calls: CallResult[]): number {
     // Placeholder implementation - would analyze conversation structure
     return 78;
   }
 
-  private calculatePersonalizationScore(calls: CallResult[]): number {
+  private calculatePersonalizationScore(_calls: CallResult[]): number {
     // Placeholder implementation - would analyze use of lead-specific information
     return 75;
   }

@@ -183,6 +183,7 @@ app.get('/charts/:metric', async (c) => {
       case 'revenue':
         const days = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : dateRange === '90d' ? 90 : 365;
         const months = Math.ceil(days / 30);
+        void months;
 
         const revenueResults = await db.prepare(`
           SELECT

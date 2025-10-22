@@ -194,7 +194,7 @@ export function createAdvancedRateLimiter(
       result = await Promise.race([checkPromise, timeoutPromise]);
     } catch (error: any) {
       // Fail open on timeout to maintain availability
-      console.warn('Rate limit check timed out, allowing request:', error);
+      logger.warn('Rate limit check timed out, allowing request:', error);
       await next();
       return;
     }
@@ -354,7 +354,7 @@ export function tierBasedRateLimiter() {
 
     // Apply tier-based rate limiting
     return createAdvancedRateLimiter('api', config,
-      (c) => `api:business:${businessId}`)(c, next);
+      (_c) => `api:business:${businessId}`)(c, next);
   };
 }
 

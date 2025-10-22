@@ -1,6 +1,9 @@
 #!/usr/bin/env ts-node
 
-import { ProductionLaunchOrchestrator } from './orchestrator/ProductionLaunchOrchestrator';
+import { ProductionLaunchOrchestrator } from './orchestrator/ProductionLaunchOrchestrator';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "production-launch-production-launch" });
+
+
 
 async function main() {
   try {
@@ -53,12 +56,12 @@ async function showLaunchStatus(orchestrator: ProductionLaunchOrchestrator): Pro
 
 
   if (status.issues.length > 0) {
-    status.issues.forEach((issue, index) => {
+    status.issues.forEach((_issue, _index) => {
     });
   }
 }
 
-async function validateLaunchReadiness(orchestrator: ProductionLaunchOrchestrator): Promise<void> {
+async function validateLaunchReadiness(_orchestrator: ProductionLaunchOrchestrator): Promise<void> {
 
   // This would run pre-flight checks without starting the launch
   const validator = new (await import('./validators/PreFlightValidator.js')).PreFlightValidator();
@@ -66,7 +69,7 @@ async function validateLaunchReadiness(orchestrator: ProductionLaunchOrchestrato
 
 
   if (!checks.allPassed) {
-    checks.failures.forEach((failure, index) => {
+    checks.failures.forEach((_failure, _index) => {
     });
   }
 
@@ -75,18 +78,19 @@ async function validateLaunchReadiness(orchestrator: ProductionLaunchOrchestrato
 
 async function executeLaunch(orchestrator: ProductionLaunchOrchestrator): Promise<void> {
 
-  const startTime = Date.now();
+  // const startTime = Date.now();
 
   try {
-    const result = await orchestrator.initiateGoLive();
+    // const _result = await orchestrator.initiateGoLive();
+    await orchestrator.initiateGoLive();
 
-    const duration = (Date.now() - startTime) / 1000;
+    // const _duration = (Date.now() - startTime) / 1000;
 
 
     process.exit(0);
 
   } catch (error: any) {
-    const duration = (Date.now() - startTime) / 1000;
+    // const _duration = (Date.now() - startTime) / 1000;
 
 
     process.exit(1);
@@ -124,7 +128,7 @@ async function abortLaunch(orchestrator: ProductionLaunchOrchestrator): Promise<
   await orchestrator.abortLaunch();
 }
 
-async function testRollback(orchestrator: ProductionLaunchOrchestrator): Promise<void> {
+async function testRollback(_orchestrator: ProductionLaunchOrchestrator): Promise<void> {
 
   const rollbackManager = new (await import('./rollback/RollbackManager.js')).RollbackManager();
 
@@ -132,14 +136,14 @@ async function testRollback(orchestrator: ProductionLaunchOrchestrator): Promise
   const readiness = await rollbackManager.validateRollbackReadiness();
 
   if (!readiness.ready) {
-    readiness.issues.forEach((issue: any) => console.log(`  - ${issue}`));
+    readiness.issues.forEach((issue: any) => logger.info(`  - ${issue}`));
   }
 
   // Test rollback procedure
   const testResult = await rollbackManager.testRollbackProcedure();
 
   if (testResult.issues.length > 0) {
-    testResult.issues.forEach((issue: any) => console.log(`  - ${issue}`));
+    testResult.issues.forEach((issue: any) => logger.info(`  - ${issue}`));
   }
 }
 

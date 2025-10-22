@@ -147,7 +147,7 @@ export class DashboardMetrics extends DurableObject {
   /**
    * Get current metric value
    */
-  private async handleCurrentValue(request: Request): Promise<Response> {
+  private async handleCurrentValue(_request: Request): Promise<Response> {
     if (!this.config) {
       // Try to load config from storage
       const result = this.sql.exec('SELECT value FROM metric_config WHERE key = ?', 'config').one()

@@ -6,7 +6,8 @@
 import { Hono, type Context } from 'hono'
 import { z } from 'zod'
 import type { Env } from '../types/env'
-import { validateInput } from '../middleware/validation'
+// TODO: Use validateInput when implementing validation
+// import { validateInput } from '../middleware/validation'
 import { authenticate } from '../middleware/auth'
 
 // Type for route handler context with variables
@@ -80,6 +81,7 @@ chat.post('/message',
   async (c: AppContext) => {
     try {
       const { conversationId, message } = c.get('validatedData') as any;
+      void message;
       const user = c.get('user');
       if (!user) {
         return c.json({ error: 'Unauthorized' }, 401);

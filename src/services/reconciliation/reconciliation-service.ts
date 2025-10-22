@@ -6,14 +6,15 @@
 
 import type { Env } from '../../types/env';
 
-interface Account {
-  id: string;
-  business_id: string;
-  account_name: string;
-  account_type: string;
-  current_balance: number;
-  currency: string;
-}
+// TODO: Use Account interface when implementing reconciliation
+// interface Account {
+//   id: string;
+//   business_id: string;
+//   account_name: string;
+//   account_type: string;
+//   current_balance: number;
+//   currency: string;
+// }
 
 interface Reconciliation {
   id: string;

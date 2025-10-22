@@ -186,15 +186,15 @@ export class ImageAnalyzer {
     return image.context.usage === 'background' || image.path.includes('gradient');
   }
 
-  private getColorProfile(image: ImageAsset): string {
+  private getColorProfile(_image: ImageAsset): string {
     return 'sRGB';
   }
 
-  private extractDominantColors(image: ImageAsset): string[] {
+  private extractDominantColors(_image: ImageAsset): string[] {
     return ['#1a1a1a', '#ffffff', '#0066cc'];
   }
 
-  private measureSharpness(image: ImageAsset): number {
+  private measureSharpness(_image: ImageAsset): number {
     return 0.8;
   }
 }
@@ -348,7 +348,7 @@ export class LQIPGenerator {
     }
   }
 
-  private async generateBase64LQIP(image: ImageAsset, config: LQIPConfig): Promise<string> {
+  private async generateBase64LQIP(_image: ImageAsset, _config: LQIPConfig): Promise<string> {
     const placeholderData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
     return `data:image/jpeg;base64,${placeholderData}`;
   }
@@ -365,7 +365,7 @@ export class LQIPGenerator {
     return `data:image/svg+xml;base64,${btoa(svg)}`;
   }
 
-  private async generateBlurHashLQIP(image: ImageAsset, config: LQIPConfig): Promise<string> {
+  private async generateBlurHashLQIP(_image: ImageAsset, _config: LQIPConfig): Promise<string> {
     return 'LEHV6nWB2yk8pyo0adR*.7kCMdnj';
   }
 }

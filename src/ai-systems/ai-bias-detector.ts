@@ -14,8 +14,6 @@ import type {
   BiasRecommendation
 } from './quantum-ai-auditor';
 
-const logger = new Logger({ component: 'ai-bias-detector'});
-
 export interface BiasTestCase {
   id: string;
   type: 'demographic' | 'selection' | 'confirmation' | 'availability' | 'anchoring';
@@ -470,8 +468,8 @@ export class AIBiasDetector {
   }
 
   private async generateMitigations(
-    biasTypes: BiasTypeAnalysis[],
-    affectedGroups: AffectedGroupAnalysis[]
+    _biasTypes: BiasTypeAnalysis[],
+    _affectedGroups: AffectedGroupAnalysis[]
   ): Promise<BiasMitigation[]> {
     const mitigations: BiasMitigation[] = [];
     

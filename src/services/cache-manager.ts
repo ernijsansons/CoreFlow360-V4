@@ -602,12 +602,12 @@ export class CacheManager extends DurableObject<any> {
     return []
   }
 
-  private async predictCacheMisses(patterns: any[]): Promise<any[]> {
+  private async predictCacheMisses(_patterns: any[]): Promise<any[]> {
     // Implementation for cache miss prediction
     return []
   }
 
-  private async fetchDataForKey(key: string): Promise<any> {
+  private async fetchDataForKey(_key: string): Promise<any> {
     // Implementation for proactive data fetching
     return null
   }
@@ -620,11 +620,11 @@ export class CacheManager extends DurableObject<any> {
     // Implementation for scheduled entry warming
   }
 
-  private async trackCacheAnalytics(key: string, source: string, responseTime: number): Promise<void> {
+  private async trackCacheAnalytics(_key: string, _source: string, _responseTime: number): Promise<void> {
     // Implementation for cache analytics tracking
   }
 
-  private async logCacheOperation(operation: string, details: any): Promise<void> {
+  private async logCacheOperation(_operation: string, _details: any): Promise<void> {
     // Implementation for cache operation logging
   }
 

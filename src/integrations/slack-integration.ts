@@ -6,17 +6,19 @@
 
 import type { D1Database } from '@cloudflare/workers-types';
 import { AutoCaptureEngine, type CapturedInteraction, type Participant } from '../services/crm/auto-capture';
-import {
-  SlackUserInfoResponseSchema,
+import { SlackUserInfoResponseSchema,
   SlackChannelInfoResponseSchema,
   SlackConversationHistoryResponseSchema,
-  SlackMessageEventSchema,
   validateAPIResponse,
   type SlackUserInfoResponse,
   type SlackChannelInfoResponse,
-  type SlackConversationHistoryResponse,
-  type SlackMessageEvent,
+  type SlackConversationHistoryResponse
+  // type SlackMessageEvent
 } from './types/api-responses';
+import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "integrations-slack-integration" });
+
+
 
 // ============================================================
 // TYPES
@@ -143,7 +145,7 @@ export class SlackIntegration {
         }
       }
     } catch (error: any) {
-      console.error('Slack event handler error:', error);
+      logger.error('Slack event handler error:', error);
       throw error;
     }
   }
@@ -204,7 +206,7 @@ export class SlackIntegration {
       const engine = new AutoCaptureEngine(this.db, this.businessId, 'system');
       await engine.captureInteraction(interaction);
     } catch (error: any) {
-      console.error('Message capture error:', error);
+      logger.error('Message capture error:', error);
       throw error;
     }
   }
@@ -455,10 +457,10 @@ export class SlackIntegration {
    * Validate webhook signature (for production use)
    */
   static validateWebhookSignature(
-    signature: string,
-    timestamp: string,
-    body: string,
-    signingSecret: string
+    _signature: string,
+    _timestamp: string,
+    _body: string,
+    _signingSecret: string
   ): boolean {
     // In production, implement Slack's signature validation
     // See: https://api.slack.com/authentication/verifying-requests-from-slack

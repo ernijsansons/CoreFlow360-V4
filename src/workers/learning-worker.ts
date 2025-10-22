@@ -165,6 +165,7 @@ export class LearningWorker {
           break;
         case 'closing':
           patterns = await this.patternRecognition.identifyClosingPatterns();
+          void patterns;
           break;
       }
 
@@ -311,7 +312,7 @@ export class LearningWorker {
   }
 
   // Apply successful experiment results
-  private async applyExperimentResults(experiment: any): Promise<void> {
+  private async applyExperimentResults(_experiment: any): Promise<void> {
 
     // This would update strategies, prompts, or other components
     // based on the successful experiment
@@ -435,7 +436,7 @@ export default {
     // Start worker if not already running
     if (url.pathname === '/worker/start') {
       const worker = new LearningWorker(env);
-      worker.start().catch((error: any) => {
+      worker.start().catch((_error: any) => {
       });
 
       return new Response(JSON.stringify({ success: true, message: 'Worker started' }), {
@@ -461,7 +462,7 @@ export default {
     // Process queued tasks
     const status = await worker.getStatus();
     if (!status.isProcessing && status.queueLength > 0) {
-      worker.start().catch((error: any) => {
+      worker.start().catch((_error: any) => {
       });
     }
   }

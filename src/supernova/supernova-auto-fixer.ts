@@ -121,6 +121,7 @@ export class SupernovaAutoFixer {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       const lines = content.split('\n');
+      void lines;
       let fixedContent = content;
 
       // Fix common TypeScript syntax errors
@@ -172,7 +173,7 @@ export class SupernovaAutoFixer {
     fixed = fixed.replace(/([^;}])\s*$/gm, '$1;');
 
     // Fix missing commas in object literals
-    fixed = fixed.replace(/(\w+)\s*$/gm, (match, p1) => {
+    fixed = fixed.replace(/(\w+)\s*$/gm, (match, _p1) => {
       if (match.includes(':')) return match;
       return match + ',';
     });

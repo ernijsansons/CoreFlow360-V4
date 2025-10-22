@@ -1,12 +1,8 @@
-import type {
-  Subject,
+import type { Subject,
   Resource,
-  Action,
   Capability,
   EvaluationResult,
-  PolicyRule,
-  PermissionBundle,
-} from './types';
+  PermissionBundle } from './types';
 import { FastPathEvaluator } from './fast-path';
 import { PolicyEvaluator } from './policy-evaluator';
 import { ABACCache } from './cache';
@@ -235,7 +231,7 @@ export class PermissionResolver {
     subject: Subject,
     capability: Capability,
     resource: Resource | undefined,
-    granted: boolean
+    _granted: boolean
   ): Promise<void> {
     // Update bundle in cache
     const bundle = await (this.cache as any).getBundle((subject as any).id);

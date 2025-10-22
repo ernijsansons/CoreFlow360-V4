@@ -15,7 +15,7 @@ describe('ClaudeAgent', () => {
 
   beforeEach(() => {
     mockEnv = {
-      ANTHROPIC_API_KEY: 'test-api-key-12345'
+      apiKey: 'test-api-key-12345'  // Use lowercase 'apiKey' for constructor
     };
 
     agent = new ClaudeAgent(mockEnv);
@@ -152,6 +152,10 @@ describe('ClaudeAgent', () => {
 
       const result = await agent.execute(task, testContext);
 
+      if (result.status === 'failed') {
+        console.log('FINANCIAL ANALYSIS ERROR:', JSON.stringify(result.error, null, 2));
+      }
+
       expect(result.status).toBe('completed');
       expect(result.result.data).toBeDefined();
       expect(result.metrics.tokensUsed).toBe(350);
@@ -270,6 +274,10 @@ describe('ClaudeAgent', () => {
 
       const result = await agent.execute(task, testContext);
 
+      if (result.error?.code !== 'RATE_LIMIT_EXCEEDED') {
+        console.log('RATE LIMIT ERROR:', JSON.stringify(result.error, null, 2));
+      }
+
       expect(result.status).toBe('failed');
       expect(result.error).toBeDefined();
       expect(result.error?.code).toBe('RATE_LIMIT_EXCEEDED');
@@ -280,7 +288,8 @@ describe('ClaudeAgent', () => {
         .mockResolvedValueOnce({
           ok: false,
           status: 500,
-          statusText: 'Internal Server Error'
+          statusText: 'Internal Server Error',
+          json: async () => ({ error: { message: 'Internal server error' } })
         })
         .mockResolvedValueOnce({
           ok: true,
@@ -746,7 +755,7 @@ describe('ClaudeAgent', () => {
 
   describe('Error Handling', () => {
     it('should handle invalid API key', async () => {
-      const invalidEnv = { ANTHROPIC_API_KEY: 'invalid-key' };
+      const invalidEnv = { apiKey: 'invalid-key' };
       const invalidAgent = new ClaudeAgent(invalidEnv);
 
       global.fetch = vi.fn().mockResolvedValue({

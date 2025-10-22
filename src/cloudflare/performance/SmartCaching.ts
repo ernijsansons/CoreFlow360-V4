@@ -4,7 +4,7 @@
  * Cache API, KV, R2, and smart invalidation strategies
  */
 
-import type { AnalyticsEngineDataset, KVNamespace, R2Bucket } from '../types/cloudflare';
+import type { AnalyticsEngineDataset } from '../types/cloudflare';
 import type { Env } from '../../types/env';
 
 export class SmartCaching {
@@ -102,7 +102,7 @@ export class SmartCaching {
   /**
    * Invalidate cache with smart pattern matching
    */
-  async invalidate(pattern: string, options: CacheInvalidateOptions = {}): Promise<number> {
+  async invalidate(pattern: string): Promise<number> {
     const startTime = Date.now();
     let invalidatedCount = 0;
 
@@ -186,7 +186,7 @@ export class SmartCaching {
   /**
    * Get from memory cache with LRU eviction
    */
-  private async getFromMemory<T>(key: string, options: CacheGetOptions): Promise<CacheResult<T>> {
+  private async getFromMemory<T>(key: string, _options: CacheGetOptions): Promise<CacheResult<T>> {
     const cached = SmartCaching.memoryCache.get(key);
     
     if (cached && Date.now() < cached.expires) {
@@ -210,7 +210,7 @@ export class SmartCaching {
   /**
    * Get from KV store
    */
-  private async getFromKV<T>(key: string, options: CacheGetOptions): Promise<CacheResult<T>> {
+  private async getFromKV<T>(key: string, _options: CacheGetOptions): Promise<CacheResult<T>> {
     try {
       if (!this.env.CACHE) {
         return { hit: false, data: null, source: 'kv', error: 'KV not available' };
@@ -245,7 +245,7 @@ export class SmartCaching {
   /**
    * Get from Cache API
    */
-  private async getFromCacheAPI<T>(key: string, options: CacheGetOptions): Promise<CacheResult<T>> {
+  private async getFromCacheAPI<T>(key: string, _options: CacheGetOptions): Promise<CacheResult<T>> {
     try {
       const cacheKey = new Request(`https://cache.internal/${key}`);
       const cache = await caches.open('smart-cache');
@@ -271,7 +271,7 @@ export class SmartCaching {
   /**
    * Get from R2 storage
    */
-  private async getFromR2<T>(key: string, options: CacheGetOptions): Promise<CacheResult<T>> {
+  private async getFromR2<T>(key: string, _options: CacheGetOptions): Promise<CacheResult<T>> {
     try {
       if (!this.env.R2_CACHE) {
         return { hit: false, data: null, source: 'r2', error: 'R2_CACHE not configured' };
@@ -463,7 +463,7 @@ export class SmartCaching {
   /**
    * Invalidate memory cache
    */
-  private async invalidateMemory(pattern: string): Promise<number> {
+  private async invalidateMemory(_pattern: string): Promise<number> {
     // Memory cache invalidation implementation
     return 0;
   }
@@ -609,10 +609,11 @@ interface CacheSetOptions {
   large?: boolean;
 }
 
-interface CacheInvalidateOptions {
-  recursive?: boolean;
-  layers?: ('memory' | 'kv' | 'cache_api' | 'r2')[];
-}
+// TODO: Implement cache invalidation options when needed
+// interface CacheInvalidateOptions {
+//   recursive?: boolean;
+//   layers?: ('memory' | 'kv' | 'cache_api' | 'r2')[];
+// }
 
 interface CacheStrategy {
   type: 'memory' | 'kv' | 'cache_api' | 'r2' | 'multi_tier';

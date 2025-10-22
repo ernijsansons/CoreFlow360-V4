@@ -3,7 +3,7 @@
  * Secure implementation of TOTP, SMS, and backup codes
  */
 
-import { authenticator, totp } from 'otplib';
+import { authenticator } from 'otplib';
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
 import { MFAConfig } from './types';
 import { SecurityError, ValidationError } from '../../shared/error-handler';

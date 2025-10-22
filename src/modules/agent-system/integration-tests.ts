@@ -36,7 +36,7 @@ class MockKV {
     return value;
   }
 
-  async put(key: string, value: string | ArrayBuffer | ArrayBufferView | ReadableStream, options?: any): Promise<void> {
+  async put(key: string, value: string | ArrayBuffer | ArrayBufferView | ReadableStream, _options?: any): Promise<void> {
     this.store.set(key, typeof value === 'string' ? value : JSON.stringify(value));
   }
 
@@ -64,7 +64,7 @@ class MockD1 {
   prepare(query: string): any {
     const self = this;
     return {
-      bind(...values: any[]) {
+      bind(..._values: any[]) {
         return this;
       },
       async first() {
@@ -109,7 +109,7 @@ class MockD1 {
     }));
   }
 
-  async exec(query: string): Promise<any> {
+  async exec(_query: string): Promise<any> {
     return {
       count: 0,
       duration: 1
@@ -418,6 +418,7 @@ export class AgentSystemIntegrationTests {
 
     // Get cost breakdown
     const breakdown = await costTracker.getCostBreakdown('test-business-12345');
+    void breakdown;
     // Note: In real implementation, this would have data
 
   }
@@ -766,7 +767,7 @@ export async function runIntegrationTests(): Promise<TestResults> {
   if (results.failed > 0) {
     results.tests
       .filter((test: any) => test.status === 'failed')
-      .forEach((test: any) => {
+      .forEach((_test: any) => {
       });
   }
 

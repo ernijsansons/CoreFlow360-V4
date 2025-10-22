@@ -311,7 +311,7 @@ class ChatFileService {
   private async generateThumbnail(
     originalKey: string,
     imageBuffer: ArrayBuffer,
-    mimeType: string
+    _mimeType: string
   ): Promise<string> {
     try {
       // Use Cloudflare Images for thumbnail generation

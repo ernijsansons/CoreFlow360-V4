@@ -20,11 +20,8 @@ import type {
   SandboxContext,
   SandboxResult,
 } from './developer.types';
-import type {
-  IntegrationRequest,
-  IntegrationResponse,
-  ERPModule,
-} from '@/services/integrations/integration.types';
+import type { IntegrationRequest,
+  IntegrationResponse } from '@/services/integrations/integration.types';
 
 /**
  * Integration Executor Service

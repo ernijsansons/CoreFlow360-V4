@@ -64,12 +64,12 @@ export class SecurityService {
     this.env = env;
   }
 
-  async validateRequest(request: Request): Promise<boolean> {
+  async validateRequest(_request: Request): Promise<boolean> {
     // Placeholder implementation
     return true;
   }
 
-  async checkPermissions(userId: string, resource: string): Promise<boolean> {
+  async checkPermissions(_userId: string, _resource: string): Promise<boolean> {
     // Placeholder implementation
     return true;
   }

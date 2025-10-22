@@ -6,11 +6,8 @@
 import type { KVNamespace } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
 import { AgentTask, OrchestratorResult } from './types';
-import {
-  generateSecureToken,
-  hashSensitiveData,
-  sanitizeBusinessId
-} from './security-utils';
+import { hashSensitiveData,
+  sanitizeBusinessId } from './security-utils';
 
 export interface IdempotencyRecord {
   key: string;

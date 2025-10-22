@@ -1,7 +1,10 @@
 // CoreFlow360 V4 - AI-Powered Analytics and Alerting Engine
 import { Alert, Anomaly } from '../types/observability';
 import { getAIClient, AIClient } from './ai-client';
-import type { Env } from '../types/env';
+import type { Env } from '../types/env';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-ai-analytics-engine" });
+
+
 
 export class AIAnalyticsEngine {
   private env: Env;
@@ -73,6 +76,7 @@ export class AIAnalyticsEngine {
     lookbackHours: number;
   }): Promise<Anomaly[]> {
     const anomalies: Anomaly[] = [];
+    void anomalies;
 
     // Get recent metrics for analysis
     const since = new Date(Date.now() - options.lookbackHours * 60 * 60 * 1000);
@@ -150,7 +154,7 @@ export class AIAnalyticsEngine {
       return anomalies;
 
     } catch (error: unknown) {
-      console.error('Isolation forest detection failed:', error);
+      logger.error('Isolation forest detection failed:', error);
       return [];
     }
   }
@@ -173,6 +177,7 @@ export class AIAnalyticsEngine {
 
     // Analyze each metric group
     for (const [metricName, metricData] of metricGroups) {
+    void metricName;
       const values = metricData.map((m) => Number(m.value || 0));
 
       if (values.length === 0) {
@@ -275,7 +280,7 @@ export class AIAnalyticsEngine {
       return anomalies;
 
     } catch (error: unknown) {
-      console.error('LSTM anomaly detection failed:', error);
+      logger.error('LSTM anomaly detection failed:', error);
       return [];
     }
   }
@@ -334,7 +339,7 @@ export class AIAnalyticsEngine {
       }
 
     } catch (error: unknown) {
-      console.error('Issue prediction failed:', error);
+      logger.error('Issue prediction failed:', error);
     }
 
     return predictions;
@@ -405,7 +410,7 @@ export class AIAnalyticsEngine {
       const response = await this.aiClient.generateText(prompt);
       return JSON.parse(response) as Record<string, unknown>;
     } catch (error: unknown) {
-      console.error('Incident analysis failed:', error);
+      logger.error('Incident analysis failed:', error);
       return null;
     }
   }
@@ -577,7 +582,7 @@ export class AIAnalyticsEngine {
       const response = await this.aiClient.generateText(prompt);
       return JSON.parse(response) as Record<string, unknown>;
     } catch (error: unknown) {
-      console.error('Cost intelligence analysis failed:', error);
+      logger.error('Cost intelligence analysis failed:', error);
       return null;
     }
   }
@@ -605,7 +610,7 @@ export class AIAnalyticsEngine {
       const response = await this.aiClient.generateText(prompt);
       return JSON.parse(response) as Record<string, unknown>;
     } catch (error: unknown) {
-      console.error('Performance intelligence analysis failed:', error);
+      logger.error('Performance intelligence analysis failed:', error);
       return null;
     }
   }

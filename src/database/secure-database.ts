@@ -225,7 +225,7 @@ export class SecureDatabase {
   /**
    * Logs query for audit trail
    */
-  private async logQuery(operation: string, table: string, query: string, params: any[]): Promise<void> {
+  private async logQuery(operation: string, table: string, query: string, _params: any[]): Promise<void> {
     if (!this.config.auditLog) return;
 
     try {
@@ -364,7 +364,7 @@ export class SecureDatabase {
   /**
    * INSERT with automatic business_id injection
    */
-  async insert<T = any>(
+  async insert(
     table: string,
     data: Record<string, any>
   ): Promise<QueryResult<{ id: string }>> {
@@ -444,7 +444,7 @@ export class SecureDatabase {
   /**
    * UPDATE with automatic RLS
    */
-  async update<T = any>(
+  async update(
     table: string,
     conditions: Record<string, any>,
     data: Record<string, any>

@@ -6,15 +6,10 @@
 
 import { Logger } from '@/shared/logger';
 import type { Env } from '@/types/env';
-import type {
-  IntegrationAnalytics,
-  DeveloperAnalytics,
-  IntegrationUsageStats,
-  IntegrationPerformanceMetrics,
+import type { IntegrationAnalytics,
   MarketplaceInsights,
   DeveloperDashboard,
-  AnalyticsTimeframe,
-} from './developer.types';
+  AnalyticsTimeframe } from './developer.types';
 
 /**
  * Analytics Service

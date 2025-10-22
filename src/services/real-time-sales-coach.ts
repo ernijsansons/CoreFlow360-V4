@@ -1,16 +1,11 @@
 import type { Env } from '../types/env';
-import type {
-  CallStream,
+import type { CallStream,
   TranscriptChunk,
   Situation as BaseSituation,
   Guidance as BaseGuidance,
   Battlecard as BaseBattlecard,
   PricingGuidance as BasePricingGuidance,
-  CoachingTip as BaseCoachingTip,
-  LiveCoachingMessage,
-  Lead,
-  Participant
-} from '../types/crm';
+  CoachingTip as BaseCoachingTip } from '../types/crm';
 
 // Extended types for real-time coaching service
 interface SituationExtended extends Partial<BaseSituation> {
@@ -322,7 +317,7 @@ export class RealTimeSalesCoach {
     });
   }
 
-  private async handleCompetitorMention(callId: string, competitor: string, chunk: TranscriptChunk): Promise<void> {
+  private async handleCompetitorMention(callId: string, competitor: string, _chunk: TranscriptChunk): Promise<void> {
     const battlecard = await this.getBattlecard(competitor);
 
     this.sendMessage(callId, {
@@ -394,7 +389,7 @@ export class RealTimeSalesCoach {
     });
   }
 
-  private async getObjectionGuidance(objection: string, chunk: TranscriptChunk): Promise<Guidance> {
+  private async getObjectionGuidance(objection: string, _chunk: TranscriptChunk): Promise<Guidance> {
     const prompt = `
       The prospect just said: "${objection}"
 
@@ -469,7 +464,7 @@ export class RealTimeSalesCoach {
     }
   }
 
-  private async getPricingGuidance(context: string, chunk: TranscriptChunk): Promise<PricingGuidance> {
+  private async getPricingGuidance(context: string, _chunk: TranscriptChunk): Promise<PricingGuidance> {
     const prompt = `
       The prospect mentioned pricing in this context: "${context}"
 
@@ -493,7 +488,7 @@ export class RealTimeSalesCoach {
     }
   }
 
-  private async getPainPointGuidance(painPoint: string, chunk: TranscriptChunk): Promise<Guidance> {
+  private async getPainPointGuidance(painPoint: string, _chunk: TranscriptChunk): Promise<Guidance> {
     const prompt = `
       The prospect mentioned this pain point: "${painPoint}"
 
@@ -515,7 +510,7 @@ export class RealTimeSalesCoach {
     }
   }
 
-  private async checkCoachingOpportunities(callId: string, chunk: TranscriptChunk): Promise<void> {
+  private async checkCoachingOpportunities(callId: string, _chunk: TranscriptChunk): Promise<void> {
     const speakingData = this.speakingTimeTracker.get(callId);
     if (!speakingData) return;
 
@@ -708,7 +703,7 @@ export class RealTimeSalesCoach {
   }
 
   // Fallback methods when AI fails
-  private getFallbackObjectionGuidance(objection: string): Guidance {
+  private getFallbackObjectionGuidance(_objection: string): Guidance {
     return {
       type: 'objection_handling',
       title: 'Objection Detected',
@@ -800,7 +795,7 @@ export class RealTimeSalesCoach {
     };
   }
 
-  private getFallbackPainPointGuidance(painPoint: string): Guidance {
+  private getFallbackPainPointGuidance(_painPoint: string): Guidance {
     return {
       type: 'discovery',
       title: 'Pain Point Discovery',
@@ -853,7 +848,7 @@ export class RealTimeSalesCoach {
     }
   }
 
-  async getCoachingStats(callIds: string[]): Promise<{
+  async getCoachingStats(_callIds: string[]): Promise<{
     totalMessages: number;
     messagesByType: Record<string, number>;
     averageResponseTime: number;

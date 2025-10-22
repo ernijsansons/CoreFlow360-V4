@@ -5,13 +5,10 @@
 
 import type { D1Database } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
-import {
-  ChartAccount,
+import { ChartAccount,
   AccountType,
   AccountCategory,
-  AuditAction,
-  ValidationRule
-} from './types';
+  AuditAction } from './types';
 import { FinanceAuditLogger } from './audit-logger';
 import { validateBusinessId, validateAccountCode } from './utils';
 

@@ -10,7 +10,7 @@ import { DeveloperService } from '@/services/developers/developer.service';
 import { AnalyticsService } from '@/services/developers/analytics.service';
 import { JWTService } from '@/modules/auth/jwt';
 
-const logger = new Logger('Developers');
+const logger = new Logger({ component: 'Developers' });
 
 
 /**

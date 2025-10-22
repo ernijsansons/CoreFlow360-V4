@@ -10,7 +10,10 @@
  * - Runtime security health checks
  */
 
-import { SecurityError } from '../errors/app-error';
+import { SecurityError } from '../errors/app-error';import { Logger } from "../logger";
+const logger = new Logger({ component: "shared-security-jwt-secret-manager" });
+
+
 
 export interface JWTSecretConfig {
   jwtSecret: string;
@@ -210,11 +213,11 @@ export class JWTSecretManager {
 
     // Log warnings if any
     if (validation.warnings.length > 0) {
-      console.warn('JWT Secret Warnings:', validation.warnings.join(', '));
+      logger.warn('JWT Secret Warnings:', validation.warnings.join(', '));
     }
 
     // Log successful validation
-    console.log(`✅ JWT Secret validated successfully (Strength: ${validation.strength}, Entropy: ${validation.entropy.toFixed(2)})`);
+    logger.info(`✅ JWT Secret validated successfully (Strength: ${validation.strength}, Entropy: ${validation.entropy.toFixed(2)})`);
 
     return {
       jwtSecret,
@@ -233,19 +236,19 @@ export class JWTSecretManager {
       const validation = this.validateJWTSecret(config.jwtSecret, config.environment);
 
       if (!validation.isValid) {
-        console.error('SECURITY ALERT: JWT secret failed runtime validation', validation.errors);
+        logger.error('SECURITY ALERT: JWT secret failed runtime validation', validation.errors);
         return false;
       }
 
       // Check if rotation is needed (for production)
       if (config.rotationEnabled && config.environment === 'production') {
         // In a real implementation, this would check rotation timestamp from KV storage
-        console.log('JWT secret rotation check passed');
+        logger.info('JWT secret rotation check passed');
       }
 
       return true;
     } catch (error) {
-      console.error('JWT secret health check failed:', error);
+      logger.error('JWT secret health check failed:', error);
       return false;
     }
   }

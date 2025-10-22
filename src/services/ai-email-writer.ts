@@ -1,10 +1,5 @@
-import type {
-  Lead,
-  Contact,
-  Company,
-  ChannelContent,
-  CallToAction
-} from '../types/crm';
+import type { Lead,
+  CallToAction } from '../types/crm';
 import type { Env } from '../types/env';
 
 export type EmailStage = 'cold' | 'follow_up' | 'breakup' | 'nurture' | 'reengagement';
@@ -225,6 +220,7 @@ export class AIEmailWriter {
   private async gatherIntelligence(lead: Lead): Promise<LeadIntelligence> {
     // Check cache first
     const cacheKey = `${lead.id}_${Date.now()}`;
+    void cacheKey;
     if (this.intelligenceCache.has(lead.id)) {
       const cached = this.intelligenceCache.get(lead.id);
       // Return cached if less than 1 hour old
@@ -531,6 +527,7 @@ export class AIEmailWriter {
   private async generateOpeningVariations(originalBody: string, count: number): Promise<string[]> {
     const firstLine = originalBody.split('\n')[0];
     const restOfBody = originalBody.split('\n').slice(1).join('\n');
+    void restOfBody;
 
     const prompt = `
       Generate ${count} alternative opening lines for this email.
@@ -771,7 +768,7 @@ export class AIEmailWriter {
     return { personality, style };
   }
 
-  private async gatherCompanyIntelligence(companyId: string): Promise<{
+  private async gatherCompanyIntelligence(_companyId: string): Promise<{
     growthStage?: string;
     techStack?: string[];
     competitors?: string[];
@@ -885,7 +882,7 @@ export class AIEmailWriter {
   }
 
   // Public methods for email management
-  async selectBestVariation(variations: EmailVariation[], lead: Lead): Promise<EmailVariation> {
+  async selectBestVariation(variations: EmailVariation[], _lead: Lead): Promise<EmailVariation> {
     // In production, use ML model to predict best variation
     // For now, return random variation
     return variations[Math.floor(Math.random() * variations.length)];

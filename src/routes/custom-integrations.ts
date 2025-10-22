@@ -8,12 +8,12 @@ import { Hono } from 'hono';
 import type { Env } from '@/types/env';
 import { DeveloperService } from '@/services/developers/developer.service';
 import { CustomIntegrationService } from '@/services/developers/custom-integration.service';
-import { IntegrationExecutorService } from '@/services/developers/integration-executor.service';
+
 import { OAuthHelperService } from '@/services/developers/oauth-helper.service';
 import { AnalyticsService } from '@/services/developers/analytics.service';
 import { JWTService } from '@/modules/auth/jwt';
 
-const logger = new Logger('CustomIntegrations');
+const logger = new Logger({ component: 'CustomIntegrations' });
 
 const app = new Hono<{ Bindings: Env }>();
 

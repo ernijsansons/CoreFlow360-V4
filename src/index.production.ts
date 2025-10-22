@@ -1,14 +1,17 @@
 // Production-Ready CoreFlow360 V4 Worker with Full Authentication
-import { AuthSystem, User, LoginRequest, RegisterRequest } from './auth/auth-system';
+import { AuthSystem, User } from './auth/auth-system';
 import { CORSManager } from './security/cors-config';
-import { AuthSchemas, InputSanitizer, ValidationError } from './security/validation-schemas';
-import { DistributedRateLimiter, AuditLogger } from './security/security-utilities';
+import { AuthSchemas, InputSanitizer } from './security/validation-schemas';
+import { DistributedRateLimiter } from './security/security-utilities';
 import { SecurityBootstrap } from './shared/security/security-bootstrap';
-import { SecurityError } from './shared/errors/app-error';
+
 import { handleAPIRequest } from './routes';
 
 // Use canonical Env type
-import type { Env } from './types/env';
+import type { Env } from './types/env';import { Logger } from "./shared/logger";
+const logger = new Logger({ component: "indexproduction" });
+
+
 
 // Re-export canonical type
 export type { Env } from './types/env';
@@ -122,7 +125,7 @@ class AnalyticsManager {
 
       await this.kvCache.put(cacheKey, JSON.stringify(cached), { expirationTtl: 3600 });
     } catch (error) {
-      console.error('Analytics logging failed:', error);
+      logger.error('Analytics logging failed:', error);
     }
   }
 
@@ -147,7 +150,7 @@ class AnalyticsManager {
 
       return result.results || [];
     } catch (error) {
-      console.error('Stats retrieval failed:', error);
+      logger.error('Stats retrieval failed:', error);
       return [];
     }
   }
@@ -160,7 +163,7 @@ const createProductionRoutes = (
   analytics: AnalyticsManager
 ) => ({
   // Root welcome endpoint
-  '/': async (request: Request) => {
+  '/': async (_request: Request) => {
     return new Response(JSON.stringify({
       service: 'CoreFlow360 V4 API',
       version: '4.2.0',
@@ -185,7 +188,7 @@ const createProductionRoutes = (
   },
 
   // Health and status endpoints
-  '/health': async (request: Request) => {
+  '/health': async (_request: Request) => {
     const checks = {
       database: env.DB ? 'healthy' : 'not_configured',
       cache: env.KV_CACHE ? 'healthy' : 'not_configured',
@@ -207,7 +210,7 @@ const createProductionRoutes = (
     });
   },
 
-  '/api/status': async (request: Request) => {
+  '/api/status': async (_request: Request) => {
     const stats = await analytics.getStats();
     const uptime = process.uptime ? process.uptime() : 0;
 
@@ -513,7 +516,7 @@ export default {
     // ============================================================================
     // Skip validation for local development with SKIP_SECURITY_VALIDATION flag
     if (env.ENVIRONMENT === 'development' && env.SKIP_SECURITY_VALIDATION === 'true') {
-      console.log('⚠️ Security validation SKIPPED for local development');
+      logger.info('⚠️ Security validation SKIPPED for local development');
     } else {
       // Perform security validation (cached per environment configuration)
       const envKey = `${env.ENVIRONMENT || 'production'}-${env.JWT_SECRET?.substring(0, 10) || 'none'}`;
@@ -521,7 +524,7 @@ export default {
 
       if (!cached) {
         try {
-          console.log('🔒 Performing startup security validation...');
+          logger.info('🔒 Performing startup security validation...');
           const validation = await SecurityBootstrap.validateStartupSecurity(env);
 
         if (!validation.passed || validation.blocksStartup) {
@@ -539,17 +542,17 @@ export default {
             ...validation.recommendations.map(rec => `  - ${rec}`)
           ].join('\n');
 
-          console.error(errorMessage);
+          logger.error(errorMessage);
           cached = { validated: false, error: errorMessage };
         } else {
-          console.log('✅ Security validation passed - application ready');
+          logger.info('✅ Security validation passed - application ready');
           cached = { validated: true, error: null };
         }
 
         securityValidationCache.set(envKey, cached);
       } catch (error) {
         const errorMessage = `Security validation system error: ${(error as any).message}`;
-        console.error(errorMessage);
+        logger.error(errorMessage);
         cached = { validated: false, error: errorMessage };
         securityValidationCache.set(envKey, cached);
         }
@@ -767,7 +770,7 @@ export default {
       });
 
     } catch (error: any) {
-      console.error('Worker error:', error);
+      logger.error('Worker error:', error);
       const responseTime = Date.now() - startTime;
 
       return new Response(JSON.stringify({
@@ -899,7 +902,7 @@ export class RealtimeCoordinatorDO {
     return new Response('Not found', { status: 404 });
   }
 
-  private async handleWebSocket(request: Request): Promise<Response> {
+  private async handleWebSocket(_request: Request): Promise<Response> {
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);
 

@@ -1,6 +1,9 @@
 // CRM Performance Test Suite
 import { CRMService } from '../services/crm-service';
-import type { Env } from '../types/env';
+import type { Env } from '../types/env';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "performance-crm-performance-test" });
+
+
 
 /**
  * PERFORMANCE OPTIMIZATION TEST SUITE
@@ -37,7 +40,7 @@ export class CRMPerformanceTest {
       improvement_percentage: number;
     }>;
   }> {
-    console.log('🚀 Starting CRM Performance Optimization Test Suite...');
+    logger.info('🚀 Starting CRM Performance Optimization Test Suite...');
 
     // Test 1: Baseline vs Optimized Performance
     const performanceResults = await this.crmService.benchmarkPerformance();
@@ -101,7 +104,7 @@ export class CRMPerformanceTest {
     hitRateImprovement: number;
     finalHitRate: number;
   }> {
-    console.log('📊 Testing cache performance...');
+    logger.info('📊 Testing cache performance...');
 
     // Warm up cache with repeated queries
     const businessId = 'test_business_123';
@@ -130,7 +133,7 @@ export class CRMPerformanceTest {
     n1QueriesEliminated: boolean;
     improvementPercentage: number;
   }> {
-    console.log('🔄 Testing N+1 query elimination...');
+    logger.info('🔄 Testing N+1 query elimination...');
 
     const companyIds = ['comp1', 'comp2', 'comp3', 'comp4', 'comp5'];
     const contactIds = ['cont1', 'cont2', 'cont3', 'cont4', 'cont5'];
@@ -163,7 +166,7 @@ export class CRMPerformanceTest {
   private async testConnectionPooling(): Promise<{
     utilizationImprovement: number;
   }> {
-    console.log('🔗 Testing connection pool efficiency...');
+    logger.info('🔗 Testing connection pool efficiency...');
 
     // Simulate concurrent operations to test pool utilization
     const concurrentOperations = Array.from({ length: 20 }, (_, i) =>
@@ -171,8 +174,10 @@ export class CRMPerformanceTest {
     );
 
     const start = Date.now();
+    void start;
     await Promise.all(concurrentOperations);
     const end = Date.now();
+    void end;
 
     const metrics = await this.crmService.getPerformanceMetrics();
 
@@ -253,5 +258,5 @@ All performance targets have been met through systematic optimization of algorit
 export async function runCRMPerformanceTest(env: Env): Promise<void> {
   const tester = new CRMPerformanceTest(env);
   const report = await tester.generatePerformanceReport();
-  console.log(report);
+  logger.info(report);
 }

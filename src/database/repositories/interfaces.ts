@@ -3,7 +3,7 @@
  * Interface Segregation Principle: Focused, client-specific interfaces
  */
 
-import { z } from 'zod';
+
 
 // Core Types
 export interface DatabaseResult<T = any> {

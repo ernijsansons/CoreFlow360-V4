@@ -6,9 +6,12 @@
 
 import type { Env } from '../types/env';
 import { getAIClient } from './secure-ai-client';
-import { validateInput } from '../utils/validation-schemas';
-import { z } from 'zod';
-import * as yaml from 'yaml';
+
+
+import * as yaml from 'yaml';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-workflow-import-export" });
+
+
 
 // =====================================================
 // TYPES AND INTERFACES
@@ -301,7 +304,7 @@ class WorkflowImportExportService {
     };
   }
 
-  private extractBPMNElements(content: string): any {
+  private extractBPMNElements(_content: string): any {
     // Simple XML-like parsing for BPMN - production would use proper BPMN parser
     return {
       processes: [],
@@ -482,7 +485,7 @@ class WorkflowImportExportService {
     return yaml.stringify(exportData);
   }
 
-  private exportToBPMN(workflow: any, options?: ExportOptions): string {
+  private exportToBPMN(workflow: any, _options?: ExportOptions): string {
     const bpmnTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
@@ -531,7 +534,7 @@ class WorkflowImportExportService {
 
     // Add edges as BPMN edges
     const edges = JSON.parse(workflow.edges as string);
-    edges.forEach((edge: any, index: number) => {
+    edges.forEach((edge: any, _index: number) => {
       diagramElements += `
     <bpmndi:BPMNEdge id="Edge_${edge.id}" bpmnElement="${edge.id}">
       <di:waypoint x="150" y="140" />
@@ -598,7 +601,7 @@ class WorkflowImportExportService {
     return paths;
   }
 
-  private generateOpenAPISchemas(workflow: any): any {
+  private generateOpenAPISchemas(_workflow: any): any {
     const schemas: any = {};
     
     // Generate schemas for workflow data structures
@@ -715,7 +718,7 @@ class WorkflowImportExportService {
   private async saveTemplate(template: any): Promise<void> {
     // Save template to database or file system
     // This is a placeholder implementation
-    console.log('Saving template:', template.name);
+    logger.info('Saving template:', template.name);
   }
 
   private async loadTemplate(templateId: string): Promise<any> {
@@ -732,7 +735,7 @@ class WorkflowImportExportService {
   private async updateTemplateUsage(templateId: string): Promise<void> {
     // Update template usage statistics
     // This is a placeholder implementation
-    console.log('Updating usage for template:', templateId);
+    logger.info('Updating usage for template:', templateId);
   }
 
   private async resolveMergeConflicts(sourceWorkflow: any, targetWorkflow: any): Promise<any> {
@@ -762,7 +765,7 @@ class WorkflowImportExportService {
   private async updateWorkflowFromMerge(workflowId: string, mergedWorkflow: any, userId: string): Promise<void> {
     // Update the workflow with merged changes
     // This is a placeholder implementation
-    console.log('Updating workflow from merge:', workflowId, 'by user:', userId);
+    logger.info('Updating workflow from merge:', workflowId, 'by user:', userId);
   }
 
   private compareNodes(nodes1: string, nodes2: string): any {
@@ -865,7 +868,7 @@ class WorkflowImportExportService {
     return mermaidContent;
   }
 
-  private exportToOpenAPI(workflow: any, options?: ExportOptions): string {
+  private exportToOpenAPI(workflow: any, _options?: ExportOptions): string {
     // Convert workflow to OpenAPI specification
     const openAPISpec = {
       openapi: '3.0.0',
@@ -895,7 +898,7 @@ class WorkflowImportExportService {
     return JSON.stringify(openAPISpec, null, 2);
   }
 
-  private exportToZapier(workflow: any, options?: ExportOptions): string {
+  private exportToZapier(workflow: any, _options?: ExportOptions): string {
     const zapierFormat = {
       title: workflow.name,
       description: workflow.description,
@@ -907,7 +910,7 @@ class WorkflowImportExportService {
     return JSON.stringify(zapierFormat, null, 2);
   }
 
-  private exportToMake(workflow: any, options?: ExportOptions): string {
+  private exportToMake(workflow: any, _options?: ExportOptions): string {
     const makeFormat = {
       scenario: {
         name: workflow.name,
@@ -925,7 +928,7 @@ class WorkflowImportExportService {
     return JSON.stringify(makeFormat, null, 2);
   }
 
-  private async exportToDocumentation(workflow: any, options?: ExportOptions): Promise<string> {
+  private async exportToDocumentation(workflow: any, _options?: ExportOptions): Promise<string> {
     const docPrompt = `
       Generate comprehensive documentation for this workflow:
 

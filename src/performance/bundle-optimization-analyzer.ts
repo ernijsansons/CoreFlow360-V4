@@ -1,5 +1,5 @@
 import { Logger } from '../shared/logger';
-import { SecurityError, ValidationError } from '../shared/error-handler';
+import { ValidationError } from '../shared/error-handler';
 import type { Context } from 'hono';
 
 const logger = new Logger({ component: 'bundle-optimization-analyzer' });
@@ -485,7 +485,7 @@ export class BundleOptimizationAnalyzer {
     return unusedCode;
   }
 
-  private analyzeHeavyDependencies(chunks: ChunkAnalysis[]): HeavyDependency[] {
+  private analyzeHeavyDependencies(_chunks: ChunkAnalysis[]): HeavyDependency[] {
     const heavyDeps: HeavyDependency[] = [];
     const sizeThreshold = 50 * 1024; // 50KB
 

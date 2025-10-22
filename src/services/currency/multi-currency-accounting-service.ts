@@ -143,6 +143,7 @@ export class MultiCurrencyAccountingService {
       account.business_id
     );
     const baseCurrency = businessCurrencies.base_currency;
+    void baseCurrency;
 
     // Get balances by currency
     let query = `

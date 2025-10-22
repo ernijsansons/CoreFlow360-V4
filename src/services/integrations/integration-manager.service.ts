@@ -5,16 +5,16 @@
  */
 
 import type { Env } from '../../types/env';
-import type {
-  IntegrationProvider,
+import type { IntegrationProvider,
   BusinessIntegration,
   IntegrationRequest,
   IntegrationResponse,
   IntegrationCredentials,
-  ERPModule,
-  IntegrationErrorType,
-} from './integration.types';
-import { IntegrationError } from './integration.types';
+  IntegrationErrorType } from './integration.types';
+import { IntegrationError } from './integration.types';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-integrations-integration-managerservice" });
+
+
 
 export class IntegrationManager {
   constructor(private env: Env) {}
@@ -35,7 +35,7 @@ export class IntegrationManager {
 
       return this.parseProvider(result);
     } catch (error) {
-      console.error('Get provider error:', error);
+      logger.error('Get provider error:', error);
       return null;
     }
   }
@@ -54,7 +54,7 @@ export class IntegrationManager {
 
       return (result.results as any[] || []).map(row => this.parseProvider(row));
     } catch (error) {
-      console.error('Get providers by type error:', error);
+      logger.error('Get providers by type error:', error);
       return [];
     }
   }
@@ -82,7 +82,7 @@ export class IntegrationManager {
 
       return this.parseIntegration(result);
     } catch (error) {
-      console.error('Get integration error:', error);
+      logger.error('Get integration error:', error);
       return null;
     }
   }
@@ -104,7 +104,7 @@ export class IntegrationManager {
       const credentials = JSON.parse(integration.credentials_encrypted) as IntegrationCredentials;
       return credentials;
     } catch (error) {
-      console.error('Get credentials error:', error);
+      logger.error('Get credentials error:', error);
       return null;
     }
   }
@@ -222,11 +222,11 @@ export class IntegrationManager {
     providerKey: string,
     operation: string,
     payload: Record<string, any>,
-    credentials: IntegrationCredentials
+    _credentials: IntegrationCredentials
   ): Promise<any> {
     // TODO: Implement provider-specific handlers
     // For now, return a placeholder
-    console.log(`Executing ${providerKey}.${operation}`, payload);
+    logger.info(`Executing ${providerKey}.${operation}`, payload);
 
     // In future, this will delegate to provider-specific services:
     // switch (providerKey) {
@@ -320,7 +320,7 @@ export class IntegrationManager {
           .run();
       }
     } catch (error) {
-      console.error('Log usage error:', error);
+      logger.error('Log usage error:', error);
       // Don't throw - logging errors shouldn't break the request
     }
   }

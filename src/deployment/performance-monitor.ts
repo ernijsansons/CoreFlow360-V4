@@ -3,7 +3,7 @@
  * Advanced performance analytics with AI-powered insights and automated alerting
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 
@@ -803,7 +803,7 @@ export class PerformanceMonitor {
   /**
    * Private helper methods
    */
-  private async initializeMonitoring(config: MonitoringConfig, correlationId: string): Promise<void> {
+  private async initializeMonitoring(config: MonitoringConfig, _correlationId: string): Promise<void> {
     // Initialize Real User Monitoring (RUM)
     await this.metricsCollector.initializeRUM(config.rum);
 
@@ -1021,19 +1021,19 @@ export class PerformanceMonitor {
     };
   }
 
-  private async generateVitalsReport(vitalsData: any): Promise<VitalsReport> {
+  private async generateVitalsReport(_vitalsData: any): Promise<VitalsReport> {
     return {};
   }
 
-  private async generateBusinessReport(businessData: any): Promise<BusinessReport> {
+  private async generateBusinessReport(_businessData: any): Promise<BusinessReport> {
     return {};
   }
 
-  private async generateTrendAnalysis(data: any): Promise<TrendAnalysis> {
+  private async generateTrendAnalysis(_data: any): Promise<TrendAnalysis> {
     return {};
   }
 
-  private async generateBenchmarkComparison(data: any): Promise<BenchmarkComparison> {
+  private async generateBenchmarkComparison(_data: any): Promise<BenchmarkComparison> {
     return {
       industry: 85,
       competitors: 78,
@@ -1042,22 +1042,22 @@ export class PerformanceMonitor {
     };
   }
 
-  private async getHistoricalValues(metric: string, days: number): Promise<number[]> {
+  private async getHistoricalValues(_metric: string, _days: number): Promise<number[]> {
     return [];
   }
 }
 
 // Supporting classes
 class MetricsCollector {
-  async initializeRUM(config: any): Promise<void> {
+  async initializeRUM(_config: any): Promise<void> {
     // Initialize Real User Monitoring
   }
 
-  async initializeSynthetic(config: any): Promise<void> {
+  async initializeSynthetic(_config: any): Promise<void> {
     // Initialize synthetic monitoring
   }
 
-  async initializeBusinessMetrics(config: any): Promise<void> {
+  async initializeBusinessMetrics(_config: any): Promise<void> {
     // Initialize business metrics collection
   }
 
@@ -1081,7 +1081,7 @@ class MetricsCollector {
     return {};
   }
 
-  async getHistoricalData(timeRange: string): Promise<any> {
+  async getHistoricalData(_timeRange: string): Promise<any> {
     return {};
   }
 
@@ -1089,13 +1089,13 @@ class MetricsCollector {
     return {};
   }
 
-  async getPerformanceData(period: string): Promise<any> {
+  async getPerformanceData(_period: string): Promise<any> {
     return {};
   }
 }
 
 class PerformanceAI {
-  async analyze(context: any): Promise<PerformanceAnalysis> {
+  async analyze(_context: any): Promise<PerformanceAnalysis> {
     // AI-powered performance analysis
     return {
       overall: {
@@ -1145,22 +1145,22 @@ class PerformanceAI {
 
 // TODO: Consider splitting AlertManager into smaller, focused classes
 class AlertManager {
-  async configure(config: AlertConfig): Promise<void> {
+  async configure(_config: AlertConfig): Promise<void> {
     // Configure alert rules
   }
 
-  async checkAlerts(analysis: PerformanceAnalysis): Promise<void> {
+  async checkAlerts(_analysis: PerformanceAnalysis): Promise<void> {
     // Check for alert conditions
   }
 }
 
 // TODO: Consider splitting DashboardManager into smaller, focused classes
 class DashboardManager {
-  async initialize(config: any): Promise<void> {
+  async initialize(_config: any): Promise<void> {
     // Initialize performance dashboards
   }
 
-  async updateRealTime(metrics: any, analysis: any): Promise<void> {
+  async updateRealTime(_metrics: any, _analysis: any): Promise<void> {
     // Update real-time dashboards
   }
 }

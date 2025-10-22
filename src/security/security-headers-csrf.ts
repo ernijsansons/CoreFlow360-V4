@@ -10,7 +10,10 @@
  * - Security header validation and testing
  */
 
-import { SecurityError } from '../shared/errors/app-error';
+import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "security-security-headers-csrf" });
+
+
 
 export interface SecurityHeadersConfig {
   enableHSTS: boolean;
@@ -517,7 +520,7 @@ export function createCSPViolationHandler() {
       const violation = await c.req.json();
       
       // Log CSP violation
-      console.error('CSP Violation:', {
+      logger.error('CSP Violation:', {
         timestamp: new Date().toISOString(),
         documentUri: violation.documentUri,
         violatedDirective: violation.violatedDirective,
@@ -534,7 +537,7 @@ export function createCSPViolationHandler() {
 
       return c.json({ status: 'received' });
     } catch (error) {
-      console.error('Error processing CSP violation:', error);
+      logger.error('Error processing CSP violation:', error);
       return c.json({ error: 'Invalid violation report' }, 400);
     }
   };

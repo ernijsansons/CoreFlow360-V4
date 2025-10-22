@@ -225,7 +225,7 @@ export class GeographicAI {
     return scored.sort((a, b) => b.score - a.score);
   }
 
-  private async calculateScore(region: string, factors: RoutingFactors, constraints: any): Promise<any> {
+  private async calculateScore(region: string, factors: RoutingFactors, _constraints: any): Promise<any> {
     const weights = {
       latency: 0.4,
       health: 0.3,
@@ -594,7 +594,7 @@ class QuantumRegionManager {
     return this.cloudflarePoPs.filter((city: any) => cityCodes.includes(city.code));
   }
 
-  private async getRegionCapacity(region: string): Promise<RegionCapacity> {
+  private async getRegionCapacity(_region: string): Promise<RegionCapacity> {
     return {
       workers: { current: 50, maximum: 1000, utilization: 0.05 },
       database: { connections: 20, storage: 100000, iops: 5000 },
@@ -603,7 +603,7 @@ class QuantumRegionManager {
     };
   }
 
-  private async getRegionHealthStatus(region: string): Promise<RegionHealth> {
+  private async getRegionHealthStatus(_region: string): Promise<RegionHealth> {
     return {
       overall: 0.95,
       components: { workers: 0.98, database: 0.92, cache: 0.96, network: 0.94 },
@@ -689,8 +689,8 @@ class QuantumRegionManager {
     };
   }
 
-  private async getDataResidency(request: Request): Promise<ComplianceRequirement[]> {
-    const businessId = request.headers.get('X-Business-ID');
+  private async getDataResidency(_request: Request): Promise<ComplianceRequirement[]> {
+    // const _businessId = request.headers.get('X-Business-ID');
     // In real implementation, lookup business compliance requirements
     return [
       {
@@ -744,7 +744,7 @@ class QuantumRegionManager {
     };
   }
 
-  private async getComplianceRequirements(request: Request): Promise<ComplianceRequirement[]> {
+  private async getComplianceRequirements(_request: Request): Promise<ComplianceRequirement[]> {
     return [
       {
         regulation: 'GDPR',
@@ -786,7 +786,7 @@ class QuantumRegionManager {
     };
   }
 
-  private async generateOptimizationRecommendations(analysis: any): Promise<any[]> {
+  private async generateOptimizationRecommendations(_analysis: any): Promise<any[]> {
     return [
       {
         description: 'Add secondary region in ap-south for better Asian coverage',
@@ -832,9 +832,9 @@ class QuantumRegionManager {
 
 export class CloudflareGeoRouter {
   async configure(): Promise<void> {
-    const pools = await this.createRegionalPools();
-    const steering = this.createGeoSteering();
-    const monitors = this.createHealthMonitors();
+    // const _pools = await this.createRegionalPools();
+    // const _steering = this.createGeoSteering();
+    // const _monitors = this.createHealthMonitors();
 
   }
 

@@ -448,6 +448,7 @@ export class JobScheduler {
 
       totalDuration += batch.estimatedDuration;
       currentTime += batch.estimatedDuration;
+      void currentTime;
     }
 
     const utilization = this.calculateResourceUtilization(sortedBatches, resources);
@@ -657,6 +658,7 @@ export class QuantumQueueProcessor {
       }
 
       const duration = Date.now() - startTime;
+      void duration;
 
     } catch (error: any) {
       await this.handleBatchFailure(batch, error);
@@ -785,7 +787,7 @@ export class QuantumQueueProcessor {
     });
   }
 
-  private releaseWorker(worker: Worker): void {
+  private releaseWorker(_worker: Worker): void {
     // Worker is automatically released in processJob finally block
   }
 
@@ -831,10 +833,10 @@ export class QuantumQueueProcessor {
     job.scheduledAt = Date.now() + (job.delay * Math.pow(2, job.attempts));
   }
 
-  private async sendToDeadLetterQueue(job: Job): Promise<void> {
+  private async sendToDeadLetterQueue(_job: Job): Promise<void> {
   }
 
-  private async handleBatchFailure(batch: JobBatch, error: any): Promise<void> {
+  private async handleBatchFailure(batch: JobBatch, _error: any): Promise<void> {
 
     for (const job of batch.jobs) {
       try {
@@ -868,7 +870,7 @@ export class QuantumQueueProcessor {
     }
   }
 
-  private async warmCaches(hotData: string[]): Promise<void> {
+  private async warmCaches(_hotData: string[]): Promise<void> {
   }
 
   private async getQueuedJobs(): Promise<Job[]> {

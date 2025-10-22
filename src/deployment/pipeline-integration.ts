@@ -287,7 +287,7 @@ export class UltimateDeploymentPipeline {
   /**
    * Validate deployment prerequisites
    */
-  private async validateDeploymentPrerequisites(version: any): Promise<any> {
+  private async validateDeploymentPrerequisites(_version: any): Promise<any> {
     return {
       passed: true,
       errors: [],
@@ -303,7 +303,7 @@ export class UltimateDeploymentPipeline {
   /**
    * Validate feature flags configuration
    */
-  private async validateFeatureFlags(version: any): Promise<void> {
+  private async validateFeatureFlags(_version: any): Promise<void> {
     // Validate that feature flags are properly configured for the deployment
     const flags = await this.featureFlagManager.evaluateFlags(
       ['deployment_enabled', 'rollback_enabled', 'monitoring_enabled'],
@@ -321,7 +321,7 @@ export class UltimateDeploymentPipeline {
   /**
    * Run comprehensive security checks
    */
-  private async runSecurityChecks(version: any): Promise<void> {
+  private async runSecurityChecks(_version: any): Promise<void> {
     // Security validation would be implemented here
     this.logger.info('Security checks passed');
   }
@@ -329,7 +329,7 @@ export class UltimateDeploymentPipeline {
   /**
    * Run automated tests against deployed environment
    */
-  private async runAutomatedTests(environment: string): Promise<any> {
+  private async runAutomatedTests(_environment: string): Promise<any> {
     // Simulate running comprehensive test suite
     return {
       passed: true,
@@ -346,7 +346,7 @@ export class UltimateDeploymentPipeline {
   /**
    * Execute progressive rollout with monitoring
    */
-  private async executeProgressiveRollout(version: any, strategy: string): Promise<any> {
+  private async executeProgressiveRollout(_version: any, _strategy: string): Promise<any> {
     const stages = [
       { percentage: 1, duration: 300000, name: 'canary' },      // 5 minutes
       { percentage: 10, duration: 600000, name: 'small' },     // 10 minutes
@@ -660,11 +660,12 @@ export class DeploymentPipelineExample {
 
       // Display execution summary
 
-      execution.stages.forEach((stage: any) => {
-        const status = stage.status === 'success' ? '✅' :
-                      stage.status === 'failed' ? '❌' :
-                      stage.status === 'running' ? '🔄' : '⏳';
-        const duration = stage.duration ? `(${Math.round(stage.duration / 1000)}s)` : '';
+      execution.stages.forEach((_stage: any) => {
+        // TODO: Implement status and duration display when needed
+        // const status = stage.status === 'success' ? '✅' :
+        //               stage.status === 'failed' ? '❌' :
+        //               stage.status === 'running' ? '🔄' : '⏳';
+        // const duration = stage.duration ? `(${Math.round(stage.duration / 1000)}s)` : '';
       });
 
 

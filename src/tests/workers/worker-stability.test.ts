@@ -7,6 +7,17 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { LearningWorker } from '../../workers/learning-worker';
 import type { Env } from '../../types/env';
 
+const createPreparedStatement = () => ({
+  bind: (...args: any[]) => ({
+    all: async () => ({ results: [] }),
+    first: async () => null,
+    run: async () => ({ success: true })
+  }),
+  all: async () => ({ results: [] }),
+  first: async () => null,
+  run: async () => ({ success: true })
+});
+
 describe('Worker Stability - Database Access', () => {
   describe('LearningWorker Database Validation', () => {
     it('should throw error when DB_CRM is undefined', () => {
@@ -39,11 +50,7 @@ describe('Worker Stability - Database Access', () => {
         DB_MAIN: {} as any,
         DB_ANALYTICS: {} as any,
         DB_CRM: {
-          prepare: () => ({
-            bind: () => ({
-              all: async () => ({ results: [] })
-            })
-          })
+          prepare: () => createPreparedStatement()
         } as any,
         KV_CACHE: {} as any,
         KV_SESSION: {} as any,
@@ -68,12 +75,7 @@ describe('Worker Stability - Database Access', () => {
       const mockDB = {
         prepare: (sql: string) => {
           queryCalled = true;
-          return {
-            bind: (...args: any[]) => ({
-              all: async () => ({ results: [] }),
-              first: async () => null
-            })
-          };
+          return createPreparedStatement();
         }
       };
 
@@ -96,6 +98,9 @@ describe('Worker Stability - Database Access', () => {
       } as Env;
 
       const worker = new LearningWorker(env);
+
+      // Reset call tracking after initialization to focus on queueTask side-effects
+      queryCalled = false;
 
       // This should not throw undefined errors
       await worker.queueTask({
@@ -203,11 +208,7 @@ describe('Worker Stability - Database Access', () => {
         DB_MAIN: {} as any,
         DB_ANALYTICS: {} as any,
         DB_CRM: {
-          prepare: () => ({
-            bind: () => ({
-              all: async () => ({ results: [] })
-            })
-          })
+          prepare: () => createPreparedStatement()
         } as any,
         KV_CACHE: {} as any,
         KV_SESSION: {} as any,

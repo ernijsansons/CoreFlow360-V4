@@ -303,7 +303,7 @@ export class DataSynchronizationService extends EventEmitter {
   }
 
   // Sync agent status
-  private async syncAgentStatus(job: SyncJob, syncType: string): Promise<void> {
+  private async syncAgentStatus(job: SyncJob, _syncType: string): Promise<void> {
     try {
       const agentStatus = await this.fetchAgentStatus();
 

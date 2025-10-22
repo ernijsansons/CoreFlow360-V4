@@ -275,6 +275,7 @@ export class RecurringRevenueService {
 
     const revenue = totalRevenue?.total || 0;
     const months = lifetimeMonths?.months || 1;
+    void months;
 
     // Simple LTV calculation: (average monthly revenue) / (monthly churn rate)
     // For now, just return total revenue

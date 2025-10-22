@@ -11,7 +11,7 @@
  */
 
 import { z } from 'zod';
-import { SecurityError } from '../shared/errors/app-error';
+
 
 export interface ValidationResult<T = any> {
   success: boolean;

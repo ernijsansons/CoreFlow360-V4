@@ -3,9 +3,7 @@
  * Critical code quality improvements for CoreFlow360 V4
  */
 
-import { Logger } from '../shared/logger';
 
-const logger = new Logger({ component: 'supernova-code-quality' });
 
 // ============================================================================
 // DEAD CODE DETECTION AND REMOVAL
@@ -313,7 +311,7 @@ export class SupernovaTechDebtDetector {
     return defaultEffort[type as keyof typeof defaultEffort] || 4;
   }
 
-  private static assessImpact(message: string, type: string): string[] {
+  private static assessImpact(message: string, _type: string): string[] {
     const impacts: string[] = [];
     const lowerMessage = message.toLowerCase();
 

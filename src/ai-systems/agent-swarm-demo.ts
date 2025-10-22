@@ -197,7 +197,7 @@ export class AgentSwarmDemo {
   async runAllScenarios(): Promise<Map<string, DemoResult>> {
     const results = new Map<string, DemoResult>();
 
-    for (const [scenarioId, _scenario] of this.demoScenarios) {
+    for (const scenarioId of this.demoScenarios.keys()) {
       try {
         const result = await this.runDemoScenario(scenarioId);
         results.set(scenarioId, result);
@@ -352,7 +352,7 @@ export class AgentSwarmDemo {
 
 ## Scenario Results
 
-${Array.from(results.entries()).map(([_scenarioId, result]) => `
+${Array.from(results.entries()).map(([, result]) => `
 ### ${result.scenario.name}
 - **Status**: ${result.success ? '✅ SUCCESS' : '❌ FAILED'}
 - **Quality Achieved**: ${result.qualityAchieved.toFixed(3)} (Target: ${result.scenario.qualityTarget})

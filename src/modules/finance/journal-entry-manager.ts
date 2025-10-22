@@ -4,16 +4,11 @@
  */
 import type { D1Database } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
-import {
-  JournalEntry,
+import { JournalEntry,
   JournalLine,
   JournalEntryType,
   JournalEntryStatus,
-  CreateJournalEntryRequest,
-  PostJournalEntryRequest,
-  AuditAction,
-  ChartAccount
-} from './types';
+  CreateJournalEntryRequest } from './types';
 import { FinanceAuditLogger } from './audit-logger';
 import { ChartOfAccountsManager } from './chart-of-accounts';
 import { CurrencyManager } from './currency-manager';

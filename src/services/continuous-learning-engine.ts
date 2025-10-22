@@ -1,17 +1,13 @@
 import type { Env } from '../types/env';
-import type {
-  Interaction,
+import type { Interaction,
   OutcomeData,
   Strategy,
   PromptVariant,
   Pattern,
   CustomerSegment,
-  Playbook,
-  Feedback,
   LearningMetrics,
   ExperimentResult,
-  StrategyUpdate
-} from '../types/crm';
+  StrategyUpdate } from '../types/crm';
 
 export class ContinuousLearningEngine {
   private env: Env;
@@ -81,6 +77,7 @@ export class ContinuousLearningEngine {
   private async updateStrategies(analysis: { success: boolean; factors: string[]; recommendations: string[] }): Promise<void> {
     // Update strategy effectiveness based on analysis
     for (const [id, strategy] of this.strategies) {
+    void id;
       const strategyType = strategy.type || strategy.strategy_type;
       if (analysis.factors.includes(strategyType)) {
         const currentEffectiveness = strategy.effectiveness ?? strategy.effectiveness_score;
@@ -129,7 +126,7 @@ export class ContinuousLearningEngine {
     return `${interaction.type}_${interaction.channel}_${interaction.context}`;
   }
 
-  private identifySegment(interaction: Interaction): string {
+  private identifySegment(_interaction: Interaction): string {
     // Mock segment identification
     return 'segment_1';
   }
@@ -293,7 +290,7 @@ export class ContinuousLearningEngine {
   }
 
   // Additional methods required by learning routes
-  async getMetrics(timeframe: string): Promise<LearningMetrics> {
+  async getMetrics(_timeframe: string): Promise<LearningMetrics> {
     // For now, return the same as getLearningMetrics
     // In production, this would filter by timeframe
     return this.getLearningMetrics();

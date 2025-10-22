@@ -1,8 +1,6 @@
 import { CRMService } from './crm-service';
 import type { Env } from '../types/env';
-import type {
-  MetaLeadPayload,
-  MetaLeadData,
+import type { MetaLeadPayload,
   ChatMessage,
   ChatSession,
   ChatAIResponse,
@@ -11,14 +9,10 @@ import type {
   LeadInput,
   LeadEnrichmentData,
   LeadProcessingResult,
-  AIQualificationResult,
   InstantResponse,
-  LeadIngestionEvent,
   FormSubmission,
-  WebhookVerification,
-  LeadIngestionConfig
-} from '../types/lead-ingestion';
-import type { CreateLead, CreateContact, CreateCompany } from '../types/crm';
+  LeadIngestionConfig } from '../types/lead-ingestion';
+import type { CreateLead } from '../types/crm';
 
 export class LeadIngestionService {
   private crmService: CRMService;
@@ -229,7 +223,7 @@ export class LeadIngestionService {
   /**
    * Verify Meta webhook
    */
-  private verifyMetaWebhook(payload: MetaLeadPayload): boolean {
+  private verifyMetaWebhook(_payload: MetaLeadPayload): boolean {
     // Mock verification - would implement real verification in production
     // MetaLeadPayload doesn't have verify_token, so always return true for now
     return true;
@@ -351,7 +345,7 @@ export class LeadIngestionService {
   /**
    * Generate chat response
    */
-  private async generateChatResponse(session: ChatSession): Promise<ChatAIResponse> {
+  private async generateChatResponse(_session: ChatSession): Promise<ChatAIResponse> {
     // Mock AI response - would use real AI in production
     return {
       message: 'Thank you for your message. How can I help you today?',
@@ -397,7 +391,7 @@ export class LeadIngestionService {
   /**
    * Classify email
    */
-  private async classifyEmail(email: ParsedEmail): Promise<EmailClassification> {
+  private async classifyEmail(_email: ParsedEmail): Promise<EmailClassification> {
     // Mock classification - would use real AI in production
     return {
       type: 'inquiry',

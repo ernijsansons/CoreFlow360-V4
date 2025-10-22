@@ -495,7 +495,7 @@ export class RateLimiterDurableObject {
 
     this.cleanupTimer = setInterval(() => {
       this.cleanupRequests();
-      this.saveState().catch(console.error);
+      this.saveState().catch((error) => logger.error('Failed to persist rate limiter state', error));
     }, this.cleanupInterval) as unknown as number;
   }
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Real-Time Dashboard Data Service
  * WebSocket-based live data pipeline with Cloudflare Durable Objects
@@ -87,7 +88,7 @@ class RealTimeService {
       this.handleDisconnection(connectionId)
     })
 
-    websocket.addEventListener('error', (error) => {
+    websocket.addEventListener('error', (_error) => {
       this.handleDisconnection(connectionId)
     })
 

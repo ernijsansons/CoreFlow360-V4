@@ -658,7 +658,7 @@ export class ComplianceService {
 
   private checkPIIExposure(
     text: string,
-    guidelines: CompanyGuideline[]
+    _guidelines: CompanyGuideline[]
   ): ComplianceViolation[] {
     const violations: ComplianceViolation[] = [];
 
@@ -812,7 +812,7 @@ export class ComplianceService {
   private determineAction(
     violations: ComplianceViolation[],
     guidelines: CompanyGuideline[],
-    policies: AgentPolicy[]
+    _policies: AgentPolicy[]
   ): 'allow' | 'block' | 'modify' | 'escalate' {
     if (violations.length === 0) {
       return 'allow';

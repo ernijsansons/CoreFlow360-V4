@@ -3,13 +3,10 @@
  * Intelligent retry with model downgrade and agent fallback
  */
 
-import {
-  IAgent,
+import { IAgent,
   AgentTask,
   BusinessContext,
-  AgentResult,
-  TaskConstraints
-} from './types';
+  AgentResult } from './types';
 import { AgentRegistry } from './registry';
 import { Logger } from '../../shared/logger';
 

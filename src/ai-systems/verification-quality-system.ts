@@ -5,7 +5,7 @@
  */
 
 import { Logger } from '../shared/logger';
-import type { Task, TaskResult, VerificationResult } from './agent-orchestration-framework';
+import type { Task, TaskResult } from './agent-orchestration-framework';
 
 export interface VerificationGate {
   id: string;
@@ -668,7 +668,7 @@ export class VerificationQualitySystem {
   private async executeFactChecking(
     impl: HallucinationCheckImpl,
     task: Task,
-    taskResult?: TaskResult
+    _taskResult?: TaskResult
   ): Promise<AntiHallucinationResult> {
     // Simulate fact-checking implementation
     const confidence = Math.random() * 0.3 + 0.7; // 0.7-1.0
@@ -706,7 +706,7 @@ export class VerificationQualitySystem {
   private async executeSourceValidation(
     impl: HallucinationCheckImpl,
     task: Task,
-    taskResult?: TaskResult
+    _taskResult?: TaskResult
   ): Promise<AntiHallucinationResult> {
     // Simulate source validation
     const sourcesValid = Math.random() > 0.2; // 80% chance of valid sources
@@ -725,7 +725,7 @@ export class VerificationQualitySystem {
   private async executeCrossReference(
     impl: HallucinationCheckImpl,
     task: Task,
-    taskResult?: TaskResult
+    _taskResult?: TaskResult
   ): Promise<AntiHallucinationResult> {
     // Simulate cross-reference checking
     const confidence = Math.random() * 0.4 + 0.6; // 0.6-1.0
@@ -789,8 +789,8 @@ export class VerificationQualitySystem {
 
   private async executeDynamicTesting(
     config: ValidationConfig,
-    task: Task,
-    taskResult?: TaskResult
+    _task: Task,
+    _taskResult?: TaskResult
   ): Promise<{ passed: boolean; score: number; details: string }> {
     // Simulate dynamic testing
     const score = Math.random() * 0.3 + 0.7; // 0.7-1.0
@@ -804,9 +804,9 @@ export class VerificationQualitySystem {
   }
 
   private async executePatternMatching(
-    config: ValidationConfig,
-    task: Task,
-    taskResult?: TaskResult
+    _config: ValidationConfig,
+    _task: Task,
+    _taskResult?: TaskResult
   ): Promise<{ passed: boolean; score: number; details: string }> {
     // Simulate pattern matching
     const score = Math.random() * 0.4 + 0.6; // 0.6-1.0
@@ -840,9 +840,9 @@ export class VerificationQualitySystem {
   }
 
   private async executeHumanReview(
-    config: ValidationConfig,
-    task: Task,
-    taskResult?: TaskResult
+    _config: ValidationConfig,
+    _task: Task,
+    _taskResult?: TaskResult
   ): Promise<{ passed: boolean; score: number; details: string }> {
     // Simulate human review (would be actual human review in production)
     const score = 0.92; // Simulated human review score
@@ -1013,7 +1013,7 @@ export class VerificationQualitySystem {
   private calculateOverallConfidence(
     criteriaResults: Array<{ criteriaId: string; passed: boolean; score: number; details: string }>,
     antiHallucinationResults: AntiHallucinationResult[],
-    threshold: number
+    _threshold: number
   ): number {
     const criteriaConfidence = criteriaResults.reduce((sum, r) => sum + r.score, 0) / criteriaResults.length;
     const antiHallucinationConfidence = antiHallucinationResults.reduce((sum, r) => sum + r.confidence, 0) / antiHallucinationResults.length;
@@ -1039,7 +1039,7 @@ export class VerificationQualitySystem {
 
   private generateNextSteps(
     recommendation: string,
-    qualityAssessment: QualityAssessment
+    _qualityAssessment: QualityAssessment
   ): string[] {
     switch (recommendation) {
       case 'approve':
@@ -1085,7 +1085,7 @@ export class VerificationQualitySystem {
   /**
    * Consistency checking implementations
    */
-  private checkCodeConsistency(data: any): { score: number; details: string; evidence: string[] } {
+  private checkCodeConsistency(_data: any): { score: number; details: string; evidence: string[] } {
     // Simulate code consistency checking
     const score = Math.random() * 0.3 + 0.7; // 0.7-1.0
     return {
@@ -1095,7 +1095,7 @@ export class VerificationQualitySystem {
     };
   }
 
-  private checkDesignConsistency(data: any): { score: number; details: string; evidence: string[] } {
+  private checkDesignConsistency(_data: any): { score: number; details: string; evidence: string[] } {
     // Simulate design consistency checking
     const score = Math.random() * 0.25 + 0.75; // 0.75-1.0
     return {
@@ -1105,7 +1105,7 @@ export class VerificationQualitySystem {
     };
   }
 
-  private checkRequirementConsistency(data: any): { score: number; details: string; evidence: string[] } {
+  private checkRequirementConsistency(_data: any): { score: number; details: string; evidence: string[] } {
     // Simulate requirement consistency checking
     const score = Math.random() * 0.2 + 0.8; // 0.8-1.0
     return {
@@ -1115,7 +1115,7 @@ export class VerificationQualitySystem {
     };
   }
 
-  private checkInternalConsistency(task: Task, taskResult?: TaskResult): { score: number; details: string; evidence: string[] } {
+  private checkInternalConsistency(task: Task, _taskResult?: TaskResult): { score: number; details: string; evidence: string[] } {
     // Check internal consistency of task and results
     const score = Math.random() * 0.3 + 0.7; // 0.7-1.0
     return {
@@ -1125,7 +1125,7 @@ export class VerificationQualitySystem {
     };
   }
 
-  private checkPlausibility(task: Task, taskResult?: TaskResult): { confidence: number; details: string; evidence: string[] } {
+  private checkPlausibility(task: Task, _taskResult?: TaskResult): { confidence: number; details: string; evidence: string[] } {
     // Check plausibility using statistical models
     const confidence = Math.random() * 0.4 + 0.6; // 0.6-1.0
     return {

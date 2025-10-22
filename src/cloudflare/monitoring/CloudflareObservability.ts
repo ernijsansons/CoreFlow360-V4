@@ -4,7 +4,10 @@
  */
 
 import type { AnalyticsEngineDataset } from '../types/cloudflare';
-import type { Env } from '../../types/env';
+import type { Env } from '../../types/env';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "cloudflare-monitoring-CloudflareObservability" });
+
+
 
 export class CloudflareObservability {
   private env: Env;
@@ -364,10 +367,10 @@ export class CloudflareObservability {
 
     switch (logEntry.level) {
       case 'DEBUG':
-        console.debug(output);
+        logger.debug(output);
         break;
       case 'INFO':
-        console.info(output);
+        logger.info(output);
         break;
       case 'WARNING':
         break;

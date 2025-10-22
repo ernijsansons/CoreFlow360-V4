@@ -5,7 +5,7 @@
 
 import { Logger } from '@/shared/logger';
 export class AuditService {
-  private logger = new Logger('AuditService');
+  private logger = new Logger({ component: 'AuditService' });
 
   private db: D1Database;
 
@@ -18,7 +18,7 @@ export class AuditService {
     this.logger.info('Audit:', event, data);
   }
 
-  async getAuditTrail(filters: any): Promise<any[]> {
+  async getAuditTrail(_filters: any): Promise<any[]> {
     return [];
   }
 }

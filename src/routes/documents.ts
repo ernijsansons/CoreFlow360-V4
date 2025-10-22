@@ -8,7 +8,10 @@ import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { DocumentProcessor } from '../services/ocr/document-processor';
 import { authenticate } from '../middleware/auth';
-import { z } from 'zod';
+import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "routes-documents" });
+
+
 
 const documents = new Hono<{ Bindings: Env }>();
 
@@ -27,6 +30,7 @@ documents.post('/upload', async (c) => {
     const formData = await c.req.formData();
     const file = formData.get('file') as File;
     const documentType = formData.get('type') as string; // Optional hint
+    void documentType;
 
     if (!file) {
       return c.json({ success: false, error: 'No file provided' }, 400);
@@ -109,7 +113,7 @@ documents.post('/upload', async (c) => {
       }
     }, 201);
   } catch (error) {
-    console.error('Document upload error:', error);
+    logger.error('Document upload error:', error);
     return c.json({
       success: false,
       error: 'Failed to upload and process document'
@@ -164,7 +168,7 @@ documents.get('/', async (c) => {
       }
     });
   } catch (error) {
-    console.error('List documents error:', error);
+    logger.error('List documents error:', error);
     return c.json({
       success: false,
       error: 'Failed to list documents'
@@ -204,7 +208,7 @@ documents.get('/:id', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Get document error:', error);
+    logger.error('Get document error:', error);
     return c.json({
       success: false,
       error: 'Failed to get document'
@@ -269,7 +273,7 @@ documents.get('/:id/file', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Download file error:', error);
+    logger.error('Download file error:', error);
     return c.json({
       success: false,
       error: 'Failed to download file'
@@ -359,7 +363,7 @@ documents.post('/:id/create-invoice', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Create invoice from document error:', error);
+    logger.error('Create invoice from document error:', error);
     return c.json({
       success: false,
       error: 'Failed to create invoice'
@@ -424,7 +428,7 @@ documents.post('/:id/create-expense', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Create expense from document error:', error);
+    logger.error('Create expense from document error:', error);
     return c.json({
       success: false,
       error: 'Failed to create expense'

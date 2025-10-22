@@ -3,7 +3,10 @@ import type { Env } from '../types/env';
 import { SMSChannel } from './channels/sms-channel';
 import { WhatsAppChannel } from './channels/whatsapp-channel';
 import { MeetingBooker } from './meeting-booker';
-import { AIEmailWriter } from './ai-email-writer';
+import { AIEmailWriter } from './ai-email-writer';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-conversational-messaging" });
+
+
 
 export interface Message {
   id: string;
@@ -171,7 +174,7 @@ export class ConversationalMessagingService {
       fullMessage.status = 'delivered';
     } catch (error: any) {
       fullMessage.status = 'failed';
-      console.error('Failed to send message:', error);
+      logger.error('Failed to send message:', error);
     }
 
     return fullMessage;
@@ -347,7 +350,7 @@ export class ConversationalMessagingService {
     }
   }
 
-  private async executeAction(action: string, conversation: Conversation, message: Message): Promise<void> {
+  private async executeAction(action: string, conversation: Conversation, _message: Message): Promise<void> {
     switch (action) {
       case 'schedule_meeting':
         // Create minimal conversation object for meeting booking
@@ -377,7 +380,7 @@ export class ConversationalMessagingService {
     }
   }
 
-  private async generateAIResponse(conversation: Conversation, message: Message): Promise<string | null> {
+  private async generateAIResponse(_conversation: Conversation, _message: Message): Promise<string | null> {
     // Mock AI response generation
     const responses = [
       "Thanks for your message! I'll get back to you soon.",

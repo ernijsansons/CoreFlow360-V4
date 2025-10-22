@@ -802,7 +802,7 @@ export class APIConnector extends BaseConnector {
   }
 
   private async validateWebhookSignature(payload: any,
-  headers: Record<string, string>, secret: string): Promise<boolean> {
+  headers: Record<string, string>, _secret: string): Promise<boolean> {
     // Simplified signature validation - implement according to your webhook provider
     const signature = headers['x-signature'] || headers['x-hub-signature-256'];
 

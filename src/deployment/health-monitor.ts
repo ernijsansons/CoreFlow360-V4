@@ -3,7 +3,7 @@
  * Comprehensive health checks and real-time monitoring for deployments
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 import { Env } from '../types/env';

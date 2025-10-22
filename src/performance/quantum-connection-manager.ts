@@ -298,13 +298,13 @@ export class PoolOptimizer {
     return this.selectBestReadNode(options.readReplicas, factors);
   }
 
-  private selectBestWriteNode(nodes: DatabaseNode[], factors: any): DatabaseNode {
+  private selectBestWriteNode(nodes: DatabaseNode[], _factors: any): DatabaseNode {
     return nodes
       .filter((n: any) => n.isHealthy)
       .sort((a, b) => (a.currentLoad + a.latency) - (b.currentLoad + b.latency))[0] || nodes[0];
   }
 
-  private selectBestReadNode(nodes: DatabaseNode[], factors: any): DatabaseNode {
+  private selectBestReadNode(nodes: DatabaseNode[], _factors: any): DatabaseNode {
     return nodes
       .filter((n: any) => n.isHealthy && n.type === 'replica')
       .sort((a, b) => a.latency - b.latency)[0] || nodes[0];
@@ -410,6 +410,7 @@ class QuantumConnectionManager {
     const status = new Map<string, PoolMetrics>();
 
     for (const [tenantId, pool] of this.pools) {
+    void pool;
       status.set(tenantId, await this.collectMetrics(tenantId));
     }
 
@@ -506,11 +507,11 @@ class QuantumConnectionManager {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  private async calculatePriority(tenant: string): Promise<number> {
+  private async calculatePriority(_tenant: string): Promise<number> {
     return 5;
   }
 
-  private async calculateTimeout(tenant: string): Promise<number> {
+  private async calculateTimeout(_tenant: string): Promise<number> {
     return this.config.acquireTimeout;
   }
 
@@ -638,7 +639,7 @@ class QuantumConnectionManager {
     return 'unknown';
   }
 
-  private async checkDataLocality(query: Query): Promise<any> {
+  private async checkDataLocality(_query: Query): Promise<any> {
     return {
       preferredRegion: 'us-east-1',
       dataResidency: 'us'
@@ -702,20 +703,20 @@ export class D1Optimizer {
     });
   }
 
-  private async enablePreparedStatements(config: {
+  private async enablePreparedStatements(_config: {
     cache: boolean;
     maxStatements: number;
     ttl: number;
   }): Promise<void> {
   }
 
-  private async enableBatching(config: {
+  private async enableBatching(_config: {
     maxBatchSize: number;
     maxLatency: number;
   }): Promise<void> {
   }
 
-  private async configureReplicas(config: {
+  private async configureReplicas(_config: {
     readPreference: string;
     consistency: string;
     lag: number;

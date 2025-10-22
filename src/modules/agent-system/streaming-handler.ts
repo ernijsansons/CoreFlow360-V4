@@ -3,14 +3,11 @@
  * Handles streaming for all agent types
  */
 
-import {
-  IAgent,
+import { IAgent,
   AgentTask,
   BusinessContext,
   StreamingChunk,
-  StreamingConfig,
-  AgentResult
-} from './types';
+  StreamingConfig } from './types';
 import { Logger } from '../../shared/logger';
 
 export class StreamingHandler {
@@ -39,6 +36,7 @@ export class StreamingHandler {
     writer: WritableStreamDefaultWriter<Uint8Array>
   ): Promise<void> {
     const encoder = new TextEncoder();
+    void encoder;
 
     try {
       // Send immediate acknowledgment
@@ -423,7 +421,7 @@ export class StreamingHandler {
 
     // Start streaming in the background
     handler.streamResponse(agent, task, writer)
-      .catch((error: any) => {
+      .catch((_error: any) => {
       })
       .finally(() => {
         writer.close();

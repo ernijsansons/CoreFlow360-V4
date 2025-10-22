@@ -3,23 +3,17 @@
  * Handles short-term (KV) and long-term (D1) memory for agents
  */
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
-import {
-  Memory,
+import { Memory,
   MemoryMessage,
   Knowledge,
   ConversationEntry,
   MemoryContext,
-  AgentResult,
-  AGENT_CONSTANTS
-} from './types';
+  AGENT_CONSTANTS } from './types';
 import { Logger } from '../../shared/logger';
 import { ApplicationError as ValidationError } from '../../shared/error-handling';
-import {
-  sanitizeBusinessId,
-  sanitizeUserId,
+import { sanitizeBusinessId,
   sanitizeSqlParam,
-  sanitizeForLogging
-} from './security-utils';
+  sanitizeForLogging } from './security-utils';
 
 export class AgentMemory {
   private logger: Logger;
@@ -377,7 +371,7 @@ export class AgentMemory {
     return result.results as unknown as Knowledge[];
   }
 
-  private async saveLongTerm(businessId: string, knowledge: Knowledge[]): Promise<void> {
+  private async saveLongTerm(_businessId: string, _knowledge: Knowledge[]): Promise<void> {
     // Long-term memory is already persisted in D1, no need to save again
     // This method exists for interface consistency
   }
@@ -395,9 +389,9 @@ export class AgentMemory {
   }
 
   private async saveConversationHistory(
-    businessId: string, 
-    sessionId: string, 
-    entries: ConversationEntry[]
+    _businessId: string, 
+    _sessionId: string, 
+    _entries: ConversationEntry[]
   ): Promise<void> {
     // Conversation history is already persisted in D1, no need to save again
     // This method exists for interface consistency

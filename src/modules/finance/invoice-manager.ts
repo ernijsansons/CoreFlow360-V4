@@ -10,20 +10,15 @@ import { FinanceAuditLogger } from './audit-logger';
 import { TaxCalculationEngine } from './tax-calculation-engine';
 import { PaymentTermsManager } from './payment-terms-manager';
 import { CurrencyManager } from './currency-manager';
-import {
-  Invoice,
+import { Invoice,
   InvoiceLine,
   InvoiceStatus,
   ApprovalStatus,
   CreateInvoiceRequest,
   UpdateInvoiceRequest,
-  InvoiceApproval,
   Customer,
-  TaxLine,
   InvoiceDiscount,
-  JournalEntryType,
-  PaymentTermType
-} from './types';
+  JournalEntryType } from './types';
 import { validateBusinessId, generateInvoiceNumber, roundToCurrency } from './utils';
 
 export // TODO: Consider splitting InvoiceManager into smaller, focused classes

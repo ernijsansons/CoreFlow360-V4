@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
-import { z } from 'zod';
+
 import type { Env } from '../types/env';
-import { MigrationRunner, type MigrationFile } from '../modules/database/migration-runner';
+import { MigrationRunner } from '../modules/database/migration-runner';
+// TODO: Use MigrationFile type when implementing migrations
+// import type { MigrationFile } from '../modules/database/migration-runner';
 
 // Import migration files (in production, these would be loaded from R2 or KV)
 import { loadMigrations, loadRollbacks } from './migration-sql';

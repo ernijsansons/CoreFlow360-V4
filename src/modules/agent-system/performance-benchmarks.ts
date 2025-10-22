@@ -3,16 +3,11 @@
  * Comprehensive testing suite for performance, latency, throughput, and scalability
  */
 
-import {
-  IAgent,
-  AgentTask,
+import { AgentTask,
   BusinessContext,
-  AgentResult,
-  Workflow,
-  TaskConstraints
-} from './types';
+  Workflow } from './types';
 import { AgentSystem } from './index';
-import { ClaudeNativeAgent } from './claude-native-agent';
+
 
 export interface BenchmarkResult {
   name: string;
@@ -597,7 +592,8 @@ export class AgentSystemBenchmarks {
       try {
         const taskStart = Date.now();
         let firstChunkTime: number | null = null;
-        let chunkCount = 0;
+        // TODO: Implement chunk counting when needed
+        // let chunkCount = 0;
 
         // Note: In a real implementation, this would use the streaming response
         // For now, simulate streaming behavior
@@ -954,7 +950,7 @@ export class AgentSystemBenchmarks {
     }
   }
 
-  private calculateSummary(results: BenchmarkResult[], totalTime: number) {
+  private calculateSummary(results: BenchmarkResult[], _totalTime: number) {
     const totalExecutions = results.reduce((sum, r) => sum + r.iterations, 0);
     const totalCost = results.reduce((sum, r) => sum + r.totalCost, 0);
     const avgSuccessRate = results.reduce((sum, r) => sum + r.successRate, 0) / results.length;
@@ -975,7 +971,7 @@ export class AgentSystemBenchmarks {
 
 
 
-    suite.results.forEach((result, index) => {
+    suite.results.forEach((result, _index) => {
 
       if (result.errors.length > 0) {
       }
@@ -986,8 +982,9 @@ export class AgentSystemBenchmarks {
   /**
    * Save benchmark results to file
    */
-  async saveBenchmarkResults(suite: BenchmarkSuite, filePath?: string): Promise<void> {
-    const fileName = filePath || `benchmark-results-${Date.now()}.json`;
+  async saveBenchmarkResults(_suite: BenchmarkSuite, _filePath?: string): Promise<void> {
+    // TODO: Implement file saving when needed
+    // const fileName = filePath || `benchmark-results-${Date.now()}.json`;
 
     try {
       // In a real implementation, this would save to the file system

@@ -1,16 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Env } from '../../types/env';
-import {
-  type RegisterRequest,
+import { type RegisterRequest,
   type LoginRequest,
   type AuthResponse,
   type MFAConfig,
   type AuthAuditEntry,
   type TokenClaims,
   RegisterRequestSchema,
-  LoginRequestSchema,
-  PasswordResetRequestSchema,
-  PasswordResetConfirmSchema,
-} from './types';
+  LoginRequestSchema } from './types';
 import { hashPassword, verifyPassword, generateSecureToken } from './crypto';
 import { JWTService } from './jwt';
 import { SessionManager } from './session';
@@ -348,7 +345,7 @@ class AuthService {
         };
 
       } catch (error: any) {
-        console.log('[AUTH] Login error caught:', {
+        this.logger.info('[AUTH] Login error caught:', {
           message: error.message,
           name: error.name,
           stack: error.stack?.substring(0, 200)

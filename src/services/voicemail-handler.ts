@@ -1,26 +1,24 @@
-import type {
-  Lead,
+import type { Lead,
   Voicemail,
   VoicemailTemplate,
   VoicemailType,
   VoiceSettings,
   PersonalizationLevel,
-  VoicemailDeliveryStatus,
   // GRUG: LeaveVoicemailTaskPayload not exported - define inline or remove
   VoicemailFollowUp,
   FollowUpType,
-  ContactMethod
-} from '../types/crm';
+  ContactMethod } from '../types/crm';
 import type { Env } from '../types/env';
 
 // GRUG: Define missing type locally
-interface LeaveVoicemailTaskPayload {
-  lead_id: string;
-  voicemail_id: string;
-  attempt_number: number;
-  scheduled_time: Date;
-  method: string;
-}
+// TODO: Use LeaveVoicemailTaskPayload when implementing task payloads
+// interface LeaveVoicemailTaskPayload {
+//   lead_id: string;
+//   voicemail_id: string;
+//   attempt_number: number;
+//   scheduled_time: Date;
+//   method: string;
+// }
 
 export class VoicemailHandler {
   private env: Env;
@@ -210,9 +208,9 @@ export class VoicemailHandler {
 
   private async generateFinalAttemptMessage(
     lead: Lead,
-    template: VoicemailTemplate,
-    personalizationLevel: PersonalizationLevel,
-    personalizationData?: any
+    _template: VoicemailTemplate,
+    _personalizationLevel: PersonalizationLevel,
+    _personalizationData?: any
   ): Promise<string> {
     // Final attempt - respectful closure with open door
     let message = `Hi ${lead.first_name || 'there'}, this will be my last attempt to reach you for now. `;
@@ -239,7 +237,7 @@ export class VoicemailHandler {
   /**
    * Play audio through phone system or save to voicemail
    */
-  async playAudio(audio: AudioData, lead: Lead): Promise<boolean> {
+  async playAudio(_audio: AudioData, _lead: Lead): Promise<boolean> {
     try {
       // In real implementation, this would interface with Twilio or similar
 
@@ -483,7 +481,7 @@ export class VoicemailHandler {
     };
   }
 
-  private getDefaultTemplate(voicemailType: VoicemailType, attemptNumber: number): string {
+  private getDefaultTemplate(voicemailType: VoicemailType, _attemptNumber: number): string {
     const templates: Record<string, string> = {
       'initial_outreach': 'Hi {lead_name}, this is {rep_name}. I\'m reaching out to {company_name} because',
       'follow_up': 'Hi {lead_name}, {rep_name} here following up on my previous message.',
@@ -608,13 +606,13 @@ export class VoicemailHandler {
   }
 
   // Database operations (mock implementations)
-  private async saveVoicemail(voicemail: Voicemail): Promise<void> {
+  private async saveVoicemail(_voicemail: Voicemail): Promise<void> {
   }
 
-  private async saveFollowUp(followUp: Partial<VoicemailFollowUp>): Promise<void> {
+  private async saveFollowUp(_followUp: Partial<VoicemailFollowUp>): Promise<void> {
   }
 
-  private async scheduleFollowUpTask(task: any): Promise<void> {
+  private async scheduleFollowUpTask(_task: any): Promise<void> {
   }
 
   private generateId(): string {
@@ -677,7 +675,7 @@ export class VoicemailHandler {
     return { id: campaignId };
   }
 
-  private async getCampaignTargetLeads(campaign: any): Promise<Lead[]> {
+  private async getCampaignTargetLeads(_campaign: any): Promise<Lead[]> {
     // Mock implementation
     return [];
   }
@@ -695,7 +693,7 @@ class VoiceSynthesizer {
     this.env = env;
   }
 
-  async synthesize(text: string, settings: VoiceSettings): Promise<AudioData> {
+  async synthesize(text: string, _settings: VoiceSettings): Promise<AudioData> {
     try {
       // In real implementation, this would use a TTS service like:
       // - Amazon Polly

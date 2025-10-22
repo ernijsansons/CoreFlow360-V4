@@ -5,8 +5,7 @@
 
 import { Logger } from '../shared/logger';
 import type { Context } from 'hono';
-import type {
-  ModelAuditReport,
+import type { ModelAuditReport,
   ModelAnalysis,
   ModelMetrics,
   ModelIssue,
@@ -14,42 +13,24 @@ import type {
   AccuracyAnalysis,
   DriftAnalysis,
   BiasMetrics,
-  BiasedFeature,
   FairnessMetrics,
   ValidationResults,
   EfficiencyAnalysis,
   LatencyAnalysis,
-  LatencyBreakdown,
-  LatencyBottleneck,
   CostAnalysis,
-  CostSaving,
   TokenAnalysis,
-  TokenOptimization,
   CachingAnalysis,
-  CacheImprovement,
   EfficiencyOptimization,
   SafetyAnalysis,
   HallucinationAnalysis,
-  Hallucination,
-  HallucinationPattern,
-  HallucinationMitigation,
   GroundingAnalysis,
-  UngroundedResponse,
-  SourceUsage,
   JailbreakAnalysis,
-  JailbreakVulnerability,
-  JailbreakDefense,
   FilteringAnalysis,
-  FilterCategory,
   PerformanceAnalysis,
   ScalabilityAnalysis,
   ReliabilityAnalysis,
   PerformanceOptimization,
-  ModelRecommendation,
-  ModelImprovement
-} from './quantum-ai-auditor';
-
-const logger = new Logger({ component: 'model-performance-analyzer' });
+  ModelRecommendation } from './quantum-ai-auditor';
 
 export interface ModelAnalysisConfig {
   accuracy: {
@@ -167,7 +148,7 @@ export class ModelPerformanceAnalyzer {
     ];
   }
 
-  private async analyzeModel(model: any, config: ModelAnalysisConfig): Promise<ModelAnalysis> {
+  private async analyzeModel(model: any, _config: ModelAnalysisConfig): Promise<ModelAnalysis> {
     // Simulate model analysis with realistic metrics
     const baseLatency = Math.random() * 2000 + 200; // 200-2200ms
     const baseCost = Math.random() * 0.01 + 0.001; // $0.001-0.011 per request
@@ -256,7 +237,7 @@ export class ModelPerformanceAnalyzer {
     };
   }
 
-  private async analyzeAccuracy(models: ModelAnalysis[], config: ModelAnalysisConfig): Promise<AccuracyAnalysis> {
+  private async analyzeAccuracy(models: ModelAnalysis[], _config: ModelAnalysisConfig): Promise<AccuracyAnalysis> {
     // Calculate overall accuracy
     const overallAccuracy = models.reduce((sum, model) => sum + model.metrics.accuracy, 0) / models.length;
 
@@ -329,7 +310,7 @@ export class ModelPerformanceAnalyzer {
     };
   }
 
-  private async analyzeEfficiency(models: ModelAnalysis[], config: ModelAnalysisConfig): Promise<EfficiencyAnalysis> {
+  private async analyzeEfficiency(models: ModelAnalysis[], _config: ModelAnalysisConfig): Promise<EfficiencyAnalysis> {
     // Latency analysis
     const latencies = models.map((m: any) => m.metrics.latency);
     const averageLatency = latencies.reduce((sum, l) => sum + l, 0) / latencies.length;
@@ -472,7 +453,7 @@ export class ModelPerformanceAnalyzer {
     };
   }
 
-  private async analyzeSafety(models: ModelAnalysis[], config: ModelAnalysisConfig): Promise<SafetyAnalysis> {
+  private async analyzeSafety(_models: ModelAnalysis[], _config: ModelAnalysisConfig): Promise<SafetyAnalysis> {
     // Hallucination detection
     const hallucinationAnalysis: HallucinationAnalysis = {
       hallucinationRate: Math.random() * 0.08, // 0-8%

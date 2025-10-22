@@ -10,7 +10,10 @@ import { PrefetchManager } from './prefetch';
 import { switchPerformanceTracker } from './performance';
 import { JWTService } from '../auth/jwt';
 import { SessionManager } from '../auth/session';
-import { AuthorizationError } from '../../shared/error-handler';
+import { AuthorizationError } from '../../shared/error-handler';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "modules-business-switch-service" });
+
+
 
 export // TODO: Consider splitting BusinessSwitchService into smaller, focused classes
 class BusinessSwitchService {
@@ -89,7 +92,7 @@ class BusinessSwitchService {
     currentSessionId: string,
     request: SwitchBusinessRequest,
     ipAddress: string,
-    userAgent: string
+    _userAgent: string
   ): Promise<SwitchResult> {
     const tracker = switchPerformanceTracker.trackSwitch(
       userId,
@@ -200,7 +203,9 @@ class BusinessSwitchService {
       endAuditLog();
 
       // Step 7: Update last accessed timestamp
-      this.updateLastAccessed(userId, request.targetBusinessId).catch(console.error);
+      this.updateLastAccessed(userId, request.targetBusinessId).catch((error) => {
+        logger.error('Failed to update last accessed timestamp', { userId, targetBusinessId: request.targetBusinessId, error });
+      });
 
       metrics.totalMs = performance.now() - totalStartTime;
       tracker.complete();
@@ -417,51 +422,51 @@ class BusinessSwitchService {
     };
   }
 
-  async getCurrentBusiness(userId: string): Promise<any> {
+  async getCurrentBusiness(_userId: string): Promise<any> {
     return { business: null, session: null, fromCache: false, fetchTimeMs: 0 };
   }
 
-  async getBusinessDetails(userId: string, businessId: string): Promise<any> {
+  async getBusinessDetails(_userId: string, _businessId: string): Promise<any> {
     return { business: null, permissions: [] };
   }
 
-  async updateBusiness(userId: string, businessId: string, data: any): Promise<any> {
+  async updateBusiness(_userId: string, _businessId: string, _data: any): Promise<any> {
     return { business: null };
   }
 
-  async getBusinessStats(userId: string, businessId: string, period: string): Promise<any> {
+  async getBusinessStats(_userId: string, _businessId: string, _period: string): Promise<any> {
     return { stats: {} };
   }
 
-  async getBusinessUsers(userId: string, businessId: string, params: any): Promise<any> {
+  async getBusinessUsers(_userId: string, _businessId: string, _params: any): Promise<any> {
     return { users: [], pagination: { page: 1, limit: 20, total: 0 } };
   }
 
-  async addUserToBusiness(userId: string, businessId: string, data: any): Promise<any> {
+  async addUserToBusiness(_userId: string, _businessId: string, _data: any): Promise<any> {
     return { user: null };
   }
 
-  async removeUserFromBusiness(userId: string, businessId: string, targetUserId: string): Promise<any> {
+  async removeUserFromBusiness(_userId: string, _businessId: string, _targetUserId: string): Promise<any> {
     return { success: true, message: 'User removed' };
   }
 
-  async getBusinessPermissions(userId: string, businessId: string): Promise<any> {
+  async getBusinessPermissions(_userId: string, _businessId: string): Promise<any> {
     return { permissions: [] };
   }
 
-  async updateUserPermissions(userId: string, businessId: string, targetUserId: string, data: any): Promise<any> {
+  async updateUserPermissions(_userId: string, _businessId: string, _targetUserId: string, _data: any): Promise<any> {
     return { success: true, permissions: [], message: 'Permissions updated' };
   }
 
-  async getBusinessAuditLog(userId: string, businessId: string, params: any): Promise<any> {
+  async getBusinessAuditLog(_userId: string, _businessId: string, _params: any): Promise<any> {
     return { auditLog: [], pagination: { page: 1, limit: 50, total: 0 } };
   }
 
-  async getBusinessHealth(userId: string, businessId: string): Promise<any> {
+  async getBusinessHealth(_userId: string, _businessId: string): Promise<any> {
     return { health: { status: 'healthy', checks: [] } };
   }
 
-  async getBusinessPerformance(userId: string, businessId: string, period: string): Promise<any> {
+  async getBusinessPerformance(_userId: string, _businessId: string, _period: string): Promise<any> {
     return { performance: {} };
   }
 }

@@ -3,7 +3,8 @@
  * Automatic dashboard setup for different user roles
  */
 
-import { z } from 'zod'
+// TODO: Implement zod validation when needed
+// import { z } from 'zod'
 import type { Env } from '@/types/env'
 import type { Widget, Dashboard, DashboardLayout } from '@/types/dashboard'
 import { AppError } from '@/shared/errors/app-error'

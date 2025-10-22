@@ -313,13 +313,13 @@ export class CachePredictor {
 
   async predictUsage(region: string, timeWindow: number = 60): Promise<CachePrediction[]> {
     const currentPatterns = await this.analyzeCurrentPatterns(region);
-    const historicalData = await this.getHistoricalData(region, timeWindow);
-    const events = await this.getUpcomingEvents(region);
+    const _historicalData = await this.getHistoricalData(region, timeWindow);
+    const _events = await this.getUpcomingEvents(region);
 
     const predictions: CachePrediction[] = [];
 
     for (const pattern of currentPatterns) {
-      const prediction = await this.generatePrediction(pattern, historicalData, events, region);
+      const prediction = await this.generatePrediction(pattern, _historicalData, _events, region);
       if (prediction.probability > 0.7) {
         predictions.push(prediction);
       }
@@ -372,7 +372,7 @@ export class CachePredictor {
     ];
   }
 
-  private async getHistoricalData(region: string, timeWindow: number): Promise<any> {
+  private async getHistoricalData(_region: string, _timeWindow: number): Promise<any> {
     return {
       accessCounts: new Map(),
       timingPatterns: new Map(),
@@ -380,7 +380,7 @@ export class CachePredictor {
     };
   }
 
-  private async getUpcomingEvents(region: string): Promise<any[]> {
+  private async getUpcomingEvents(_region: string): Promise<any[]> {
     return [
       { type: 'business-hours-start', time: '09:00', impact: 'high' },
       { type: 'lunch-break', time: '12:00', impact: 'medium' },
@@ -428,7 +428,7 @@ export class CachePredictor {
     }, 0.1);
   }
 
-  private async scheduleWarming(config: {
+  private async scheduleWarming(_config: {
     key: string;
     region: string;
     priority: number;
@@ -456,14 +456,14 @@ export class QuantumCacheDistribution {
   }
 
   async predictiveWarm(region: string): Promise<void> {
-    const predictions = await this.predictor.predictUsage(region);
+    const _predictions = await this.predictor.predictUsage(region);
 
 
-    await this.predictor.warmCriticalPaths(region, predictions);
+    await this.predictor.warmCriticalPaths(region, _predictions);
 
     // Update analytics
     if (this.analytics) {
-      this.analytics.predictions = predictions;
+      this.analytics.predictions = _predictions;
     }
   }
 
@@ -683,27 +683,29 @@ export class QuantumCacheDistribution {
 
   }
 
-  private async configureBrowserCache(config: BrowserCacheConfig): Promise<void> {
+  private async configureBrowserCache(_config: BrowserCacheConfig): Promise<void> {
 
     // Set appropriate Cache-Control headers
-    const cacheControl = this.generateCacheControlHeader(config);
+    // const _cacheControl = this.generateCacheControlHeader(config);
   }
 
   private async configureEdgeCache(config: EdgeCacheConfig): Promise<void> {
 
     // Configure Cloudflare cache settings
-    for (const [region, settings] of config.geoDistribution.regions) {
+    for (const [,] of config.geoDistribution.regions) {
     }
 
     // Set up cache variants
-    for (const variant of config.variants) {
+    for (const _val of config.variants) {
+      void _val;
     }
   }
 
   private async configureRegionalCache(config: RegionalCacheConfig): Promise<void> {
 
     // Set up warming rules
-    for (const rule of config.warmingRules) {
+    for (const _rule of config.warmingRules) {
+      void _rule;
     }
 
     // Configure replication if enabled
@@ -725,9 +727,9 @@ export class QuantumCacheDistribution {
   private async setupPredictiveWarming(): Promise<void> {
 
     // Schedule warming for all regions
-    const regions = ['us-east', 'us-west', 'eu-west', 'ap-southeast'];
+    const _regions = ['us-east', 'us-west', 'eu-west', 'ap-southeast'];
 
-    for (const region of regions) {
+    for (const region of _regions) {
       // Initial warming
       await this.predictiveWarm(region);
 
@@ -739,7 +741,7 @@ export class QuantumCacheDistribution {
   }
 
   private async configureCacheReserve(): Promise<void> {
-    const config = await this.setupCacheReserve();
+    // const _config = await this.setupCacheReserve();
   }
 
   private generateCacheControlHeader(config: BrowserCacheConfig): string {

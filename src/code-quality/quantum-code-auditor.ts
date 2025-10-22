@@ -11,8 +11,6 @@ import { TypeSafetyAuditor } from './type-safety-auditor';
 import { ErrorHandlingAnalyzer } from './error-handling-analyzer';
 import { TechDebtDetector } from './tech-debt-detector';
 
-const logger = new Logger({ component: 'quantum-code-auditor' });
-
 export interface CodeAuditReport {
   overallScore: number;
   timestamp: Date;
@@ -890,7 +888,7 @@ export class QuantumCodeAuditor {
   private collectArchitectureIssues(
     audit: ArchitectureAuditReport,
     issues: CodeIssue[],
-    autoFixableIssues: AutoFixableCodeIssue[]
+    _autoFixableIssues: AutoFixableCodeIssue[]
   ): void {
     // Circular dependencies
     for (const circular of audit.dependencies.circularDependencies) {
@@ -930,7 +928,7 @@ export class QuantumCodeAuditor {
   private collectComplexityIssues(
     audit: ComplexityAuditReport,
     issues: CodeIssue[],
-    autoFixableIssues: AutoFixableCodeIssue[]
+    _autoFixableIssues: AutoFixableCodeIssue[]
   ): void {
     // High complexity functions
     for (const violation of audit.cyclomaticComplexity.violations) {
@@ -1027,7 +1025,7 @@ export class QuantumCodeAuditor {
   private collectErrorHandlingIssues(
     audit: ErrorHandlingAuditReport,
     issues: CodeIssue[],
-    autoFixableIssues: AutoFixableCodeIssue[]
+    _autoFixableIssues: AutoFixableCodeIssue[]
   ): void {
     // Uncovered async code
     for (const uncovered of audit.coverage.uncoveredCode) {

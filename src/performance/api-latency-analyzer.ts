@@ -1,5 +1,5 @@
 import { Logger } from '../shared/logger';
-import { SecurityError, ValidationError } from '../shared/error-handler';
+import { ValidationError } from '../shared/error-handler';
 import type { Context } from 'hono';
 
 const logger = new Logger({ component: 'api-latency-analyzer' });
@@ -1400,7 +1400,7 @@ return { jobId, status: 'processing', estimatedTime: '2-5 minutes' };`
   private generateAutoOptimizations(
     endpoints: EndpointLatencyAnalysis[],
     database: DatabaseLatencyReport,
-    cache: CacheLatencyReport
+    _cache: CacheLatencyReport
   ): AutoOptimization[] {
     const optimizations: AutoOptimization[] = [];
 

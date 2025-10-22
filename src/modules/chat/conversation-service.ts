@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Conversation Management Service
  * Manages chat conversations with D1 storage and advanced features

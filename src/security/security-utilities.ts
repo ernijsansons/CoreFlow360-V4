@@ -396,7 +396,7 @@ export class SecureDatabase {
   /**
    * Inject business_id filter into SQL query
    */
-  private injectBusinessIdFilter(sql: string, businessId: string): string {
+  private injectBusinessIdFilter(sql: string, _businessId: string): string {
     const upperSql = sql.toUpperCase();
 
     if (upperSql.includes('WHERE')) {

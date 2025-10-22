@@ -339,9 +339,9 @@ export class AgingReportsGenerator {
    * Build vendor aging details
    */
   private async buildVendorAgingDetails(
-    bills: VendorBill[],
-    asOfDate: number,
-    businessId: string
+    _bills: VendorBill[],
+    _asOfDate: number,
+    _businessId: string
   ): Promise<AgingDetail[]> {
     // Similar implementation to customer aging but for vendors
     // This would be implemented when vendor bills functionality is added
@@ -394,6 +394,7 @@ export class AgingReportsGenerator {
       for (const invoice of detail.invoices) {
         totalDaysOutstanding += invoice.daysPastDue * invoice.balanceAmount;
         totalInvoiceCount++;
+        void totalInvoiceCount;
       }
     }
 

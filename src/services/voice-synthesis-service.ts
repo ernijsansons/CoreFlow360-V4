@@ -2,7 +2,10 @@ import type {
   VoiceSettings,
   TextToSpeechConfig,
   VoiceAgentConfig
-} from '../types/voice-agent';
+} from '../types/voice-agent';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-voice-synthesis-service" });
+
+
 
 export interface VoiceSynthesisResponse {
   success: boolean;
@@ -94,7 +97,7 @@ export class VoiceSynthesisService {
     }
   }
 
-  private async synthesizeWithElevenLabs(text: string, config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
+  private async synthesizeWithElevenLabs(text: string, _config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
     try {
       // Mock ElevenLabs synthesis - would use real API in production
       const mockAudio = new ArrayBuffer(1024); // Mock audio data
@@ -113,7 +116,7 @@ export class VoiceSynthesisService {
     }
   }
 
-  private async synthesizeWithAWSPolly(text: string, config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
+  private async synthesizeWithAWSPolly(text: string, _config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
     try {
       // Mock AWS Polly synthesis - would use real API in production
       const mockAudio = new ArrayBuffer(1024); // Mock audio data
@@ -132,7 +135,7 @@ export class VoiceSynthesisService {
     }
   }
 
-  private async synthesizeWithAzure(text: string, config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
+  private async synthesizeWithAzure(text: string, _config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
     try {
       // Mock Azure synthesis - would use real API in production
       const mockAudio = new ArrayBuffer(1024); // Mock audio data
@@ -151,7 +154,7 @@ export class VoiceSynthesisService {
     }
   }
 
-  private async synthesizeWithGoogle(text: string, config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
+  private async synthesizeWithGoogle(text: string, _config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
     try {
       // Mock Google synthesis - would use real API in production
       const mockAudio = new ArrayBuffer(1024); // Mock audio data
@@ -229,7 +232,7 @@ export class VoiceSynthesisService {
     return ssml.replace(/<[^>]*>/g, '').trim();
   }
 
-  private async synthesizeSSMLWithElevenLabs(ssml: string, config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
+  private async synthesizeSSMLWithElevenLabs(ssml: string, _config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
     try {
       // Mock ElevenLabs SSML synthesis - would use real API in production
       const mockAudio = new ArrayBuffer(1024); // Mock audio data
@@ -248,7 +251,7 @@ export class VoiceSynthesisService {
     }
   }
 
-  private async synthesizeSSMLWithAWSPolly(ssml: string, config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
+  private async synthesizeSSMLWithAWSPolly(ssml: string, _config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
     try {
       // Mock AWS Polly SSML synthesis - would use real API in production
       const mockAudio = new ArrayBuffer(1024); // Mock audio data
@@ -267,7 +270,7 @@ export class VoiceSynthesisService {
     }
   }
 
-  private async synthesizeSSMLWithAzure(ssml: string, config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
+  private async synthesizeSSMLWithAzure(ssml: string, _config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
     try {
       // Mock Azure SSML synthesis - would use real API in production
       const mockAudio = new ArrayBuffer(1024); // Mock audio data
@@ -286,7 +289,7 @@ export class VoiceSynthesisService {
     }
   }
 
-  private async synthesizeSSMLWithGoogle(ssml: string, config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
+  private async synthesizeSSMLWithGoogle(ssml: string, _config: TextToSpeechConfig): Promise<VoiceSynthesisResponse> {
     try {
       // Mock Google SSML synthesis - would use real API in production
       const mockAudio = new ArrayBuffer(1024); // Mock audio data
@@ -370,12 +373,12 @@ export class VoiceSynthesisService {
       this.voiceSettings = { ...this.voiceSettings, ...settings };
       return true;
     } catch (error: any) {
-      console.error('Failed to update voice settings:', error);
+      logger.error('Failed to update voice settings:', error);
       return false;
     }
   }
 
-  async getSynthesisHistory(limit: number = 100): Promise<Array<{
+  async getSynthesisHistory(_limit: number = 100): Promise<Array<{
     id: string;
     text: string;
     provider: string;
@@ -400,7 +403,7 @@ export class VoiceSynthesisService {
     ];
   }
 
-  async getSynthesisMetrics(period: { start: string; end: string }): Promise<{
+  async getSynthesisMetrics(_period: { start: string; end: string }): Promise<{
     total_syntheses: number;
     total_characters: number;
     total_cost: number;
@@ -482,9 +485,9 @@ export class VoiceSynthesisService {
   async cleanup(): Promise<void> {
     try {
       // Mock cleanup - would close connections and clean up resources in production
-      console.log('Voice Synthesis Service cleanup completed');
+      logger.info('Voice Synthesis Service cleanup completed');
     } catch (error: any) {
-      console.error('Voice Synthesis Service cleanup failed:', error);
+      logger.error('Voice Synthesis Service cleanup failed:', error);
     }
   }
 }

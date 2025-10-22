@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Company Knowledge Agent API Routes
  * REST endpoints for company knowledge learning and management

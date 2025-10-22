@@ -15,7 +15,10 @@ import { RouteManager } from '../handlers/route-manager';
 import { ObservabilityService } from '../services/observability-service';
 import { SecurityConfig } from '../config/security';
 import type { Env } from '../types/environment';
-import type { Context } from 'hono';
+import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "app-application" });
+
+
 
 export interface SecureApp {
   handle(request: Request): Promise<Response>;
@@ -80,7 +83,7 @@ export async function createSecureApp(
   app.use('*', async (c, next) => {
     const kvNamespace = env.KV_RATE_LIMIT_METRICS || env.KV_CACHE;
     if (!kvNamespace) {
-      console.warn('Rate limiting disabled - no KV namespace available');
+      logger.warn('Rate limiting disabled - no KV namespace available');
       await next();
       return;
     }

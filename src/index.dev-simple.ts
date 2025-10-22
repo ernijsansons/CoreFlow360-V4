@@ -15,7 +15,10 @@ import documentsRoutes from './routes/documents';
 import reconciliationRoutes from './routes/reconciliation';
 import anomaliesRoutes from './routes/anomalies';
 import migrationRoutes from './routes/migration';
-import aiMonitoringRoutes from './routes/ai-monitoring';
+import aiMonitoringRoutes from './routes/ai-monitoring';import { Logger } from "./shared/logger";
+const logger = new Logger({ component: "indexdev-simple" });
+
+
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -148,7 +151,7 @@ app.notFound((c) => {
 
 // Error handler
 app.onError((err, c) => {
-  console.error('❌ Error:', err);
+  logger.error('❌ Error:', err);
   return c.json({
     error: 'Internal server error',
     message: err.message,

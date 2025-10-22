@@ -1,3 +1,6 @@
+import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "realtime-client-example" });
+
 // src/realtime/client-example.ts
 // Example WebSocket client for CoreFlow360 V4 realtime features
 
@@ -85,22 +88,22 @@ export class CoreFlowRealtimeClient {
   }
 
   // Event handlers (override these)
-  onDataUpdate(table: string, operation: string, data: any): void {
+  onDataUpdate(_table: string, _operation: string, _data: any): void {
   }
 
-  onUserActivity(userId: string, activity: string, metadata?: any): void {
+  onUserActivity(_userId: string, _activity: string, _metadata?: any): void {
   }
 
-  onAIResponse(userId: string, requestId: string, response: any): void {
+  onAIResponse(_userId: string, _requestId: string, _response: any): void {
   }
 
-  onWorkflowUpdate(workflowId: string, status: string, progress?: number): void {
+  onWorkflowUpdate(_workflowId: string, _status: string, _progress?: number): void {
   }
 
-  onSystemEvent(event: string, data: any): void {
+  onSystemEvent(_event: string, _data: any): void {
   }
 
-  onAnalyticsUpdate(metrics: any): void {
+  onAnalyticsUpdate(_metrics: any): void {
   }
 
   // Private methods
@@ -162,7 +165,7 @@ export class CoreFlowRealtimeClient {
     }
   }
 
-  private handleDirect(message: any): void {
+  private handleDirect(_message: any): void {
     // Handle direct messages
   }
 
@@ -173,7 +176,7 @@ export class CoreFlowRealtimeClient {
 
 
       setTimeout(() => {
-        this.connect().catch(console.error);
+        this.connect().catch((error) => logger.error('Realtime client reconnection failed', error));
       }, delay);
     } else {
     }

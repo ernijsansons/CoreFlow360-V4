@@ -5,21 +5,17 @@
 
 import type { D1Database } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
-import {
-  CustomReportDefinition,
+import { CustomReportDefinition,
   ReportDataSource,
   ReportColumn,
   ReportFilter,
-  ReportSort,
   ReportGrouping,
   ReportAggregation,
   FilterOperator,
-  FilterDataType,
   AggregationType,
   ReportParameters,
   FinancialReport,
-  ReportStatus
-} from './types';
+  ReportStatus } from './types';
 import { validateBusinessId, roundToCurrency } from './utils';
 
 // Type-safe database row type
@@ -263,7 +259,7 @@ export class CustomReportBuilder {
   /**
    * Get base query for data source
    */
-  private getBaseQuery(dataSource: ReportDataSource, businessId: string):
+  private getBaseQuery(dataSource: ReportDataSource, _businessId: string):
   { baseQuery: string; params: QueryParameter[] } {
     if (!dataSource) {
       throw new Error('Data source is required');

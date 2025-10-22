@@ -320,6 +320,7 @@ export class AIPromptSanitizer {
     output: string,
     options: SanitizationOptions = {}
   ): SanitizationResult {
+    void options;
     // For outputs, we're mainly concerned with leaked system information
     const violations: string[] = [];
     let sanitized = output;

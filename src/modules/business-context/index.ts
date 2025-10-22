@@ -47,14 +47,11 @@ export type {
 // } from './utils';
 
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
-import {
-  BusinessContextData,
-  BusinessContextRequest,
+import { BusinessContextRequest,
   BusinessContextResponse,
   ContextEnrichmentConfig,
   DepartmentProfile,
-  CompanyProfile
-} from './types';
+  CompanyProfile } from './types';
 import { BusinessContextProvider } from './provider';
 import { ContextCache } from './cache';
 import { Logger } from '../../shared/logger';

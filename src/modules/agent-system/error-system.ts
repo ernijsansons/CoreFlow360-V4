@@ -469,7 +469,7 @@ export class ErrorSystem {
   /**
    * Generate user-friendly message
    */
-  private generateUserMessage(category: ErrorCategory, code: string): string {
+  private generateUserMessage(category: ErrorCategory, _code: string): string {
     const messageMap: Record<ErrorCategory, string> = {
       [ErrorCategory.VALIDATION]: 'Please check your input and try again.',
       [ErrorCategory.AUTHENTICATION]: 'Please sign in to continue.',

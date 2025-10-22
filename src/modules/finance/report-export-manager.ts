@@ -306,7 +306,7 @@ class ReportExportManager {
   /**
    * Generate Excel workbook structure
    */
-  private generateExcelWorkbook(report: FinancialReport, configuration: ExportConfiguration): any {
+  private generateExcelWorkbook(report: FinancialReport, _configuration: ExportConfiguration): any {
     // This would return actual Excel workbook structure
     // For now, returning a simplified structure
     return {
@@ -556,7 +556,7 @@ class ReportExportManager {
   /**
    * Generate HTML for PDF conversion
    */
-  private generateReportHTML(report: FinancialReport, configuration: ExportConfiguration): string {
+  private generateReportHTML(report: FinancialReport, _configuration: ExportConfiguration): string {
     // This would generate formatted HTML for PDF conversion
     // For now, returning a basic structure
     return `
@@ -588,7 +588,7 @@ class ReportExportManager {
   /**
    * Generate HTML content based on report type
    */
-  private generateHTMLContent(report: FinancialReport): string {
+  private generateHTMLContent(_report: FinancialReport): string {
     // This would generate specific HTML based on report type
     return '<p>Report data would be formatted here...</p>';
   }

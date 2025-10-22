@@ -6,7 +6,7 @@
  */
 
 import type { D1Database } from '@cloudflare/workers-types';
-import type { Contact, Company, Lead, Deal } from '../../types/crm';
+
 
 // ============================================================
 // TYPES

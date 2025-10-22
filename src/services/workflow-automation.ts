@@ -1,15 +1,12 @@
 import type { Env } from '../types/env';
-import type {
-  Workflow,
-  WorkflowAction,
-  WorkflowExecution,
+import type { Workflow,
   WorkflowStep,
-  Trigger,
   Action,
   Condition,
-  ActionConfig,
-  RetryPolicy
-} from '../types/integration';
+  RetryPolicy } from '../types/integration';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-workflow-automation" });
+
+
 
 // Grug make extended workflow type for internal use - simple!
 interface WorkflowInternal extends Workflow {
@@ -102,6 +99,7 @@ export class WorkflowAutomation {
 
   private async startScheduledWorkflows(): Promise<void> {
     for (const [id, workflow] of this.workflows) {
+    void id;
       if (workflow.status === 'active' && workflow.trigger.type === 'schedule') {
         await this.scheduleWorkflow(workflow);
       }
@@ -343,7 +341,7 @@ export class WorkflowAutomation {
     }
   }
 
-  private async executeAction(step: WorkflowStepInternal, stepExecution: WorkflowStep, execution: WorkflowExecutionInternal): Promise<void> {
+  private async executeAction(step: WorkflowStepInternal, stepExecution: WorkflowStep, _execution: WorkflowExecutionInternal): Promise<void> {
     const action = step.action;
     if (!action) throw new Error('Action not defined for step');
 
@@ -372,13 +370,13 @@ export class WorkflowAutomation {
     stepExecution.output = { result };
   }
 
-  private async executeDelay(step: WorkflowStepInternal, stepExecution: WorkflowStep, execution: WorkflowExecutionInternal): Promise<void> {
+  private async executeDelay(step: WorkflowStepInternal, stepExecution: WorkflowStep, _execution: WorkflowExecutionInternal): Promise<void> {
     const delayMs = step.delayMs || 1000;
     await new Promise(resolve => setTimeout(resolve, delayMs));
     stepExecution.output = { delayed: delayMs };
   }
 
-  private async executeWebhook(step: WorkflowStepInternal, stepExecution: WorkflowStep, execution: WorkflowExecutionInternal): Promise<void> {
+  private async executeWebhook(step: WorkflowStepInternal, stepExecution: WorkflowStep, _execution: WorkflowExecutionInternal): Promise<void> {
     const webhook = step.webhook;
     if (!webhook) throw new Error('Webhook not defined for step');
 
@@ -391,7 +389,7 @@ export class WorkflowAutomation {
     };
   }
 
-  private evaluateCondition(condition: Condition, context: any): boolean {
+  private evaluateCondition(_condition: Condition, _context: any): boolean {
     // Mock condition evaluation - would implement real condition logic in production
     return Math.random() > 0.5;
   }
@@ -411,7 +409,7 @@ export class WorkflowAutomation {
           await this.scheduleWorkflow(workflow as WorkflowInternal);
         }
       } catch (error: any) {
-        console.error(`Scheduled workflow ${workflow.id} failed:`, error);
+        logger.error(`Scheduled workflow ${workflow.id} failed:`, error);
       }
     }, intervalMs);
 

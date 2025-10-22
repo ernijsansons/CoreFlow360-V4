@@ -9,7 +9,7 @@ import { z } from 'zod';
  * Core agent types
  */
 export type AgentType = 'native' | 'external' | 'specialized' | 'custom';
-export type AgentStatus = 'online' | 'offline' | 'degraded' | 'maintenance' | 'error';
+export type AgentStatus = 'online' | 'offline' | 'degraded' | 'maintenance' | 'error' | 'healthy' | 'unhealthy';
 export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled' | 'timeout';
 export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
 
@@ -120,11 +120,11 @@ export interface AgentTask {
   };
 
   // Tracking
-  createdAt: number;
+  createdAt?: number;
   scheduledAt?: number;
   startedAt?: number;
   completedAt?: number;
-  retryCount: number;
+  retryCount?: number;
   parentTaskId?: string;
   childTaskIds?: string[];
 }
@@ -162,14 +162,18 @@ export interface AgentResult {
   };
 
   // Execution metrics
-  metrics: {
-    executionTime: number;
+  metrics?: {
+    executionTime?: number;
     tokensUsed?: number;
-    costUSD: number;
+    costUSD?: number;
     modelUsed?: string;
-    retryCount: number;
+    retryCount?: number;
     cacheHit?: boolean;
+    [key: string]: unknown;
   };
+
+  // Additional metadata
+  timestamp?: number;
 
   // Timestamps
   startedAt: number;
@@ -322,7 +326,7 @@ export interface AgentConfig {
   owner: string;
   description?: string;
   tags?: string[];
-  createdAt: number;
+  createdAt?: number;
   updatedAt: number;
 }
 
@@ -402,7 +406,7 @@ export interface MemoryRecord {
   };
 
   lifecycle: {
-    createdAt: number;
+    createdAt?: number;
     updatedAt: number;
     accessedAt: number;
     expiresAt?: number;
@@ -808,3 +812,5 @@ export const DEPARTMENT_CAPABILITIES = {
     'risk_assessment',
   ],
 } as const;
+
+

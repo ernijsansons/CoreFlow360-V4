@@ -176,7 +176,7 @@ class BusinessCacheManager {
   /**
    * Invalidate business context cache
    */
-  async invalidateBusinessCache(businessId: string): Promise<void> {
+  async invalidateBusinessCache(_businessId: string): Promise<void> {
     // In production, we'd need to clear all user contexts for this business
     // For now, we'll rely on TTL expiration
   }

@@ -7,7 +7,10 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { AnomalyDetector } from '../services/ai/anomaly-detector';
-import { authenticate } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "routes-anomalies" });
+
+
 
 const anomalies = new Hono<{ Bindings: Env }>();
 
@@ -77,7 +80,7 @@ anomalies.get('/', async (c) => {
       }
     });
   } catch (error) {
-    console.error('List anomalies error:', error);
+    logger.error('List anomalies error:', error);
     return c.json({
       success: false,
       error: 'Failed to list anomalies'
@@ -114,7 +117,7 @@ anomalies.get('/:id', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Get anomaly error:', error);
+    logger.error('Get anomaly error:', error);
     return c.json({
       success: false,
       error: 'Failed to get anomaly'
@@ -143,7 +146,7 @@ anomalies.post('/scan', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Scan anomalies error:', error);
+    logger.error('Scan anomalies error:', error);
     return c.json({
       success: false,
       error: 'Failed to scan for anomalies'
@@ -187,7 +190,7 @@ anomalies.post('/:id/resolve', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Resolve anomaly error:', error);
+    logger.error('Resolve anomaly error:', error);
     return c.json({
       success: false,
       error: 'Failed to resolve anomaly'
@@ -237,7 +240,7 @@ anomalies.get('/stats', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Get stats error:', error);
+    logger.error('Get stats error:', error);
     return c.json({
       success: false,
       error: 'Failed to get stats'

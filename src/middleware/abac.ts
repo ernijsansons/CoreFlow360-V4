@@ -4,7 +4,7 @@
  */
 import { Logger } from '../shared/logger';
 import type { Context } from 'hono';
-import type { Env } from '../types/env';
+
 
 interface Subject {
   id: string;
@@ -225,7 +225,7 @@ export class ABACMiddleware {
     subject: Subject,
     action: Action,
     resource: Resource,
-    environment: Environment
+    _environment: Environment
   ): boolean {
     // Check subject rules
     if (!this.matchesSubjectRules(policy.subjects, subject)) {

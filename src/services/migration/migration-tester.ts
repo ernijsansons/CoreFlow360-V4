@@ -229,7 +229,7 @@ export class MigrationTester {
     return record;
   }
 
-  private generateSampleValue(fieldName: string, index: number, options: any): any {
+  private generateSampleValue(fieldName: string, index: number, _options: any): any {
     const field = fieldName.toLowerCase();
 
     // Generate realistic test data based on field name
@@ -898,7 +898,7 @@ export class MigrationTester {
     return testCase.input;
   }
 
-  private async executePerformanceTest(testCase: TestCase): Promise<any> {
+  private async executePerformanceTest(_testCase: TestCase): Promise<any> {
     // Execute performance test logic
     const startTime = Date.now();
     // Simulate processing

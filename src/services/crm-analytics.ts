@@ -1,16 +1,11 @@
 import type { Env } from '../types/env';
-import type {
-  Dashboard,
-  Widget,
+import type { Dashboard,
   UserRole,
   MetricTrend,
   PipelineStage,
   LeaderboardEntry,
   AIInsight,
-  MetricUpdate,
-  SalesMetrics,
-  TimeFrame
-} from '../types/analytics';
+  MetricUpdate } from '../types/analytics';
 
 export class CRMAnalytics {
   private env: Env;
@@ -628,7 +623,7 @@ export class CRMAnalytics {
   }
 
   // Real-time streaming metrics
-  async streamMetrics(userId?: string): Promise<ReadableStream<Uint8Array>> {
+  async streamMetrics(_userId?: string): Promise<ReadableStream<Uint8Array>> {
     const encoder = new TextEncoder();
 
     return new ReadableStream<Uint8Array>({
@@ -874,6 +869,7 @@ export class CRMAnalytics {
   }
 
   private async getLeaderboard(metric: string = 'revenue'): Promise<LeaderboardEntry[]> {
+  void metric;
     const db = this.env.DB_CRM || this.env.DB;
 
     const query = `
@@ -923,7 +919,7 @@ export class CRMAnalytics {
     return result.results;
   }
 
-  private async getPersonalForecast(userId?: string): Promise<any> {
+  private async getPersonalForecast(_userId?: string): Promise<any> {
     // Mock forecast data
     return {
       confidence: 0.78,

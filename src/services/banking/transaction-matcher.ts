@@ -4,7 +4,10 @@
  * Uses AI to automatically match bank transactions to invoices/expenses
  */
 
-import type { Env } from '../../types/env';
+import type { Env } from '../../types/env';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-banking-transaction-matcher" });
+
+
 
 export interface MatchSuggestion {
   transaction_id: string;
@@ -57,7 +60,7 @@ export class TransactionMatcher {
       // Return top 5 matches
       return suggestions.slice(0, 5);
     } catch (error) {
-      console.error('Transaction matching error:', error);
+      logger.error('Transaction matching error:', error);
       return [];
     }
   }
@@ -338,7 +341,7 @@ export class TransactionMatcher {
 
       return Math.round(similarity * 100);
     } catch (error) {
-      console.error('Text similarity error:', error);
+      logger.error('Text similarity error:', error);
       return 0;
     }
   }
@@ -444,7 +447,7 @@ export class TransactionMatcher {
 
       return true;
     } catch (error) {
-      console.error('Apply match error:', error);
+      logger.error('Apply match error:', error);
       return false;
     }
   }
@@ -482,7 +485,7 @@ export class TransactionMatcher {
           last_matched_at = datetime('now')
       `).bind(ruleId, businessId, pattern, matchType, matchId).run();
     } catch (error) {
-      console.error('Learn from match error:', error);
+      logger.error('Learn from match error:', error);
     }
   }
 }

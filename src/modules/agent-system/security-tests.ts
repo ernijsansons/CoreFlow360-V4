@@ -3,11 +3,9 @@
  * Tests all security fixes and validations
  */
 
-import {
-  validateBusinessId,
+import { validateBusinessId,
   validateUserId,
   sanitizeBusinessId,
-  sanitizeUserId,
   sanitizeSqlParam,
   redactPII,
   sanitizeForLogging,
@@ -16,8 +14,7 @@ import {
   sanitizeErrorForUser,
   checkRateLimit,
   detectPromptInjection,
-  detectXss
-} from './security-utils';
+  detectXss } from './security-utils';
 
 interface TestResult {
   test: string;

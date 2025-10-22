@@ -518,7 +518,7 @@ export class AutomatedDataFixer {
     }
   }
 
-  private async getForeignKeyFixStrategies(issue: DataIssue): Promise<FixStrategy[]> {
+  private async getForeignKeyFixStrategies(_issue: DataIssue): Promise<FixStrategy[]> {
     return [
       {
         id: 'fk_delete_orphan',
@@ -556,7 +556,7 @@ export class AutomatedDataFixer {
     ];
   }
 
-  private async getOrphanedRecordFixStrategies(issue: DataIssue): Promise<FixStrategy[]> {
+  private async getOrphanedRecordFixStrategies(_issue: DataIssue): Promise<FixStrategy[]> {
     return [
       {
         id: 'orphan_delete',
@@ -583,7 +583,7 @@ export class AutomatedDataFixer {
     ];
   }
 
-  private async getDuplicateDataFixStrategies(issue: DataIssue): Promise<FixStrategy[]> {
+  private async getDuplicateDataFixStrategies(_issue: DataIssue): Promise<FixStrategy[]> {
     return [
       {
         id: 'duplicate_merge',
@@ -621,7 +621,7 @@ export class AutomatedDataFixer {
     ];
   }
 
-  private async getMissingDataFixStrategies(issue: DataIssue): Promise<FixStrategy[]> {
+  private async getMissingDataFixStrategies(_issue: DataIssue): Promise<FixStrategy[]> {
     return [
       {
         id: 'missing_populate_default',
@@ -648,7 +648,7 @@ export class AutomatedDataFixer {
     ];
   }
 
-  private async getInvalidFormatFixStrategies(issue: DataIssue): Promise<FixStrategy[]> {
+  private async getInvalidFormatFixStrategies(_issue: DataIssue): Promise<FixStrategy[]> {
     return [
       {
         id: 'format_standardize',
@@ -675,7 +675,7 @@ export class AutomatedDataFixer {
     ];
   }
 
-  private async getConstraintViolationFixStrategies(issue: DataIssue): Promise<FixStrategy[]> {
+  private async getConstraintViolationFixStrategies(_issue: DataIssue): Promise<FixStrategy[]> {
     return [
       {
         id: 'constraint_fix_value',
@@ -702,7 +702,7 @@ export class AutomatedDataFixer {
     ];
   }
 
-  private async getInconsistentStateFixStrategies(issue: DataIssue): Promise<FixStrategy[]> {
+  private async getInconsistentStateFixStrategies(_issue: DataIssue): Promise<FixStrategy[]> {
     return [
       {
         id: 'state_reconcile',
@@ -729,7 +729,7 @@ export class AutomatedDataFixer {
     ];
   }
 
-  private async getCacheStaleFixStrategies(issue: DataIssue): Promise<FixStrategy[]> {
+  private async getCacheStaleFixStrategies(_issue: DataIssue): Promise<FixStrategy[]> {
     return [
       {
         id: 'cache_invalidate',
@@ -756,7 +756,7 @@ export class AutomatedDataFixer {
     ];
   }
 
-  private async getReplicationLagFixStrategies(issue: DataIssue): Promise<FixStrategy[]> {
+  private async getReplicationLagFixStrategies(_issue: DataIssue): Promise<FixStrategy[]> {
     return [
       {
         id: 'replication_force_sync',
@@ -783,7 +783,7 @@ export class AutomatedDataFixer {
     ];
   }
 
-  private async getDataAnomalyFixStrategies(issue: DataIssue): Promise<FixStrategy[]> {
+  private async getDataAnomalyFixStrategies(_issue: DataIssue): Promise<FixStrategy[]> {
     return [
       {
         id: 'anomaly_quarantine',
@@ -850,7 +850,7 @@ export class AutomatedDataFixer {
     return strategy.estimatedImpact;
   }
 
-  private async generateDataPreview(issue: DataIssue, strategy: FixStrategy):
+  private async generateDataPreview(issue: DataIssue, _strategy: FixStrategy):
   Promise<{ before: Record<string, any>[]; after: Record<string, any>[] }> {
     // Simplified preview generation
     return {
@@ -889,7 +889,7 @@ export class AutomatedDataFixer {
     return systems;
   }
 
-  private validateBusinessIsolation(issue: DataIssue, strategy: FixStrategy): boolean {
+  private validateBusinessIsolation(issue: DataIssue, _strategy: FixStrategy): boolean {
     // Ensure the fix only affects data within the business context
     return issue.businessId !== undefined && issue.businessId.length > 0;
   }
@@ -963,7 +963,7 @@ export class AutomatedDataFixer {
     return tables;
   }
 
-  private async backupTableData(table: string, issue: DataIssue, strategy: FixStrategy): Promise<any[]> {
+  private async backupTableData(table: string, issue: DataIssue, _strategy: FixStrategy): Promise<any[]> {
     try {
       const result = await this.db.prepare(`
         SELECT * FROM ${table}
@@ -989,7 +989,7 @@ export class AutomatedDataFixer {
     return new TextDecoder().decode(data);
   }
 
-  private async executeInTransaction(sqlStatements: string[], businessId:
+  private async executeInTransaction(sqlStatements: string[], _businessId:
   string): Promise<{ recordsAffected: number; warnings: string[] }> {
     let recordsAffected = 0;
     const warnings: string[] = [];
@@ -1014,7 +1014,7 @@ export class AutomatedDataFixer {
   }
 
   private async verifyFix(issue: DataIssue, strategy: FixStrategy,
-  execution: FixExecution): Promise<{ passed: boolean; warnings: string[] }> {
+  _execution: FixExecution): Promise<{ passed: boolean; warnings: string[] }> {
     const warnings: string[] = [];
 
     try {

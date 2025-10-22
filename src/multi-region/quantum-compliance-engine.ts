@@ -411,8 +411,8 @@ export class ComplianceAI {
 
   private async generateRecommendation(
     gap: ComplianceGap,
-    risks: ThreatAssessment[],
-    regulations: Regulation[]
+    _risks: ThreatAssessment[],
+    _regulations: Regulation[]
   ): Promise<ComplianceRecommendation | null> {
     return {
       id: `rec-${gap.requirement}`,
@@ -519,7 +519,7 @@ export class ComplianceAI {
     }
   }
 
-  private checkConsentCompliance(data: Data, context: Context): boolean {
+  private checkConsentCompliance(data: Data, _context: Context): boolean {
     // Check if consent exists for the data and purpose
     return data.lineage.legalBasis === 'consent';
   }
@@ -595,6 +595,7 @@ export class QuantumComplianceEngine {
       replication: 'none',
       crossBorderAccess: false
     };
+    void dbConfig;
 
     // Configure data boundaries
     const boundaries = {
@@ -775,7 +776,7 @@ export class QuantumComplianceEngine {
     }
   }
 
-  private async configureBoundaries(boundaries: any): Promise<void> {
+  private async configureBoundaries(_boundaries: any): Promise<void> {
     // Implementation would configure actual data access controls
   }
 
@@ -893,13 +894,13 @@ export class QuantumComplianceEngine {
     });
   }
 
-  private getIndustryRegulations(industry: string): Regulation[] {
+  private getIndustryRegulations(_industry: string): Regulation[] {
     // Return industry-specific regulations
     return [];
   }
 
-  private async auditComplianceAction(action: string, data:
-  Data, context: Context, regulations: Regulation[]): Promise<void> {
+  private async auditComplianceAction(_action: string, _data:
+  Data, _context: Context, _regulations: Regulation[]): Promise<void> {
   }
 
   private isEURegion(region: string): boolean {
@@ -914,7 +915,7 @@ export class QuantumComplianceEngine {
     return region === 'cn-north' || region === 'cn-south';
   }
 
-  private hasLegitimateInterest(data: Data, context: Context): boolean {
+  private hasLegitimateInterest(data: Data, _context: Context): boolean {
     // Check if processing has legitimate interest basis
     return data.lineage.legalBasis === 'legitimate-interest';
   }
@@ -933,15 +934,15 @@ export class QuantumComplianceEngine {
     return !data.metadata.tags.includes('legal-hold');
   }
 
-  private async ensureDisclosureCapability(data: Data): Promise<void> {
+  private async ensureDisclosureCapability(_data: Data): Promise<void> {
     // Ensure data can be disclosed to users upon request
   }
 
-  private async ensureOptOutMechanism(data: Data, context: Context): Promise<void> {
+  private async ensureOptOutMechanism(_data: Data, _context: Context): Promise<void> {
     // Ensure users can opt out of data processing
   }
 
-  private async ensureConsentMechanism(data: Data, context: Context): Promise<void> {
+  private async ensureConsentMechanism(_data: Data, _context: Context): Promise<void> {
     // Ensure proper consent collection and management
   }
 
@@ -952,7 +953,7 @@ export class QuantumComplianceEngine {
     }
   }
 
-  private async ensureDataMinimization(data: Data): Promise<void> {
+  private async ensureDataMinimization(_data: Data): Promise<void> {
     // Ensure only necessary data is collected and processed
   }
 

@@ -4,7 +4,10 @@
  * Part of Phase 1 Sprint 1 - Feature #2
  */
 
-import type { Env } from '../../types/env';
+import type { Env } from '../../types/env';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-crm-enrichmentservice" });
+
+
 
 export interface EnrichmentSource {
   name: 'apollo' | 'clearbit' | 'hunter' | 'peopledatalabs' | 'zoominfo' | 'linkedin_api' | 'crunchbase' | 'fullcontact';
@@ -84,7 +87,7 @@ export class EnrichmentService {
           // Check if we have credentials for this source
           const credentials = await this.getSourceCredentials(businessId, source.name);
           if (!credentials) {
-            console.log(`No credentials for ${source.name}, skipping`);
+            logger.info(`No credentials for ${source.name}, skipping`);
             continue;
           }
 
@@ -131,7 +134,7 @@ export class EnrichmentService {
             break; // Success, stop trying other sources
           }
         } catch (error) {
-          console.error(`Enrichment from ${source.name} failed:`, error);
+          logger.error(`Enrichment from ${source.name} failed:`, error);
           continue; // Try next source
         }
       }
@@ -151,7 +154,7 @@ export class EnrichmentService {
 
       return enrichmentResult;
     } catch (error: any) {
-      console.error('Enrichment error:', error);
+      logger.error('Enrichment error:', error);
       throw error;
     }
   }
@@ -216,7 +219,7 @@ export class EnrichmentService {
         seniority_level: this.mapClearbitSeniority(data.employment?.seniority),
       };
     } catch (error) {
-      console.error('Clearbit enrichment error:', error);
+      logger.error('Clearbit enrichment error:', error);
       return null;
     }
   }
@@ -276,7 +279,7 @@ export class EnrichmentService {
         department: person.departments?.[0],
       };
     } catch (error) {
-      console.error('Apollo enrichment error:', error);
+      logger.error('Apollo enrichment error:', error);
       return null;
     }
   }
@@ -307,7 +310,7 @@ export class EnrichmentService {
         company_name: data.organization,
       };
     } catch (error) {
-      console.error('Hunter enrichment error:', error);
+      logger.error('Hunter enrichment error:', error);
       return null;
     }
   }
@@ -351,7 +354,7 @@ export class EnrichmentService {
         seniority_level: this.mapPDLSeniority(data.job_title_levels?.[0]),
       };
     } catch (error) {
-      console.error('PeopleDataLabs enrichment error:', error);
+      logger.error('PeopleDataLabs enrichment error:', error);
       return null;
     }
   }
@@ -359,9 +362,9 @@ export class EnrichmentService {
   /**
    * ZoomInfo Enrichment API
    */
-  private async enrichFromZoomInfo(contact: any, credentials: any): Promise<ContactData | null> {
+  private async enrichFromZoomInfo(_contact: any, _credentials: any): Promise<ContactData | null> {
     // ZoomInfo requires enterprise contract - placeholder for now
-    console.log('ZoomInfo enrichment not yet implemented');
+    logger.info('ZoomInfo enrichment not yet implemented');
     return null;
   }
 
@@ -587,7 +590,7 @@ export class EnrichmentService {
 
         processed++;
       } catch (error: any) {
-        console.error(`Failed to enrich ${item.entity_id}:`, error);
+        logger.error(`Failed to enrich ${item.entity_id}:`, error);
 
         // Mark as failed
         await this.env.DB_MAIN.prepare(`

@@ -3,6 +3,8 @@
  * Production-ready logging for Cloudflare Workers
  */
 
+/* eslint-disable no-console */
+
 import type { AnalyticsEngineDataset } from '../types/cloudflare';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'critical';
@@ -258,15 +260,6 @@ export class StructuredLogger {
     performance?: any
   ): Promise<void> {
     try {
-      const logData = {
-        level,
-        message,
-        context: { ...this.context, ...context },
-        error,
-        performance,
-        timestamp: Date.now()
-      };
-
       await this.analytics!.writeDataPoint({
         blobs: [
           level,

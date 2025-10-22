@@ -4,7 +4,10 @@
  * Feature #3 - Phase 1 Sprint 1
  */
 
-import type { Env } from '../../types/env';
+import type { Env } from '../../types/env';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-crm-job-change-detectionservice" });
+
+
 
 export interface JobChange {
   id: string;
@@ -29,7 +32,7 @@ export class JobChangeDetectionService {
       // Extract job change data from PDL webhook
       const email = payload.email || payload.data?.email;
       if (!email) {
-        console.error('No email in job change webhook');
+        logger.error('No email in job change webhook');
         return null;
       }
 
@@ -41,7 +44,7 @@ export class JobChangeDetectionService {
       `).bind(email).first() as any;
 
       if (!contact) {
-        console.log(`Job change detected for unknown contact: ${email}`);
+        logger.info(`Job change detected for unknown contact: ${email}`);
         // Could optionally create new contact or lead here
         return null;
       }
@@ -110,7 +113,7 @@ export class JobChangeDetectionService {
 
       return jobChange;
     } catch (error) {
-      console.error('Job change processing error:', error);
+      logger.error('Job change processing error:', error);
       return null;
     }
   }
@@ -199,7 +202,7 @@ export class JobChangeDetectionService {
         message: 'No job change detected'
       };
     } catch (error: any) {
-      console.error('Job change check error:', error);
+      logger.error('Job change check error:', error);
       return { success: false, error: error.message };
     }
   }

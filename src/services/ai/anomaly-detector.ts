@@ -4,7 +4,10 @@
  * Detects suspicious transactions, duplicates, and outliers
  */
 
-import type { Env } from '../../types/env';
+import type { Env } from '../../types/env';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-ai-anomaly-detector" });
+
+
 
 export interface Anomaly {
   id: string;
@@ -53,7 +56,7 @@ export class AnomalyDetector {
 
       return anomalies;
     } catch (error) {
-      console.error('Anomaly detection error:', error);
+      logger.error('Anomaly detection error:', error);
       return [];
     }
   }
@@ -141,7 +144,7 @@ export class AnomalyDetector {
         });
       }
     } catch (error) {
-      console.error('Duplicate detection error:', error);
+      logger.error('Duplicate detection error:', error);
     }
 
     return anomalies;
@@ -204,7 +207,7 @@ export class AnomalyDetector {
         });
       }
     } catch (error) {
-      console.error('Outlier detection error:', error);
+      logger.error('Outlier detection error:', error);
     }
 
     return anomalies;
@@ -259,7 +262,7 @@ export class AnomalyDetector {
         }
       }
     } catch (error) {
-      console.error('Suspicious vendor detection error:', error);
+      logger.error('Suspicious vendor detection error:', error);
     }
 
     return anomalies;
@@ -309,7 +312,7 @@ export class AnomalyDetector {
       // This would require timestamp data, not just dates
       // Can be added when we have full timestamp support
     } catch (error) {
-      console.error('Timing anomaly detection error:', error);
+      logger.error('Timing anomaly detection error:', error);
     }
 
     return anomalies;
@@ -348,7 +351,7 @@ export class AnomalyDetector {
         JSON.stringify(anomaly.details)
       ).run();
     } catch (error) {
-      console.error('Save anomaly error:', error);
+      logger.error('Save anomaly error:', error);
     }
   }
 
@@ -380,7 +383,7 @@ export class AnomalyDetector {
         details: JSON.parse(r.details)
       }));
     } catch (error) {
-      console.error('Get anomalies error:', error);
+      logger.error('Get anomalies error:', error);
       return [];
     }
   }
@@ -406,7 +409,7 @@ export class AnomalyDetector {
 
       return true;
     } catch (error) {
-      console.error('Resolve anomaly error:', error);
+      logger.error('Resolve anomaly error:', error);
       return false;
     }
   }

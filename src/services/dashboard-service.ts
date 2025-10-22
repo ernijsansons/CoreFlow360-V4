@@ -2,7 +2,7 @@
  * Dashboard Service - Provides aggregated business metrics and insights
  */
 
-import type { Env } from '../types/env';
+
 
 export interface DashboardStats {
   overview: {

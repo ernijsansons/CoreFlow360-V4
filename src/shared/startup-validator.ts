@@ -15,7 +15,7 @@ export class StartupValidator {
 
     try {
       // Validate environment variables
-      const { required, optional } = EnvironmentValidator.validate(env);
+      EnvironmentValidator.validate(env);
 
       // Validate database connections
       this.validateDatabaseBindings(env);
@@ -40,15 +40,12 @@ export class StartupValidator {
    */
   private static validateDatabaseBindings(env: Env): void {
     const requiredDatabases = ['DB_MAIN'];
-    const optionalDatabases = ['DB', 'DB_ANALYTICS'];
 
     for (const dbName of requiredDatabases) {
       if (!env[dbName as keyof Env]) {
         throw new SecurityError(`Required database binding missing: ${dbName}`);
       }
     }
-
-    const configuredOptional = optionalDatabases.filter((db: any) => env[db as keyof Env]);
   }
 
   /**
@@ -56,15 +53,12 @@ export class StartupValidator {
    */
   private static validateKVBindings(env: Env): void {
     const requiredKV = ['KV_SESSION'];
-    const optionalKV = ['KV_CACHE', 'KV_CONFIG', 'WORKFLOW_STORAGE', 'SSE_METRICS'];
 
     for (const kvName of requiredKV) {
       if (!env[kvName as keyof Env]) {
         throw new SecurityError(`Required KV namespace binding missing: ${kvName}`);
       }
     }
-
-    const configuredOptional = optionalKV.filter((kv: any) => env[kv as keyof Env]);
   }
 
   /**
@@ -81,14 +75,13 @@ export class StartupValidator {
       'WORKFLOW_EXECUTOR',
       'WORKFLOW_COLLABORATION'
     ];
+    void optionalDOs;
 
     for (const doName of requiredDOs) {
       if (!env[doName as keyof Env]) {
         throw new SecurityError(`Required Durable Object binding missing: ${doName}`);
       }
     }
-
-    const configuredOptional = optionalDOs.filter((dobj: any) => env[dobj as keyof Env]);
   }
 
   /**
@@ -97,14 +90,13 @@ export class StartupValidator {
   private static validateServiceBindings(env: Env): void {
     const requiredServices: string[] = [];
     const optionalServices = ['AUTH_SERVICE', 'NOTIFICATION_SERVICE'];
+    void optionalServices;
 
     for (const serviceName of requiredServices) {
       if (!env[serviceName as keyof Env]) {
         throw new SecurityError(`Required service binding missing: ${serviceName}`);
       }
     }
-
-    const configuredOptional = optionalServices.filter((service: any) => env[service as keyof Env]);
   }
 
   /**
@@ -124,14 +116,13 @@ export class StartupValidator {
   private static validateQueueBindings(env: Env): void {
     const requiredQueues: string[] = [];
     const optionalQueues = ['TASK_QUEUE', 'EMAIL_QUEUE', 'WEBHOOK_QUEUE'];
+    void optionalQueues;
 
     for (const queueName of requiredQueues) {
       if (!env[queueName as keyof Env]) {
         throw new SecurityError(`Required queue binding missing: ${queueName}`);
       }
     }
-
-    const configuredOptional = optionalQueues.filter((queue: any) => env[queue as keyof Env]);
   }
 
   /**

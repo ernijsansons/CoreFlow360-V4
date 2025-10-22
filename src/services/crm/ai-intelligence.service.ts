@@ -4,7 +4,10 @@
  * Features #7, #8, #10 - Phase 1 Sprint 1
  */
 
-import type { Env } from '../../types/env';
+import type { Env } from '../../types/env';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-crm-ai-intelligenceservice" });
+
+
 
 export class AIIntelligenceService {
   constructor(private env: Env) {}
@@ -67,7 +70,7 @@ Return format:
 
       return { id, ...result };
     } catch (error) {
-      console.error('Sentiment analysis error:', error);
+      logger.error('Sentiment analysis error:', error);
       return { sentiment: 'neutral', sentiment_score: 0, confidence: 0 };
     }
   }
@@ -135,7 +138,7 @@ Return JSON array only:
 
       return savedActions;
     } catch (error) {
-      console.error('Next actions generation error:', error);
+      logger.error('Next actions generation error:', error);
       return [];
     }
   }

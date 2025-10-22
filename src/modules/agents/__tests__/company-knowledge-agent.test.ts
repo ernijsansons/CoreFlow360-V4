@@ -139,7 +139,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.success).toBe(true);
@@ -167,7 +167,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('failed');
       expect(result.error?.message).toContain('robots.txt');
@@ -210,7 +210,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      await agent.executeTask(task, testContext);
+      await agent.execute(task, testContext);
 
       const endTime = Date.now();
       const duration = endTime - startTime;
@@ -260,7 +260,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       // Should not include external-site.com
       expect(result.result.data.pagesScraped).toBeLessThan(4); // Only same-domain pages
@@ -328,7 +328,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.productsAnalyzed).toBeGreaterThan(0);
@@ -387,7 +387,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.tone).toBe('professional');
@@ -454,7 +454,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.faqsGenerated).toBeGreaterThan(0);
@@ -513,7 +513,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.recommendations.length).toBeGreaterThan(0);
@@ -556,7 +556,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       const recommendations = result.result.data.recommendations;
       recommendations.forEach((rec: any) => {
@@ -615,7 +615,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.validatedCount).toBe(1);
@@ -670,7 +670,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.result.data.issuesFound).toBeGreaterThan(0);
     });
@@ -711,7 +711,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.contentsScheduled).toBeGreaterThan(0);
@@ -767,7 +767,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.violationsFound).toBeGreaterThan(0);
@@ -792,7 +792,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('failed');
       expect(result.error?.message).toContain('Network');
@@ -824,7 +824,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('failed');
       expect(result.error?.message).toBeDefined();
@@ -839,7 +839,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('failed');
       expect(result.error?.code).toBe('CAPABILITY_NOT_SUPPORTED');
@@ -886,7 +886,7 @@ describe('CompanyKnowledgeAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.metrics).toBeDefined();
       expect(result.metrics.executionTime).toBeGreaterThan(0);

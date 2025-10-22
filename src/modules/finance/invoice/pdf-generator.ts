@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-nocheck
 /**
  * PDF Generator Service
@@ -156,7 +157,7 @@ class PDFGeneratorService {
     }
   }
 
-  private async getBusinessInfo(businessId: string): Promise<PDFGenerationContext['businessInfo']> {
+  private async getBusinessInfo(_businessId: string): Promise<PDFGenerationContext['businessInfo']> {
     // This would typically fetch from database
     // For now, return mock data
     return {
@@ -381,7 +382,7 @@ class PDFGeneratorService {
     `
   }
 
-  private generateCSS(template: PDFTemplate, options: PDFOptions): string {
+  private generateCSS(template: PDFTemplate, _options: PDFOptions): string {
     return `
       * {
         margin: 0;

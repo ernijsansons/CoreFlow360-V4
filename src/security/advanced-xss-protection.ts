@@ -3,7 +3,7 @@
  * AI-powered XSS detection and prevention system
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 
@@ -317,7 +317,7 @@ export class AdvancedXSSProtection {
   /**
    * HTML attribute sanitization
    */
-  private sanitizeHTMLAttribute(content: string, context: SanitizationContext): string {
+  private sanitizeHTMLAttribute(content: string, _context: SanitizationContext): string {
     // Remove quotes and potential script injection
     let sanitized = content.replace(/['"]/g, '');
 
@@ -340,7 +340,7 @@ export class AdvancedXSSProtection {
   /**
    * CSS sanitization
    */
-  private sanitizeCSS(content: string, context: SanitizationContext): string {
+  private sanitizeCSS(content: string, _context: SanitizationContext): string {
     // Remove expressions and javascript
     let sanitized = content.replace(/expression\s*\(/gi, '');
     sanitized = sanitized.replace(/javascript:/gi, '');
@@ -357,7 +357,7 @@ export class AdvancedXSSProtection {
   /**
    * JavaScript sanitization (very restrictive)
    */
-  private sanitizeJavaScript(content: string, context: SanitizationContext): string {
+  private sanitizeJavaScript(content: string, _context: SanitizationContext): string {
     // For maximum security, remove most JavaScript constructs
     if (this.config.level === 'strict') {
       return ''; // Block all JavaScript in strict mode
@@ -693,7 +693,7 @@ export class AdvancedXSSProtection {
     return sanitized;
   }
 
-  private sanitizeSQL(content: string, context: SanitizationContext): string {
+  private sanitizeSQL(content: string, _context: SanitizationContext): string {
     // This is a basic implementation - would integrate with SQL injection guard
     return content
       .replace(/['"]/g, "''")
@@ -703,7 +703,7 @@ export class AdvancedXSSProtection {
       .replace(/\*\//g, '');
   }
 
-  private sanitizePlainText(content: string, context: SanitizationContext): string {
+  private sanitizePlainText(content: string, _context: SanitizationContext): string {
     return content
       .replace(/[<>&"']/g, (char) => {
         switch (char) {
@@ -720,7 +720,7 @@ export class AdvancedXSSProtection {
   private generateRecommendations(
     isXSS: boolean,
     attackTypes: XSSAttackType[],
-    context: SanitizationContext
+    _context: SanitizationContext
   ): string[] {
     const recommendations: string[] = [];
 
@@ -771,7 +771,7 @@ export class AdvancedXSSProtection {
  * AI-powered XSS detection model
  */
 class XSSDetectionModel {
-  async detectXSS(content: string, context: SanitizationContext): Promise<AIDetectionResult> {
+  async detectXSS(content: string, _context: SanitizationContext): Promise<AIDetectionResult> {
     // Simplified AI detection - would use actual ML model
     const features = this.extractFeatures(content);
     const score = this.calculateAIScore(features);
@@ -828,7 +828,7 @@ class XSSDetectionModel {
  * Mutation observer protection
  */
 class MutationObserverProtection {
-  async analyzeForMutation(content: string, context: SanitizationContext): Promise<MutationDetectionResult> {
+  async analyzeForMutation(content: string, _context: SanitizationContext): Promise<MutationDetectionResult> {
     // Check for DOM mutation patterns
     const hasDOMManipulation = /innerHTML|outerHTML|insertAdjacentHTML|document\.write/i.test(content);
     const hasEventListeners = /addEventListener|attachEvent/i.test(content);

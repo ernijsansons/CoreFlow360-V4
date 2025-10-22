@@ -2,7 +2,10 @@
  * Observability Service - Application monitoring and metrics
  */
 
-import type { Env } from '../types/environment';
+import type { Env } from '../types/environment';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-observability-service" });
+
+
 
 export interface Metrics {
   requestCount: number;
@@ -88,7 +91,7 @@ export class ObservabilityService {
       // Reset after flush
       this.resetMetrics();
     } catch (error) {
-      console.error('Failed to flush observability metrics:', error);
+      logger.error('Failed to flush observability metrics:', error);
       // Don't throw - metrics flushing is non-critical
     }
   }

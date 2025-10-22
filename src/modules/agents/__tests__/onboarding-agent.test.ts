@@ -125,12 +125,12 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.success).toBe(true);
-      expect(result.result.data.rowsImported).toBe(2);
-      expect(result.result.data.errors).toHaveLength(0);
+      expect(result.result.rowsImported).toBe(2);
+      expect(result.result.errors).toHaveLength(0);
     });
 
     it('should import JSON data successfully', async () => {
@@ -168,11 +168,11 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.success).toBe(true);
-      expect(result.result.data.rowsImported).toBe(2);
+      expect(result.result.rowsImported).toBe(2);
     });
 
     it('should validate data and report errors', async () => {
@@ -202,11 +202,11 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.result.success).toBe(true);
-      expect(result.result.data.errors.length).toBeGreaterThan(0);
-      expect(result.result.data.rowsImported).toBeLessThan(2);
+      expect(result.result.errors.length).toBeGreaterThan(0);
+      expect(result.result.rowsImported).toBeLessThan(2);
     });
 
     it('should handle unsupported file formats', async () => {
@@ -225,7 +225,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('failed');
       expect(result.error?.message).toContain('Unsupported format');
@@ -271,7 +271,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.success).toBe(true);
@@ -309,7 +309,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.testsPassed).toBeDefined();
@@ -332,7 +332,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       // Should complete but report test failures
       expect(result.result.data.testsFailed).toBeGreaterThan(0);
@@ -376,7 +376,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.usersCreated).toBe(2);
@@ -413,7 +413,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.completionPercentage).toBe(20);
@@ -462,7 +462,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.allChecksPassed).toBeDefined();
@@ -506,7 +506,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.result.data.allChecksPassed).toBe(false);
       expect(result.result.data.failedChecks.length).toBeGreaterThan(0);
@@ -540,7 +540,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('completed');
       expect(result.result.data.totalOnboardings).toBe(10);
@@ -567,7 +567,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('failed');
       expect(result.error?.message).toContain('Database');
@@ -587,7 +587,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('failed');
       expect(result.error?.message).toBeDefined();
@@ -602,7 +602,7 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.status).toBe('failed');
       expect(result.error?.code).toBe('CAPABILITY_NOT_SUPPORTED');
@@ -631,12 +631,12 @@ describe('OnboardingAgent', () => {
         context: testContext
       };
 
-      const result = await agent.executeTask(task, testContext);
+      const result = await agent.execute(task, testContext);
 
       expect(result.metrics).toBeDefined();
       expect(result.metrics.executionTime).toBeGreaterThan(0);
       expect(result.metrics.tokensUsed).toBeGreaterThanOrEqual(0);
-      expect(result.metrics.cost).toBeGreaterThanOrEqual(0);
+      expect(result.metrics.costUSD).toBeGreaterThanOrEqual(0);
     });
   });
 });

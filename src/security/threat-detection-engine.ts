@@ -3,7 +3,7 @@
  * Real-time attack detection and prevention using machine learning
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 import crypto from 'crypto';
@@ -954,12 +954,12 @@ export class ThreatDetectionEngine {
     return ip === '0.0.0.0' ? 3 : Math.floor(Math.random() * 100);
   }
 
-  private async getDataVolume(ip: string): Promise<number> {
+  private async getDataVolume(_ip: string): Promise<number> {
     // Would fetch from metrics
     return Math.floor(Math.random() * 10000000);
   }
 
-  private async getGeoInfo(ip: string): Promise<any> {
+  private async getGeoInfo(_ip: string): Promise<any> {
     // Would use IP geolocation service
     return {
       country: 'US',
@@ -980,12 +980,12 @@ export class ThreatDetectionEngine {
     };
   }
 
-  private async getRecentPasswords(ip: string): Promise<Set<string>> {
+  private async getRecentPasswords(_ip: string): Promise<Set<string>> {
     // Would fetch from auth logs
     return new Set(['password1', 'password2']);
   }
 
-  private async getRelatedIPs(ip: string): Promise<string[]> {
+  private async getRelatedIPs(_ip: string): Promise<string[]> {
     // Would analyze patterns for coordinated attacks
     return [];
   }
@@ -1013,12 +1013,12 @@ export class ThreatDetectionEngine {
     return null;
   }
 
-  private calculateDistance(loc1: any, loc2: any): number {
+  private calculateDistance(_loc1: any, _loc2: any): number {
     // Haversine distance calculation
     return Math.random() * 10000;
   }
 
-  private async getRateLimit(identifier: string): Promise<any> {
+  private async getRateLimit(_identifier: string): Promise<any> {
     // Would check rate limit store
     return {
       exceeded: false,
@@ -1027,7 +1027,7 @@ export class ThreatDetectionEngine {
     };
   }
 
-  private async getSimilarRequests(ip: string): Promise<number> {
+  private async getSimilarRequests(_ip: string): Promise<number> {
     // Would analyze request patterns
     return Math.floor(Math.random() * 20);
   }
@@ -1127,12 +1127,12 @@ export class ThreatDetectionEngine {
 class ThreatModel {
   constructor(private type: ThreatType) {}
 
-  async update(features: RequestFeatures, malicious: boolean): Promise<void> {
+  async update(_features: RequestFeatures, _malicious: boolean): Promise<void> {
     // In production, this would update the ML model
     // Using techniques like online learning or periodic retraining
   }
 
-  async predict(features: RequestFeatures): Promise<number> {
+  async predict(_features: RequestFeatures): Promise<number> {
     // In production, this would use a trained ML model
     return Math.random();
   }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Balance Sheet Generator
  * Generates balance sheets with account rollups and hierarchical structure
@@ -212,7 +213,7 @@ export class BalanceSheetGenerator {
    */
   private async buildAssetSection(
     accountBalances: Map<string, { account: ChartAccount; balance: number }>,
-    parameters: ReportParameters
+    _parameters: ReportParameters
   ): Promise<AssetSection> {
     // Current Assets
     const currentAssets = this.buildAccountSection(
@@ -267,7 +268,7 @@ export class BalanceSheetGenerator {
    */
   private async buildLiabilitySection(
     accountBalances: Map<string, { account: ChartAccount; balance: number }>,
-    parameters: ReportParameters
+    _parameters: ReportParameters
   ): Promise<LiabilitySection> {
     // Current Liabilities
     const currentLiabilities = this.buildAccountSection(
@@ -305,8 +306,8 @@ export class BalanceSheetGenerator {
    */
   private async buildEquitySection(
     accountBalances: Map<string, { account: ChartAccount; balance: number }>,
-    parameters: ReportParameters,
-    totalAssets: number
+    _parameters: ReportParameters,
+    _totalAssets: number
   ): Promise<EquitySection> {
     // Owner's Equity
     const ownersEquity = this.buildAccountSection(

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Performance monitoring for business switching
  */
@@ -353,7 +354,7 @@ export class PerformanceMonitor {
   /**
    * Track a business switch operation
    */
-  trackSwitch(userId: string, fromBusinessId: string, toBusinessId: string): {
+  trackSwitch(userId: string, _fromBusinessId: string, _toBusinessId: string): {
     recordStep: (stepName: string) => () => void;
     complete: () => void;
   } {

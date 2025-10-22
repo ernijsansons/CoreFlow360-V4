@@ -2,7 +2,10 @@
 import { Router } from 'itty-router';
 
 // Use canonical Env type
-import type { Env } from './types/env';
+import type { Env } from './types/env';import { Logger } from "./shared/logger";
+const logger = new Logger({ component: "indexminimal" });
+
+
 
 // Re-export canonical type
 export type { Env } from './types/env';
@@ -166,7 +169,7 @@ export default {
       const response = await router.handle(request, env, ctx);
       return response || new Response('Not Found', { status: 404 });
     } catch (error: any) {
-      console.error('Worker error:', error);
+      logger.error('Worker error:', error);
       return new Response(JSON.stringify({
         error: 'Internal Server Error',
         message: 'An unexpected error occurred'

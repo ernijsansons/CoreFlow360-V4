@@ -14,7 +14,7 @@ import { CapabilityManager } from '../modules/agents/capability-manager';
 import { AuditService } from '../modules/audit/audit.service';
 import type { AgentTask, BusinessContext } from '../modules/agents/types';
 
-const logger = new Logger('SupportTickets');
+const logger = new Logger({ component: 'SupportTickets' });
 
 const supportTickets = new Hono<{ Bindings: Env }>();
 

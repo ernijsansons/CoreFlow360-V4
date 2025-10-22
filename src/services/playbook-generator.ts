@@ -1,13 +1,10 @@
 // @ts-nocheck
 import type { Env } from '../types/env';
-import type {
-  Playbook,
+import type { Playbook,
   PlaybookSection,
   CustomerSegment,
   Pattern,
-  Feedback,
-  Strategy
-} from '../types/crm';
+  Feedback } from '../types/crm';
 
 export class PlaybookGenerator {
   private env: Env;
@@ -239,7 +236,7 @@ export class PlaybookGenerator {
     title: string,
     content: any,
     type: 'text' | 'list' | 'template' | 'script' | 'checklist',
-    priority: 'high' | 'medium' | 'low'
+    _priority: 'high' | 'medium' | 'low'
   ): PlaybookSection {
     let formattedContent = '';
 

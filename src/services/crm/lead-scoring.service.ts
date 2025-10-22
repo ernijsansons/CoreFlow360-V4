@@ -4,7 +4,10 @@
  * Feature #4 - Phase 1 Sprint 1
  */
 
-import type { Env } from '../../types/env';
+import type { Env } from '../../types/env';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-crm-lead-scoringservice" });
+
+
 
 export interface LeadScore {
   id: string;
@@ -216,7 +219,7 @@ export class LeadScoringService {
         negative_factors: parsedResult.negative_factors
       };
     } catch (error) {
-      console.error('Workers AI scoring error:', error);
+      logger.error('Workers AI scoring error:', error);
       // Fallback to simple weighted scoring
       return this.calculateWeightedScore(features, model.feature_weights);
     }
@@ -269,7 +272,7 @@ Response (JSON only):`;
         negative_factors: parsed.negative_factors || []
       };
     } catch (error) {
-      console.error('Failed to parse AI response:', error);
+      logger.error('Failed to parse AI response:', error);
       return {
         score: 50,
         reasoning: 'Unable to parse AI response',
@@ -502,7 +505,7 @@ Response (JSON only):`;
     return 1 / (1 + Math.exp(-0.08 * (score - 50)));
   }
 
-  private calculateFeatureScores(features: ScoringFeatures, weights: Record<string, number>): Record<string, number> {
+  private calculateFeatureScores(features: ScoringFeatures, _weights: Record<string, number>): Record<string, number> {
     // Return individual feature scores for transparency
     return {
       seniority: features.seniority_level ? this.scoreSeniority(features.seniority_level) : 0,
@@ -520,7 +523,7 @@ Response (JSON only):`;
     return 'low';
   }
 
-  private generateRecommendedActions(score: number, features: ScoringFeatures, drivers: string[]): string[] {
+  private generateRecommendedActions(score: number, features: ScoringFeatures, _drivers: string[]): string[] {
     const actions: string[] = [];
 
     if (score >= 80) {

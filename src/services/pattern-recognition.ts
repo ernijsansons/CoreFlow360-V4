@@ -1,11 +1,5 @@
 import type { Env } from '../types/env';
-import type {
-  Pattern,
-  Outcome,
-  Lead,
-  CustomerSegment,
-  Strategy
-} from '../types/crm';
+import type { Pattern } from '../types/crm';
 
 export class PatternRecognition {
   private env: Env;

@@ -240,8 +240,8 @@ export class TaxCalculationEngine {
   }
 
   private async checkEconomicNexus(
-    customerAddress: TaxCalculationRequest['customerAddress'],
-    invoiceDate: string
+    _customerAddress: TaxCalculationRequest['customerAddress'],
+    _invoiceDate: string
   ): Promise<boolean> {
     // Economic nexus rules vary by jurisdiction
     // This would typically check sales thresholds and transaction counts
@@ -262,7 +262,7 @@ export class TaxCalculationEngine {
 
   private async checkTaxExemptions(
     request: TaxCalculationRequest,
-    jurisdictions: TaxJurisdiction[]
+    _jurisdictions: TaxJurisdiction[]
   ): Promise<TaxCalculationRequest['exemptions']> {
     if (!request.exemptions) return []
 
@@ -287,7 +287,7 @@ export class TaxCalculationEngine {
   }
 
   private async verifyExemptionCertificate(
-    exemption: NonNullable<TaxCalculationRequest['exemptions']>[0]
+    _exemption: NonNullable<TaxCalculationRequest['exemptions']>[0]
   ): Promise<boolean> {
     // This would typically verify with external tax authority
     // For now, return true as a placeholder
@@ -362,8 +362,8 @@ export class TaxCalculationEngine {
 
   private isExemptionApplicable(
     exemption: NonNullable<TaxCalculationRequest['exemptions']>[0],
-    jurisdiction: TaxJurisdiction,
-    item: InvoiceLineItem
+    _jurisdiction: TaxJurisdiction,
+    _item: InvoiceLineItem
   ): boolean {
     // Exemption rules vary by type and jurisdiction
     switch (exemption.exemptionType) {

@@ -624,8 +624,8 @@ app.post('/:provider/test', authenticate, async (c) => {
  */
 app.post('/:provider/test-sync', authenticate, async (c) => {
   try {
-    const { businessId, userId } = c.get('user');
-    const provider = c.req.param('provider');
+    // const { businessId: _businessId, userId: _userId } = c.get('user');
+    // const _provider: string = c.req.param('provider');
     const { limit = 5 } = await c.req.json();
 
     // For now, return mock test results

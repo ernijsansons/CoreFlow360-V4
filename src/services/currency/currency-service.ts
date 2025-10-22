@@ -4,7 +4,10 @@
  * Manages exchange rates and currency conversions
  */
 
-import type { Env } from '../../types/env';
+import type { Env } from '../../types/env';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-currency-currency-service" });
+
+
 
 // ==================
 // Types
@@ -217,7 +220,7 @@ export class CurrencyService {
 
       return rate;
     } catch (error) {
-      console.error('Failed to fetch exchange rate:', error);
+      logger.error('Failed to fetch exchange rate:', error);
       // Fallback to 1.0 if API fails
       return 1.0;
     }
@@ -415,7 +418,7 @@ export class CurrencyService {
           await this.fetchExchangeRate(currency, baseCurrency);
           refreshedCount++;
         } catch (error) {
-          console.error(`Failed to refresh rate for ${currency}:`, error);
+          logger.error(`Failed to refresh rate for ${currency}:`, error);
         }
       }
     }

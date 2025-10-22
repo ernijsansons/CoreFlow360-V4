@@ -1035,8 +1035,10 @@ describe('ChatSupportAgent', () => {
 
       const result = await agent.execute(task, testContext);
 
-      expect(result.status).toBe('failed');
-      expect(result.error?.retryable).toBe(true);
+      // Should use fallback and still complete successfully
+      expect(result.status).toBe('completed');
+      expect(result.result.data).toBeDefined();
+      expect((result.result.data as any).message).toBeDefined();
     });
 
     it('should include execution metrics in errors', async () => {

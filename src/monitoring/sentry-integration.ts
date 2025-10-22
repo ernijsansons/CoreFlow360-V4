@@ -318,7 +318,7 @@ export class SentryIntegration {
    */
   private async enhancedBeforeTransaction(
     transaction: SentryTransaction,
-    hint: SentryHint
+    _hint: SentryHint
   ): Promise<SentryTransaction | null> {
     try {
       // Add business context to transactions
@@ -528,6 +528,7 @@ export class SentryIntegration {
    */
   private async shouldRateLimit(event: SentryEvent): Promise<boolean> {
     const fingerprint = event.fingerprint?.join(':') || 'unknown';
+    void fingerprint;
 
     // Implement rate limiting logic
     // In a real implementation, this would use KV storage
@@ -551,7 +552,7 @@ export class SentryIntegration {
   /**
    * Helper methods
    */
-  private async getAffectedUsersCount(event: SentryEvent): Promise<number> {
+  private async getAffectedUsersCount(_event: SentryEvent): Promise<number> {
     // Calculate affected users based on error context
     return 1; // Simplified implementation
   }
@@ -629,7 +630,7 @@ ${analysis.suggestedFix}
     return labels;
   }
 
-  private async findResponsibleOwner(event: SentryEvent): Promise<string | undefined> {
+  private async findResponsibleOwner(_event: SentryEvent): Promise<string | undefined> {
     // Logic to determine responsible team member based on error context
     return undefined;
   }
@@ -645,7 +646,7 @@ class ErrorAnalyzer {
     this.env = env;
   }
 
-  async analyzeError(event: SentryEvent, hint: SentryHint): Promise<AIAnalysis> {
+  async analyzeError(event: SentryEvent, _hint: SentryHint): Promise<AIAnalysis> {
     // Simplified AI analysis - in a real implementation, this would use ML models
     const analysis: AIAnalysis = {
       rootCause: this.identifyRootCause(event),
@@ -718,7 +719,7 @@ class TicketManager {
     this.env = env;
   }
 
-  async createTicket(request: TicketCreationRequest): Promise<void> {
+  async createTicket(_request: TicketCreationRequest): Promise<void> {
     // In a real implementation, this would integrate with GitHub Issues, Jira, etc.
   }
 }

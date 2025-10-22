@@ -1,13 +1,14 @@
-import { Schema, Table, Column, ConnectionConfig, CDCEvent } from '../../../types/migration';
+import { Schema, Table, Column, CDCEvent } from '../../../types/migration';
 import { BaseConnector, Connector, QueryOptions, WriteOptions } from './index';
 
-interface DatabaseDrivers {
-  postgresql: any;
-  mysql: any;
-  sqlite: any;
-  mongodb: any;
-  redis: any;
-}
+// TODO: Use DatabaseDrivers when implementing driver management
+// interface DatabaseDrivers {
+//   postgresql: any;
+//   mysql: any;
+//   sqlite: any;
+//   mongodb: any;
+//   redis: any;
+// }
 
 export class DatabaseConnector extends BaseConnector {
   private connection: any;
@@ -248,16 +249,16 @@ export class DatabaseConnector extends BaseConnector {
   private async connectPostgreSQL(): Promise<void> {
     // In a real implementation, you'd use pg or another PostgreSQL driver
     // This is a simplified mock implementation
-    const connectionConfig = {
-      host: this.config.host,
-      port: this.config.port || 5432,
-      database: this.config.database,
-      user: this.config.username,
-      password: this.config.password,
-      ssl: this.config.parameters.ssl || false,
-      connectionTimeoutMillis: this.config.parameters.connectionTimeout || 10000,
-      query_timeout: this.config.parameters.queryTimeout || 30000
-    };
+    // const _connectionConfig = {
+    //   host: this.config.host,
+    //   port: this.config.port || 5432,
+    //   database: this.config.database,
+    //   user: this.config.username,
+    //   password: this.config.password,
+    //   ssl: this.config.parameters.ssl || false,
+    //   connectionTimeoutMillis: this.config.parameters.connectionTimeout || 10000,
+    //   query_timeout: this.config.parameters.queryTimeout || 30000
+    // };
 
     // Mock connection
     this.connection = {
@@ -296,8 +297,8 @@ export class DatabaseConnector extends BaseConnector {
   private async connectMongoDB(): Promise<void> {
     // Mock MongoDB connection
     this.connection = {
-      db: (name: string) => ({
-        collection: (name: string) => ({
+      db: (_name: string) => ({
+        collection: (_name: string) => ({
           find: () => ({ toArray: () => [] }),
           insertMany: () => ({ insertedCount: 0 }),
           updateMany: () => ({ modifiedCount: 0 }),
@@ -316,9 +317,9 @@ export class DatabaseConnector extends BaseConnector {
     // Mock Redis connection
     this.connection = {
       ping: () => Promise.resolve('PONG'),
-      get: (key: string) => Promise.resolve(null),
-      set: (key: string, value: string) => Promise.resolve('OK'),
-      keys: (pattern: string) => Promise.resolve([]),
+      get: (_key: string) => Promise.resolve(null),
+      set: (_key: string, _value: string) => Promise.resolve('OK'),
+      keys: (_pattern: string) => Promise.resolve([]),
       quit: () => Promise.resolve()
     };
   }
@@ -714,13 +715,13 @@ export class DatabaseConnector extends BaseConnector {
     return { success, errors };
   }
 
-  private async startPostgreSQLCDC(callback: (event: CDCEvent) => Promise<void>): Promise<void> {
+  private async startPostgreSQLCDC(_callback: (event: CDCEvent) => Promise<void>): Promise<void> {
     // PostgreSQL logical replication implementation
     // This would use pg-logical-replication or similar
     this.logOperation('startCDC', 'PostgreSQL CDC started');
   }
 
-  private async startMySQLCDC(callback: (event: CDCEvent) => Promise<void>): Promise<void> {
+  private async startMySQLCDC(_callback: (event: CDCEvent) => Promise<void>): Promise<void> {
     // MySQL binlog implementation
     // This would use mysql-binlog or similar
     this.logOperation('startCDC', 'MySQL CDC started');

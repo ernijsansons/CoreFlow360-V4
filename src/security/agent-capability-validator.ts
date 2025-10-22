@@ -10,7 +10,7 @@
  * - Cross-business isolation enforcement
  */
 
-import { SecurityError } from '../shared/errors/app-error';
+
 import { createLogger } from '../utils/logger';
 import type { D1Database } from '@cloudflare/workers-types';
 

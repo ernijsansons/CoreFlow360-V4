@@ -7,7 +7,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Env } from '../types/env';
 import { Logger } from '../shared/logger';
-import { QuantumAIAuditor, generateAISystemsReport } from '../ai-systems/quantum-ai-auditor';
+import { generateAISystemsReport } from '../ai-systems/quantum-ai-auditor';
 import { ModelPerformanceAnalyzer } from '../ai-systems/model-performance-analyzer';
 import { AISafetyValidator } from '../ai-systems/ai-safety-validator';
 import { WorkflowAutomationAuditor } from '../ai-systems/workflow-automation-auditor';

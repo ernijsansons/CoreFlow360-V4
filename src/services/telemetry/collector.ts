@@ -257,7 +257,7 @@ export class TelemetryCollector {
 
     // Replace ? placeholders with actual parameters (escaped)
     let parameterizedSql = sql;
-    params.forEach((param, index) => {
+    params.forEach((param, _index) => {
       const escapedParam = this.escapeQueryParam(param);
       parameterizedSql = parameterizedSql.replace('?', escapedParam);
     });
@@ -378,11 +378,11 @@ export class TelemetryCollector {
     // Flush any pending data
   }
 
-  async collectLogs(params: any): Promise<any> {
+  async collectLogs(_params: any): Promise<any> {
     return { logs: [], total: 0 };
   }
 
-  async collectMetrics(params: any): Promise<any> {
+  async collectMetrics(_params: any): Promise<any> {
     return { metrics: [], total: 0 };
   }
 

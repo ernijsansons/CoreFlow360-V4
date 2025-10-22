@@ -1,16 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Context Enricher
  * Enhances business context with intelligence and generates contextual prompts
  */
-import {
-  BusinessContextData,
+import { BusinessContextData,
   ContextualPrompts,
-  ContextEnrichmentConfig,
-  CompanyProfile,
-  DepartmentProfile,
-  UserProfile,
-  BusinessIntelligence
-} from './types';
+  ContextEnrichmentConfig } from './types';
 import { Logger } from '../../shared/logger';
 
 export class ContextEnricher {
@@ -331,8 +326,8 @@ export class ContextEnricher {
 
   private async generateExampleInteractions(
     contextData: BusinessContextData,
-    capability: string,
-    taskType?: string
+    _capability: string,
+    _taskType?: string
   ): Promise<Array<{ scenario: string; expectedResponse: string }>> {
     const department = contextData.userProfile.basic.department?.toLowerCase() || 'general';
 
@@ -371,7 +366,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getMarketTrends(industry?: string): Promise<string[]> {
+  private async getMarketTrends(_industry?: string): Promise<string[]> {
     // Mock implementation
     return [
       'Digital transformation accelerating',
@@ -380,7 +375,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getRegulatoryChanges(industry?: string): Promise<string[]> {
+  private async getRegulatoryChanges(_industry?: string): Promise<string[]> {
     // Mock implementation
     return [
       'New data protection regulations',
@@ -416,7 +411,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getDepartmentRisks(department: string): Promise<string[]> {
+  private async getDepartmentRisks(_department: string): Promise<string[]> {
     // Mock implementation
     return [
       'Resource constraints',
@@ -443,7 +438,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getDepartmentOpportunities(department: string): Promise<string[]> {
+  private async getDepartmentOpportunities(_department: string): Promise<string[]> {
     // Mock implementation
     return [
       'Process automation',
@@ -452,7 +447,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getProcessRecommendations(contextData: BusinessContextData): Promise<string[]> {
+  private async getProcessRecommendations(_contextData: BusinessContextData): Promise<string[]> {
     // Mock implementation
     return [
       'Implement automated workflows',
@@ -461,7 +456,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getTechnologyRecommendations(contextData: BusinessContextData): Promise<string[]> {
+  private async getTechnologyRecommendations(_contextData: BusinessContextData): Promise<string[]> {
     // Mock implementation
     return [
       'Adopt cloud-based solutions',
@@ -470,7 +465,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getTrainingRecommendations(contextData: BusinessContextData): Promise<string[]> {
+  private async getTrainingRecommendations(_contextData: BusinessContextData): Promise<string[]> {
     // Mock implementation
     return [
       'Technical skills training',

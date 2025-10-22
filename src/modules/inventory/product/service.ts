@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Product Management Service
  * Comprehensive product and SKU management with advanced inventory features
@@ -624,8 +625,8 @@ class ProductService {
   }
 
   async getInventoryMovements(
-    productId: string,
-    filters?: {
+    _productId: string,
+    _filters?: {
       startDate?: string
       endDate?: string
       type?: MovementType
@@ -647,7 +648,7 @@ class ProductService {
     }
   }
 
-  async getLowStockProducts(threshold?: number): Promise<Product[]> {
+  async getLowStockProducts(_threshold?: number): Promise<Product[]> {
     try {
       // Query products where available quantity <= reorder point
       // Database implementation would go here
@@ -714,7 +715,7 @@ class ProductService {
   }
 
   // Private helper methods
-  private async validateUniqueSku(sku: string, excludeProductId?: string): Promise<void> {
+  private async validateUniqueSku(_sku: string, _excludeProductId?: string): Promise<void> {
     // Database query to check SKU uniqueness
     // Throw error if SKU already exists
   }
@@ -798,12 +799,12 @@ class ProductService {
     }
   }
 
-  private async executeProductSearch(params: ProductSearchParams): Promise<Product[]> {
+  private async executeProductSearch(_params: ProductSearchParams): Promise<Product[]> {
     // Database query implementation
     return []
   }
 
-  private async calculateSearchAggregations(products: Product[], params: ProductSearchParams): Promise<ProductListResponse['aggregations']> {
+  private async calculateSearchAggregations(_products: Product[], _params: ProductSearchParams): Promise<ProductListResponse['aggregations']> {
     return {
       totalValue: 0,
       totalQuantity: 0,

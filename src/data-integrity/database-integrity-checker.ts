@@ -154,7 +154,7 @@ export class DatabaseIntegrityChecker {
     }
   }
 
-  private async checkForeignKeyConstraints(env: Env): Promise<IntegrityResult> {
+  private async checkForeignKeyConstraints(_env: Env): Promise<IntegrityResult> {
     const issues: IntegrityIssue[] = [];
     const startTime = Date.now();
 
@@ -199,7 +199,7 @@ export class DatabaseIntegrityChecker {
     };
   }
 
-  private async checkUniqueConstraints(env: Env): Promise<IntegrityResult> {
+  private async checkUniqueConstraints(_env: Env): Promise<IntegrityResult> {
     const issues: IntegrityIssue[] = [];
     const startTime = Date.now();
 
@@ -250,7 +250,7 @@ export class DatabaseIntegrityChecker {
     };
   }
 
-  private async checkNotNullConstraints(env: Env): Promise<IntegrityResult> {
+  private async checkNotNullConstraints(_env: Env): Promise<IntegrityResult> {
     const issues: IntegrityIssue[] = [];
     const startTime = Date.now();
 
@@ -302,7 +302,7 @@ export class DatabaseIntegrityChecker {
     };
   }
 
-  private async checkCheckConstraints(env: Env): Promise<IntegrityResult> {
+  private async checkCheckConstraints(_env: Env): Promise<IntegrityResult> {
     const issues: IntegrityIssue[] = [];
     const startTime = Date.now();
 
@@ -352,7 +352,7 @@ export class DatabaseIntegrityChecker {
     };
   }
 
-  private async checkIndexIntegrity(env: Env): Promise<IntegrityResult> {
+  private async checkIndexIntegrity(_env: Env): Promise<IntegrityResult> {
     const issues: IntegrityIssue[] = [];
     const startTime = Date.now();
 
@@ -404,7 +404,7 @@ export class DatabaseIntegrityChecker {
     };
   }
 
-  private async checkDataConsistency(env: Env): Promise<IntegrityResult> {
+  private async checkDataConsistency(_env: Env): Promise<IntegrityResult> {
     const issues: IntegrityIssue[] = [];
     const startTime = Date.now();
 
@@ -454,7 +454,7 @@ export class DatabaseIntegrityChecker {
     };
   }
 
-  private async checkOrphanedRecords(env: Env): Promise<IntegrityResult> {
+  private async checkOrphanedRecords(_env: Env): Promise<IntegrityResult> {
     const issues: IntegrityIssue[] = [];
     const startTime = Date.now();
 
@@ -505,7 +505,7 @@ export class DatabaseIntegrityChecker {
     };
   }
 
-  private async checkDuplicateRecords(env: Env): Promise<IntegrityResult> {
+  private async checkDuplicateRecords(_env: Env): Promise<IntegrityResult> {
     const issues: IntegrityIssue[] = [];
     const startTime = Date.now();
 
@@ -555,7 +555,7 @@ export class DatabaseIntegrityChecker {
     };
   }
 
-  private async checkBusinessIdIsolation(env: Env): Promise<IntegrityResult> {
+  private async checkBusinessIdIsolation(_env: Env): Promise<IntegrityResult> {
     const issues: IntegrityIssue[] = [];
     const startTime = Date.now();
 
@@ -602,7 +602,7 @@ export class DatabaseIntegrityChecker {
     };
   }
 
-  private async checkAuditTrailIntegrity(env: Env): Promise<IntegrityResult> {
+  private async checkAuditTrailIntegrity(_env: Env): Promise<IntegrityResult> {
     const issues: IntegrityIssue[] = [];
     const startTime = Date.now();
 

@@ -6,7 +6,9 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { nanoid } from 'nanoid'
-import { ExportEngine, ExportRequest } from '../services/export-engine'
+import { ExportRequest } from '../services/export-engine'
+// TODO: Use ExportEngine when implementing export functionality
+// import { ExportEngine } from '../services/export-engine'
 
 const router = Router()
 
@@ -147,7 +149,7 @@ router.get('/:id/progress', async (req: any, res: any) => {
 // WebSocket endpoint for real-time progress updates
 router.get('/:id/progress/ws', async (req: any, res: any) => {
   try {
-    const { id } = req.params
+    // const { id: _id } = req.params
 
     // Upgrade to WebSocket
     const upgradeHeader = req.headers.upgrade
@@ -189,13 +191,13 @@ router.get('/:id/download', async (req: any, res: any) => {
       })
     }
 
-    const metadata = exportFile.customMetadata
-    const httpMetadata = exportFile.httpMetadata
+    // const _metadata = exportFile.customMetadata
+    const _httpMetadata = exportFile.httpMetadata
 
     // Set appropriate headers
     res.set({
-      'Content-Type': httpMetadata?.contentType || 'application/octet-stream',
-      'Content-Disposition': httpMetadata?.contentDisposition || `attachment; filename="export-${id}"`,
+      'Content-Type': _httpMetadata?.contentType || 'application/octet-stream',
+      'Content-Disposition': _httpMetadata?.contentDisposition || `attachment; filename="export-${id}"`,
       'Content-Length': exportFile.size.toString(),
       'Cache-Control': 'private, max-age=3600'
     })
@@ -318,7 +320,7 @@ router.get('/history', async (req: any, res: any) => {
 // POST /api/export/batch - Batch export multiple dashboards/widgets
 router.post('/batch', async (req: any, res: any) => {
   try {
-    const { exports, options = {} } = req.body
+    const { exports } = req.body
 
     if (!Array.isArray(exports) || exports.length === 0) {
       return res.status(400).json({

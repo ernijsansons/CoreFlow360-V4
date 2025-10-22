@@ -1006,6 +1006,7 @@ export class WorkflowOrchestrator implements DurableObject {
 
   private async clearWorkflowAlarms(workflowExecutionId: string): Promise<void> {
     for (const [id, alarm] of this.orchestratorState.alarms.entries()) {
+    void id;
       if (alarm.workflowExecutionId === workflowExecutionId) {
         alarm.active = false;
       }
@@ -1124,7 +1125,7 @@ export class WorkflowOrchestrator implements DurableObject {
     return `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  private async getWorkflowDefinition(workflowId: string): Promise<WorkflowDefinition | null> {
+  private async getWorkflowDefinition(_workflowId: string): Promise<WorkflowDefinition | null> {
     // In a real implementation, this would fetch from a workflow registry
     // For now, return null (workflow definitions would be stored separately)
     return null;

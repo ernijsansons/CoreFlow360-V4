@@ -1,14 +1,11 @@
 // CoreFlow360 V4 - Telemetry Collector Service
-import {
-  LogEntry,
+import { LogEntry,
   MetricPoint,
-  TraceContext,
   Span,
   AnalyticsEnginePoint,
   CostTrackingEntry,
-  ServicePerformance
-} from '../types/observability';
-import { getAIClient } from './ai-client';
+  ServicePerformance } from '../types/observability';
+
 
 export class TelemetryCollector {
   private env: any;
@@ -484,7 +481,7 @@ export class TelemetryCollector {
     return btoa(data).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
   }
 
-  private async sendAlertNotification(alertId: string, channelId: string): Promise<void> {
+  private async sendAlertNotification(_alertId: string, _channelId: string): Promise<void> {
     // This will be implemented in the alert system
   }
 

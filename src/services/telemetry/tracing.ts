@@ -1,4 +1,4 @@
-import { Span, TraceContext, LogEntry } from '../../types/telemetry';
+import { Span, TraceContext } from '../../types/telemetry';
 import { TelemetryCollector } from './collector';
 
 interface TraceConfig {
@@ -293,6 +293,7 @@ export class DistributedTracing {
     // Check for unusually long spans
     const avgDurations = new Map<string, number>();
     const spanCounts = new Map<string, number>();
+    void spanCounts;
 
     // Get historical data for comparison
     const historicalSpans = await this.collector.query(`
@@ -403,7 +404,7 @@ export class DistributedTracing {
     };
   }
 
-  async collectTraces(params: any): Promise<any> {
+  async collectTraces(_params: any): Promise<any> {
     return { traces: [], total: 0 };
   }
 
@@ -455,7 +456,7 @@ export function withTracing<T extends any[], R>(
   fn: (...args: T) => Promise<R>
 ): (...args: T) => Promise<R> {
   return async (...args: T): Promise<R> => {
-    return tracer.instrument(operationName, async (span: any) => {
+    return tracer.instrument(operationName, async (_span: any) => {
       return fn(...args);
     });
   };

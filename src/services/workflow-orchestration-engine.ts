@@ -5,8 +5,8 @@
 
 import type { Env } from '../types/env';
 import { getAIClient } from './secure-ai-client';
-import { validateInput } from '../utils/validation-schemas';
-import { z } from 'zod';
+
+
 
 // =====================================================
 // CORE TYPES
@@ -805,43 +805,43 @@ export class WorkflowOrchestrationEngine {
     ).run();
   }
 
-  private async validateExecutionPermissions(request: WorkflowExecutionRequest): Promise<void> {
+  private async validateExecutionPermissions(_request: WorkflowExecutionRequest): Promise<void> {
     // Validate user has permission to execute this workflow
     // This is a placeholder implementation
     return Promise.resolve();
   }
 
-  private async learnFromExecution(result: WorkflowExecutionResult): Promise<void> {
+  private async learnFromExecution(_result: WorkflowExecutionResult): Promise<void> {
     // Store execution metrics for future optimization
     // This is a placeholder implementation
     return Promise.resolve();
   }
 
-  private async applyAIOptimization(workflow: any, suggestion: OptimizationSuggestion): Promise<void> {
+  private async applyAIOptimization(_workflow: any, _suggestion: OptimizationSuggestion): Promise<void> {
     // Apply AI-specific optimizations like model selection
     // This delegates to the existing applyOptimization method
     return Promise.resolve();
   }
 
-  private async applyParallelOptimization(workflow: any, suggestion: OptimizationSuggestion): Promise<void> {
+  private async applyParallelOptimization(_workflow: any, _suggestion: OptimizationSuggestion): Promise<void> {
     // Apply parallel execution optimizations
     // This delegates to the existing applyOptimization method
     return Promise.resolve();
   }
 
-  private async applyCachingOptimization(workflow: any, suggestion: OptimizationSuggestion): Promise<void> {
+  private async applyCachingOptimization(_workflow: any, _suggestion: OptimizationSuggestion): Promise<void> {
     // Apply caching optimizations
     // This delegates to the existing applyOptimization method
     return Promise.resolve();
   }
 
-  private async applyModelOptimization(workflow: any, suggestion: OptimizationSuggestion): Promise<void> {
+  private async applyModelOptimization(_workflow: any, _suggestion: OptimizationSuggestion): Promise<void> {
     // Apply AI model selection optimizations
     // This delegates to the existing applyOptimization method
     return Promise.resolve();
   }
 
-  private async createOptimizedWorkflowVersion(workflow: any, suggestion: OptimizationSuggestion): Promise<void> {
+  private async createOptimizedWorkflowVersion(workflow: any, _suggestion: OptimizationSuggestion): Promise<void> {
     // Create a new version of the workflow with optimizations applied
     if (!this.env.DB_CRM) {
       throw new Error('Database not configured');
@@ -966,6 +966,7 @@ class WorkflowExecution {
       });
 
       const executionResult = await response.json();
+      void executionResult;
 
       result.status = 'completed';
       result.completedAt = new Date().toISOString();

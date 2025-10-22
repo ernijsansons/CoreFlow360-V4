@@ -3,7 +3,20 @@
     "allow": [
       "Bash(if [ -z \"$ANTHROPIC_API_KEY\" ])",
       "Bash(then echo \"NOT_SET\")",
-      "Bash(else echo \"API_KEY_EXISTS\")"
+      "Bash(else echo \"API_KEY_EXISTS\")",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then if grep -q \"import { Logger }\" \"$file\")",
+      "Bash(then echo \"$file has logger\")",
+      "Bash(else echo \"Need logger in $file\")",
+      "Bash(do if grep -q \"import { Logger }\" \"$file\")",
+      "Bash(if [ -f \"banking.ts\" ])",
+      "Bash(then if grep -q \"import { Logger }\" \"banking.ts\")",
+      "Bash(then echo \"has logger\")",
+      "Bash(else sed -i \"/^import { Hono }/a import { Logger } from ''../shared/logger'';\\nconst logger = new Logger({ component: ''banking'' });\" \"banking.ts\")",
+      "Bash(pwsh:*)",
+      "Bash(npm run lint:*)",
+      "Bash(git stash:*)",
+      "Bash(del test-qualification.mjs)"
     ],
     "deny": [],
     "ask": []

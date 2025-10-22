@@ -136,7 +136,7 @@ export class SupernovaEventBus<T = any> implements Subject<T> {
 // THREAD-SAFE SINGLETON PATTERN
 // ============================================================================
 
-export class SupernovaSingleton<T> {
+export class SupernovaSingleton {
   private static instances = new Map<string, any>();
   private static locks = new Map<string, Promise<any>>();
 

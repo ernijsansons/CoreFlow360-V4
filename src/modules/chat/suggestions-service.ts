@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Smart Suggestions Service
  * AI-powered proactive suggestions and recommendations
@@ -206,7 +207,7 @@ class SuggestionsService {
    */
   private async generateInsightSuggestions(
     businessData: any,
-    context: SuggestionContext
+    _context: SuggestionContext
   ): Promise<SmartSuggestion[]> {
     const suggestions: SmartSuggestion[] = []
 
@@ -270,7 +271,7 @@ class SuggestionsService {
    */
   private async generateActionSuggestions(
     businessData: any,
-    context: SuggestionContext
+    _context: SuggestionContext
   ): Promise<SmartSuggestion[]> {
     const suggestions: SmartSuggestion[] = []
 
@@ -327,7 +328,7 @@ class SuggestionsService {
    */
   private async generateOptimizationSuggestions(
     businessData: any,
-    context: SuggestionContext
+    _context: SuggestionContext
   ): Promise<SmartSuggestion[]> {
     const suggestions: SmartSuggestion[] = []
 
@@ -361,7 +362,7 @@ class SuggestionsService {
    */
   private async generateAlertSuggestions(
     businessData: any,
-    context: SuggestionContext
+    _context: SuggestionContext
   ): Promise<SmartSuggestion[]> {
     const suggestions: SmartSuggestion[] = []
 
@@ -395,7 +396,7 @@ class SuggestionsService {
    */
   private async generateOpportunitySuggestions(
     businessData: any,
-    context: SuggestionContext
+    _context: SuggestionContext
   ): Promise<SmartSuggestion[]> {
     const suggestions: SmartSuggestion[] = []
 
@@ -428,8 +429,8 @@ class SuggestionsService {
    * Generate reminder suggestions
    */
   private async generateReminderSuggestions(
-    businessData: any,
-    context: SuggestionContext
+    _businessData: any,
+    _context: SuggestionContext
   ): Promise<SmartSuggestion[]> {
     const suggestions: SmartSuggestion[] = []
 
@@ -462,7 +463,7 @@ class SuggestionsService {
   private async generateAISuggestions(
     existingSuggestions: SmartSuggestion[],
     businessData: any,
-    context: SuggestionContext
+    _context: SuggestionContext
   ): Promise<SmartSuggestion[]> {
     // This would integrate with Cloudflare Workers AI for advanced insights
     // For now, return enhanced suggestions based on patterns
@@ -498,7 +499,7 @@ class SuggestionsService {
    */
   private rankSuggestions(
     suggestions: SmartSuggestion[],
-    context: SuggestionContext
+    _context: SuggestionContext
   ): SmartSuggestion[] {
     return suggestions
       .filter((s: any) => {

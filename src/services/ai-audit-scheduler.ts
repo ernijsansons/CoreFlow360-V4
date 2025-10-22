@@ -572,9 +572,10 @@ export class AIAuditScheduler {
     };
   }
 
-  private async executeComprehensiveAudit(context: any, config: any): Promise<any> {
+  private async executeComprehensiveAudit(context: any, _config: any): Promise<any> {
     const auditor = new QuantumAIAuditor(context);
     const result = await auditor.auditAISystems();
+    void result;
     return await generateAISystemsReport(context);
   }
 
@@ -597,19 +598,19 @@ export class AIAuditScheduler {
     });
   }
 
-  private async executeSafetyAudit(context: any, config: any): Promise<any> {
+  private async executeSafetyAudit(context: any, _config: any): Promise<any> {
     const { AISafetyValidator } = await import('../ai-systems/ai-safety-validator');
     const validator = new AISafetyValidator(context);
     return await validator.analyze();
   }
 
-  private async executeBiasAudit(context: any, config: any): Promise<any> {
+  private async executeBiasAudit(context: any, _config: any): Promise<any> {
     const { AIBiasDetector } = await import('../ai-systems/ai-bias-detector');
     const detector = new AIBiasDetector(context);
     return await detector.detect();
   }
 
-  private async executeOptimizationAudit(context: any, config: any): Promise<any> {
+  private async executeOptimizationAudit(_context: any, _config: any): Promise<any> {
     // This would generate optimization strategies
     return {
       strategiesGenerated: Math.floor(Math.random() * 10) + 5,

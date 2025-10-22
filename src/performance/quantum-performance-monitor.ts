@@ -661,7 +661,7 @@ export class PerformanceAnalyzer {
 
   private async generateRecommendations(
     metrics: PerformanceMetrics,
-    anomalies: AnomalyDetection[]
+    _anomalies: AnomalyDetection[]
   ): Promise<OptimizationRecommendation[]> {
     const recommendations: OptimizationRecommendation[] = [];
 
@@ -914,6 +914,7 @@ export class QuantumPerformanceMonitor {
 
   private async autoRemediate(issues: any[]): Promise<void> {
     for (const issue of issues) {
+    void issue;
       // Implementation depends on issue type
     }
   }
@@ -961,7 +962,7 @@ export class QuantumPerformanceMonitor {
     return metrics.apiLatency.p95;
   }
 
-  private async escalate(message: string): Promise<void> {
+  private async escalate(_message: string): Promise<void> {
     // Send to incident management system
   }
 
@@ -986,15 +987,15 @@ export class QuantumPerformanceMonitor {
     }));
   }
 
-  private async autoOptimize(config: any): Promise<void> {
+  private async autoOptimize(_config: any): Promise<void> {
   }
 
-  private async sendNotification(rule: AlertRule, value: number, config: any): Promise<void> {
+  private async sendNotification(_rule: AlertRule, _value: number, _config: any): Promise<void> {
   }
 
-  private async activateCircuitBreaker(config: any): Promise<void> {
+  private async activateCircuitBreaker(_config: any): Promise<void> {
   }
 
-  private async autoScale(config: any): Promise<void> {
+  private async autoScale(_config: any): Promise<void> {
   }
 }

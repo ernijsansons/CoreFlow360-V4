@@ -13,8 +13,9 @@ import {
   MFASetupRequestSchema,
   MFAVerifyRequestSchema,
   RefreshTokenRequestSchema,
-  type RegisterRequest,
-  type LoginRequest,
+  // TODO: Use RegisterRequest and LoginRequest when needed
+  // type RegisterRequest,
+  // type LoginRequest,
 } from '../modules/auth/types';
 import { calculatePasswordStrength } from '../modules/auth/crypto';
 
@@ -142,7 +143,9 @@ auth.post('/refresh', asyncHandler(async (c: any) => {
   }
 
   const ipAddress = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
+  void ipAddress;
   const userAgent = c.req.header('User-Agent') || 'unknown';
+  void userAgent;
 
   const result = await authService.refreshToken(validation.data.refreshToken);
 
@@ -352,6 +355,7 @@ auth.post('/mfa/setup', authenticate(), requireMFA(), asyncHandler(async (c: any
     success: true,
     message: 'MFA setup initiated',
     type: validation.data.type,
+    userId,
   });
 }));
 
@@ -384,6 +388,7 @@ auth.post('/mfa/verify', authenticate(), asyncHandler(async (c: any) => {
   return c.json({
     success: true,
     message: 'MFA has been successfully enabled',
+    userId,
   });
 }));
 

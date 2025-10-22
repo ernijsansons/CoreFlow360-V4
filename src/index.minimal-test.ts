@@ -2,7 +2,7 @@
 
 // Export AdvancedRateLimiterDO for Durable Object compatibility
 export class AdvancedRateLimiterDO {
-  constructor(state: DurableObjectState, env: any) {
+  constructor(_state: DurableObjectState, _env: any) {
     // Minimal implementation for testing
   }
 }

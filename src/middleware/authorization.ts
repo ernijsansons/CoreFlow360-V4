@@ -14,12 +14,16 @@
  * - Business context enforcement
  */
 
-import { AuthContext as BaseAuthContext } from '../modules/auth/types';
+// TODO: Implement base auth context when needed
+// import { AuthContext as BaseAuthContext } from '../modules/auth/types';
 import {
   logAuditEvent,
   AuditEventType,
   AuditSeverity
-} from './security';
+} from './security';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "middleware-authorization" });
+
+
 
 // Extended AuthContext for authorization with nested user/metadata structure
 export interface AuthContext {
@@ -146,6 +150,7 @@ export class AuthorizationService {
     metadata: AuthContext['metadata']
   ): Promise<AccessDecision> {
     const startTime = Date.now();
+    void startTime;
     const requestId = metadata.requestId || this.generateRequestId();
 
     try {
@@ -200,7 +205,7 @@ export class AuthorizationService {
       });
 
     } catch (error) {
-      console.error('Authorization error:', error);
+      logger.error('Authorization error:', error);
       await this.auditAuthorizationError(user, request, error as Error, requestId);
       return this.createAccessDecision(false, 'Authorization check failed', 'AUTHORIZATION_ERROR', user, request, requestId);
     }
@@ -222,7 +227,7 @@ export class AuthorizationService {
         (permission.includes(':') && p.name === `${permission.split(':')[0]}:*`)
       );
     } catch (error) {
-      console.error('Permission check error:', error);
+      logger.error('Permission check error:', error);
       return false;
     }
   }
@@ -239,7 +244,7 @@ export class AuthorizationService {
       const userRoles = await this.getUserRoles(userId, businessId);
       return userRoles.some(role => role.name === roleName);
     } catch (error) {
-      console.error('Role check error:', error);
+      logger.error('Role check error:', error);
       return false;
     }
   }
@@ -274,7 +279,7 @@ export class AuthorizationService {
 
       return Array.from(uniquePermissions.values());
     } catch (error) {
-      console.error('Error getting effective permissions:', error);
+      logger.error('Error getting effective permissions:', error);
       return [];
     }
   }
@@ -482,7 +487,7 @@ export class AuthorizationService {
   private matchesPermission(
     permission: Permission,
     requiredPermission: string,
-    request: AccessRequest
+    _request: AccessRequest
   ): boolean {
     // Exact match
     if (permission.name === requiredPermission) {
@@ -598,11 +603,11 @@ export class AuthorizationService {
           return this.evaluateCustomCondition(condition, user, request, metadata);
 
         default:
-          console.warn('Unknown condition type:', condition.type);
+          logger.warn('Unknown condition type:', condition.type);
           return false;
       }
     } catch (error) {
-      console.error('Error evaluating condition:', error);
+      logger.error('Error evaluating condition:', error);
       return false;
     }
   }
@@ -683,10 +688,10 @@ export class AuthorizationService {
    * Evaluate custom conditions
    */
   private async evaluateCustomCondition(
-    condition: PermissionCondition,
-    user: AuthContext['user'],
-    request: AccessRequest,
-    metadata?: AuthContext['metadata']
+    _condition: PermissionCondition,
+    _user: AuthContext['user'],
+    _request: AccessRequest,
+    _metadata?: AuthContext['metadata']
   ): Promise<boolean> {
     // Implement custom condition logic based on your business requirements
     // This is a placeholder for extensibility
@@ -707,7 +712,7 @@ export class AuthorizationService {
 
       return (result.results || []).map(this.mapRowToRole);
     } catch (error) {
-      console.error('Error fetching user roles:', error);
+      logger.error('Error fetching user roles:', error);
       return [];
     }
   }
@@ -725,7 +730,7 @@ export class AuthorizationService {
 
       return (result.results || []).map(this.mapRowToPermission);
     } catch (error) {
-      console.error('Error fetching user permissions:', error);
+      logger.error('Error fetching user permissions:', error);
       return [];
     }
   }
@@ -743,7 +748,7 @@ export class AuthorizationService {
 
       return (result.results || []).map(this.mapRowToPermission);
     } catch (error) {
-      console.error('Error fetching role permissions:', error);
+      logger.error('Error fetching role permissions:', error);
       return [];
     }
   }
@@ -776,7 +781,7 @@ export class AuthorizationService {
 
       return policies;
     } catch (error) {
-      console.error('Error fetching business policies:', error);
+      logger.error('Error fetching business policies:', error);
       return [];
     }
   }
@@ -921,7 +926,7 @@ export class AuthorizationService {
         }
       }, this.auditKV, this.analytics);
     } catch (error) {
-      console.error('Failed to audit access granted:', error);
+      logger.error('Failed to audit access granted:', error);
     }
   }
 
@@ -949,7 +954,7 @@ export class AuthorizationService {
         }
       }, this.auditKV, this.analytics);
     } catch (error) {
-      console.error('Failed to audit access denial:', error);
+      logger.error('Failed to audit access denial:', error);
     }
   }
 
@@ -976,7 +981,7 @@ export class AuthorizationService {
         }
       }, this.auditKV, this.analytics);
     } catch (auditError) {
-      console.error('Failed to audit authorization error:', auditError);
+      logger.error('Failed to audit authorization error:', auditError);
     }
   }
 

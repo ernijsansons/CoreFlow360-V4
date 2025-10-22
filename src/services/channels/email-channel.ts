@@ -283,9 +283,9 @@ export class EmailChannel extends BaseChannel {
   }
 
   private async sendViaAWSSES(
-    recipient: Lead | Contact,
-    content: ChannelContent,
-    formattedBody: string
+    _recipient: Lead | Contact,
+    _content: ChannelContent,
+    _formattedBody: string
   ): Promise<void> {
     // AWS SES implementation would go here
   }

@@ -7,16 +7,12 @@ import type { D1Database } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
 import { JournalEntryManager } from './journal-entry-manager';
 import { FinanceAuditLogger } from './audit-logger';
-import {
-  Invoice,
+import { Invoice,
   InvoiceStatus,
   InvoicePayment,
   PaymentMethod,
   JournalEntryType,
-  RecordPaymentRequest,
-  ChartAccount,
-  AccountType
-} from './types';
+  RecordPaymentRequest } from './types';
 import { validateBusinessId, roundToCurrency } from './utils';
 
 export interface PostingConfiguration {

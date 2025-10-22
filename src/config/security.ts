@@ -4,9 +4,6 @@
  */
 
 import type { Env } from '../types/environment';
-import { createLogger } from '../utils/logger';
-
-const logger = createLogger('security');
 
 export interface CSPConfig {
   defaultSrc: string[];

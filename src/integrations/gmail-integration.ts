@@ -317,6 +317,7 @@ export class GmailIntegration {
 
     // Determine direction (outbound if from us, inbound otherwise)
     const myEmail = this.findHeader(headers, 'X-Original-To') || to;
+    void myEmail;
     const direction = from?.toLowerCase().includes('coreflow360') ? 'outbound' : 'inbound';
 
     return {

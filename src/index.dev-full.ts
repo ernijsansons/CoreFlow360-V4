@@ -1,9 +1,11 @@
 // Comprehensive development backend with all routes and business logic
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { logger } from 'hono/logger';
+import { logger as honoLogger } from 'hono/logger';
 import apiRoutes from './routes/index'; // Import all routes from consolidated routes/index.ts
 import type { Env } from './types/env';
+import { Logger } from "./shared/logger";
+const appLogger = new Logger({ component: "indexdev-full" });
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -22,7 +24,7 @@ app.use('*', cors({
 }));
 
 // Logger middleware
-app.use('*', logger());
+app.use('*', honoLogger());
 
 // Health check at root level
 app.get('/health', (c) => {
@@ -95,7 +97,7 @@ app.all('/api/:path{.+}', async (c) => {
   // Map /api/* to /api/v1/*
   const v1Path = originalPath.replace(/^\/api\//, '/api/v1/');
 
-  console.log(`🔄 Routing: ${originalPath} → ${v1Path}`);
+  appLogger.info(`🔄 Routing: ${originalPath} → ${v1Path}`);
 
   // Create a new URL with the v1 path
   const url = new URL(c.req.url);
@@ -125,7 +127,7 @@ app.notFound((c) => {
 
 // Error handler
 app.onError((err, c) => {
-  console.error('❌ Error:', err);
+  appLogger.error('❌ Error:', err);
   return c.json({
     error: 'Internal server error',
     message: err.message,

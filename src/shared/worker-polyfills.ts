@@ -1,4 +1,7 @@
 // @ts-nocheck
+/* eslint-disable no-console */
+import { Logger as StructuredLogger } from "./logger";
+const workerLogger = new StructuredLogger({ component: "shared-worker-polyfills" });
 /**
  * Worker-Compatible Polyfills for Browser APIs
  *
@@ -62,7 +65,7 @@ export const workerPerformance = {
    */
   mark(name: string): void {
     // No-op in Workers, could be implemented with custom tracking
-    console.debug(`Performance mark: ${name} at ${Date.now()}`);
+    workerLogger.debug(`Performance mark: ${name} at ${Date.now()}`);
   },
 
   /**
@@ -70,7 +73,7 @@ export const workerPerformance = {
    */
   measure(name: string, startMark: string, endMark: string): void {
     // No-op in Workers
-    console.debug(`Performance measure: ${name} from ${startMark} to ${endMark}`);
+    workerLogger.debug(`Performance measure: ${name} from ${startMark} to ${endMark}`);
   },
 };
 
@@ -122,6 +125,7 @@ export interface WorkerDeviceCapabilities {
 export function getDeviceCapabilities(): WorkerDeviceCapabilities {
   const nav = getNavigator();
   const perf = getPerformance();
+  void perf;
 
   return {
     webGPU: false, // Not available in Workers
@@ -201,28 +205,30 @@ export const environment = {
 /**
  * Console wrapper that works in all environments
  */
-export const logger = {
+export const workerConsole = {
   debug(...args: any[]): void {
-    if (typeof console !== 'undefined' && console.debug) {
+    if (typeof console !== "undefined" && typeof console.debug === "function") {
       console.debug(...args);
     }
   },
 
   info(...args: any[]): void {
-    if (typeof console !== 'undefined' && console.info) {
+    if (typeof console !== "undefined" && typeof console.info === "function") {
       console.info(...args);
     }
   },
 
   warn(...args: any[]): void {
-    if (typeof console !== 'undefined' && console.warn) {
+    if (typeof console !== "undefined" && typeof console.warn === "function") {
       console.warn(...args);
     }
   },
 
   error(...args: any[]): void {
-    if (typeof console !== 'undefined' && console.error) {
+    if (typeof console !== "undefined" && typeof console.error === "function") {
       console.error(...args);
     }
   },
 };
+
+

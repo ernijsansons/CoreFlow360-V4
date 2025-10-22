@@ -10,7 +10,10 @@
  * - Comprehensive session audit logging
  */
 
-import { SecurityError } from '../shared/errors/app-error';
+import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "security-enhanced-session-management" });
+
+
 
 export interface SessionData {
   id: string;
@@ -262,7 +265,7 @@ export class EnhancedSessionManager {
       return updatedSession;
 
     } catch (error: any) {
-      console.error('Session refresh error:', error);
+      logger.error('Session refresh error:', error);
       return null;
     }
   }
@@ -302,7 +305,7 @@ export class EnhancedSessionManager {
       return newSession;
 
     } catch (error: any) {
-      console.error('Session rotation error:', error);
+      logger.error('Session rotation error:', error);
       return null;
     }
   }
@@ -319,10 +322,10 @@ export class EnhancedSessionManager {
       `).bind(Date.now(), sessionId).run();
 
       // Log session invalidation
-      console.log(`Session ${sessionId} invalidated`);
+      logger.info(`Session ${sessionId} invalidated`);
 
     } catch (error: any) {
-      console.error('Session invalidation error:', error);
+      logger.error('Session invalidation error:', error);
     }
   }
 
@@ -338,10 +341,10 @@ export class EnhancedSessionManager {
       `).bind(Date.now(), userId).run();
 
       // Log bulk session invalidation
-      console.log(`All sessions for user ${userId} invalidated`);
+      logger.info(`All sessions for user ${userId} invalidated`);
 
     } catch (error: any) {
-      console.error('Bulk session invalidation error:', error);
+      logger.error('Bulk session invalidation error:', error);
     }
   }
 
@@ -511,7 +514,7 @@ export class EnhancedSessionManager {
       severity: this.getEventSeverity(eventType)
     };
 
-    console.log('SESSION EVENT:', logEntry);
+    logger.info('SESSION EVENT:', logEntry);
 
     // In production, this would be sent to audit logging service
     // await this.sendToAuditLog(logEntry);

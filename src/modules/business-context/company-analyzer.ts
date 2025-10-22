@@ -4,11 +4,8 @@
  */
 
 import type { D1Database } from '@cloudflare/workers-types';
-import {
-  CompanyProfile,
-  BusinessIntelligence,
-  CompanyMetrics
-} from './types';
+import { CompanyProfile,
+  BusinessIntelligence } from './types';
 import { Logger } from '../../shared/logger';
 
 export class CompanyAnalyzer {
@@ -409,7 +406,7 @@ export class CompanyAnalyzer {
     }];
   }
 
-  private async analyzeRevenuePatterns(businessId: string): Promise<{
+  private async analyzeRevenuePatterns(_businessId: string): Promise<{
     annual?: number;
     growthRate?: number;
     stage: CompanyProfile['business']['revenue']['stage'];
@@ -421,7 +418,7 @@ export class CompanyAnalyzer {
     };
   }
 
-  private async analyzeCustomerBase(businessId: string): Promise<{
+  private async analyzeCustomerBase(_businessId: string): Promise<{
     count?: number;
     segments: string[];
     avgLifetimeValue?: number;
@@ -434,8 +431,8 @@ export class CompanyAnalyzer {
     };
   }
 
-  private determineMarketPosition(businessId: string,
-  revenue: any, customers: any): CompanyProfile['business']['marketPosition'] {
+  private determineMarketPosition(_businessId: string,
+  _revenue: any, _customers: any): CompanyProfile['business']['marketPosition'] {
     // Simple heuristic based on available data
     return 'challenger';
   }
@@ -447,7 +444,7 @@ export class CompanyAnalyzer {
     return 'traditional';
   }
 
-  private inferFinancialPerformance(size: string, industry: string): BusinessIntelligence['financial']['performance'] {
+  private inferFinancialPerformance(size: string, _industry: string): BusinessIntelligence['financial']['performance'] {
     return {
       profitability: size === 'startup' ? 'low' : 'medium',
       cashFlow: size === 'startup' ? 'negative' : 'positive',
@@ -480,7 +477,7 @@ export class CompanyAnalyzer {
     return threats;
   }
 
-  private inferIndustryTrends(industry: string): string[] {
+  private inferIndustryTrends(_industry: string): string[] {
     return ['automation', 'sustainability', 'remote work'];
   }
 
@@ -534,7 +531,7 @@ export class CompanyAnalyzer {
     return 'maturity';
   }
 
-  private inferStrategicFocus(phase: string, size: string): string[] {
+  private inferStrategicFocus(phase: string, _size: string): string[] {
     switch (phase) {
       case 'startup':
         return ['product development', 'market validation', 'funding'];

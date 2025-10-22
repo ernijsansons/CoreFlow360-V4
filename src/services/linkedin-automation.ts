@@ -1,6 +1,9 @@
-import type { Lead, Contact } from '../types/crm';
+
 import type { Env } from '../types/env';
-import { LinkedInChannel } from './channels/linkedin-channel';
+import { LinkedInChannel } from './channels/linkedin-channel';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-linkedin-automation" });
+
+
 
 export interface LinkedInProfile {
   url: string;
@@ -140,7 +143,7 @@ export class LinkedInAutomationService {
 
       return profile;
     } catch (error: any) {
-      console.error('Failed to get LinkedIn profile:', error);
+      logger.error('Failed to get LinkedIn profile:', error);
       return null;
     }
   }
@@ -173,7 +176,7 @@ export class LinkedInAutomationService {
 
       return profiles;
     } catch (error: any) {
-      console.error('Failed to search LinkedIn profiles:', error);
+      logger.error('Failed to search LinkedIn profiles:', error);
       return [];
     }
   }
@@ -203,7 +206,7 @@ export class LinkedInAutomationService {
 
       return posts;
     } catch (error: any) {
-      console.error('Failed to get LinkedIn posts:', error);
+      logger.error('Failed to get LinkedIn posts:', error);
       return [];
     }
   }
@@ -233,7 +236,7 @@ export class LinkedInAutomationService {
 
       return post;
     } catch (error: any) {
-      console.error('Failed to create LinkedIn post:', error);
+      logger.error('Failed to create LinkedIn post:', error);
       return null;
     }
   }
@@ -242,10 +245,10 @@ export class LinkedInAutomationService {
   async likePost(postId: string): Promise<boolean> {
     try {
       // Mock post like - would use LinkedIn API in production
-      console.log(`Liking post ${postId}`);
+      logger.info(`Liking post ${postId}`);
       return true;
     } catch (error: any) {
-      console.error('Failed to like LinkedIn post:', error);
+      logger.error('Failed to like LinkedIn post:', error);
       return false;
     }
   }
@@ -253,10 +256,10 @@ export class LinkedInAutomationService {
   async commentOnPost(postId: string, comment: string): Promise<boolean> {
     try {
       // Mock post comment - would use LinkedIn API in production
-      console.log(`Commenting on post ${postId}: ${comment}`);
+      logger.info(`Commenting on post ${postId}: ${comment}`);
       return true;
     } catch (error: any) {
-      console.error('Failed to comment on LinkedIn post:', error);
+      logger.error('Failed to comment on LinkedIn post:', error);
       return false;
     }
   }
@@ -264,10 +267,10 @@ export class LinkedInAutomationService {
   async sharePost(postId: string, message?: string): Promise<boolean> {
     try {
       // Mock post share - would use LinkedIn API in production
-      console.log(`Sharing post ${postId} with message: ${message || 'No message'}`);
+      logger.info(`Sharing post ${postId} with message: ${message || 'No message'}`);
       return true;
     } catch (error: any) {
-      console.error('Failed to share LinkedIn post:', error);
+      logger.error('Failed to share LinkedIn post:', error);
       return false;
     }
   }
@@ -276,10 +279,10 @@ export class LinkedInAutomationService {
   async sendConnectionRequest(profileUrl: string, message?: string): Promise<boolean> {
     try {
       // Mock connection request - would use LinkedIn API in production
-      console.log(`Sending connection request to ${profileUrl} with message: ${message || 'No message'}`);
+      logger.info(`Sending connection request to ${profileUrl} with message: ${message || 'No message'}`);
       return true;
     } catch (error: any) {
-      console.error('Failed to send LinkedIn connection request:', error);
+      logger.error('Failed to send LinkedIn connection request:', error);
       return false;
     }
   }
@@ -287,10 +290,10 @@ export class LinkedInAutomationService {
   async acceptConnectionRequest(requestId: string): Promise<boolean> {
     try {
       // Mock connection acceptance - would use LinkedIn API in production
-      console.log(`Accepting connection request ${requestId}`);
+      logger.info(`Accepting connection request ${requestId}`);
       return true;
     } catch (error: any) {
-      console.error('Failed to accept LinkedIn connection request:', error);
+      logger.error('Failed to accept LinkedIn connection request:', error);
       return false;
     }
   }
@@ -316,7 +319,7 @@ export class LinkedInAutomationService {
         }
       ];
     } catch (error: any) {
-      console.error('Failed to get LinkedIn connection requests:', error);
+      logger.error('Failed to get LinkedIn connection requests:', error);
       return [];
     }
   }
@@ -325,15 +328,15 @@ export class LinkedInAutomationService {
   async sendMessage(profileUrl: string, message: string): Promise<boolean> {
     try {
       // Mock message sending - would use LinkedIn API in production
-      console.log(`Sending message to ${profileUrl}: ${message}`);
+      logger.info(`Sending message to ${profileUrl}: ${message}`);
       return true;
     } catch (error: any) {
-      console.error('Failed to send LinkedIn message:', error);
+      logger.error('Failed to send LinkedIn message:', error);
       return false;
     }
   }
 
-  async getMessages(profileUrl: string, limit: number = 50): Promise<Array<{
+  async getMessages(profileUrl: string, _limit: number = 50): Promise<Array<{
     id: string;
     sender: string;
     content: string;
@@ -352,7 +355,7 @@ export class LinkedInAutomationService {
         }
       ];
     } catch (error: any) {
-      console.error('Failed to get LinkedIn messages:', error);
+      logger.error('Failed to get LinkedIn messages:', error);
       return [];
     }
   }
@@ -447,13 +450,13 @@ export class LinkedInAutomationService {
 
   private async viewProfile(profileUrl: string): Promise<boolean> {
     // Mock profile view - would use LinkedIn API in production
-    console.log(`Viewing profile: ${profileUrl}`);
+    logger.info(`Viewing profile: ${profileUrl}`);
     return true;
   }
 
   private async wait(minutes: number): Promise<boolean> {
     // Mock wait - would use actual delay in production
-    console.log(`Waiting for ${minutes} minutes`);
+    logger.info(`Waiting for ${minutes} minutes`);
     return true;
   }
 
@@ -503,7 +506,7 @@ export class LinkedInAutomationService {
       try {
         await this.executeStrategy(leadId);
       } catch (error: any) {
-        console.error(`Failed to execute strategy for lead ${leadId}:`, error);
+        logger.error(`Failed to execute strategy for lead ${leadId}:`, error);
       }
     }
 
@@ -577,9 +580,9 @@ export class LinkedInAutomationService {
   async cleanup(): Promise<void> {
     try {
       // Mock cleanup - would close connections and clean up resources in production
-      console.log('LinkedIn Automation Service cleanup completed');
+      logger.info('LinkedIn Automation Service cleanup completed');
     } catch (error: any) {
-      console.error('LinkedIn Automation Service cleanup failed:', error);
+      logger.error('LinkedIn Automation Service cleanup failed:', error);
     }
   }
 }

@@ -1,10 +1,7 @@
-import type {
-  VoicemailTemplate,
+import type { VoicemailTemplate,
   VoicemailType,
-  VoiceSettings,
   UrgencyLevel,
-  Lead
-} from '../types/crm';
+  Lead } from '../types/crm';
 
 export // TODO: Consider splitting VoicemailTemplateManager into smaller, focused classes
 class VoicemailTemplateManager {
@@ -328,6 +325,7 @@ class VoicemailTemplateManager {
     const matchingTemplates: VoicemailTemplate[] = [];
 
     for (const [key, templates] of this.templates.entries()) {
+    void key;
       for (const template of templates) {
         if (template.voicemail_type === type &&
             attemptNumber >= template.attempt_range.min &&
@@ -418,7 +416,7 @@ class VoicemailTemplateManager {
   /**
    * Calculate success rate for a template based on historical data
    */
-  async calculateTemplateSuccessRate(templateId: string): Promise<number> {
+  async calculateTemplateSuccessRate(_templateId: string): Promise<number> {
     // In real implementation, query database for:
     // - Total voicemails sent with this template
     // - Number that received callbacks
@@ -457,6 +455,7 @@ class VoicemailTemplateManager {
     attemptNumber: number
   ): VoicemailTemplate[] {
     const recommendations: VoicemailTemplate[] = [];
+    void recommendations;
 
     // Determine voicemail type based on lead status and attempt
     let type: VoicemailType;

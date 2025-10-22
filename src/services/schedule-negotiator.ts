@@ -1,12 +1,9 @@
-import type {
-  CalendarSlot,
+import type { CalendarSlot,
   ScheduleNegotiation,
   NegotiationRound,
   Conversation,
   Lead,
-  MeetingType,
-  NegotiationStatus
-} from '../types/crm';
+  MeetingType } from '../types/crm';
 import type { Env } from '../types/env';
 
 export class ScheduleNegotiator {
@@ -91,22 +88,22 @@ export class ScheduleNegotiator {
 
   private async extractSchedulingPreferences(transcript: string): Promise<any> {
     // Use AI to extract scheduling preferences from conversation
-    const preferencesPrompt = `
-      Analyze this conversation transcript and extract scheduling preferences:
-
-      Transcript: "${transcript}"
-
-      Extract and return JSON with:
-      - preferred_times: ["morning", "afternoon", "evening"]
-      - preferred_days: ["monday", "tuesday", etc.]
-      - duration_preference: number in minutes
-      - urgency_level: "immediate", "soon", "flexible"
-      - meeting_type_preference: type of meeting mentioned
-      - timezone_hints: any timezone mentions
-      - constraints: any scheduling constraints mentioned
-
-      Focus on explicit statements like "I prefer mornings" or "Tuesday works best".
-    `;
+    // const _preferencesPrompt = `
+    //   Analyze this conversation transcript and extract scheduling preferences:
+    //
+    //   Transcript: "${transcript}"
+    //
+    //   Extract and return JSON with:
+    //   - preferred_times: ["morning", "afternoon", "evening"]
+    //   - preferred_days: ["monday", "tuesday", etc.]
+    //   - duration_preference: number in minutes
+    //   - urgency_level: "immediate", "soon", "flexible"
+    //   - meeting_type_preference: type of meeting mentioned
+    //   - timezone_hints: any timezone mentions
+    //   - constraints: any scheduling constraints mentioned
+    //
+    //   Focus on explicit statements like "I prefer mornings" or "Tuesday works best".
+    // `;
 
     // In real implementation, this would call Claude API
     return this.simulateAIPreferenceExtraction(transcript);
@@ -384,7 +381,7 @@ export class ScheduleNegotiator {
     return preferences;
   }
 
-  private async saveNegotiation(negotiation: ScheduleNegotiation): Promise<void> {
+  private async saveNegotiation(_negotiation: ScheduleNegotiation): Promise<void> {
     // In real implementation, save to database
   }
 
@@ -407,6 +404,7 @@ export class ScheduleNegotiator {
 
     const urgentKeywords = ['urgent', 'asap', 'soon', 'quickly', 'immediate'];
     const flexibleKeywords = ['flexible', 'anytime', 'whenever', 'no rush'];
+    void flexibleKeywords;
 
     let bookingScore = 0;
     const words = transcript.toLowerCase().split(/\s+/);

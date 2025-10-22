@@ -1,5 +1,8 @@
-import { EventEmitter } from 'events';
-import { DataSynchronizationService, SyncConfiguration } from './data-sync';
+
+import { DataSynchronizationService, SyncConfiguration } from './data-sync';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-integration-enhanced-data-sync" });
+
+
 
 export interface CoreFlowData {
   customers: CustomerData[];
@@ -350,7 +353,7 @@ export class EnhancedDataSynchronization extends DataSynchronizationService {
   }
 
   // Validate data before sync
-  private async validateData(data: any, source: string): Promise<any> {
+  private async validateData(data: any, _source: string): Promise<any> {
     const validated: any = {};
 
     for (const [key, value] of Object.entries(data)) {
@@ -438,7 +441,9 @@ export class EnhancedDataSynchronization extends DataSynchronizationService {
 
       // Immediately sync critical updates
       if (data.priority === 'critical') {
-        this.syncAgentsToCoreFlow().catch(console.error);
+        this.syncAgentsToCoreFlow().catch((error) => {
+          logger.error('Agent sync loop failed', error);
+        });
       }
     };
 
@@ -518,7 +523,7 @@ class DeltaStrategy extends SyncStrategy {
     });
   }
 
-  private async getLastSyncTimestamp(target: string): Promise<Date> {
+  private async getLastSyncTimestamp(_target: string): Promise<Date> {
     // Retrieve last sync timestamp from storage
     return new Date(Date.now() - 3600000); // Default to 1 hour ago
   }

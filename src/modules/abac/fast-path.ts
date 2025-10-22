@@ -1,12 +1,8 @@
-import type {
-  Subject,
+import type { Subject,
   Resource,
-  Action,
   Capability,
   OrgRole,
-  DepartmentRole,
-  EvaluationResult,
-} from './types';
+  EvaluationResult } from './types';
 import { ROLE_HIERARCHY, DEFAULT_CAPABILITIES, DEPARTMENT_CAPABILITIES } from './types';
 import { capabilityRegistry } from './capability-registry';
 

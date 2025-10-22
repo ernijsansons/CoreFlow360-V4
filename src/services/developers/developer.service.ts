@@ -17,7 +17,7 @@ import type {
 import { randomBytes, createHash } from 'crypto';
 
 export class DeveloperService {
-  private logger = new Logger('DeveloperService');
+  private logger = new Logger({ component: 'DeveloperService' });
 
   constructor(private env: Env) {}
 

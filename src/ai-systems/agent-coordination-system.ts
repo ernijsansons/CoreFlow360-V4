@@ -620,7 +620,7 @@ export class AgentCoordinationSystem {
     }>();
 
     // Aggregate agent data
-    for (const [_nodeId, node] of workflow.nodes) {
+    for (const [, node] of workflow.nodes) {
       if (node.task.assignedAgent && node.task.result) {
         const agentId = node.task.assignedAgent;
 
@@ -751,7 +751,7 @@ export class AgentCoordinationSystem {
 
     // Analyze agent collaboration patterns
     const agentTypes = new Set<string>();
-    for (const [_nodeId, node] of workflow.nodes) {
+    for (const [, node] of workflow.nodes) {
       if (node.task.assignedAgent) {
         agentTypes.add(this.getAgentType(node.task.assignedAgent));
       }

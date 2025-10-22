@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
-import { z } from 'zod';
+// import { z } from 'zod';
 import type { Env } from '../types/env';
-import { MigrationRunner, type MigrationFile } from '../modules/database/migration-runner';
+import { MigrationRunner } from '../modules/database/migration-runner';
+// TODO: Use MigrationFile type when implementing migrations
+// import type { MigrationFile } from '../modules/database/migration-runner';
 import { createErrorResponse } from '../shared/utils';
 
 import { loadMigrations, loadRollbacks } from './migration-sql';
@@ -11,9 +13,9 @@ import { loadMigrations, loadRollbacks } from './migration-sql';
 const app = new Hono<{ Bindings: Env }>();
 
 // Request validation schemas
-const AdminAuthSchema = z.object({
-  authorization: z.string().regex(/^Bearer .+$/),
-});
+// const _AdminAuthSchema = z.object({
+//   authorization: z.string().regex(/^Bearer .+$/),
+// });
 
 // Enhanced admin authentication with rate limiting
 const adminAuthMiddleware = async (c: any, next: any) => {

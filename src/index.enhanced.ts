@@ -2,7 +2,10 @@
 import { AuthSystem } from './auth/auth-system';
 
 // Use canonical Env type
-import type { Env } from './types/env';
+import type { Env } from './types/env';import { Logger } from "./shared/logger";
+const logger = new Logger({ component: "indexenhanced" });
+
+
 
 // Re-export canonical type
 export type { Env } from './types/env';
@@ -171,7 +174,7 @@ class DatabaseManager {
 class AIService {
   constructor(private env: Env) {}
 
-  async processWithAI(prompt: string, context?: any): Promise<any> {
+  async processWithAI(prompt: string, _context?: any): Promise<any> {
     if (!this.env.ANTHROPIC_API_KEY) {
       throw new Error('AI service not configured');
     }
@@ -191,7 +194,7 @@ class AIService {
     return result.response;
   }
 
-  async analyzeBusinessContext(data: any): Promise<any> {
+  async analyzeBusinessContext(_data: any): Promise<any> {
     return {
       insights: ['Market trend analysis', 'Customer behavior patterns'],
       recommendations: ['Focus on digital transformation', 'Improve customer engagement'],
@@ -202,7 +205,7 @@ class AIService {
 
 // Enhanced route handlers with database integration
 const createRouteHandlers = (env: Env, dbManager: DatabaseManager, aiService: AIService, authSystem: AuthSystem) => ({
-  '/health': async (request: Request) => {
+  '/health': async (_request: Request) => {
     const dbStatus = env.DB ? 'connected' : 'not_configured';
     const aiStatus = env.ANTHROPIC_API_KEY ? 'configured' : 'not_configured';
 
@@ -220,7 +223,7 @@ const createRouteHandlers = (env: Env, dbManager: DatabaseManager, aiService: AI
     });
   },
 
-  '/api/status': async (request: Request) => {
+  '/api/status': async (_request: Request) => {
     const stats = env.DB ? await dbManager.getApiStats(10) : [];
 
     return new Response(JSON.stringify({
@@ -717,7 +720,7 @@ const createRouteHandlers = (env: Env, dbManager: DatabaseManager, aiService: AI
     }
   },
 
-  '/api/cache/stats': async (request: Request) => {
+  '/api/cache/stats': async (_request: Request) => {
     if (!env.KV_CACHE) {
       return new Response(JSON.stringify({ error: 'Cache not configured' }), {
         status: 503,
@@ -855,7 +858,7 @@ export default {
       });
 
     } catch (error: any) {
-      console.error('Worker error:', error);
+      logger.error('Worker error:', error);
 
       const responseTime = Date.now() - startTime;
       return new Response(JSON.stringify({

@@ -1,3 +1,6 @@
+import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "middleware-cors" });
+
 /**
  * Secure CORS Middleware for CoreFlow360 V4
  *
@@ -75,7 +78,7 @@ function validateOrigin(
 
   // SECURITY: Never allow wildcard in production
   if (environment === 'production' && allowedOrigins.includes('*')) {
-    console.error('SECURITY VIOLATION: Wildcard origin detected in production');
+    logger.error('SECURITY VIOLATION: Wildcard origin detected in production');
     return {
       allowed: false,
       reason: 'Wildcard origins not allowed in production',
@@ -178,7 +181,7 @@ function validatePreflightRequest(
 function generateCORSHeaders(
   validationResult: CORSValidationResult,
   config: Required<CORSConfig>,
-  request: Request
+  _request: Request
 ): Record<string, string> {
   const headers: Record<string, string> = {};
 

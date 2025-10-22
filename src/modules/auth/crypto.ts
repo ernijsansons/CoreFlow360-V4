@@ -21,6 +21,7 @@ const PBKDF2_ITERATIONS = 100000;
 const SALT_LENGTH = 32;
 const HASH_LENGTH = 32;
 const ALGORITHM = 'PBKDF2';
+void ALGORITHM;
 
 /**
  * Generate a random salt

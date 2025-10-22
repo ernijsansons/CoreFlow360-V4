@@ -4,7 +4,7 @@
  */
 import type { Env } from '../types/env';
 import { AIClient, getAIClient as getAIClientBase } from './ai-client';
-import { validateInput } from '../utils/validation-schemas';
+
 import { z } from 'zod';
 
 // =====================================================
@@ -720,8 +720,8 @@ Return a JSON array of test cases with input data, expected outputs, and test ty
    * Generate deployment configuration
    */
   private async generateDeploymentConfig(
-    workflow: GeneratedWorkflow,
-    request: WorkflowGenerationRequest
+    _workflow: GeneratedWorkflow,
+    _request: WorkflowGenerationRequest
   ): Promise<WorkflowDeployment> {
     return {
       environment: 'development',

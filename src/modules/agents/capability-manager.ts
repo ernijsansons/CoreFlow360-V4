@@ -4,17 +4,17 @@
  */
 
 export class CapabilityManager {
-  constructor(kv?: KVNamespace, db?: D1Database) {}
+  constructor(_kv?: KVNamespace, _db?: D1Database) {}
 
   async getCapabilities(): Promise<string[]> {
     return [];
   }
 
-  async registerCapability(capability: string): Promise<void> {
+  async registerCapability(_capability: string): Promise<void> {
     // Stub implementation
   }
 
-  async unregisterCapability(capability: string): Promise<void> {
+  async unregisterCapability(_capability: string): Promise<void> {
     // Stub implementation
   }
 }

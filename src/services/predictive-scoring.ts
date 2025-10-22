@@ -1,4 +1,4 @@
-import type { Lead, LeadExtended, Company, Contact } from '../types/crm';
+import type { LeadExtended } from '../types/crm';
 import type { Env } from '../types/env';
 
 export interface LeadScore {
@@ -220,6 +220,7 @@ export class PredictiveScoring {
   async scoreLeadPropensity(lead: LeadExtended): Promise<LeadScore> {
     // Check cache first
     const cacheKey = `${lead.id}_${Date.now()}`;
+    void cacheKey;
     const cached = this.scoreCache.get(lead.id);
     if (cached && new Date(cached.validUntil) > new Date()) {
       return cached;
@@ -472,9 +473,10 @@ export class PredictiveScoring {
     };
   }
 
-  private async detectCompetitorActivity(lead: LeadExtended): Promise<CompetitorSignals> {
+  private async detectCompetitorActivity(_lead: LeadExtended): Promise<CompetitorSignals> {
     // Analyze conversations and activities for competitor mentions
     const competitorKeywords = ['competitor', 'alternative', 'compare', 'vs', 'switching from'];
+    void competitorKeywords;
 
     return {
       mentionedCompetitors: [],
@@ -485,7 +487,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async analyzeMarketTiming(lead: LeadExtended): Promise<MarketSignals> {
+  private async analyzeMarketTiming(_lead: LeadExtended): Promise<MarketSignals> {
     // Market analysis would integrate with external data sources
     return {
       industryGrowthRate: 0.15, // 15% growth
@@ -496,7 +498,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async getSocialSignals(lead: LeadExtended): Promise<SocialSignals> {
+  private async getSocialSignals(_lead: LeadExtended): Promise<SocialSignals> {
     // Would integrate with social media APIs
     return {
       linkedInActivity: 5,
@@ -507,7 +509,7 @@ export class PredictiveScoring {
     };
   }
 
-  private async getTechnographicData(lead: LeadExtended): Promise<TechnographicSignals> {
+  private async getTechnographicData(_lead: LeadExtended): Promise<TechnographicSignals> {
     // Would integrate with technographic data providers
     return {
       currentTechStack: ['Salesforce', 'Slack', 'Zoom'],
@@ -916,7 +918,7 @@ export class PredictiveScoring {
   private async generateRecommendations(
     lead: LeadExtended,
     signals: Signals,
-    prediction: any
+    _prediction: any
   ): Promise<string[]> {
     const recommendations: string[] = [];
 

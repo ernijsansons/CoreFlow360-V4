@@ -3,17 +3,14 @@ import { cors } from 'hono/cors';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { Context } from 'hono';
-import type {
-  VoiceAgentConfig,
+import type { VoiceAgentConfig,
   CallInitiationRequest,
-  VoiceAgentResponse,
-  CallResult,
-  RealTimeCallState,
-  VoiceAgentPerformance
-} from '../types/voice-agent';
-import type { Lead } from '../types/crm';
+  RealTimeCallState } from '../types/voice-agent';
+
 import { AIVoiceAgent } from '../services/ai-voice-agent';
-import { CallOrchestrator, type CallOrchestratorConfig, type CallQueueStats } from '../services/call-orchestrator';
+import { CallOrchestrator, type CallOrchestratorConfig } from '../services/call-orchestrator';
+// TODO: Use CallQueueStats when implementing queue monitoring
+// import type { CallQueueStats } from '../services/call-orchestrator';
 import { CallAnalyticsService, type AnalyticsQuery } from '../services/call-analytics-service';
 import { CRMService } from '../services/crm-service';
 import { TwilioService } from '../services/twilio-service';
@@ -66,29 +63,30 @@ const AnalyticsQuerySchema = z.object({
   max_duration?: number;
 }>;
 
-const TwilioWebhookSchema = z.object({
-  CallSid: z.string(),
-  AccountSid: z.string(),
-  From: z.string(),
-  To: z.string(),
-  CallStatus: z.string(),
-  Direction: z.string(),
-  ApiVersion: z.string(),
-  ForwardedFrom: z.string().optional(),
-  CallerName: z.string().optional(),
-  ParentCallSid: z.string().optional(),
-  CallDuration: z.string().optional(),
-  SipResponseCode: z.string().optional(),
-  RecordingUrl: z.string().optional(),
-  RecordingSid: z.string().optional(),
-  RecordingStatus: z.string().optional(),
-  Digits: z.string().optional(),
-  FinishedOnKey: z.string().optional(),
-  SpeechResult: z.string().optional(),
-  Confidence: z.string().optional(),
-  AnsweredBy: z.string().optional(),
-  MachineDetectionDuration: z.string().optional()
-});
+// TODO: Use TwilioWebhookSchema when implementing webhook validation
+// const _TwilioWebhookSchema = z.object({
+//   CallSid: z.string(),
+//   AccountSid: z.string(),
+//   From: z.string(),
+//   To: z.string(),
+//   CallStatus: z.string(),
+//   Direction: z.string(),
+//   ApiVersion: z.string(),
+//   ForwardedFrom: z.string().optional(),
+//   CallerName: z.string().optional(),
+//   ParentCallSid: z.string().optional(),
+//   CallDuration: z.string().optional(),
+//   SipResponseCode: z.string().optional(),
+//   RecordingUrl: z.string().optional(),
+//   RecordingSid: z.string().optional(),
+//   RecordingStatus: z.string().optional(),
+//   Digits: z.string().optional(),
+//   FinishedOnKey: z.string().optional(),
+//   SpeechResult: z.string().optional(),
+//   Confidence: z.string().optional(),
+//   AnsweredBy: z.string().optional(),
+//   MachineDetectionDuration: z.string().optional()
+// });
 
 export function createVoiceAgentRoutes(
   voiceAgentConfig: VoiceAgentConfig,
@@ -315,7 +313,7 @@ export function createVoiceAgentRoutes(
   // Twilio webhook endpoints
   app.post('/webhooks/twilio/voice/:leadId', async (c: Context) => {
     try {
-      const leadId = c.req.param('leadId');
+      // const _leadId = c.req.param('leadId');
       const body = await c.req.parseBody();
 
       // Parse Twilio webhook data
@@ -345,7 +343,7 @@ export function createVoiceAgentRoutes(
   // Twilio status callback
   app.post('/webhooks/twilio/status/:leadId', async (c: Context) => {
     try {
-      const leadId = c.req.param('leadId');
+      // const _leadId = c.req.param('leadId');
       const body = await c.req.parseBody();
 
       const twilioService = new TwilioService(voiceAgentConfig.twilio);
@@ -366,7 +364,7 @@ export function createVoiceAgentRoutes(
   // Twilio recording callback
   app.post('/webhooks/twilio/recording/:leadId', async (c: Context) => {
     try {
-      const leadId = c.req.param('leadId');
+      // const _leadId = c.req.param('leadId');
       const body = await c.req.parseBody();
 
       const twilioService = new TwilioService(voiceAgentConfig.twilio);

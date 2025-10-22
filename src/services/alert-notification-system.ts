@@ -1,6 +1,9 @@
 // CoreFlow360 V4 - Multi-Channel Alert Notification System
-import { Alert, NotificationChannel, AlertNotification, NotificationChannelConfig } from '../types/observability';
-import type { D1Database } from '@cloudflare/workers-types';
+import { Alert, NotificationChannel, AlertNotification } from '../types/observability';
+import type { D1Database } from '@cloudflare/workers-types';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-alert-notification-system" });
+
+
 
 export class AlertNotificationSystem {
   private env: any;
@@ -50,8 +53,8 @@ export class AlertNotificationSystem {
     }));
   }
 
-  private filterChannelsBySeverity(channels: NotificationChannel[], severity: string): NotificationChannel[] {
-    return channels.filter((channel: any) => {
+  private filterChannelsBySeverity(channels: NotificationChannel[], _severity: string): NotificationChannel[] {
+    return channels.filter((_channel: any) => {
       // For now, allow all channels - severity filtering would be configured per channel
       return true;
     });
@@ -63,7 +66,7 @@ export class AlertNotificationSystem {
       if (channel.rateLimitEnabled) {
         const isRateLimited = await this.checkRateLimit(channel);
         if (isRateLimited) {
-          console.log(`Rate limit exceeded for channel ${channel.id}`);
+          logger.info(`Rate limit exceeded for channel ${channel.id}`);
           return;
         }
       }
@@ -83,14 +86,14 @@ export class AlertNotificationSystem {
           await this.sendSMSNotification(alert, channel);
           break;
         default:
-          console.log(`Unsupported channel type: ${channel.type}`);
+          logger.info(`Unsupported channel type: ${channel.type}`);
       }
 
       // Record successful notification
       await this.recordNotification(alert, channel, 'sent');
 
     } catch (error: any) {
-      console.error(`Failed to send notification through channel ${channel.id}:`, error);
+      logger.error(`Failed to send notification through channel ${channel.id}:`, error);
       await this.recordNotification(alert, channel, 'failed', error.message);
     }
   }
@@ -105,7 +108,7 @@ export class AlertNotificationSystem {
     };
 
     // Mock email sending - would use real email service in production
-    console.log('Sending email notification:', emailData);
+    logger.info('Sending email notification:', emailData);
   }
 
   private async sendSlackNotification(alert: Alert, channel: NotificationChannel): Promise<void> {
@@ -118,7 +121,7 @@ export class AlertNotificationSystem {
     };
 
     // Mock Slack sending - would use real Slack API in production
-    console.log('Sending Slack notification:', slackData);
+    logger.info('Sending Slack notification:', slackData);
   }
 
   private async sendWebhookNotification(alert: Alert, channel: NotificationChannel): Promise<void> {
@@ -135,7 +138,7 @@ export class AlertNotificationSystem {
     };
 
     // Mock webhook sending - would use real HTTP client in production
-    console.log('Sending webhook notification:', webhookData);
+    logger.info('Sending webhook notification:', webhookData);
   }
 
   private async sendSMSNotification(alert: Alert, channel: NotificationChannel): Promise<void> {
@@ -146,7 +149,7 @@ export class AlertNotificationSystem {
     };
 
     // Mock SMS sending - would use real SMS service in production
-    console.log('Sending SMS notification:', smsData);
+    logger.info('Sending SMS notification:', smsData);
   }
 
   private formatAlertForEmail(alert: Alert): string {
@@ -474,15 +477,15 @@ export class AlertNotificationSystem {
     }
   }
 
-  async getAlerts(params: any): Promise<any> {
+  async getAlerts(_params: any): Promise<any> {
     return { alerts: [], total: 0 };
   }
 
-  async acknowledgeAlert(alertId: string): Promise<any> {
+  async acknowledgeAlert(_alertId: string): Promise<any> {
     return { success: true };
   }
 
-  async resolveAlert(alertId: string): Promise<any> {
+  async resolveAlert(_alertId: string): Promise<any> {
     return { success: true };
   }
 

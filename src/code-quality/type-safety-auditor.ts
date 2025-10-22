@@ -1,10 +1,9 @@
 import { Logger } from '../shared/logger';
 import type { Context } from 'hono';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as ts from 'typescript';
-
-const logger = new Logger({ component: 'type-safety-auditor' });
+// TODO: Implement type safety analysis when needed
+// import * as fs from 'fs';
+// import * as path from 'path';
+// import * as ts from 'typescript';
 
 export interface TypeSafetyAuditorConfig {
   typescript: {
@@ -292,7 +291,7 @@ export class TypeSafetyAuditor {
     const anyLocations: CodeLocation[] = [];
     let anyCount = 0;
 
-    for (const [file, issues] of this.typeIssues) {
+    for (const issues of this.typeIssues.values()) {
       const anyIssues = issues.filter((i: any) => i.type === 'any_usage');
       anyCount += anyIssues.length;
       anyIssues.forEach((issue: any) => {
@@ -462,7 +461,7 @@ export class TypeSafetyAuditor {
     const unsafeAccess: UnsafeAccess[] = [];
     const missingChecks: MissingNullCheck[] = [];
 
-    for (const [file, issues] of this.typeIssues) {
+    for (const issues of this.typeIssues.values()) {
       const nullIssues = issues.filter((i: any) => i.type === 'missing_null_check');
 
       nullIssues.forEach((issue: any) => {
@@ -496,7 +495,7 @@ export class TypeSafetyAuditor {
   private collectViolations(): TypeViolation[] {
     const violations: TypeViolation[] = [];
 
-    for (const [file, issues] of this.typeIssues) {
+    for (const issues of this.typeIssues.values()) {
       for (const issue of issues) {
         let violationType: TypeViolation['type'];
         let severity: TypeViolation['severity'];

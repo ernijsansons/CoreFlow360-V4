@@ -2,15 +2,7 @@
  * Example Capability Definitions
  * Demonstrates safe AI tool use for invoice creation and ledger posting
  */
-import {
-  CapabilitySpec,
-  ParameterSpec,
-  SqlOperationSpec,
-  ApiOperationSpec,
-  CostSpec,
-  PermissionSpec,
-  AuditSpec
-} from './types';
+import { CapabilitySpec } from './types';
 
 /**
  * Invoice Creation Capability

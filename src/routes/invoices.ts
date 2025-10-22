@@ -10,7 +10,7 @@ import { zValidator } from '@hono/zod-validator';
 import { InvoiceService } from '../modules/finance/invoice/service';
 import { PDFGeneratorService } from '../modules/finance/invoice/pdf-generator';
 import { TaxCalculationEngine } from '../modules/finance/invoice/tax-engine';
-import { CurrencyService } from '../modules/finance/invoice/currency-service';
+
 import { ApprovalWorkflowService } from '../modules/finance/invoice/approval-workflow';
 import { AuditService } from '../modules/audit/audit-service';
 import type { Env } from '../types/env';
@@ -354,6 +354,7 @@ app.post('/:id/payments', zValidator('json', RecordPaymentSchema), async (c: any
 app.get('/:id/pdf', async (c: any) => {
   try {
     const { invoiceService, pdfGenerator } = await initializeServices(c.env);
+    void pdfGenerator;
     const businessId = c.req.header('X-Business-ID') || 'default';
     const invoiceId = c.req.param('id');
 
@@ -391,6 +392,7 @@ app.post('/:id/approve', async (c: any) => {
 
     // GRUG: ApprovalWorkflowService doesn't have approveInvoice - use invoiceService
     const result = await invoiceService.updateInvoiceStatus(businessId, invoiceId, 'sent', userId);
+    void result;
 
     // GRUG: Use logDataModification not logAccess
     await auditService.logDataModification({

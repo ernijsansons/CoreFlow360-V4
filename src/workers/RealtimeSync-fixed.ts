@@ -179,7 +179,7 @@ export class RealtimeSync extends DurableObject {
         });
       });
 
-      ws.addEventListener('error', (error) => {
+      ws.addEventListener('error', (_error) => {
         this.connections.delete(clientId);
         this.connectionTimestamps.delete(clientId);
       });

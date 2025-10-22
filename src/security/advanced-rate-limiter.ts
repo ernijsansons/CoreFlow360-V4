@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../shared/logger';
-import { SecurityError } from '../shared/security-utils';
+
 
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds

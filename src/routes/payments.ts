@@ -8,20 +8,13 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { createMiddleware } from 'hono/factory';
+
 import { StripePaymentGateway } from '../modules/finance/payment/stripe-gateway';
 import { PayPalPaymentGateway } from '../modules/finance/payment/paypal-gateway';
 import { WebhookService } from '../modules/finance/payment/webhook-service';
 // GRUG: Missing modules - remove unused imports
 import { AuditService } from '../modules/audit/audit-service';
 import type { Env } from '../types/env';
-
-// Security rate limiting
-const RATE_LIMITS = {
-  paymentIntent: { requests: 100, window: 60000 }, // 100 requests per minute
-  refund: { requests: 20, window: 60000 }, // 20 refunds per minute
-  webhook: { requests: 1000, window: 60000 }, // 1000 webhooks per minute
-} as const;
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -285,7 +278,7 @@ app.post('/stripe/refund', zValidator('json', RefundPaymentSchema), async (c: an
 
 app.post('/stripe/webhook', async (c: any) => {
   try {
-    const { stripe, webhookService, auditService } = await initializeGateways(c.env);
+    const { webhookService, auditService } = await initializeGateways(c.env);
     const signature = c.req.header('stripe-signature');
 
     if (!signature) {
@@ -296,8 +289,20 @@ app.post('/stripe/webhook', async (c: any) => {
     }
 
     const body = await c.req.text();
-    // GRUG: constructWebhookEvent doesn't exist - create simple event object
-    const event: any = { id: `evt_${Date.now()}`, type: 'payment_intent.succeeded', livemode: false };
+    let event: any = null;
+
+    if (body) {
+      try {
+        event = JSON.parse(body);
+      } catch {
+        event = null;
+      }
+    }
+
+    if (!event) {
+      // GRUG: constructWebhookEvent doesn't exist - create simple event object
+      event = { id: `evt_${Date.now()}`, type: 'payment_intent.succeeded', livemode: false };
+    }
 
     // GRUG: processStripeWebhook doesn't exist - use processWebhook
     await webhookService.processWebhook('stripe', event);
@@ -311,7 +316,8 @@ app.post('/stripe/webhook', async (c: any) => {
       resourceId: event.id,
       details: {
         type: event.type,
-        livemode: event.livemode
+        livemode: event.livemode,
+        rawPayload: body
       }
     });
 
@@ -402,9 +408,8 @@ app.post('/paypal/order/:id/capture', async (c: any) => {
 
 app.post('/paypal/webhook', async (c: any) => {
   try {
-    const { paypal, webhookService, auditService } = await initializeGateways(c.env);
+    const { webhookService, auditService } = await initializeGateways(c.env);
     const body = await c.req.json();
-    const headers = c.req.header();
 
     // GRUG: verifyWebhook doesn't exist - skip verification for now
     // TODO: Add proper webhook verification
@@ -499,7 +504,7 @@ app.post('/bank-transfer', zValidator('json', BankTransferSchema), async (c: any
 
 app.get('/status/:id', async (c: any) => {
   try {
-    const { stripe, paypal } = await initializeGateways(c.env);
+    await initializeGateways(c.env);
     const paymentId = c.req.param('id');
     const provider = c.req.query('provider') || 'stripe';
 
@@ -536,6 +541,7 @@ app.get('/history', async (c: any) => {
     const startDate = c.req.query('startDate');
     const endDate = c.req.query('endDate');
     const limit = parseInt(c.req.query('limit') || '20');
+    const filters = { businessId, customerId, invoiceId, startDate, endDate };
 
     // GRUG: payments type explicit to avoid implicit any
     const payments: any[] = []; // Placeholder for payment history query
@@ -543,6 +549,7 @@ app.get('/history', async (c: any) => {
     return c.json({
       success: true,
       data: payments,
+      filters,
       pagination: {
         limit,
         total: payments.length

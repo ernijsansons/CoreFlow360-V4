@@ -539,6 +539,7 @@ export class DatabaseObservabilityMiddleware {
   ): Promise<T> {
     const startTime = Date.now();
     const requestId = crypto.randomUUID();
+    void requestId;
 
     try {
       const result = await fn();

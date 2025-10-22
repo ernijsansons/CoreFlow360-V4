@@ -1,15 +1,11 @@
 // @ts-nocheck
-import type {
-  VoiceAgentConfig,
+import type { VoiceAgentConfig,
   CallInitiationRequest,
   CallResult,
-  CallStatus,
-  ConversationState,
   RealTimeCallState,
   VoiceAgentResponse,
   CallAnalytics,
-  ConversationSummary
-} from '../types/voice-agent';
+  ConversationSummary } from '../types/voice-agent';
 import type { Lead } from '../types/crm';
 import { TwilioService } from './twilio-service';
 import { ConversationHandler } from './conversation-handler';
@@ -195,6 +191,7 @@ export class AIVoiceAgent {
 
       // Calculate final analytics
       const analytics = await this.calculateCallAnalytics(callState, twilioCall);
+      void analytics;
 
       const result: CallResult = {
         call_id: callSid,
@@ -243,6 +240,7 @@ export class AIVoiceAgent {
   }
 
   async terminateCall(callSid: string, reason: string = 'User terminated'): Promise<boolean> {
+  void reason;
     try {
       const callState = this.activeCalls.get(callSid);
       if (callState) {
@@ -316,7 +314,7 @@ export class AIVoiceAgent {
     return this.conversationHandler ? (this.conversationHandler as any).handleVoicemail?.(callState.call_id) : '';
   }
 
-  private async handleCallCompleted(callState: RealTimeCallState, webhookData: any): Promise<string> {
+  private async handleCallCompleted(callState: RealTimeCallState, _webhookData: any): Promise<string> {
     callState.status = 'completed';
 
     // Finalize conversation and generate summary
@@ -325,7 +323,7 @@ export class AIVoiceAgent {
     return '<?xml version="1.0" encoding="UTF-8"?><Response></Response>';
   }
 
-  private async handleCallFailed(callState: RealTimeCallState, webhookData: any): Promise<string> {
+  private async handleCallFailed(callState: RealTimeCallState, _webhookData: any): Promise<string> {
     callState.status = 'failed';
 
     // Clean up and log failure

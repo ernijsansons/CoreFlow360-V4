@@ -11,7 +11,7 @@ import { CustomIntegrationService } from '../services/developers/custom-integrat
 import { AnalyticsService } from '../services/developers/analytics.service';
 import { JWTService } from '../modules/auth/jwt';
 
-const logger = new Logger('MarketplaceAdmin');
+const logger = new Logger({ component: 'MarketplaceAdmin' });
 
 const app = new Hono<{ Bindings: Env }>();
 

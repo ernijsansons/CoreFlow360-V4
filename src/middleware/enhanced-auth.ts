@@ -13,7 +13,10 @@ import { Context } from 'hono';
 import { JWTSecretManager } from '../shared/security/jwt-secret-manager';
 import { SecretRotationService } from '../shared/security/secret-rotation-service';
 import { SecurityError } from '../shared/errors/app-error';
-import { jwtVerify } from 'jose';
+import { jwtVerify } from 'jose';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "middleware-enhanced-auth" });
+
+
 
 export interface AuthenticationConfig {
   secretRotationEnabled: boolean;
@@ -112,7 +115,7 @@ export class EnhancedAuthMiddleware {
 
         return await next();
       } catch (error) {
-        console.error('Authentication middleware error:', error);
+        logger.error('Authentication middleware error:', error);
         return this.handleAuthenticationFailure(c, 'internal_error', 'Authentication system error');
       }
     };
@@ -143,7 +146,7 @@ export class EnhancedAuthMiddleware {
   /**
    * Validate JWT token with secret rotation support
    */
-  private async validateToken(token: string, c: Context): Promise<{
+  private async validateToken(token: string, _c: Context): Promise<{
     success: boolean;
     context?: AuthContext;
     error?: string;
@@ -176,7 +179,7 @@ export class EnhancedAuthMiddleware {
         error: 'Token validation failed with all available secrets'
       };
     } catch (error) {
-      console.error('Token validation error:', error);
+      logger.error('Token validation error:', error);
       return {
         success: false,
         error: 'Token validation system error'
@@ -331,7 +334,7 @@ export class EnhancedAuthMiddleware {
         reason: 'No hijacking detected'
       };
     } catch (error) {
-      console.error('Session hijacking detection error:', error);
+      logger.error('Session hijacking detection error:', error);
       return {
         detected: false,
         reason: 'Detection system error'
@@ -369,7 +372,7 @@ export class EnhancedAuthMiddleware {
       const sessions = JSON.parse(sessionsData);
       return Array.isArray(sessions) ? sessions.length : 0;
     } catch (error) {
-      console.error('Failed to get active sessions count:', error);
+      logger.error('Failed to get active sessions count:', error);
       return 0;
     }
   }
@@ -411,7 +414,7 @@ export class EnhancedAuthMiddleware {
     message: string
   ): Response {
     // Log authentication failure
-    console.warn('Authentication failure:', {
+    logger.warn('Authentication failure:', {
       reason,
       message,
       ip: this.getClientIP(c),
@@ -458,9 +461,9 @@ export class EnhancedAuthMiddleware {
         { expirationTtl: 30 * 24 * 60 * 60 } // 30 days
       );
 
-      console.error('Security violation logged:', logEntry);
+      logger.error('Security violation logged:', logEntry);
     } catch (error) {
-      console.error('Failed to log security violation:', error);
+      logger.error('Failed to log security violation:', error);
     }
   }
 
@@ -483,7 +486,7 @@ export class EnhancedAuthMiddleware {
       const secretValidation = JWTSecretManager.validateJWTSecret(currentSecret, 'production');
 
       if (!secretValidation.isValid) {
-        console.error('SECURITY ALERT: JWT secret failed health check', secretValidation.errors);
+        logger.error('SECURITY ALERT: JWT secret failed health check', secretValidation.errors);
         // In production, this might trigger an alert or emergency rotation
       }
 
@@ -492,13 +495,13 @@ export class EnhancedAuthMiddleware {
         const rotationHealth = await this.secretRotationService.getRotationHealth();
 
         if (rotationHealth.status === 'critical') {
-          console.error('SECURITY ALERT: Secret rotation in critical state', rotationHealth.issues);
+          logger.error('SECURITY ALERT: Secret rotation in critical state', rotationHealth.issues);
         }
       }
 
-      console.log('✅ Security health check completed successfully');
+      logger.info('✅ Security health check completed successfully');
     } catch (error) {
-      console.error('Security health check failed:', error);
+      logger.error('Security health check failed:', error);
     }
   }
 
@@ -507,7 +510,7 @@ export class EnhancedAuthMiddleware {
    */
   async emergencySecurityResponse(reason: string): Promise<void> {
     try {
-      console.warn(`🚨 EMERGENCY SECURITY RESPONSE: ${reason}`);
+      logger.warn(`🚨 EMERGENCY SECURITY RESPONSE: ${reason}`);
 
       // Perform emergency secret rotation
       if (this.config.secretRotationEnabled) {
@@ -521,9 +524,9 @@ export class EnhancedAuthMiddleware {
         details: `Emergency response: ${reason}`
       });
 
-      console.warn('🚨 Emergency security response completed');
+      logger.warn('🚨 Emergency security response completed');
     } catch (error: any) {
-      console.error('Emergency security response failed:', error);
+      logger.error('Emergency security response failed:', error);
       throw new SecurityError(`Emergency security response failed: ${error?.message || 'Unknown error'}`);
     }
   }

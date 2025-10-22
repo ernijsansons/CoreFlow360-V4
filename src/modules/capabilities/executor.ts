@@ -3,7 +3,7 @@
  * Executes capabilities with cost estimation, permission checking, and audit
  */
 
-import type { DurableObjectStorage } from '@cloudflare/workers-types';
+
 import {
   CapabilitySpec,
   CapabilityExecutionContext,
@@ -520,7 +520,7 @@ export class CapabilityExecutor {
   private async simulateExecution(
     spec: CapabilitySpec,
     parameters: Record<string, unknown>,
-    context: CapabilityExecutionContext
+    _context: CapabilityExecutionContext
   ): Promise<unknown> {
     // Simulate execution for dry run mode
     await new Promise(resolve => setTimeout(resolve, 100)); // Simulate some processing time
@@ -575,7 +575,7 @@ export class CapabilityExecutor {
     eventType: string,
     spec: CapabilitySpec,
     context: CapabilityExecutionContext,
-    data: Record<string, unknown>
+    _data: Record<string, unknown>
   ): Promise<void> {
     try {
       await this.auditService.logDataAccess({
@@ -663,7 +663,7 @@ export class CapabilityExecutor {
     return true; // Network errors, timeouts, etc. are retryable
   }
 
-  private async estimateSQLCost(sqlOp: any, parameters: Record<string, unknown>): Promise<number> {
+  private async estimateSQLCost(sqlOp: any, _parameters: Record<string, unknown>): Promise<number> {
     // Estimate based on operation type and potential result size
     const baseCostMap: Record<string, number> = {
       select: 2,
@@ -679,7 +679,7 @@ export class CapabilityExecutor {
     return baseCost + Math.ceil(maxRows / 100);
   }
 
-  private async estimateAPICost(apiOp: any, parameters: Record<string, unknown>): Promise<number> {
+  private async estimateAPICost(apiOp: any, _parameters: Record<string, unknown>): Promise<number> {
     // Base cost for API operations
     return 5 + (apiOp.retries || 0) * 2;
   }
@@ -740,7 +740,7 @@ export class CapabilityExecutor {
   private initializeBuiltInHandlers(): void {
     // Register default SQL handler
     this.registerSQLHandler('default', {
-      async execute(sqlOp: any, parameters: Record<string, unknown>, context: CapabilityExecutionContext) {
+      async execute(sqlOp: any, parameters: Record<string, unknown>, _context: CapabilityExecutionContext) {
         // Placeholder for actual SQL execution
         // In production, this would connect to D1 database
         return { message: 'SQL operation simulated', operation: sqlOp.type, parameters };
@@ -749,7 +749,7 @@ export class CapabilityExecutor {
 
     // Register default API handler
     this.registerAPIHandler('default', {
-      async execute(apiOp: any, parameters: Record<string, unknown>, context: CapabilityExecutionContext) {
+      async execute(apiOp: any, _parameters: Record<string, unknown>, _context: CapabilityExecutionContext) {
         // Placeholder for actual API calls
         // In production, this would make HTTP requests
         return { message: 'API operation simulated', method: apiOp.method, endpoint: apiOp.endpoint };
@@ -758,7 +758,7 @@ export class CapabilityExecutor {
 
     // Register default file handler
     this.registerFileHandler('default', {
-      async execute(fileOp: any, parameters: Record<string, unknown>, context: CapabilityExecutionContext) {
+      async execute(fileOp: any, _parameters: Record<string, unknown>, _context: CapabilityExecutionContext) {
         // Placeholder for actual file operations
         // In production, this would interact with R2 storage
         return { message: 'File operation simulated', operation: fileOp.operation };

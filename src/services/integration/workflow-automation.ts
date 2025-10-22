@@ -553,6 +553,7 @@ export class WorkflowAgentIntegration extends EventEmitter {
   private setupScheduleTrigger(workflow: AutomatedWorkflow, config: any): void {
     // Set up scheduled execution
     const schedule = config.schedule; // e.g., "0 9 * * *" for 9 AM daily
+    void schedule;
 
     // Implementation would depend on the scheduling system
     // For example, using node-cron or CloudFlare scheduled workers
@@ -596,7 +597,7 @@ export class WorkflowAgentIntegration extends EventEmitter {
     target[lastKey] = value;
   }
 
-  private async sendNotification(params: any): Promise<void> {
+  private async sendNotification(_params: any): Promise<void> {
     // Implement notification sending
   }
 
@@ -626,7 +627,7 @@ export class WorkflowAgentIntegration extends EventEmitter {
     return await response.json();
   }
 
-  private async evaluateContext(contextSource: string): Promise<any> {
+  private async evaluateContext(_contextSource: string): Promise<any> {
     // Fetch context from specified source
     // Implementation depends on the source type
     return {};

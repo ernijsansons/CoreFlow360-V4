@@ -5,7 +5,7 @@
  */
 
 import { Hono } from 'hono';
-import { Logger } from '../shared/logger';
+
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { compress } from 'hono/compress';
@@ -35,6 +35,12 @@ import aiMonitoringRoutes from './ai-monitoring';
 import observabilityRoutes from './observability';
 import rateLimitingRoutes from './rate-limiting';
 import analyticsDashboardRoutes from './analytics-dashboard';
+
+// AI Agent routes - Direct agent implementations
+import financeAgentRoutes from './finance-agent';
+import onboardingAgentRoutes from './onboarding-agent';
+import supportTicketRoutes from './support-tickets';
+import companyKnowledgeRoutes from './company-knowledge';
 
 // Priority 1 routes - High usage
 import dashboardRoutes from './dashboard';
@@ -141,6 +147,12 @@ v1.route('/invoices', invoiceRoutes);
 v1.route('/payments', paymentRoutes);
 v1.route('/agents', agentRoutes);
 v1.route('/chat', chatRoutes);
+
+// AI Agent routes - Direct access to autonomous agents
+v1.route('/finance-agent', financeAgentRoutes);
+v1.route('/onboarding-agent', onboardingAgentRoutes);
+v1.route('/support-tickets', supportTicketRoutes);
+v1.route('/company-knowledge', companyKnowledgeRoutes);
 // v1.route('/webhooks', webhookRoutes);
 // v1.route('/voice-agents', voiceAgentRoutes); // Exports function, not Hono app
 // v1.route('/learning', learningRoutes);

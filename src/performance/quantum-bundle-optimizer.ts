@@ -249,7 +249,7 @@ export class ModuleAnalyzer {
     return features;
   }
 
-  private async identifyVendors(graph: DependencyGraph): Promise<VendorBundle[]> {
+  private async identifyVendors(_graph: DependencyGraph): Promise<VendorBundle[]> {
     const vendors: VendorBundle[] = [
       {
         name: 'react-vendor',
@@ -288,11 +288,11 @@ export class ModuleAnalyzer {
     return vendors;
   }
 
-  private async getModuleSize(modulePath: string): Promise<number> {
+  private async getModuleSize(_modulePath: string): Promise<number> {
     return Math.floor(Math.random() * 10000) + 1000;
   }
 
-  private async getModuleExports(modulePath: string): Promise<string[]> {
+  private async getModuleExports(_modulePath: string): Promise<string[]> {
     return ['default', 'namedExport1', 'namedExport2'];
   }
 
@@ -309,15 +309,15 @@ export class ModuleAnalyzer {
     return 'static';
   }
 
-  private async calculateWeight(from: string, to: string): Promise<number> {
+  private async calculateWeight(_from: string, _to: string): Promise<number> {
     return 1;
   }
 
-  private async detectCycles(nodes: ModuleNode[], edges: DependencyEdge[]): Promise<string[][]> {
+  private async detectCycles(_nodes: ModuleNode[], _edges: DependencyEdge[]): Promise<string[][]> {
     return [];
   }
 
-  private async findCriticalPath(nodes: ModuleNode[], edges: DependencyEdge[]): Promise<string[]> {
+  private async findCriticalPath(nodes: ModuleNode[], _edges: DependencyEdge[]): Promise<string[]> {
     return nodes
       .filter((n: any) => n.importance > 8)
       .map((n: any) => n.id);

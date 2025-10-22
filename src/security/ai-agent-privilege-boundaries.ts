@@ -10,7 +10,10 @@
  * - Comprehensive audit logging for agent actions
  */
 
-import { SecurityError } from '../shared/errors/app-error';
+import { SecurityError } from '../shared/errors/app-error';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "security-ai-agent-privilege-boundaries" });
+
+
 
 export interface AgentCapability {
   id: string;
@@ -347,7 +350,7 @@ export class AgentPrivilegeManager {
    */
   private static async validateBusinessTypeAccess(
     capability: AgentCapability,
-    businessId: string
+    _businessId: string
   ): Promise<{ isAllowed: boolean; businessType?: string }> {
     // In a real implementation, this would query the database
     // to get the business type and check against capability.allowedBusinessTypes
@@ -399,9 +402,9 @@ export class AgentPrivilegeManager {
    * Validate rate limiting
    */
   private static async validateRateLimit(
-    agentId: string,
-    capability: string,
-    maxFrequency: number
+    _agentId: string,
+    _capability: string,
+    _maxFrequency: number
   ): Promise<{ isAllowed: boolean; currentCount?: number }> {
     // In a real implementation, this would check against a rate limiting service
     // For now, we'll return true (no rate limiting)
@@ -466,9 +469,9 @@ export class AgentPrivilegeManager {
    * Check approval status for high-risk actions
    */
   private static async checkApprovalStatus(
-    action: AgentAction,
-    context: AgentContext,
-    db: any
+    _action: AgentAction,
+    _context: AgentContext,
+    _db: any
   ): Promise<{ approved: boolean; approverId?: string; approvalTime?: number }> {
     // In a real implementation, this would check the approval database
     // For now, we'll return false (requires approval)
@@ -502,9 +505,9 @@ export class AgentPrivilegeManager {
    * Execute data analysis action
    */
   private static async executeDataAnalysis(
-    action: AgentAction,
-    context: AgentContext,
-    db: any
+    _action: AgentAction,
+    _context: AgentContext,
+    _db: any
   ): Promise<any> {
     // Implement data analysis with proper access controls
     return { analysis: 'placeholder result' };
@@ -514,9 +517,9 @@ export class AgentPrivilegeManager {
    * Execute content generation action
    */
   private static async executeContentGeneration(
-    action: AgentAction,
-    context: AgentContext,
-    db: any
+    _action: AgentAction,
+    _context: AgentContext,
+    _db: any
   ): Promise<any> {
     // Implement content generation with proper validation
     return { content: 'placeholder content' };
@@ -526,9 +529,9 @@ export class AgentPrivilegeManager {
    * Execute customer communication action
    */
   private static async executeCustomerCommunication(
-    action: AgentAction,
-    context: AgentContext,
-    db: any
+    _action: AgentAction,
+    _context: AgentContext,
+    _db: any
   ): Promise<any> {
     // Implement customer communication with proper rate limiting
     return { sent: true, messageId: 'placeholder-id' };
@@ -568,7 +571,7 @@ export class AgentPrivilegeManager {
       }
     };
 
-    console.log('AGENT ACTION LOG:', logEntry);
+    logger.info('AGENT ACTION LOG:', logEntry);
   }
 
   /**
@@ -599,7 +602,7 @@ export class AgentPrivilegeManager {
       }
     };
 
-    console.error('SECURITY VIOLATION:', logEntry);
+    logger.error('SECURITY VIOLATION:', logEntry);
   }
 }
 

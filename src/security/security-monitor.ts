@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../shared/logger';
-import { SecurityError } from '../shared/security-utils';
+
 
 export interface SecurityEvent {
   id: string;
@@ -705,16 +705,16 @@ export class SecurityMonitor {
     }
   }
 
-  private async sendSMSAlert(alert: SecurityAlert, event: SecurityEvent): Promise<void> {
+  private async sendSMSAlert(alert: SecurityAlert, _event: SecurityEvent): Promise<void> {
     // SMS implementation would depend on provider (Twilio, etc.)
     this.logger.info('SMS alert would be sent here', { alertId: alert.id });
   }
 
-  private async checkApiUsageAnomaly(userKey: string, event: SecurityEvent): Promise<void> {
+  private async checkApiUsageAnomaly(_userKey: string, _event: SecurityEvent): Promise<void> {
     // Implementation for API usage anomaly detection
   }
 
-  private async checkGeographicAnomaly(userKey: string, event: SecurityEvent): Promise<void> {
+  private async checkGeographicAnomaly(_userKey: string, _event: SecurityEvent): Promise<void> {
     // Implementation for geographic location anomaly detection
   }
 }

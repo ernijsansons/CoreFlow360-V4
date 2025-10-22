@@ -109,7 +109,7 @@ export class AISchemaMapper {
     return analysis;
   }
 
-  private async analyzeFieldSemantic(tableName: string, column: any, schema: Schema): Promise<FieldSemantic> {
+  private async analyzeFieldSemantic(tableName: string, column: any, _schema: Schema): Promise<FieldSemantic> {
     // Get sample data to understand the field better
     const sampleData = await this.getSampleData(tableName, column.name);
 
@@ -117,7 +117,7 @@ export class AISchemaMapper {
     const aiAnalysis = await this.performAIAnalysis(column, sampleData);
 
     // Combine with rule-based analysis
-    const ruleBasedAnalysis = this.performRuleBasedAnalysis(column, sampleData);
+    // const _ruleBasedAnalysis = this.performRuleBasedAnalysis(column, sampleData);
 
     return {
       field: `${tableName}.${column.name}`,
@@ -638,27 +638,27 @@ export class AISchemaMapper {
     }
   }
 
-  private async storeCorrectionFeedback(correction: Correction): Promise<void> {
+  private async storeCorrectionFeedback(_correction: Correction): Promise<void> {
     // Store in D1 database for future reference
     // This would be implemented with actual database operations
   }
 
-  private async updateMLModel(corrections: Correction[]): Promise<void> {
+  private async updateMLModel(_corrections: Correction[]): Promise<void> {
     if (!this.env.AI_ENDPOINT) return;
 
     try {
       // Fine-tune the model with corrections
-      const trainingData = corrections.map((c: any) => ({
-        input: {
-          sourceField: c.sourceField,
-          targetField: c.targetField,
-          confidence: c.confidence
-        },
-        output: {
-          correctMapping: c.correctMapping,
-          transformation: c.transformation
-        }
-      }));
+      // const _trainingData = corrections.map((c: any) => ({
+      //   input: {
+      //     sourceField: c.sourceField,
+      //     targetField: c.targetField,
+      //     confidence: c.confidence
+      //   },
+      //   output: {
+      //     correctMapping: c.correctMapping,
+      //     transformation: c.transformation
+      //   }
+      // }));
 
       // This would integrate with your ML training pipeline
     } catch (error: any) {
@@ -671,7 +671,7 @@ export class AISchemaMapper {
     // This would query actual previous mappings
   }
 
-  private async getSampleData(tableName: string, columnName: string): Promise<any[]> {
+  private async getSampleData(_tableName: string, _columnName: string): Promise<any[]> {
     // This would query actual data from the source system
     return [];
   }
@@ -756,7 +756,7 @@ export class AISchemaMapper {
   }
 
   private calculateAnalysisConfidence(analysis: SemanticAnalysis): number {
-    const fieldConfidences = Array.from(analysis.fieldSemantics.values()).map((f: any) => 0.8); // Default confidence
+    const fieldConfidences = Array.from(analysis.fieldSemantics.values()).map((_f: any) => 0.8); // Default confidence
     const avgFieldConfidence = fieldConfidences.reduce((sum, c) => sum + c, 0) / fieldConfidences.length;
 
     const relationshipConfidence = analysis.relationships.length > 0
@@ -859,7 +859,7 @@ export class AISchemaMapper {
       'boolean': ['boolean', 'bit']
     };
 
-    for (const [baseType, compatibleTypes] of Object.entries(compatibilityMatrix)) {
+    for (const [, compatibleTypes] of Object.entries(compatibilityMatrix)) {
       if (compatibleTypes.includes(normalizedType1) && compatibleTypes.includes(normalizedType2)) {
         return true;
       }
@@ -914,12 +914,12 @@ export class AISchemaMapper {
     return !isNaN(Date.parse(value));
   }
 
-  private async getSampleMappingData(mapping: MappingRules, sampleSize: number): Promise<any[]> {
+  private async getSampleMappingData(_mapping: MappingRules, _sampleSize: number): Promise<any[]> {
     // This would query actual sample data for validation
     return [];
   }
 
-  private async validateColumnMapping(columnMapping: ColumnMapping, sampleData: any[]): Promise<any> {
+  private async validateColumnMapping(_columnMapping: ColumnMapping, _sampleData: any[]): Promise<any> {
     return {
       issues: []
     };
@@ -930,7 +930,7 @@ export class AISchemaMapper {
     return Math.max(0, 1 - (issues.length * 0.1));
   }
 
-  private calculateCompleteness(mapping: MappingRules, source: Schema, target: Schema): number {
+  private calculateCompleteness(mapping: MappingRules, source: Schema, _target: Schema): number {
     const totalSourceColumns = source.tables.reduce((sum, table) => sum + table.columns.length, 0);
     const mappedColumns = mapping.tableMappings.reduce((sum, tm) => sum + tm.columnMappings.length, 0);
 

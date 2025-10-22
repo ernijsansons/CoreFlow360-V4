@@ -1,3 +1,6 @@
+import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-session-service" });
+
 /**
  * Session Service with Advanced Security Features
  * Fixes CVSS 7.5 vulnerability: Session fixation attacks
@@ -700,32 +703,32 @@ export class SessionService {
   /**
    * Placeholder methods for external integrations
    */
-  private async checkIPReputation(ip: string): Promise<number> {
+  private async checkIPReputation(_ip: string): Promise<number> {
     // Integrate with IP reputation service
     return 0; // Low risk by default
   }
 
-  private async getLocationFromIP(ip: string): Promise<string | undefined> {
+  private async getLocationFromIP(_ip: string): Promise<string | undefined> {
     // Integrate with IP geolocation service
     return undefined;
   }
 
-  private async calculateMinTravelTime(location1: string, location2: string): Promise<number> {
+  private async calculateMinTravelTime(_location1: string, _location2: string): Promise<number> {
     // Calculate minimum travel time between locations
     return 60 * 60 * 1000; // 1 hour default
   }
 
-  private async getUserLoginHistory(userId: string): Promise<any> {
+  private async getUserLoginHistory(_userId: string): Promise<any> {
     // Get user's login history for pattern analysis
     return null;
   }
 
-  private async analyzeLoginPattern(fingerprint: SessionFingerprint, history: any): Promise<number> {
+  private async analyzeLoginPattern(_fingerprint: SessionFingerprint, _history: any): Promise<number> {
     // Analyze login patterns for anomalies
     return 0; // No anomaly by default
   }
 
-  private async getAverageSessionDuration(userId: string): Promise<number | null> {
+  private async getAverageSessionDuration(_userId: string): Promise<number | null> {
     // Get average session duration for user
     return null;
   }
@@ -774,7 +777,7 @@ export class SessionService {
     };
 
     // Store or forward to audit system
-    console.log('Session audit log:', logEntry);
+    logger.info('Session audit log:', logEntry);
   }
 
   /**

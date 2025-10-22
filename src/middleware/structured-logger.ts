@@ -4,7 +4,10 @@
  * Implements log aggregation, correlation, and security event tracking
  */
 
-import type { AppContext, Next } from '../types/hono-context';
+import type { AppContext, Next } from '../types/hono-context';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "middleware-structured-logger" });
+
+
 
 export enum LogLevel {
   DEBUG = 0,
@@ -354,13 +357,13 @@ export class StructuredLogger {
       case LogLevel.ERROR:
       case LogLevel.CRITICAL:
       case LogLevel.SECURITY:
-        console.error(color + message + '\x1b[0m', metadata);
+        logger.error(color + message + '\x1b[0m', metadata);
         break;
       case LogLevel.WARN:
-        console.warn(color + message + '\x1b[0m', metadata);
+        logger.warn(color + message + '\x1b[0m', metadata);
         break;
       default:
-        console.log(color + message + '\x1b[0m', metadata);
+        logger.info(color + message + '\x1b[0m', metadata);
     }
   }
 
@@ -391,7 +394,7 @@ export class StructuredLogger {
           expirationTtl: 30 * 24 * 60 * 60 // 30 days
         });
       } catch (error) {
-        console.error('Failed to write log to KV:', error);
+        logger.error('Failed to write log to KV:', error);
       }
     }
 
@@ -416,7 +419,7 @@ export class StructuredLogger {
           ]
         });
       } catch (error) {
-        console.error('Failed to write log to Analytics:', error);
+        logger.error('Failed to write log to Analytics:', error);
       }
     }
   }

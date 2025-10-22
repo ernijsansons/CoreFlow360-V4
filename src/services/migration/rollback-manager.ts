@@ -1,4 +1,4 @@
-import { MigrationConfig, RollbackConfig, Checkpoint } from '../../types/migration';
+
 
 /**
  * Helper: Ensure Uint8Array has proper ArrayBuffer for Web Crypto API
@@ -196,7 +196,7 @@ class RollbackManager {
     }
   }
 
-  private async snapshotTable(table: string, migrationId: string): Promise<any[]> {
+  private async snapshotTable(table: string, _migrationId: string): Promise<any[]> {
     // This would query the actual database to get table data
     // Implementation depends on the database type
 
@@ -596,7 +596,7 @@ class RollbackManager {
     await this.createSnapshot(planId, 'PRE_MIGRATION');
   }
 
-  private async restoreSchema(snapshotId: string): Promise<void> {
+  private async restoreSchema(_snapshotId: string): Promise<void> {
     // Restore database schema from snapshot
     // This would involve dropping and recreating tables
   }
@@ -731,7 +731,7 @@ class RollbackManager {
     }
   }
 
-  private async getTransactionsSinceCheckpoint(migrationId: string, checkpointId: string): Promise<Transaction[]> {
+  private async getTransactionsSinceCheckpoint(migrationId: string, _checkpointId: string): Promise<Transaction[]> {
     // This would query the transaction log for transactions after the checkpoint
     return this.transactions.get(migrationId) || [];
   }
@@ -821,7 +821,7 @@ class RollbackManager {
     });
   }
 
-  private async getAllTables(migrationId: string): Promise<string[]> {
+  private async getAllTables(_migrationId: string): Promise<string[]> {
     // This would query the database schema to get all table names
     if (this.env.DB) {
       const result = await this.env.DB.prepare(`

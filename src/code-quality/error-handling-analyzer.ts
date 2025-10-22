@@ -1,10 +1,9 @@
 import { Logger } from '../shared/logger';
 import type { Context } from 'hono';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as ts from 'typescript';
-
-const logger = new Logger({ component: 'error-handling-analyzer' });
+// TODO: Implement error analysis when needed
+// import * as fs from 'fs';
+// import * as path from 'path';
+// import * as ts from 'typescript';
 
 export interface ErrorHandlingAnalyzerConfig {
   coverage: {

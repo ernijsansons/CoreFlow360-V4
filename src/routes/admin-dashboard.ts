@@ -12,7 +12,10 @@
  */
 
 import { Hono } from 'hono';
-import type { Env } from '../types/env';
+import type { Env } from '../types/env';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "routes-admin-dashboard" });
+
+
 
 const adminDashboard = new Hono<{ Bindings: Env }>();
 
@@ -47,6 +50,7 @@ adminDashboard.get('/analytics/kpis', async (c) => {
     // Get executive KPIs
     const now = new Date().toISOString();
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    void thirtyDaysAgo;
 
     // Total businesses
     const businessCount = await c.env.DB_MAIN.prepare(
@@ -108,7 +112,7 @@ adminDashboard.get('/analytics/kpis', async (c) => {
     });
 
   } catch (error) {
-    console.error('Admin KPIs Error:', error);
+    logger.error('Admin KPIs Error:', error);
     return c.json({
       success: false,
       error: 'Failed to fetch admin KPIs',
@@ -201,7 +205,7 @@ adminDashboard.get('/analytics/realtime', async (c) => {
     });
 
   } catch (error) {
-    console.error('Real-time Monitoring Error:', error);
+    logger.error('Real-time Monitoring Error:', error);
     return c.json({
       success: false,
       error: 'Failed to fetch real-time metrics',
@@ -316,7 +320,7 @@ adminDashboard.get('/analytics/business-intelligence', async (c) => {
     });
 
   } catch (error) {
-    console.error('Business Intelligence Error:', error);
+    logger.error('Business Intelligence Error:', error);
     return c.json({
       success: false,
       error: 'Failed to fetch business intelligence',
@@ -433,7 +437,7 @@ adminDashboard.get('/analytics/system', async (c) => {
     });
 
   } catch (error) {
-    console.error('System Analytics Error:', error);
+    logger.error('System Analytics Error:', error);
     return c.json({
       success: false,
       error: 'Failed to fetch system analytics',
@@ -545,7 +549,7 @@ adminDashboard.get('/analytics/security', async (c) => {
     });
 
   } catch (error) {
-    console.error('Security Analytics Error:', error);
+    logger.error('Security Analytics Error:', error);
     return c.json({
       success: false,
       error: 'Failed to fetch security analytics',

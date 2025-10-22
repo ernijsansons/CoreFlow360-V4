@@ -1051,7 +1051,7 @@ export class AgentOrchestrationFramework {
 
   private async assignAgentsToTasks(dag: WorkflowDAG): Promise<void> {
     // Assign agents to tasks based on capabilities and load
-    for (const [_nodeId, node] of dag.nodes) {
+    for (const [, node] of dag.nodes) {
       const task = node.task;
       const suitableAgents = this.findSuitableAgents(task);
 

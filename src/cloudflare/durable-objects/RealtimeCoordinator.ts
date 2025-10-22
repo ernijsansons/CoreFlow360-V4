@@ -4,7 +4,7 @@
  * Handles WebSocket connections, real-time updates, and state synchronization
  */
 
-import type { DurableObject, DurableObjectState, AnalyticsEngineDataset } from '../types/cloudflare';
+import type { DurableObject, DurableObjectState } from '../types/cloudflare';
 import type { Env } from '../../types/env';
 
 interface BroadcastRequest {
@@ -100,7 +100,7 @@ export class RealtimeCoordinator implements DurableObject {
       this.handleDisconnection(connectionId);
     });
 
-    server.addEventListener('error', (error) => {
+    server.addEventListener('error', (_error) => {
       this.handleDisconnection(connectionId);
     });
 

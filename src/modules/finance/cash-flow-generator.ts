@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Cash Flow Statement Generator
  * Generates cash flow statements using indirect method
@@ -286,7 +287,7 @@ export class CashFlowGenerator {
   private async buildOperatingActivitiesSection(
     netIncome: number,
     accountChanges: Map<string, CashFlowAccount>,
-    parameters: ReportParameters
+    _parameters: ReportParameters
   ): Promise<CashFlowSection> {
     const items: ReportLine[] = [];
 
@@ -354,7 +355,7 @@ export class CashFlowGenerator {
    */
   private async buildInvestingActivitiesSection(
     accountChanges: Map<string, CashFlowAccount>,
-    parameters: ReportParameters
+    _parameters: ReportParameters
   ): Promise<CashFlowSection> {
     const items: ReportLine[] = [];
     let totalInvestingCashFlow = 0;
@@ -416,7 +417,7 @@ export class CashFlowGenerator {
    */
   private async buildFinancingActivitiesSection(
     accountChanges: Map<string, CashFlowAccount>,
-    parameters: ReportParameters
+    _parameters: ReportParameters
   ): Promise<CashFlowSection> {
     const items: ReportLine[] = [];
     let totalFinancingCashFlow = 0;

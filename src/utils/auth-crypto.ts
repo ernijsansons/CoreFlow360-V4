@@ -475,7 +475,7 @@ export class TOTPCrypto {
 
     for (let i = 0; i < count; i++) {
       // Generate 8-character alphanumeric code
-      const codeBytes = crypto.getRandomValues(new Uint8Array(6));
+      const codeBytes = crypto.getRandomValues(new Uint8Array(8));
       const code = Array.from(codeBytes, byte => {
         const char = byte % 36;
         return char < 10 ? char.toString() : String.fromCharCode(87 + char); // 87 = 'a'.charCodeAt(0) - 10

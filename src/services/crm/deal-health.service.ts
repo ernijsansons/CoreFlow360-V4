@@ -223,7 +223,7 @@ export class DealHealthService {
   /**
    * Calculate velocity score (0-100)
    */
-  private async calculateVelocityScore(dealId: string, deal: any): Promise<number> {
+  private async calculateVelocityScore(dealId: string, _deal: any): Promise<number> {
     const events = await this.env.DB_MAIN.prepare(`
       SELECT event_type, event_timestamp
       FROM crm_deal_engagement_events

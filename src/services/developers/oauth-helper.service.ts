@@ -27,7 +27,7 @@ import type { IntegrationManifest } from './developer.types';
  * Simplifies OAuth2 flows for custom integrations
  */
 export class OAuthHelperService {
-  private logger = new Logger('OAuthHelperService');
+  private logger = new Logger({ component: 'OAuthHelperService' });
 
   constructor(private env: Env) {}
 

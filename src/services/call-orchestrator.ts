@@ -8,9 +8,12 @@ import type {
   RealTimeCallState,
   CallStatus
 } from '../types/voice-agent';
-import type { Lead } from '../types/crm';
+
 import { AIVoiceAgent } from './ai-voice-agent';
-import { CRMService } from './crm-service';
+import { CRMService } from './crm-service';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-call-orchestrator" });
+
+
 
 export interface CallOrchestratorConfig {
   max_concurrent_calls: number;
@@ -298,7 +301,7 @@ export class CallOrchestrator {
       }
 
     } catch (error: unknown) {
-      console.error('Error processing queue item:', error);
+      logger.error('Error processing queue item:', error);
     }
   }
 
@@ -427,6 +430,7 @@ export class CallOrchestrator {
   private calculateProcessingRate(): number {
     const now = new Date();
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    void oneHourAgo;
     
     // This would typically query a database for actual processing history
     // For now, we'll return a mock value
@@ -480,7 +484,7 @@ export class CallOrchestrator {
       return false;
 
     } catch (error: unknown) {
-      console.error('Error cancelling call:', error);
+      logger.error('Error cancelling call:', error);
       return false;
     }
   }
@@ -507,7 +511,7 @@ export class CallOrchestrator {
       return true;
 
     } catch (error: unknown) {
-      console.error('Error updating call priority:', error);
+      logger.error('Error updating call priority:', error);
       return false;
     }
   }
@@ -525,7 +529,7 @@ export class CallOrchestrator {
       this.processedToday++;
 
     } catch (error: unknown) {
-      console.error('Error handling call completion:', error);
+      logger.error('Error handling call completion:', error);
     }
   }
 
@@ -534,6 +538,7 @@ export class CallOrchestrator {
    */
   async getPerformanceMetrics(): Promise<VoiceAgentPerformance> {
     const activeCalls = this.getActiveCalls();
+    void activeCalls;
     const queueStats = this.getQueueStats();
 
     return {

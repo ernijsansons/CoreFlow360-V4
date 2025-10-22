@@ -3,9 +3,13 @@
  * Enterprise-grade API gateway with routing, versioning, rate limiting, and security
  */
 import { z } from 'zod';
-import { ApplicationError as AppError } from '../../shared/error-handling';
+// TODO: Implement error handling when needed
+// import { ApplicationError as AppError } from '../../shared/error-handling';
 // import { createAuditLogger } from '../../shared/logging/audit-logger';
-import { CORSUtils } from '../../utils/cors-utils';
+import { CORSUtils } from '../../utils/cors-utils';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "api-gateway-api-gateway" });
+
+
 
 export enum APIVersion {
   V1 = 'v1',
@@ -169,7 +173,7 @@ export class APIGateway {
     }
 
     if (cleaned > 0) {
-      console.log(`Cleaned ${cleaned} expired response cache entries`);
+      logger.info(`Cleaned ${cleaned} expired response cache entries`);
     }
   }
 
@@ -185,7 +189,7 @@ export class APIGateway {
       ? (this.performanceMetrics.cacheHits / this.performanceMetrics.totalRequests) * 100
       : 0;
 
-    console.log('API Gateway Performance:', {
+    logger.info('API Gateway Performance:', {
       totalRequests: this.performanceMetrics.totalRequests,
       avgResponseTime: Math.round(avgResponseTime),
       cacheHitRate: Math.round(cacheHitRate * 100) / 100,
@@ -334,7 +338,7 @@ export class APIGateway {
       return finalResponse;
 
     } catch (error: any) {
-      console.error('API Gateway error', { error: (error instanceof Error ? error.message : String(error)), path, method });
+      logger.error('API Gateway error', { error: (error instanceof Error ? error.message : String(error)), path, method });
       return this.createErrorResponse(500, 'Internal server error');
     }
   }
@@ -344,7 +348,7 @@ export class APIGateway {
     return this.routeCache.get(key) || null;
   }
 
-  private async applyMiddleware(middleware: string, request: Request): Promise<Response | null> {
+  private async applyMiddleware(middleware: string, _request: Request): Promise<Response | null> {
     switch (middleware) {
       case 'cors':
         return null;
@@ -687,7 +691,7 @@ export class APIGateway {
       timestamp: new Date().toISOString()
     };
 
-    console.log('API Request', logData);
+    logger.info('API Request', logData);
   }
 
   private createErrorResponse(status: number, message: string): Response {

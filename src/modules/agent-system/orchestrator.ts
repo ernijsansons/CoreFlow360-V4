@@ -4,8 +4,7 @@
  */
 
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
-import {
-  AgentTask,
+import { AgentTask,
   BusinessContext,
   OrchestratorResult,
   OrchestratorError,
@@ -16,10 +15,8 @@ import {
   ExecutionStep,
   IAgent,
   AgentResult,
-  TaskConstraints,
   MemoryContext,
-  AGENT_CONSTANTS
-} from './types';
+  AGENT_CONSTANTS } from './types';
 import { AgentRegistry } from './registry';
 import { AgentMemory } from './memory';
 import { CostTracker } from './cost-tracker';
@@ -590,6 +587,7 @@ export class AgentOrchestrator {
   } {
     const registryStats = this.registry.getStatistics();
     const costStats = this.costTracker.getStatistics();
+    void costStats;
 
     return {
       activeExecutions: this.activeExecutions.size,

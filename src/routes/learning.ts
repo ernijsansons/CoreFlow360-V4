@@ -4,16 +4,12 @@ import type { Env } from '../types/env';
 import { ContinuousLearningEngine } from '../services/continuous-learning-engine';
 import { PatternRecognition } from '../services/pattern-recognition';
 import { PlaybookGenerator } from '../services/playbook-generator';
-import type {
-  Interaction,
+import type { Interaction,
   OutcomeData,
   Pattern,
-  Playbook,
   Feedback,
   CustomerSegment,
-  ExperimentResult,
-  ChannelType
-} from '../types/crm';
+  ChannelType } from '../types/crm';
 
 const learningRoutes = new Hono<{ Bindings: Env }>();
 

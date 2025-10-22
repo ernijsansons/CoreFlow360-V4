@@ -372,6 +372,7 @@ export class OutlookIntegration {
 
     // Determine direction
     const myEmail = participants.find(p => p.role !== 'sender')?.email || '';
+    void myEmail;
     const direction = message.from.emailAddress.address.toLowerCase().includes('coreflow360') ? 'outbound' : 'inbound';
 
     return {

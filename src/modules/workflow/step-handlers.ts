@@ -10,7 +10,7 @@ import {
   WorkflowError
 } from './types';
 import { Logger } from '../../shared/logger';
-import { SecurityError, InputValidator } from '../../shared/security-utils';
+
 
 /**
  * HTTP Request Step Handler
@@ -320,7 +320,7 @@ export class DatabaseStepHandler implements StepHandler {
   }
 
   private async simulateDbOperation(operation: string, table: string,
-  data: any, where: any, transaction: boolean): Promise<void> {
+  data: any, where: any, _transaction: boolean): Promise<void> {
     // Simulate database latency
     await new Promise(resolve => setTimeout(resolve, 10 + Math.random() * 90));
 
@@ -617,7 +617,7 @@ export class FileProcessingStepHandler implements StepHandler {
   }
 
   private async simulateFileProcessing(operation: string, inputPath:
-  string, outputPath?: string, options?: any): Promise<any> {
+  string, outputPath?: string, _options?: any): Promise<any> {
     // Simulate processing time based on operation
     const processingTime = {
       compress: 2000,
@@ -653,11 +653,11 @@ export class FileProcessingStepHandler implements StepHandler {
     };
   }
 
-  private async simulateFileDelete(filePath: string): Promise<void> {
+  private async simulateFileDelete(_filePath: string): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
 
-  private async simulateFileMove(fromPath: string, toPath: string): Promise<void> {
+  private async simulateFileMove(_fromPath: string, _toPath: string): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 200));
   }
 }
@@ -743,7 +743,7 @@ export class DelayStepHandler implements StepHandler {
     }
   }
 
-  async rollback(step: WorkflowStep, context: any): Promise<any> {
+  async rollback(step: WorkflowStep, _context: any): Promise<any> {
     // Delay steps don't need rollback - they don't modify state
     this.logger.info('Delay step rollback - no action needed', { stepId: step.id });
     return { success: true };

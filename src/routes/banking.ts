@@ -7,7 +7,10 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env';
 import { TransactionMatcher } from '../services/banking/transaction-matcher';
-import { authenticate } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "routes-banking" });
+
+
 
 const banking = new Hono<{ Bindings: Env }>();
 
@@ -66,7 +69,7 @@ banking.get('/transactions', async (c) => {
       }
     });
   } catch (error) {
-    console.error('List transactions error:', error);
+    logger.error('List transactions error:', error);
     return c.json({
       success: false,
       error: 'Failed to list transactions'
@@ -100,7 +103,7 @@ banking.get('/transactions/:id', async (c) => {
       data: transaction
     });
   } catch (error) {
-    console.error('Get transaction error:', error);
+    logger.error('Get transaction error:', error);
     return c.json({
       success: false,
       error: 'Failed to get transaction'
@@ -129,7 +132,7 @@ banking.post('/transactions/:id/find-matches', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Find matches error:', error);
+    logger.error('Find matches error:', error);
     return c.json({
       success: false,
       error: 'Failed to find matches'
@@ -181,7 +184,7 @@ banking.post('/transactions/:id/apply-match', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Apply match error:', error);
+    logger.error('Apply match error:', error);
     return c.json({
       success: false,
       error: 'Failed to apply match'
@@ -212,7 +215,7 @@ banking.post('/transactions/:id/ignore', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Ignore transaction error:', error);
+    logger.error('Ignore transaction error:', error);
     return c.json({
       success: false,
       error: 'Failed to ignore transaction'
@@ -244,7 +247,7 @@ banking.get('/connections', async (c) => {
       }
     });
   } catch (error) {
-    console.error('List connections error:', error);
+    logger.error('List connections error:', error);
     return c.json({
       success: false,
       error: 'Failed to list connections'
@@ -259,6 +262,7 @@ banking.get('/connections', async (c) => {
 banking.post('/connections', async (c) => {
   try {
     const { businessId, userId } = c.get('auth');
+    void userId;
     const { public_token, institution_id, institution_name, accounts } = await c.req.json();
 
     if (!public_token || !institution_id || !institution_name) {
@@ -297,7 +301,7 @@ banking.post('/connections', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Create connection error:', error);
+    logger.error('Create connection error:', error);
     return c.json({
       success: false,
       error: 'Failed to create bank connection'
@@ -327,7 +331,7 @@ banking.delete('/connections/:id', async (c) => {
       }
     });
   } catch (error) {
-    console.error('Delete connection error:', error);
+    logger.error('Delete connection error:', error);
     return c.json({
       success: false,
       error: 'Failed to remove connection'
@@ -361,7 +365,7 @@ banking.get('/stats', async (c) => {
       data: stats
     });
   } catch (error) {
-    console.error('Get stats error:', error);
+    logger.error('Get stats error:', error);
     return c.json({
       success: false,
       error: 'Failed to get stats'

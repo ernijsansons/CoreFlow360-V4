@@ -3,8 +3,8 @@
  * Specialized migration manager for Cloudflare D1 database with versioning
  */
 
-import { z } from 'zod';
-import { Logger } from '../shared/logger';
+
+import { Logger, LoggerFactory } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 
 export interface D1Migration {
@@ -648,7 +648,7 @@ COMMIT;
     }
   }
 
-  private detectCircularDependencies(migrations: D1Migration[]): string[] {
+  private detectCircularDependencies(_migrations: D1Migration[]): string[] {
     // Simplified circular dependency detection
     // In a real implementation, this would use graph algorithms
     return [];
@@ -768,19 +768,21 @@ export function createD1MigrationManager(migrationsPath?: string): D1MigrationMa
  * CLI utilities for migration management
  */
 export class MigrationCLI {
+  private readonly logger = LoggerFactory.getLogger('migration-cli');
+
   constructor(private manager: D1MigrationManager) {}
 
   async generateCommand(name: string, options: any): Promise<void> {
-    const filePath = await this.manager.generateMigration(name, options);
+    await this.manager.generateMigration(name, options);
   }
 
   async statusCommand(): Promise<void> {
-    const currentVersion = await this.manager.getCurrentVersion();
+    await this.manager.getCurrentVersion();
     const plan = await this.manager.planMigrations();
 
 
     if (plan.warnings.length > 0) {
-      plan.warnings.forEach((warning: any) => console.log(`  - ${warning}`));
+      plan.warnings.forEach((warning: any) => this.logger.info(`  - ${warning}`));
     }
   }
 
@@ -817,12 +819,12 @@ export class MigrationCLI {
 
     if (validation.valid) {
     } else {
-      validation.issues.forEach((issue: any) => {
+      validation.issues.forEach((_issue: any) => {
       });
     }
 
     if (validation.warnings.length > 0) {
-      validation.warnings.forEach((warning: any) => console.log(`  - ${warning}`));
+      validation.warnings.forEach((warning: any) => this.logger.info(`  - ${warning}`));
     }
   }
 }

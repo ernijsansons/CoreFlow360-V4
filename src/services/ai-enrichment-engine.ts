@@ -1,8 +1,5 @@
 import type { Env } from '../types/env';
-import type {
-  Lead,
-  Contact,
-  Company,
+import type { Lead,
   CompanyEnrichment,
   ContactEnrichment,
   NewsEnrichment,
@@ -15,8 +12,7 @@ import type {
   ApproachRecommendation,
   NextBestAction,
   PersonalizedMessage,
-  RiskFactor
-} from '../types/enrichment';
+  RiskFactor } from '../types/enrichment';
 
 export interface EnrichmentData {
   lead: Lead;
@@ -375,7 +371,7 @@ Be specific and actionable.
     return this.getDefaultRecommendations(data);
   }
 
-  private identifyCompetitors(techStack: string[], industry?: string): string[] {
+  private identifyCompetitors(techStack: string[], _industry?: string): string[] {
     const techCompetitors: Record<string, string[]> = {
       'Salesforce': ['HubSpot', 'Pipedrive', 'Zoho'],
       'Slack': ['Microsoft Teams', 'Discord', 'Zoom'],

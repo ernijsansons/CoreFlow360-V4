@@ -157,7 +157,7 @@ export class SupernovaDeepAuditor {
     }
   }
 
-  private analyzeLine(line: string, lineNumber: number, filePath: string): AuditIssue[] {
+  private analyzeLine(line: string, lineNumber: number, _filePath: string): AuditIssue[] {
     const issues: AuditIssue[] = [];
     
     // Check for common issues

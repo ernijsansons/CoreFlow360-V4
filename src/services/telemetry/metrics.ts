@@ -1,4 +1,4 @@
-import { Metric, GoldenSignals, BusinessMetric, AIMetric, InfrastructureMetric } from '../../types/telemetry';
+import { Metric, GoldenSignals, InfrastructureMetric } from '../../types/telemetry';
 import { TelemetryCollector } from './collector';
 
 interface MetricOptions {
@@ -250,6 +250,7 @@ export class MetricsCollector {
   calculateGoldenSignals(timeRangeMs: number): GoldenSignals {
     const now = Date.now();
     const startTime = now - timeRangeMs;
+    void startTime;
 
     // This would typically query the time-series database
     // For now, returning estimated values based on current counters

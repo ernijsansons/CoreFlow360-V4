@@ -495,7 +495,7 @@ class MonitoringService {
   /**
    * Update aggregated metrics
    */
-  private updateAggregatedMetric(name: string, value: number, type: Metric['type']): void {
+  private updateAggregatedMetric(name: string, value: number, _type: Metric['type']): void {
     let agg = this.aggregatedMetrics.get(name);
 
     if (!agg) {
@@ -572,6 +572,7 @@ class MonitoringService {
     const now = Date.now();
 
     for (const [name, metrics] of this.metrics) {
+    void name;
       for (const metric of metrics) {
         // Only export recent metrics
         if (now - metric.timestamp < 300000) { // 5 minutes

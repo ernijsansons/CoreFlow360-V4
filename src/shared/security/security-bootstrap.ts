@@ -10,7 +10,10 @@
  */
 
 import { JWTSecretManager } from './jwt-secret-manager';
-import { SecurityError } from '../errors/app-error';
+import { Logger } from "../logger";
+const logger = new Logger({ component: "shared-security-security-bootstrap" });
+
+
 
 export interface SecurityBootstrapConfig {
   environment: 'development' | 'staging' | 'production';
@@ -56,7 +59,7 @@ export class SecurityBootstrap {
       ...config
     };
 
-    console.log(`🔒 Starting security validation for ${fullConfig.environment} environment...`);
+    logger.info(`🔒 Starting security validation for ${fullConfig.environment} environment...`);
 
     const result: SecurityValidationResult = {
       passed: true,
@@ -96,8 +99,8 @@ export class SecurityBootstrap {
       result.blocksStartup = true;
       result.criticalIssues.push(`Security validation failed: ${(error as any).message}`);
 
-      console.error('🚨 SECURITY VALIDATION FAILED - APPLICATION STARTUP BLOCKED');
-      console.error(error);
+      logger.error('🚨 SECURITY VALIDATION FAILED - APPLICATION STARTUP BLOCKED');
+      logger.error('Security validation error details', error);
 
       return result;
     }
@@ -108,7 +111,7 @@ export class SecurityBootstrap {
    */
   private static async validateJWTSecurityBootstrap(env: any, result: SecurityValidationResult): Promise<void> {
     try {
-      console.log('🔐 Validating JWT secret security...');
+      logger.info('🔐 Validating JWT secret security...');
 
       const jwtSecret = env.JWT_SECRET;
       const environment = env.ENVIRONMENT || 'development';
@@ -128,7 +131,7 @@ export class SecurityBootstrap {
         result.recommendations.push('Set the secret: export JWT_SECRET="<generated-secret>"');
         result.recommendations.push('Verify the secret passes validation before deployment');
       } else {
-        console.log(`✅ JWT secret validation passed (Strength: ${validation.strength})`);
+        logger.info(`✅ JWT secret validation passed (Strength: ${validation.strength})`);
 
         // Add warnings if any
         validation.warnings.forEach(warning => result.warnings.push(warning));
@@ -153,7 +156,7 @@ export class SecurityBootstrap {
     config: SecurityBootstrapConfig,
     result: SecurityValidationResult
   ): Promise<void> {
-    console.log('🔑 Validating required secrets...');
+    logger.info('🔑 Validating required secrets...');
 
     for (const secretName of config.requiredSecrets) {
       const secretValue = env[secretName];
@@ -211,7 +214,7 @@ export class SecurityBootstrap {
     config: SecurityBootstrapConfig,
     result: SecurityValidationResult
   ): Promise<void> {
-    console.log(`🌍 Validating ${config.environment} environment security...`);
+    logger.info(`🌍 Validating ${config.environment} environment security...`);
 
     switch (config.environment) {
       case 'production':
@@ -301,7 +304,7 @@ export class SecurityBootstrap {
     config: SecurityBootstrapConfig,
     result: SecurityValidationResult
   ): Promise<void> {
-    console.log('⚙️ Validating security configuration...');
+    logger.info('⚙️ Validating security configuration...');
 
     // Rate limiting configuration
     if (config.environment === 'production' && !env.RATE_LIMIT_ENABLED) {
@@ -326,7 +329,7 @@ export class SecurityBootstrap {
    * Startup health checks
    */
   private static async performStartupHealthChecks(env: any, result: SecurityValidationResult): Promise<void> {
-    console.log('🏥 Performing startup health checks...');
+    logger.info('🏥 Performing startup health checks...');
 
     try {
       // JWT secret health check
@@ -339,7 +342,7 @@ export class SecurityBootstrap {
       }
 
       // Memory and system checks could go here
-      console.log('✅ Startup health checks completed');
+      logger.info('✅ Startup health checks completed');
     } catch (error) {
       result.warnings.push(`Health check error: ${(error as any).message}`);
     }
@@ -366,40 +369,40 @@ export class SecurityBootstrap {
   /**
    * Log validation results
    */
-  private static logValidationResults(result: SecurityValidationResult, config: SecurityBootstrapConfig): void {
-    console.log('\n' + '='.repeat(60));
-    console.log('🔒 SECURITY VALIDATION RESULTS');
-    console.log('='.repeat(60));
+  private static logValidationResults(result: SecurityValidationResult, _config: SecurityBootstrapConfig): void {
+    logger.info('\n' + '='.repeat(60));
+    logger.info('🔒 SECURITY VALIDATION RESULTS');
+    logger.info('='.repeat(60));
 
     if (result.passed) {
-      console.log('✅ PASSED: Security validation successful');
+      logger.info('✅ PASSED: Security validation successful');
     } else {
-      console.log('❌ FAILED: Security validation failed');
+      logger.info('❌ FAILED: Security validation failed');
     }
 
     if (result.criticalIssues.length > 0) {
-      console.log('\n🚨 CRITICAL ISSUES:');
-      result.criticalIssues.forEach(issue => console.log(`  - ${issue}`));
+      logger.info('\n🚨 CRITICAL ISSUES:');
+      result.criticalIssues.forEach(issue => logger.info(`  - ${issue}`));
     }
 
     if (result.warnings.length > 0) {
-      console.log('\n⚠️ WARNINGS:');
-      result.warnings.forEach(warning => console.log(`  - ${warning}`));
+      logger.info('\n⚠️ WARNINGS:');
+      result.warnings.forEach(warning => logger.info(`  - ${warning}`));
     }
 
     if (result.recommendations.length > 0) {
-      console.log('\n💡 RECOMMENDATIONS:');
-      result.recommendations.forEach(rec => console.log(`  - ${rec}`));
+      logger.info('\n💡 RECOMMENDATIONS:');
+      result.recommendations.forEach(rec => logger.info(`  - ${rec}`));
     }
 
     if (result.blocksStartup) {
-      console.log('\n🛑 APPLICATION STARTUP BLOCKED due to security issues');
-      console.log('Fix critical issues before proceeding.');
+      logger.info('\n🛑 APPLICATION STARTUP BLOCKED due to security issues');
+      logger.info('Fix critical issues before proceeding.');
     } else {
-      console.log('\n🚀 Application startup approved');
+      logger.info('\n🚀 Application startup approved');
     }
 
-    console.log('='.repeat(60) + '\n');
+    logger.info('='.repeat(60) + '\n');
   }
 
   /**
@@ -420,9 +423,9 @@ export class SecurityBootstrap {
    * Emergency startup bypass (use with extreme caution)
    */
   static emergencyBypass(reason: string): SecurityValidationResult {
-    console.warn('🚨 EMERGENCY SECURITY BYPASS ACTIVATED');
-    console.warn(`Reason: ${reason}`);
-    console.warn('This should only be used in extreme circumstances!');
+    logger.warn('🚨 EMERGENCY SECURITY BYPASS ACTIVATED');
+    logger.warn(`Reason: ${reason}`);
+    logger.warn('This should only be used in extreme circumstances!');
 
     return {
       passed: true,

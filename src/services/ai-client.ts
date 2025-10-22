@@ -150,7 +150,7 @@ ${prompt}
 
 Return only valid JSON without any explanation or markdown formatting.`;
 
-      const response = await this.generateText(schemaPrompt, options);
+      await this.generateText(schemaPrompt, options);
       const parsed = await this.parseJSONResponse(schemaPrompt);
       
       return parsed as T;
@@ -298,7 +298,7 @@ Return a JSON response with:
 
 Format as valid JSON.`;
 
-      const response = await this.generateText(analysisPrompt, options);
+      await this.generateText(analysisPrompt, options);
       return await this.parseJSONResponse(analysisPrompt);
 
     } catch (error: any) {
@@ -369,7 +369,7 @@ ${text}
 
 Return only a JSON array of numbers representing the embedding.`;
 
-      const response = await this.generateText(embeddingPrompt, {
+      await this.generateText(embeddingPrompt, {
         ...options,
         maxTokens: 1000,
         temperature: 0.1,
@@ -418,8 +418,8 @@ Return only a JSON array of numbers representing the embedding.`;
   }
 
   async generateImage(
-    prompt: string,
-    options?: {
+    _prompt: string,
+    _options?: {
       model?: string;
       size?: '256x256' | '512x512' | '1024x1024';
       quality?: 'standard' | 'hd';
@@ -461,7 +461,7 @@ Return a JSON response with:
 
 Format as valid JSON.`;
 
-      const response = await this.generateText(moderationPrompt, {
+      await this.generateText(moderationPrompt, {
         ...options,
         maxTokens: 500,
         temperature: 0.1,

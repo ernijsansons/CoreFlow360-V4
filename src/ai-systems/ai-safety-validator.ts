@@ -16,8 +16,6 @@ import type {
   SafetyRecommendation
 } from './quantum-ai-auditor';
 
-const logger = new Logger({ component: 'ai-safety-validator' });
-
 export interface SafetyTestCase {
   id: string;
   type: 'hallucination' | 'jailbreak' | 'content' | 'ethical';

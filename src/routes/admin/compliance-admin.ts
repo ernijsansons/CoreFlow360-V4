@@ -639,7 +639,7 @@ complianceAdmin.get(
 async function checkAdminPermission(
   env: Env,
   userId: string,
-  businessId: string
+  _businessId: string
 ): Promise<boolean> {
   const result = await env.DB_MAIN.prepare(`
     SELECT COUNT(*) as count

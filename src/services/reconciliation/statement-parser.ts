@@ -1,3 +1,6 @@
+import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-reconciliation-statement-parser" });
+
 /**
  * Statement Parser Service
  * Parses bank statements in various formats (CSV, OFX, QFX)
@@ -79,7 +82,7 @@ export class StatementParser {
           const credit = this.parseAmount(values[creditIdx] || '0');
           amount = credit - debit; // Credits positive, debits negative
         } else {
-          console.warn(`No amount column found for row ${i}`);
+          logger.warn(`No amount column found for row ${i}`);
           continue;
         }
 
@@ -94,7 +97,7 @@ export class StatementParser {
           reference_number: refNumber,
         });
       } catch (error) {
-        console.error(`Error parsing row ${i}:`, error);
+        logger.error(`Error parsing row ${i}:`, error);
         continue;
       }
     }
@@ -132,7 +135,7 @@ export class StatementParser {
           });
         }
       } catch (error) {
-        console.error('Error parsing OFX transaction:', error);
+        logger.error('Error parsing OFX transaction:', error);
         continue;
       }
     }

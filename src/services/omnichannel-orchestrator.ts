@@ -3,22 +3,18 @@ import { SMSChannel } from './channels/sms-channel';
 import { LinkedInChannel } from './channels/linkedin-channel';
 import { VoiceChannel } from './channels/voice-channel';
 import { WhatsAppChannel } from './channels/whatsapp-channel';
-import type {
-  Lead,
-  Contact,
+import type { Lead,
   ChannelType,
   ChannelStrategy,
   ChannelContent,
   OmnichannelCampaign,
   CampaignStatus,
-  ChannelStep,
-  ChannelMessage,
   CreateCampaignRequest,
-  SendMessageRequest,
-  ChannelHealthCheck,
-  Company
-} from '../types/crm';
-import type { Env } from '../types/env';
+  ChannelHealthCheck } from '../types/crm';
+import type { Env } from '../types/env';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-omnichannel-orchestrator" });
+
+
 
 export class OmnichannelOrchestrator {
   private env: Env;
@@ -220,7 +216,7 @@ export class OmnichannelOrchestrator {
 
   private async scheduleCampaign(campaign: OmnichannelCampaign): Promise<void> {
     // Mock campaign scheduling - would integrate with job queue in production
-    console.log(`Scheduling campaign ${campaign.id} with ${campaign.content.length} content items`);
+    logger.info(`Scheduling campaign ${campaign.id} with ${campaign.content.length} content items`);
 
     for (const contentItem of campaign.content) {
       // Schedule each content item
@@ -234,7 +230,7 @@ export class OmnichannelOrchestrator {
     try {
       const channel = this.channels[content.channel];
       if (!channel) {
-        console.error(`Channel ${content.channel} not available`);
+        logger.error(`Channel ${content.channel} not available`);
         return;
       }
 
@@ -243,7 +239,7 @@ export class OmnichannelOrchestrator {
         await this.sendMessage(content.channel, leadId, content);
       }
     } catch (error: unknown) {
-      console.error(`Failed to execute content delivery for channel ${content.channel}:`, error);
+      logger.error(`Failed to execute content delivery for channel ${content.channel}:`, error);
     }
   }
 
@@ -255,14 +251,14 @@ export class OmnichannelOrchestrator {
       }
 
       // Mock message sending - would use real channel services in production
-      console.log(`Sending ${channel} message to lead ${leadId}:`, content);
+      logger.info(`Sending ${channel} message to lead ${leadId}:`, content);
       
       // Simulate sending delay
       await new Promise(resolve => setTimeout(resolve, 100));
       
       return true;
     } catch (error: unknown) {
-      console.error(`Failed to send ${channel} message to lead ${leadId}:`, error);
+      logger.error(`Failed to send ${channel} message to lead ${leadId}:`, error);
       return false;
     }
   }
@@ -387,12 +383,12 @@ export class OmnichannelOrchestrator {
     return campaign;
   }
 
-  async getCampaign(campaignId: string): Promise<OmnichannelCampaign | null> {
+  async getCampaign(_campaignId: string): Promise<OmnichannelCampaign | null> {
     // Mock campaign retrieval - would fetch from database in production
     return null;
   }
 
-  async getCampaigns(status?: CampaignStatus): Promise<OmnichannelCampaign[]> {
+  async getCampaigns(_status?: CampaignStatus): Promise<OmnichannelCampaign[]> {
     // Mock campaigns retrieval - would fetch from database in production
     return [];
   }
@@ -400,10 +396,10 @@ export class OmnichannelOrchestrator {
   async startCampaign(campaignId: string): Promise<boolean> {
     try {
       // Mock campaign start - would update status and schedule in production
-      console.log(`Starting campaign ${campaignId}`);
+      logger.info(`Starting campaign ${campaignId}`);
       return true;
     } catch (error: unknown) {
-      console.error(`Failed to start campaign ${campaignId}:`, error);
+      logger.error(`Failed to start campaign ${campaignId}:`, error);
       return false;
     }
   }
@@ -411,10 +407,10 @@ export class OmnichannelOrchestrator {
   async pauseCampaign(campaignId: string): Promise<boolean> {
     try {
       // Mock campaign pause - would update status in production
-      console.log(`Pausing campaign ${campaignId}`);
+      logger.info(`Pausing campaign ${campaignId}`);
       return true;
     } catch (error: unknown) {
-      console.error(`Failed to pause campaign ${campaignId}:`, error);
+      logger.error(`Failed to pause campaign ${campaignId}:`, error);
       return false;
     }
   }
@@ -422,10 +418,10 @@ export class OmnichannelOrchestrator {
   async stopCampaign(campaignId: string): Promise<boolean> {
     try {
       // Mock campaign stop - would update status and cancel scheduled tasks in production
-      console.log(`Stopping campaign ${campaignId}`);
+      logger.info(`Stopping campaign ${campaignId}`);
       return true;
     } catch (error: unknown) {
-      console.error(`Failed to stop campaign ${campaignId}:`, error);
+      logger.error(`Failed to stop campaign ${campaignId}:`, error);
       return false;
     }
   }
@@ -453,6 +449,7 @@ export class OmnichannelOrchestrator {
     const healthChecks: ChannelHealthCheck[] = [];
 
     for (const [channelType, channelService] of Object.entries(this.channels)) {
+    void channelService;
       try {
         // Mock health check - would test actual channel connectivity in production
         const isHealthy = Math.random() > 0.1; // 90% chance of being healthy
@@ -534,14 +531,14 @@ export class OmnichannelOrchestrator {
       }
 
       // Mock channel test - would send actual test message in production
-      console.log(`Testing ${channel} channel with data:`, testData);
+      logger.info(`Testing ${channel} channel with data:`, testData);
 
       // Simulate test delay
       await new Promise(resolve => setTimeout(resolve, 500));
 
       return true;
     } catch (error: unknown) {
-      console.error(`Channel test failed for ${channel}:`, error);
+      logger.error(`Channel test failed for ${channel}:`, error);
       return false;
     }
   }
@@ -583,9 +580,9 @@ export class OmnichannelOrchestrator {
   async cleanup(): Promise<void> {
     try {
       // Mock cleanup - would close connections and clean up resources in production
-      console.log('Omnichannel Orchestrator cleanup completed');
+      logger.info('Omnichannel Orchestrator cleanup completed');
     } catch (error: unknown) {
-      console.error('Omnichannel Orchestrator cleanup failed:', error);
+      logger.error('Omnichannel Orchestrator cleanup failed:', error);
     }
   }
 }

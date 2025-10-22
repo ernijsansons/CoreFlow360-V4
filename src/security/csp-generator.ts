@@ -3,7 +3,7 @@
  * Dynamic CSP generation based on context and requirements
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 import crypto from 'crypto';
@@ -454,7 +454,7 @@ export class CSPGenerator {
   /**
    * Alert security team about potential attacks
    */
-  private async alertSecurityTeam(violation: any): Promise<void> {
+  private async alertSecurityTeam(_violation: any): Promise<void> {
     // Implementation would send alerts to security team
     // Via Slack, PagerDuty, email, etc.
   }

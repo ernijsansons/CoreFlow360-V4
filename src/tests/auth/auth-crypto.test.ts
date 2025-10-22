@@ -12,7 +12,7 @@
  * - Security validations
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   PasswordCrypto,
   APIKeyCrypto,
@@ -22,32 +22,12 @@ import {
   CryptoUtils
 } from '../../utils/auth-crypto';
 
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.clearAllMocks();
+});
+
 describe('PasswordCrypto', () => {
-  let originalCrypto: any;
-
-  beforeEach(() => {
-    originalCrypto = global.crypto;
-    // Mock crypto.getRandomValues for predictable testing
-    global.crypto = {
-      ...originalCrypto,
-      getRandomValues: vi.fn((array: Uint8Array) => {
-        for (let i = 0; i < array.length; i++) {
-          array[i] = i % 256;
-        }
-        return array;
-      }),
-      subtle: {
-        ...originalCrypto.subtle,
-        importKey: vi.fn().mockResolvedValue({ type: 'secret' }),
-        deriveBits: vi.fn().mockResolvedValue(new ArrayBuffer(64))
-      }
-    } as any;
-  });
-
-  afterEach(() => {
-    global.crypto = originalCrypto;
-    vi.clearAllMocks();
-  });
 
   describe('Password Hashing', () => {
     it('should hash passwords with PBKDF2', async () => {
@@ -113,7 +93,7 @@ describe('PasswordCrypto', () => {
     });
 
     it('should handle verification errors gracefully', async () => {
-      vi.spyOn(global.crypto.subtle, 'deriveBits').mockRejectedValueOnce(new Error('Crypto error'));
+      vi.spyOn(globalThis.crypto.subtle, 'deriveBits').mockRejectedValueOnce(new Error('Crypto error'));
 
       const password = 'TestPassword123!';
       const hash = 'pbkdf2-sha256$600000$c29tZXNhbHQ=$c29tZWhhc2g=';
@@ -171,31 +151,6 @@ describe('PasswordCrypto', () => {
 });
 
 describe('APIKeyCrypto', () => {
-  let originalCrypto: any;
-
-  beforeEach(() => {
-    originalCrypto = global.crypto;
-    global.crypto = {
-      ...originalCrypto,
-      getRandomValues: vi.fn((array: Uint8Array) => {
-        for (let i = 0; i < array.length; i++) {
-          array[i] = i % 256;
-        }
-        return array;
-      }),
-      subtle: {
-        ...originalCrypto.subtle,
-        importKey: vi.fn().mockResolvedValue({ type: 'secret' }),
-        deriveBits: vi.fn().mockResolvedValue(new ArrayBuffer(32))
-      }
-    } as any;
-  });
-
-  afterEach(() => {
-    global.crypto = originalCrypto;
-    vi.clearAllMocks();
-  });
-
   describe('API Key Generation', () => {
     it('should generate API keys with correct format', () => {
       const apiKey = APIKeyCrypto.generateAPIKey();
@@ -249,7 +204,7 @@ describe('APIKeyCrypto', () => {
     });
 
     it('should handle verification errors gracefully', async () => {
-      vi.spyOn(global.crypto.subtle, 'deriveBits').mockRejectedValueOnce(new Error('Crypto error'));
+      vi.spyOn(globalThis.crypto.subtle, 'deriveBits').mockRejectedValueOnce(new Error('Crypto error'));
 
       const isValid = await APIKeyCrypto.verifyAPIKey('cfk_test123', 'pbkdf2-sha256$300000$c29tZXNhbHQ=$c29tZWhhc2g=');
       expect(isValid).toBe(false);
@@ -258,31 +213,6 @@ describe('APIKeyCrypto', () => {
 });
 
 describe('TOTPCrypto', () => {
-  let originalCrypto: any;
-
-  beforeEach(() => {
-    originalCrypto = global.crypto;
-    global.crypto = {
-      ...originalCrypto,
-      getRandomValues: vi.fn((array: Uint8Array) => {
-        for (let i = 0; i < array.length; i++) {
-          array[i] = i % 256;
-        }
-        return array;
-      }),
-      subtle: {
-        ...originalCrypto.subtle,
-        importKey: vi.fn().mockResolvedValue({ type: 'secret' }),
-        sign: vi.fn().mockResolvedValue(new ArrayBuffer(20)) // HMAC-SHA1 output
-      }
-    } as any;
-  });
-
-  afterEach(() => {
-    global.crypto = originalCrypto;
-    vi.clearAllMocks();
-  });
-
   describe('TOTP Secret Generation', () => {
     it('should generate base32 encoded secrets', () => {
       const secret = TOTPCrypto.generateTOTPSecret();
@@ -317,7 +247,7 @@ describe('TOTPCrypto', () => {
 
     it('should pad codes with leading zeros', async () => {
       // Mock HMAC result that would generate a small number
-      vi.spyOn(global.crypto.subtle, 'sign').mockResolvedValueOnce(
+      vi.spyOn(globalThis.crypto.subtle, 'sign').mockResolvedValueOnce(
         new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]).buffer
       );
 
@@ -404,33 +334,6 @@ describe('TOTPCrypto', () => {
 });
 
 describe('KeyDerivation', () => {
-  let originalCrypto: any;
-
-  beforeEach(() => {
-    originalCrypto = global.crypto;
-    global.crypto = {
-      ...originalCrypto,
-      getRandomValues: vi.fn((array: Uint8Array) => {
-        for (let i = 0; i < array.length; i++) {
-          array[i] = i % 256;
-        }
-        return array;
-      }),
-      subtle: {
-        ...originalCrypto.subtle,
-        importKey: vi.fn().mockResolvedValue({ type: 'secret' }),
-        deriveKey: vi.fn().mockResolvedValue({ type: 'secret', algorithm: { name: 'AES-GCM' } }),
-        encrypt: vi.fn().mockResolvedValue(new ArrayBuffer(32)),
-        decrypt: vi.fn().mockResolvedValue(new TextEncoder().encode('decrypted data').buffer)
-      }
-    } as any;
-  });
-
-  afterEach(() => {
-    global.crypto = originalCrypto;
-    vi.clearAllMocks();
-  });
-
   describe('Key Derivation', () => {
     it('should derive encryption keys from passwords', async () => {
       const password = 'SecurePassword123!';
@@ -503,26 +406,6 @@ describe('KeyDerivation', () => {
 });
 
 describe('SecureRandom', () => {
-  let originalCrypto: any;
-
-  beforeEach(() => {
-    originalCrypto = global.crypto;
-    global.crypto = {
-      ...originalCrypto,
-      getRandomValues: vi.fn((array: Uint8Array) => {
-        for (let i = 0; i < array.length; i++) {
-          array[i] = i % 256;
-        }
-        return array;
-      })
-    } as any;
-  });
-
-  afterEach(() => {
-    global.crypto = originalCrypto;
-    vi.clearAllMocks();
-  });
-
   describe('Random String Generation', () => {
     it('should generate random strings with default charset', () => {
       const str = SecureRandom.generateRandomString(16);
@@ -620,30 +503,16 @@ describe('CryptoUtils', () => {
   });
 
   describe('SHA-256 Hashing', () => {
-    let originalCrypto: any;
-
-    beforeEach(() => {
-      originalCrypto = global.crypto;
-      global.crypto = {
-        ...originalCrypto,
-        subtle: {
-          ...originalCrypto.subtle,
-          digest: vi.fn().mockResolvedValue(new Uint8Array([1, 2, 3, 4]).buffer)
-        }
-      } as any;
-    });
-
-    afterEach(() => {
-      global.crypto = originalCrypto;
-      vi.clearAllMocks();
-    });
-
     it('should compute SHA-256 hash', async () => {
+      const digestSpy = vi
+        .spyOn(globalThis.crypto.subtle, 'digest')
+        .mockResolvedValue(new Uint8Array([1, 2, 3, 4]).buffer);
+
       const data = 'test data';
       const hash = await CryptoUtils.sha256(data);
 
       expect(hash).toBe('01020304'); // Mocked result
-      expect(global.crypto.subtle.digest).toHaveBeenCalledWith(
+      expect(digestSpy).toHaveBeenCalledWith(
         'SHA-256',
         expect.any(Uint8Array)
       );
@@ -652,7 +521,7 @@ describe('CryptoUtils', () => {
 
   describe('Password Strength Validation', () => {
     it('should validate strong passwords', () => {
-      const strongPassword = 'SecureP@ssw0rd123!';
+      const strongPassword = 'Sup3rSecur3P@ss!';
       const result = CryptoUtils.validatePasswordStrength(strongPassword);
 
       expect(result.isStrong).toBe(true);

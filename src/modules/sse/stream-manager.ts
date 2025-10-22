@@ -4,18 +4,15 @@
  */
 
 import type { KVNamespace } from '@cloudflare/workers-types';
-import {
-  type SSEStreamConfig,
+import { type SSEStreamConfig,
   type StreamState,
   type StreamManagerState,
-  type AnySSEEvent,
-  type ErrorData,
+  // type AnySSEEvent,
+  // type ErrorData,
   type HeartbeatData,
   type StreamMetrics,
   type ConnectionQuality,
-  DEFAULT_SSE_CONFIG,
-  StreamConfigSchema,
-} from './types';
+  StreamConfigSchema } from './types';
 import { SecurityLimits, SecurityError, CorrelationId } from '../../shared/security-utils';
 import { performanceLogger, abacLogger } from '../../shared/logger';
 
@@ -561,7 +558,7 @@ class SSEStreamManager {
     }
   }
 
-  private async getRecentMetrics(cutoffTime: number): Promise<StreamMetrics[]> {
+  private async getRecentMetrics(_cutoffTime: number): Promise<StreamMetrics[]> {
     // In a real implementation, you would query KV for recent metrics
     // For now, return empty array
     return [];

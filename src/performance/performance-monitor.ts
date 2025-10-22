@@ -198,7 +198,7 @@ export class PerformanceMonitor {
   /**
    * Record database query performance
    */
-  recordDatabaseQuery(query: string, executionTime: number, fromCache: boolean): void {
+  recordDatabaseQuery(_query: string, _executionTime: number, _fromCache: boolean): void {
     // This would be called from the database layer
     // For now, we'll track it in the metrics collection
   }

@@ -90,7 +90,7 @@ export class VoiceChannel extends BaseChannel {
     };
   }
 
-  async formatContent(content: ChannelContent, recipient: Lead | Contact): Promise<string> {
+  async formatContent(content: ChannelContent, _recipient: Lead | Contact): Promise<string> {
     // For voice channel, content is typically a script or voicemail text
     return content.body;
   }

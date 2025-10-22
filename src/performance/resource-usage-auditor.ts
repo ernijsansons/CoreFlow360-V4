@@ -1,5 +1,5 @@
 import { Logger } from '../shared/logger';
-import { SecurityError, ValidationError } from '../shared/error-handler';
+import { ValidationError } from '../shared/error-handler';
 import type { Context } from 'hono';
 
 const logger = new Logger({ component: 'resource-usage-auditor' });
@@ -860,7 +860,7 @@ export class ResourceUsageAuditor {
     };
   }
 
-  private detectMemoryLeaks(memoryData: any): MemoryLeak[] {
+  private detectMemoryLeaks(_memoryData: any): MemoryLeak[] {
     // Mock memory leak detection
     return [
       {
@@ -882,7 +882,7 @@ export class ResourceUsageAuditor {
     ];
   }
 
-  private analyzeHeap(memoryData: any): HeapAnalysis {
+  private analyzeHeap(_memoryData: any): HeapAnalysis {
     return {
       heapSize: 512 * 1024 * 1024, // 512MB
       usedHeap: 384 * 1024 * 1024, // 384MB
@@ -924,7 +924,7 @@ export class ResourceUsageAuditor {
     };
   }
 
-  private analyzeGC(memoryData: any): GCAnalysis {
+  private analyzeGC(_memoryData: any): GCAnalysis {
     return {
       frequency: 2.5, // 2.5 collections per minute
       totalTime: 390, // milliseconds
@@ -949,7 +949,7 @@ export class ResourceUsageAuditor {
     };
   }
 
-  private analyzeFragmentation(memoryData: any): FragmentationReport {
+  private analyzeFragmentation(_memoryData: any): FragmentationReport {
     return {
       level: 12, // 12% fragmentation
       externalFragmentation: 8,
@@ -959,7 +959,7 @@ export class ResourceUsageAuditor {
     };
   }
 
-  private identifyLargeObjects(memoryData: any): LargeObjectReport[] {
+  private identifyLargeObjects(_memoryData: any): LargeObjectReport[] {
     return [
       {
         object: 'CustomerDataCache',
@@ -978,7 +978,7 @@ export class ResourceUsageAuditor {
     ];
   }
 
-  private analyzeMemoryPressure(memoryData: any): MemoryPressureReport {
+  private analyzeMemoryPressure(_memoryData: any): MemoryPressureReport {
     return {
       currentPressure: 'medium',
       triggers: [
@@ -1003,7 +1003,7 @@ export class ResourceUsageAuditor {
     leaks: MemoryLeak[],
     heap: HeapAnalysis,
     gc: GCAnalysis,
-    fragmentation: FragmentationReport
+    _fragmentation: FragmentationReport
   ): MemoryRecommendation[] {
     const recommendations: MemoryRecommendation[] = [];
 
@@ -1075,7 +1075,7 @@ export class ResourceUsageAuditor {
     };
   }
 
-  private identifyCPUHotSpots(cpuData: any): CPUHotSpot[] {
+  private identifyCPUHotSpots(_cpuData: any): CPUHotSpot[] {
     return [
       {
         function: 'validateBusinessRules',
@@ -1113,7 +1113,7 @@ export class ResourceUsageAuditor {
     ];
   }
 
-  private analyzeThreads(cpuData: any): ThreadAnalysis {
+  private analyzeThreads(_cpuData: any): ThreadAnalysis {
     return {
       activeThreads: 12,
       maxThreads: 20,
@@ -1139,7 +1139,7 @@ export class ResourceUsageAuditor {
     };
   }
 
-  private analyzeAsyncOperations(cpuData: any): AsyncAnalysis {
+  private analyzeAsyncOperations(_cpuData: any): AsyncAnalysis {
     return {
       pendingPromises: 45,
       resolvedPromises: 25000,
@@ -1167,7 +1167,7 @@ export class ResourceUsageAuditor {
     };
   }
 
-  private analyzeComputationEfficiency(cpuData: any): ComputationEfficiency {
+  private analyzeComputationEfficiency(_cpuData: any): ComputationEfficiency {
     return {
       algorithmsAnalysis: [
         {
@@ -1206,7 +1206,7 @@ export class ResourceUsageAuditor {
     };
   }
 
-  private identifyBlockingOperations(cpuData: any): BlockingOperation[] {
+  private identifyBlockingOperations(_cpuData: any): BlockingOperation[] {
     return [
       {
         operation: 'Synchronous file I/O',
@@ -1277,6 +1277,7 @@ export class ResourceUsageAuditor {
 
   private async analyzeNetworkUsage(): Promise<NetworkAnalysisReport> {
     const mockNetworkData = this.getMockNetworkData();
+    void mockNetworkData;
 
     return {
       bandwidthUsage: {
@@ -1926,7 +1927,7 @@ export class ResourceUsageAuditor {
     cpu: CPUAnalysisReport,
     network: NetworkAnalysisReport,
     storage: StorageAnalysisReport,
-    workers: WorkersAnalysisReport
+    _workers: WorkersAnalysisReport
   ): ResourceOptimization[] {
     const optimizations: ResourceOptimization[] = [];
 

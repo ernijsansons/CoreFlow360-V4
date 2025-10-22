@@ -162,7 +162,14 @@ app.get('/ai-analytics/summary', async (c: any) => {
       endDate: endDate ? new Date(endDate) : undefined
     });
 
-    return c.json({ success: true, summary });
+    const filters = {
+      businessId,
+      startDate,
+      endDate,
+      model
+    };
+
+    return c.json({ success: true, summary, filters });
   } catch (error: any) {
     return c.json({ 
       success: false, 
@@ -193,7 +200,14 @@ app.get('/ai-analytics/metrics', async (c: any) => {
       metricNames: []
     });
 
-    return c.json({ success: true, metrics });
+    const filters = {
+      businessId,
+      startDate,
+      endDate,
+      granularity
+    };
+
+    return c.json({ success: true, metrics, filters });
   } catch (error: any) {
     return c.json({ 
       success: false, 
@@ -223,7 +237,14 @@ app.get('/ai-analytics/costs', async (c: any) => {
       endDate: endDate ? new Date(endDate) : undefined
     });
 
-    return c.json({ success: true, costs });
+    const filters = {
+      businessId,
+      startDate,
+      endDate,
+      groupBy
+    };
+
+    return c.json({ success: true, costs, filters });
   } catch (error: any) {
     return c.json({ 
       success: false, 
@@ -279,7 +300,7 @@ app.post('/alerts/:id/acknowledge', async (c: any) => {
     const alertNotificationSystem = new AlertNotificationSystem(c.env);
     await alertNotificationSystem.acknowledgeAlert(alertId);
 
-    return c.json({ success: true });
+    return c.json({ success: true, acknowledgedBy: userId, comment });
   } catch (error: any) {
     return c.json({ 
       success: false, 
@@ -303,7 +324,7 @@ app.post('/alerts/:id/resolve', async (c: any) => {
     const alertNotificationSystem = new AlertNotificationSystem(c.env);
     await alertNotificationSystem.resolveAlert(alertId);
 
-    return c.json({ success: true });
+    return c.json({ success: true, resolvedBy: userId, comment });
   } catch (error: any) {
     return c.json({ 
       success: false, 
@@ -430,17 +451,19 @@ app.get('/health', async (c: any) => {
     const selfHealingEngine = new SelfHealingEngine(c.env);
     const observabilityExportIntegration = new ObservabilityExportIntegration(c.env);
 
+    const services = {
+      telemetryCollector: telemetryCollector ? 'operational' : 'unavailable',
+      distributedTracing: distributedTracing ? 'operational' : 'unavailable',
+      aiAnalyticsEngine: aiAnalyticsEngine ? 'operational' : 'unavailable',
+      alertNotificationSystem: alertNotificationSystem ? 'operational' : 'unavailable',
+      selfHealingEngine: selfHealingEngine ? 'operational' : 'unavailable',
+      observabilityExportIntegration: observabilityExportIntegration ? 'operational' : 'unavailable',
+    };
+
     // GRUG: Services don't have getHealth - return simple status
     const health = {
       status: 'healthy',
-      services: {
-        telemetryCollector: 'operational',
-        distributedTracing: 'operational',
-        aiAnalyticsEngine: 'operational',
-        alertNotificationSystem: 'operational',
-        selfHealingEngine: 'operational',
-        observabilityExportIntegration: 'operational',
-      },
+      services,
       timestamp: new Date().toISOString(),
     };
 
@@ -454,4 +477,3 @@ app.get('/health', async (c: any) => {
 });
 
 export default app;
-

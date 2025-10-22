@@ -6,7 +6,6 @@
 import { Logger } from '../../shared/logger';
 import type { Env } from '../../types/env';
 
-const logger = new Logger({ component: 'custom-integration-service' });
 import type {
   CustomIntegration,
   IntegrationManifest,
@@ -424,7 +423,7 @@ export class CustomIntegrationService {
   async rejectIntegration(
     integrationId: string,
     reviewerId: string,
-    reason: string
+    _reason: string
   ): Promise<boolean> {
     try {
       await this.env.DB_MAIN.prepare(

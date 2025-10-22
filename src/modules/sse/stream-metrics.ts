@@ -318,7 +318,7 @@ export class StreamMetricsCollector {
   /**
    * Assesses connection quality based on metrics
    */
-  private assessConnectionQuality(metrics: StreamMetrics, state: StreamState): ConnectionQuality {
+  private assessConnectionQuality(metrics: StreamMetrics, _state: StreamState): ConnectionQuality {
     const latency = metrics.averageTokenLatency;
     const jitter = Math.abs(metrics.averageTokenLatency - (metrics.timeToFirstToken || 0));
     const packetLoss = metrics.droppedEventCount / Math.max(1, metrics.totalTokens + metrics.totalChunks);

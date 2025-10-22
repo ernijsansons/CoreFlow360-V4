@@ -4,7 +4,10 @@
  * Fixes: CVSS 7.5 vulnerability - Session hijacking prevention
  */
 
-import { createHash } from 'crypto';
+import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "security-session-manager" });
+
+
 
 export interface SessionData {
   id: string;
@@ -197,7 +200,7 @@ export class SessionManager {
       return { valid: true, session };
 
     } catch (error: any) {
-      console.error('Session validation error:', error);
+      logger.error('Session validation error:', error);
       return { valid: false, reason: 'Validation failed' };
     }
   }

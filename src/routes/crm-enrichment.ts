@@ -238,6 +238,7 @@ app.get('/history/:entityType/:entityId', async (c) => {
 app.get('/analytics/success-rates', async (c) => {
   try {
     const businessId = c.req.header('X-Business-ID') || 'business-founder-001';
+    void businessId;
     const days = parseInt(c.req.query('days') || '30');
 
     const stats = await c.env.DB_MAIN.prepare(`

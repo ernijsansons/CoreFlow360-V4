@@ -5,7 +5,7 @@ export class ProgressiveRolloutEngine {
   private currentStage?: LaunchStage;
 
   async executeStage(stage: LaunchStage,
-  config: LaunchStageConfig, rolloutConfig: ProgressiveRolloutConfig): Promise<void> {
+  config: LaunchStageConfig, _rolloutConfig: ProgressiveRolloutConfig): Promise<void> {
     
     this.currentStage = stage;
     stage.status = 'ACTIVE';
@@ -19,7 +19,7 @@ export class ProgressiveRolloutEngine {
 
   }
 
-  private async rampUpUsers(stage: LaunchStage, config: LaunchStageConfig): Promise<void> {
+  private async rampUpUsers(stage: LaunchStage, _config: LaunchStageConfig): Promise<void> {
     const rampSteps = 5;
     const stepSize = stage.targetUsers / rampSteps;
 
@@ -40,7 +40,7 @@ export class ProgressiveRolloutEngine {
     }
   }
 
-  private async monitorStageExecution(stage: LaunchStage, config: LaunchStageConfig): Promise<void> {
+  private async monitorStageExecution(stage: LaunchStage, _config: LaunchStageConfig): Promise<void> {
     const monitoringDuration = this.parseDuration(stage.duration);
     const monitoringSteps = Math.min(monitoringDuration / 10000, 10); // 10 second intervals, max 10 steps
 
@@ -57,6 +57,7 @@ export class ProgressiveRolloutEngine {
 
   private async updateTrafficRouting(currentUsers: number, targetUsers: number): Promise<void> {
     const percentage = (currentUsers / targetUsers) * 100;
+    void percentage;
     
     // Simulate routing update
     await this.delay(500);

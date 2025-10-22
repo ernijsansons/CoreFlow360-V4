@@ -1,13 +1,11 @@
 // Comprehensive Authentication System for CoreFlow360 V4
 import { jwtVerify, SignJWT } from 'jose';
-import {
-  PasswordSecurity,
+import { PasswordSecurity,
   ApiKeySecurity,
-  JWTSecretManager,
-  InputSanitizer,
-  AuditLogger,
-  SecureDatabase
-} from '../security/security-utilities';
+  InputSanitizer } from '../security/security-utilities';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "auth-auth-system" });
+
+
 
 // Cloudflare types
 declare global {
@@ -241,7 +239,7 @@ export class AuthSystem {
       return { success: true, user };
 
     } catch (error: any) {
-      console.error('Registration error:', error);
+      logger.error('Registration error:', error);
       return { success: false, error: 'Registration failed' };
     }
   }
@@ -311,7 +309,7 @@ export class AuthSystem {
       return { success: true, token, user };
 
     } catch (error: any) {
-      console.error('Login error:', error);
+      logger.error('Login error:', error);
       return { success: false, error: 'Login failed' };
     }
   }
@@ -355,7 +353,7 @@ export class AuthSystem {
       return { valid: true, user };
 
     } catch (error: any) {
-      console.error('Token verification error:', error);
+      logger.error('Token verification error:', error);
       return { valid: false, error: 'Invalid token' };
     }
   }
@@ -393,7 +391,7 @@ export class AuthSystem {
       return { success: true, apiKey: rawKey };
 
     } catch (error: any) {
-      console.error('API key generation error:', error);
+      logger.error('API key generation error:', error);
       return { success: false, error: 'Failed to generate API key' };
     }
   }
@@ -438,7 +436,7 @@ export class AuthSystem {
       return { valid: true, user, permissions: apiPermissions };
 
     } catch (error: any) {
-      console.error('API key verification error:', error);
+      logger.error('API key verification error:', error);
       return { valid: false, error: 'API key verification failed' };
     }
   }
@@ -461,7 +459,7 @@ export class AuthSystem {
       return { success: true };
 
     } catch (error: any) {
-      console.error('Logout error:', error);
+      logger.error('Logout error:', error);
       return { success: false, error: 'Logout failed' };
     }
   }

@@ -114,7 +114,7 @@ export class RealtimeCoordinator implements DurableObject {
         await this.cleanupSession(sessionId);
       });
 
-      ws.addEventListener('error', async (event: any) => {
+      ws.addEventListener('error', async (_event: any) => {
         await this.cleanupSession(sessionId);
       });
 

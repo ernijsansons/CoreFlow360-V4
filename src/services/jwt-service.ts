@@ -11,7 +11,10 @@
  * - Constant-time verification
  */
 
-import { jwtVerify, SignJWT, type JWTPayload } from 'jose';
+import { jwtVerify, SignJWT, type JWTPayload } from 'jose';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-jwt-service" });
+
+
 
 export interface JWTClaims extends JWTPayload {
   sub: string; // user ID
@@ -350,7 +353,7 @@ export class JWTService {
       }
     } catch (error) {
       // Log error but don't throw - revocation should be best effort
-      console.error('Token revocation failed:', error);
+      logger.error('Token revocation failed:', error);
     }
   }
 
@@ -499,7 +502,7 @@ export class JWTService {
   /**
    * Validate token claims for security
    */
-  private async validateTokenClaims(claims: JWTClaims, token: string): Promise<JWTVerificationResult> {
+  private async validateTokenClaims(claims: JWTClaims, _token: string): Promise<JWTVerificationResult> {
     // Check if token is blacklisted
     if (await this.isTokenBlacklisted(claims.jti)) {
       return {
@@ -634,7 +637,7 @@ export class JWTService {
    * Get fresh user data for token refresh
    * This should integrate with your user service
    */
-  private async getFreshUserData(userId: string, businessId: string): Promise<{
+  private async getFreshUserData(_userId: string, _businessId: string): Promise<{
     roles: string[];
     permissions: string[];
     mfaVerified: boolean;

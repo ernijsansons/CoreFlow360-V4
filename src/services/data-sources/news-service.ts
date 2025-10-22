@@ -1,5 +1,5 @@
 // @ts-nocheck
-import type { NewsEnrichment, NewsArticle, PressRelease, NewsSentiment } from '../../types/enrichment';
+import type { NewsEnrichment, NewsArticle, NewsSentiment } from '../../types/enrichment';
 
 export interface NewsAPIResponse {
   status: string;
@@ -148,7 +148,7 @@ class NewsService {
     }
   }
 
-  private async getProductNews(companyName: string, domain?: string): Promise<NewsArticle[]> {
+  private async getProductNews(companyName: string, _domain?: string): Promise<NewsArticle[]> {
     try {
       const productKeywords = ['launch', 'product', 'feature', 'release', 'announcement', 'unveils'];
       const query = `"${companyName}" AND (${productKeywords.join(' OR ')})`;
@@ -307,7 +307,9 @@ class NewsService {
 
     // Title vs content weight
     const titleWeight = 0.7;
+    void titleWeight;
     const contentWeight = 0.3;
+    void contentWeight;
 
     return Math.min(score, 1.0);
   }

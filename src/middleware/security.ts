@@ -1,7 +1,10 @@
 // src/middleware/security.ts
 import type { ExecutionContext } from '../cloudflare/types/cloudflare';
-import { jwtVerify, createRemoteJWKSet, type JWTPayload } from 'jose';
-import { authenticator, totp } from 'otplib';
+import { jwtVerify, type JWTPayload } from 'jose';
+import { authenticator } from 'otplib';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "middleware-security" });
+
+
 
 export interface SecurityConfig {
   enableHSTS?: boolean;
@@ -292,6 +295,7 @@ export async function advancedRateLimit(
 
   const now = Math.floor(Date.now() / 1000);
   const windowStart = now - window;
+  void windowStart;
 
   try {
     // Get current window data
@@ -321,7 +325,7 @@ export async function advancedRateLimit(
     };
   } catch (error: any) {
     // SECURITY FIX: Fail closed - deny request if rate limiting fails (fixes fail-open vulnerability)
-    console.error('Rate limiting error - failing closed:', error);
+    logger.error('Rate limiting error - failing closed:', error);
     return {
       allowed: false,
       remaining: 0,
@@ -901,7 +905,6 @@ export async function validateRequest(
     maxSize = 1024 * 1024,
     allowedContentTypes = ['application/json'],
     requireAuth = false,
-    validateOrigin = true
   } = options;
 
   // Check request size
@@ -1166,7 +1169,7 @@ export async function logAuditEvent(
     }
   } catch (error: any) {
     // Critical: Audit logging should never fail silently in production
-    console.error('Audit logging failed:', error);
+    logger.error('Audit logging failed:', error);
   }
 }
 
@@ -1432,7 +1435,7 @@ export function generateMFASecret(
 export function verifyTOTP(
   token: string,
   secret: string,
-  window = 1
+  _window = 1
 ): boolean {
   try {
     return authenticator.verify({
@@ -1881,7 +1884,7 @@ export function createSecurityMiddleware(config: SecurityConfig) {
   return async (
     request: Request,
     response: Response,
-    ctx: ExecutionContext
+    _ctx: ExecutionContext
   ): Promise<Response> => {
     // Enforce HTTPS in production
     if (config.environment === 'production') {

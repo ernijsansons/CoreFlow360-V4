@@ -74,6 +74,7 @@ export class SecureQueryBuilder {
 
     const params: any[] = [];
     let paramIndex = 1;
+    void paramIndex;
 
     // Build column list
     const columnList = columns.includes('*') ? '*' : columns.join(', ');

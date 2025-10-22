@@ -1,20 +1,17 @@
 import type { Env } from '../types/env';
-import type {
-  ConversationTurn,
-  ConversationTranscript,
-  ConversationState,
+import type { ConversationTurn,
   RealTimeCallState,
-  ConversationSummary,
   ConversationOutcome,
   Objection,
   ObjectionType,
   QualificationStatus,
-  QualificationLevel,
   ExtractedEntity,
   EntityType,
-  VoiceAgentConfig
-} from '../types/voice-agent';
-import type { Lead } from '../types/crm';
+  VoiceAgentConfig } from '../types/voice-agent';
+import type { Lead } from '../types/crm';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-conversation-handler" });
+
+
 
 export interface ConversationHandlerEvents {
   speech: (text: string, confidence: number) => void;
@@ -265,14 +262,14 @@ export class ConversationHandler {
   }
 
   // Speech Processing
-  private async transcribeAudio(audioData: ArrayBuffer): Promise<string> {
+  private async transcribeAudio(_audioData: ArrayBuffer): Promise<string> {
     // Mock transcription - would use real speech-to-text service in production
     return "This is a mock transcription of the audio data";
   }
 
   private async speak(text: string): Promise<void> {
     // Mock text-to-speech - would use real TTS service in production
-    console.log(`Speaking: ${text}`);
+    logger.info(`Speaking: ${text}`);
   }
 
   // Intent Detection

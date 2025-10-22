@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // @ts-nocheck
 /**
  * Invoice Approval Workflow System
@@ -525,7 +526,7 @@ class ApprovalWorkflowService {
 
   private async processApprovalAction_Reject(
     approvalRequest: ApprovalRequest,
-    actionEntry: ApprovalAction_Entry
+    _actionEntry: ApprovalAction_Entry
   ): Promise<void> {
     approvalRequest.status = 'rejected'
     approvalRequest.completedAt = new Date().toISOString()
@@ -539,7 +540,7 @@ class ApprovalWorkflowService {
 
   private async processApprovalAction_RequestChanges(
     approvalRequest: ApprovalRequest,
-    actionEntry: ApprovalAction_Entry
+    _actionEntry: ApprovalAction_Entry
   ): Promise<void> {
     // Return to draft status for changes
     await this.updateInvoiceStatus(approvalRequest.invoiceId, InvoiceStatus.DRAFT)

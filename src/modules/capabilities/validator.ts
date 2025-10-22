@@ -3,17 +3,14 @@
  * Validates capability parameters, prevents SQL injection, and ensures safety
  */
 
-import {
-  CapabilitySpec,
+import { CapabilitySpec,
   ParameterSpec,
-  ParameterValidation,
   CapabilityValidationError,
   BuiltInValidators,
   EXECUTION_LIMITS,
-  CapabilityExecutionContext
-} from './types';
+  CapabilityExecutionContext } from './types';
 import { Logger } from '../../shared/logger';
-import { SecurityError, InputValidator, PIIRedactor } from '../../shared/security-utils';
+import { PIIRedactor } from '../../shared/security-utils';
 
 export class CapabilityValidator {
   private logger: Logger;
@@ -786,7 +783,7 @@ export class CapabilityValidator {
   private async runCrossParameterValidation(
     validatorName: string,
     parameters: Record<string, unknown>,
-    context: CapabilityExecutionContext
+    _context: CapabilityExecutionContext
   ): Promise<void> {
     const validator = this.customValidators.get(validatorName);
     if (!validator) {

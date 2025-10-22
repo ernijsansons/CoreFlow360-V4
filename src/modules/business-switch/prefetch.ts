@@ -241,7 +241,7 @@ class PrefetchManager {
   /**
    * Fetch recent notifications
    */
-  private async fetchNotifications(businessId: string): Promise<any[]> {
+  private async fetchNotifications(_businessId: string): Promise<any[]> {
     // Placeholder - would query notifications table
     return [];
   }

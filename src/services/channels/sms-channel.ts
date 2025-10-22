@@ -130,7 +130,7 @@ export class SMSChannel extends BaseChannel {
     };
   }
 
-  async formatContent(content: ChannelContent, recipient: Lead | Contact): Promise<string> {
+  async formatContent(content: ChannelContent, _recipient: Lead | Contact): Promise<string> {
     let message = content.body;
 
     // Remove HTML if present

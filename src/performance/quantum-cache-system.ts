@@ -99,7 +99,7 @@ export class EdgeCache {
     }
   }
 
-  async invalidate(pattern: string): Promise<void> {
+  async invalidate(_pattern: string): Promise<void> {
   }
 }
 
@@ -278,11 +278,11 @@ export class CachePredictionEngine {
     };
   }
 
-  private async getAccessFrequency(key: string): Promise<number> {
+  private async getAccessFrequency(_key: string): Promise<number> {
     return 0.5;
   }
 
-  private async getTemporalPattern(key: string): Promise<any> {
+  private async getTemporalPattern(_key: string): Promise<any> {
     return {
       hourlyPattern: new Array(24).fill(0.1),
       dailyPattern: new Array(7).fill(0.1),
@@ -295,15 +295,15 @@ export class CachePredictionEngine {
     return criticalOperations.includes(context.operation) ? 1.0 : 0.5;
   }
 
-  private async estimateComputeCost(key: string): Promise<number> {
+  private async estimateComputeCost(_key: string): Promise<number> {
     return 0.3;
   }
 
-  private async estimateDataSize(key: string): Promise<number> {
+  private async estimateDataSize(_key: string): Promise<number> {
     return 1024;
   }
 
-  private async analyzeUserBehavior(context: CacheContext): Promise<any> {
+  private async analyzeUserBehavior(_context: CacheContext): Promise<any> {
     return {
       sessionLength: 1800,
       pageViews: 10,
@@ -359,7 +359,7 @@ export class CachePredictionEngine {
     return layers.length > 0 ? layers : ['edge', 'kv'];
   }
 
-  private identifyWarmingTargets(key: string, factors: any): string[] {
+  private identifyWarmingTargets(key: string, _factors: any): string[] {
     const related = [];
 
     if (key.includes('user:')) {
@@ -498,7 +498,7 @@ export class QuantumCacheSystem {
     await this.l1Cache.set(key, data, 300);
   }
 
-  private async fetchWithOptimization(key: string, context: CacheContext): Promise<any> {
+  private async fetchWithOptimization(key: string, _context: CacheContext): Promise<any> {
     return {
       data: `optimized-data-for-${key}`,
       metadata: { generatedAt: Date.now() }
@@ -516,7 +516,7 @@ export class QuantumCacheSystem {
     ]);
   }
 
-  private async selectCacheStrategy(key: string, data: any): Promise<any> {
+  private async selectCacheStrategy(_key: string, _data: any): Promise<any> {
     return {
       edgeTTL: 300,
       kvTTL: 600,

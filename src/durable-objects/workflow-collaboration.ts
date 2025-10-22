@@ -64,18 +64,19 @@ interface Comment {
   updatedAt: string;
 }
 
-interface AwarenessState {
-  participants: Map<string, Participant>;
-  activeEditors: Set<string>;
-  pendingChanges: Map<string, WorkflowChange>;
-  comments: Map<string, Comment>;
-  workflowLock?: {
-    userId: string;
-    lockType: 'editing' | 'executing';
-    acquiredAt: string;
-    expiresAt: string;
-  };
-}
+// TODO: Implement awareness state when needed
+// interface AwarenessState {
+//   participants: Map<string, Participant>;
+//   activeEditors: Set<string>;
+//   pendingChanges: Map<string, WorkflowChange>;
+//   comments: Map<string, Comment>;
+//   workflowLock?: {
+//     userId: string;
+//     lockType: 'editing' | 'executing';
+//     acquiredAt: string;
+//     expiresAt: string;
+//   };
+// }
 
 // =====================================================
 // COLLABORATION DURABLE OBJECT
@@ -413,7 +414,7 @@ export class WorkflowCollaboration {
 
   private async detectConflict(change: WorkflowChange): Promise<any> {
     // Check if another user is editing the same node/edge
-    for (const [changeId, pendingChange] of this.pendingChanges) {
+    for (const [, pendingChange] of this.pendingChanges) {
       if (pendingChange.userId !== change.userId &&
           pendingChange.type === change.type &&
           this.isOverlappingChange(pendingChange, change)) {
@@ -710,7 +711,7 @@ export class WorkflowCollaboration {
   // STATE MANAGEMENT
   // =====================================================
 
-  private async handleGetState(request: Request): Promise<Response> {
+  private async handleGetState(_request: Request): Promise<Response> {
     const state = await this.getCollaborationState();
     return new Response(JSON.stringify(state));
   }
@@ -725,7 +726,7 @@ export class WorkflowCollaboration {
     };
   }
 
-  private async handleCreateSnapshot(request: Request): Promise<Response> {
+  private async handleCreateSnapshot(_request: Request): Promise<Response> {
     const snapshot = {
       workflowId: this.workflowId,
       participants: Array.from(this.participants.values()),

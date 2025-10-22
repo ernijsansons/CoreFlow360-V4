@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { MigrationState, MigrationMetrics, AuditLog, ProgressUpdate } from '../../types/migration';
+import { MigrationState, MigrationMetrics } from '../../types/migration';
 
 export interface ProgressEvent {
   migrationId: string;

@@ -127,6 +127,7 @@ export async function invalidateCache(
 ): Promise<void> {
   try {
     const smartCache = new SmartCaching(env);
+    void smartCache;
 
     // List all keys matching pattern
     const listResult = await env.KV_CACHE.list({ prefix: pattern });

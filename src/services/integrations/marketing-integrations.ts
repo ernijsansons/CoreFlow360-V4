@@ -1,6 +1,6 @@
 import { BaseIntegration } from './base-integration';
-import type { Env } from '../../types/env';
-import type { Integration, SyncResult } from '../../types/integration';
+
+import type { SyncResult } from '../../types/integration';
 
 // =====================================================
 // META ADS INTEGRATION
@@ -510,11 +510,11 @@ export class GoogleAdsIntegration extends BaseIntegration {
       const userListId = (segment as any).metadata?.google_user_list_id;
       if (!userListId) continue;
 
-      const leads = await db.prepare(`
-        SELECT email, phone FROM leads
-        WHERE segment_id = ?
-          AND status = 'qualified'
-      `).bind((segment as any).id).all();
+      // const _leads = await db.prepare(`
+      //   SELECT email, phone FROM leads
+      //   WHERE segment_id = ?
+      //     AND status = 'qualified'
+      // `).bind((segment as any).id).all();
 
       // Upload to Google Ads customer match
       // Implementation would follow Google Ads API documentation

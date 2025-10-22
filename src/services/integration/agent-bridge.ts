@@ -231,7 +231,7 @@ export class CoreFlow360AgentBridge extends EventEmitter {
     }
 
     this.syncTimer = setInterval(() => {
-      this.syncData().catch((error: any) => {
+      this.syncData().catch((_error: any) => {
       });
     }, this.syncInterval);
   }

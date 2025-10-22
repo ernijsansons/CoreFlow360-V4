@@ -476,7 +476,7 @@ export class CostLimitExceededError extends WorkflowError {
 }
 
 export class WorkflowValidationError extends WorkflowError {
-  constructor(message: string, field?: string) {
+  constructor(message: string, _field?: string) {
     super(`Workflow validation failed: ${message}`, 'VALIDATION_ERROR', undefined, undefined, false);
   }
 }

@@ -4,12 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import { CRMService } from '../services/crm-service';
 import { CRMMigrationManager } from '../database/crm-migration-manager';
 import type { Env } from '../types/env';
-import type {
-  LeadFilters,
-  ContactFilters,
-  ConversationFilters,
-  PaginationOptions
-} from '../types/crm';
+// import type { PaginationOptions } from '../types/crm';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -64,23 +59,25 @@ const CreateAITaskSchema = z.object({
   metadata: z.record(z.any()).optional()
 });
 
-const LeadFiltersSchema = z.object({
-  status: z.enum(['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']).optional(),
-  source: z.string().optional(),
-  assigned_to: z.string().optional(),
-  created_after: z.string().optional(),
-  created_before: z.string().optional(),
-  score_min: z.number().optional(),
-  score_max: z.number().optional()
-});
+// TODO: Use LeadFiltersSchema when implementing filtering
+// const _LeadFiltersSchema = z.object({
+//   status: z.enum(['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']).optional(),
+//   source: z.string().optional(),
+//   assigned_to: z.string().optional(),
+//   created_after: z.string().optional(),
+//   created_before: z.string().optional(),
+//   score_min: z.number().optional(),
+//   score_max: z.number().optional()
+// });
 
-const ContactFiltersSchema = z.object({
-  company_id: z.string().optional(),
-  department: z.string().optional(),
-  seniority_level: z.string().optional(),
-  created_after: z.string().optional(),
-  created_before: z.string().optional()
-});
+// TODO: Use ContactFiltersSchema when implementing filtering
+// const _ContactFiltersSchema = z.object({
+//   company_id: z.string().optional(),
+//   department: z.string().optional(),
+//   seniority_level: z.string().optional(),
+//   created_after: z.string().optional(),
+//   created_before: z.string().optional()
+// });
 
 const ConversationFiltersSchema = z.object({
   lead_id: z.string().optional(),
@@ -112,7 +109,7 @@ app.post('/companies', zValidator('json', CreateCompanySchema), async (c: any) =
 
 app.get('/companies', async (c: any) => {
   try {
-    const crmService = new CRMService(c.env);
+    // const _crmService = new CRMService(c.env);
     const businessId = c.get('businessId');
     // Fetch all companies for the business
     const result = await c.env.DB_CRM
@@ -316,8 +313,8 @@ app.post('/conversations', zValidator('json', CreateConversationSchema), async (
 app.get('/conversations', zValidator('query', ConversationFiltersSchema.merge(PaginationSchema)), async (c: any) => {
   try {
     const businessId = c.get('businessId');
-    const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
-    const pagination: PaginationOptions = { page, limit, sortBy: sort_by, sortOrder: sort_order };
+    const { page, limit } = c.get('validatedData');
+    // const _pagination: PaginationOptions = { page, limit, sortBy: sort_by, sortOrder: sort_order };
 
     // Simple query to fetch all conversations
     const result = await c.env.DB_CRM
