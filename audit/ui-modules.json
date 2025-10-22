@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "admin",
+    "agents",
+    "banking",
+    "chat",
+    "crm",
+    "Dashboard",
+    "data",
+    "documents",
+    "finance",
+    "Landing",
+    "Login"
+  ],
+  "components": [
+    "admin",
+    "agents",
+    "ai-agents",
+    "anomalies",
+    "auth",
+    "banking",
+    "business",
+    "chat",
+    "compliance",
+    "crm",
+    "dashboard",
+    "documents",
+    "finance",
+    "intelligence",
+    "landing",
+    "marketing",
+    "migration",
+    "observability",
+    "onboarding"
+  ],
+  "note": "Frontend uses React with TanStack Router, components organized by feature module"
+}

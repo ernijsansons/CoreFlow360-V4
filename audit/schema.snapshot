@@ -1,0 +1,526 @@
+# CoreFlow360 V4 Database Schema Snapshot
+Generated as part of Backend-to-UI Audit (Terminal X)
+
+## Overview
+CoreFlow360 V4 uses Cloudflare D1 (SQLite) as its primary database, with a comprehensive schema covering business management, finance, CRM, and AI agent operations.
+
+---
+
+## Core Business Tables
+
+### businesses
+- **Purpose**: Multi-business portfolio management
+- **Key Fields**: id, name, settings (JSON), created_at, updated_at
+- **Indexes**: created_at
+- **UI Relevance**: Business switcher, company profile management
+
+### users
+- **Purpose**: User accounts and authentication
+- **Key Fields**: id, business_id, email (unique), role, settings (JSON)
+- **Indexes**: business_id, email
+- **UI Relevance**: User management, role assignment, authentication
+
+---
+
+## Finance Module Tables
+
+### Chart of Accounts (chart_of_accounts)
+- **Purpose**: Complete chart of accounts for double-entry bookkeeping
+- **Key Fields**:
+  - id, code (unique per business), name, type (ASSET/LIABILITY/EQUITY/REVENUE/EXPENSE)
+  - category, parent_id, currency, normal_balance (debit/credit)
+  - is_active, is_system_account, is_reconcilable, is_cash_account
+  - business_id, metadata (JSON)
+- **Indexes**: business_type, business_code, parent, active
+- **UI Relevance**: Chart of accounts editor, account selection dropdowns
+
+### Accounting Periods (accounting_periods)
+- **Purpose**: Fiscal period management and closing
+- **Key Fields**:
+  - id, name, start_date, end_date, fiscal_year, fiscal_period
+  - status (FUTURE/OPEN/CLOSING/CLOSED/LOCKED)
+  - closed_at, closed_by, locked_at, locked_by, business_id
+- **Indexes**: business_fiscal, business_dates, status
+- **UI Relevance**: Period selector, period closing interface
+
+### Journal Entries (journal_entries)
+- **Purpose**: Double-entry journal entries
+- **Key Fields**:
+  - id, entry_number (unique per business), date, description, reference
+  - type (STANDARD/ADJUSTING/CLOSING/REVERSING/OPENING/SYSTEM)
+  - status (DRAFT/PENDING_APPROVAL/APPROVED/POSTED/REVERSED/VOIDED)
+  - period_id, reversal_of, reversed_by, posted_at, posted_by
+  - business_id, metadata (JSON)
+- **Indexes**: business_date, business_status, period, type, posted
+- **UI Relevance**: Journal entry editor, posting interface, approval workflow
+
+### Journal Lines (journal_lines)
+- **Purpose**: Individual line items in journal entries
+- **Key Fields**:
+  - id, journal_entry_id, account_id, account_code, account_name
+  - debit, credit, currency, exchange_rate, base_debit, base_credit
+  - description, department_id, project_id, customer_id, vendor_id
+  - metadata (JSON)
+- **Indexes**: entry, account, department, project
+- **Constraints**: Either debit OR credit (not both), amounts >= 0
+- **UI Relevance**: Journal entry line editor, account distribution
+
+### General Ledger (general_ledger)
+- **Purpose**: Account balances by period (aggregated view)
+- **Key Fields**:
+  - id, account_id, period_id, opening_balance, debits, credits
+  - closing_balance, currency, transaction_count, last_transaction_date
+  - business_id
+- **Indexes**: account, period, business
+- **UI Relevance**: General ledger report, account balances
+
+### Ledger Transactions (ledger_transactions)
+- **Purpose**: Detailed transaction history with running balances
+- **Key Fields**:
+  - id, journal_entry_id, account_id, date, debit, credit, balance
+  - currency, exchange_rate, base_debit, base_credit, base_balance
+  - description, reference, reconciled, reconciled_date, business_id
+- **Indexes**: account_date, journal, business_date, reconciled
+- **UI Relevance**: Account ledger view, reconciliation interface
+
+### Currencies (currencies)
+- **Purpose**: Supported currencies
+- **Key Fields**: code (ISO 4217), name, symbol, decimal_places, is_base_currency
+- **UI Relevance**: Currency selector, multi-currency displays
+
+### Exchange Rates (exchange_rates)
+- **Purpose**: Currency conversion rates
+- **Key Fields**:
+  - id, from_currency, to_currency, rate, effective_date, expiry_date
+  - source, is_automatic, business_id
+- **Indexes**: currencies_date, business, effective, expiry
+- **UI Relevance**: Exchange rate management, currency conversion displays
+
+### Finance Configuration (finance_config)
+- **Purpose**: Business-level finance settings
+- **Key Fields**:
+  - business_id (PK), base_currency, fiscal_year_start, period_type
+  - allow_negative_inventory, require_approval, approval_threshold
+  - retained_earnings_account_id, income_summary_account_id
+  - rounding_account_id, currency_gain_loss_account_id
+  - accounts_receivable_id, sales_tax_payable_id
+  - default_revenue_account_id, discount_allowed_account_id
+- **UI Relevance**: Finance settings page
+
+### Customers (customers)
+- **Purpose**: Customer master data
+- **Key Fields**:
+  - id, name, email, phone, website, tax_id, currency
+  - payment_terms (JSON), credit_limit
+  - billing_address (JSON), shipping_address (JSON)
+  - contacts (JSON array), is_active, business_id, metadata (JSON)
+- **Indexes**: business, business_active, email
+- **UI Relevance**: Customer list, customer editor, customer selector
+
+### Tax Rates (tax_rates)
+- **Purpose**: Tax rate definitions
+- **Key Fields**:
+  - id, name, rate, type (SALES_TAX/VAT/GST/EXCISE_TAX/CUSTOM)
+  - jurisdiction, account_id, is_active, effective_date, expiry_date
+  - business_id
+- **Indexes**: business, business_active, jurisdiction
+- **UI Relevance**: Tax rate manager, tax calculation displays
+
+### Tax Jurisdictions (tax_jurisdictions)
+- **Purpose**: Hierarchical tax jurisdictions
+- **Key Fields**: id, name, code, type (country/state/province/city/district), parent_id
+- **Indexes**: business, code
+- **UI Relevance**: Jurisdiction selector, tax setup wizard
+
+### Invoices (invoices)
+- **Purpose**: Customer invoices
+- **Key Fields**:
+  - id, invoice_number (unique per business), customer_id, customer_name
+  - customer_email, bill_to_address (JSON), ship_to_address (JSON)
+  - issue_date, due_date, currency, exchange_rate
+  - subtotal, tax_total, discount_total, total, balance_due
+  - status (DRAFT/PENDING_APPROVAL/SENT/VIEWED/PARTIALLY_PAID/PAID/OVERDUE/CANCELLED/VOIDED)
+  - terms (JSON), lines (JSON array), tax_lines (JSON array), discounts (JSON array)
+  - notes, internal_notes, reference_number, po_number
+  - approval_required, approval_status, approvals (JSON array)
+  - pdf_url, sent_at, sent_by, last_reminder_sent, journal_entry_id
+  - business_id, metadata (JSON)
+- **Indexes**: business, business_status, customer, due_date, balance_due, sent
+- **UI Relevance**: Invoice list, invoice editor, invoice viewer, PDF generator
+
+### Invoice Payments (invoice_payments)
+- **Purpose**: Payments received for invoices
+- **Key Fields**:
+  - id, invoice_id, payment_date, amount, currency, exchange_rate
+  - base_amount, payment_method, reference, notes, journal_entry_id
+  - business_id
+- **Indexes**: invoice, business, date
+- **Triggers**: Updates invoice balance_due and status automatically
+- **UI Relevance**: Payment entry form, payment history
+
+### Invoice Approvals (invoice_approvals)
+- **Purpose**: Multi-level invoice approval workflow
+- **Key Fields**:
+  - id, invoice_id, approver_user_id, approver_name
+  - status (PENDING/APPROVED/REJECTED/CANCELLED), level, comments
+  - approved_at, rejected_at
+- **Indexes**: invoice, approver, status, level
+- **UI Relevance**: Approval workflow interface, pending approvals list
+
+### Invoice Approval Configuration (invoice_approval_config)
+- **Purpose**: Business-level approval settings
+- **Key Fields**:
+  - business_id (PK), is_enabled, default_threshold, max_approval_levels
+  - auto_approve_small_amounts, small_amount_threshold
+  - require_comments_on_rejection, notify_on_pending_approval
+  - escalation_days
+- **UI Relevance**: Approval settings page
+
+### Invoice Approval Rules (invoice_approval_rules)
+- **Purpose**: Threshold-based approval rules
+- **Key Fields**:
+  - id, name, description, threshold_amount, currency
+  - required_approvers (JSON array), is_active, business_id
+- **Indexes**: business, business_active, threshold
+- **UI Relevance**: Approval rules manager
+
+### Invoice Templates (invoice_templates)
+- **Purpose**: Invoice PDF templates
+- **Key Fields**:
+  - id, name, is_default, logo_url, colors (JSON), layout
+  - show_tax_column, show_discount_column, footer_text, business_id
+- **Indexes**: business, default
+- **UI Relevance**: Template selector, template designer
+
+### Account Reconciliation (account_reconciliation)
+- **Purpose**: Bank reconciliation tracking
+- **Key Fields**:
+  - id, account_id, statement_date, statement_balance, book_balance
+  - difference, status (pending/in_progress/completed)
+  - reconciled_by, reconciled_at, notes, business_id
+- **Indexes**: account_date, business_status, date
+- **UI Relevance**: Reconciliation interface, reconciliation history
+
+### Reconciliation Items (reconciliation_items)
+- **Purpose**: Individual reconciliation line items
+- **Key Fields**:
+  - id, reconciliation_id, transaction_id, statement_date
+  - statement_amount, book_amount, difference
+  - status (matched/unmatched/partial)
+  - reconciled_by, reconciled_at, notes, business_id
+- **Indexes**: reconciliation, transaction, status, business
+- **UI Relevance**: Reconciliation matching interface
+
+### Budget Lines (budget_lines)
+- **Purpose**: Budget vs actual tracking
+- **Key Fields**:
+  - id, account_id, period_id, budget_amount, actual_amount
+  - variance, variance_percentage, notes, business_id
+- **Indexes**: account, period, business
+- **UI Relevance**: Budget editor, budget vs actual reports
+
+### Closing Entries (closing_entries)
+- **Purpose**: Track period closing process
+- **Key Fields**:
+  - id, period_id, type (revenue/expense/dividend/summary)
+  - source_accounts (JSON array), target_account, amount
+  - journal_entry_id, business_id
+- **Indexes**: period, journal, business
+- **UI Relevance**: Period closing workflow
+
+### Financial Statements Cache (financial_statements)
+- **Purpose**: Pre-generated financial statements
+- **Key Fields**:
+  - id, type (BALANCE_SHEET/INCOME_STATEMENT/CASH_FLOW/EQUITY_STATEMENT)
+  - period_id, start_date, end_date, currency, data (JSON)
+  - generated_at, generated_by, business_id
+- **Indexes**: business_type, period, dates
+- **UI Relevance**: Financial reports viewer, statement downloads
+
+### Validation Rules (validation_rules)
+- **Purpose**: Data validation rules engine
+- **Key Fields**:
+  - id, name, type (account/journal/period), condition (expression)
+  - error_message, severity (error/warning), is_active, business_id
+- **Indexes**: type, business
+- **UI Relevance**: Validation settings, error displays
+
+### Financial Reports (financial_reports)
+- **Purpose**: Report generation tracking
+- **Key Fields**:
+  - id, type, name, description, parameters (JSON)
+  - generated_at, generated_by, status (GENERATING/COMPLETED/FAILED/EXPIRED)
+  - data (JSON), export_urls (JSON), business_id
+- **Indexes**: business, type, generated, status
+- **UI Relevance**: Report history, report download manager
+
+### Custom Report Definitions (custom_report_definitions)
+- **Purpose**: User-defined custom reports
+- **Key Fields**:
+  - id, name, description, data_source, columns (JSON array)
+  - filters (JSON array), sorting (JSON array), grouping (JSON array)
+  - aggregations (JSON array), formatting (JSON)
+  - is_template, is_public, created_by, business_id
+- **Indexes**: business, public, creator, name
+- **UI Relevance**: Report builder, report templates
+
+### Report Templates (report_templates)
+- **Purpose**: Pre-built report definitions
+- **Key Fields**:
+  - id, name, description, category, report_type
+  - definition (JSON), preview_data (JSON), is_system
+- **Indexes**: category, type
+- **UI Relevance**: Report template gallery
+
+### Report Schedules (report_schedules)
+- **Purpose**: Automated report generation
+- **Key Fields**:
+  - id, name, report_definition_id, report_type, parameters (JSON)
+  - schedule_cron, export_formats (JSON array), email_recipients (JSON array)
+  - is_active, last_run_at, next_run_at, created_by, business_id
+- **Indexes**: business, next_run, active
+- **UI Relevance**: Report scheduling interface, scheduled reports list
+
+### Report Permissions (report_permissions)
+- **Purpose**: Report access control
+- **Key Fields**:
+  - id, report_id, report_definition_id, user_id
+  - permission_type (VIEW/EDIT/DELETE/EXPORT)
+  - granted_by, granted_at, business_id
+- **Indexes**: user, business, report, definition
+- **UI Relevance**: Report sharing interface, permissions manager
+
+### GDPR Export Requests (gdpr_export_requests)
+- **Purpose**: GDPR data export compliance
+- **Key Fields**:
+  - id, business_id, requested_by, requested_at
+  - purpose, include_personal_data, include_financial_data
+  - include_audit_trails, date_range_start, date_range_end
+  - export_format, delivery_method, retention_days
+  - status, completed_at, download_url, file_size, expires_at
+- **Indexes**: business, status, requested_by, expires
+- **UI Relevance**: GDPR export interface, data export dashboard
+
+### Finance Audit Log (finance_audit_log)
+- **Purpose**: Immutable audit trail for financial operations
+- **Key Fields**:
+  - id, entity_type (account/journal/period/ledger), entity_id
+  - action, changes (JSON), performed_by, performed_at
+  - ip_address, user_agent, business_id
+  - previous_hash, current_hash (blockchain-style)
+- **Indexes**: business_date, entity, user, action, hash
+- **UI Relevance**: Audit log viewer, compliance reports
+
+---
+
+## CRM Module Tables
+
+### Companies (companies)
+- **Purpose**: Company/account records with AI intelligence
+- **Key Fields**:
+  - id, business_id, name, domain (unique), industry
+  - size_range (1-10/11-50/51-200/201-500/501-1000/1000+)
+  - revenue_range (0-1M/1M-5M/5M-10M/10M-50M/50M-100M/100M+)
+  - ai_summary, ai_pain_points, ai_icp_score (0-100)
+  - technologies (JSON), funding (JSON), news (JSON), social_profiles (JSON)
+- **Indexes**: business_domain, ai_icp_score
+- **UI Relevance**: Company list, company profile, ICP scoring dashboard
+
+### Contacts (contacts)
+- **Purpose**: Individual contact records with AI enrichment
+- **Key Fields**:
+  - id, business_id, company_id, email (unique per business), phone
+  - first_name, last_name, title
+  - seniority_level (individual_contributor/team_lead/manager/director/vp/c_level/founder)
+  - department (engineering/sales/marketing/hr/finance/operations/legal/executive/other)
+  - linkedin_url, ai_personality, ai_communication_style, ai_interests (JSON)
+  - verified_phone, verified_email, timezone, preferred_contact_method
+- **Indexes**: business_email, company
+- **UI Relevance**: Contact list, contact profile, contact enrichment status
+
+### Leads (leads)
+- **Purpose**: Sales leads with AI qualification
+- **Key Fields**:
+  - id, business_id, contact_id, company_id, source, source_campaign
+  - status (new/qualifying/qualified/meeting_scheduled/opportunity/unqualified/closed_won/closed_lost)
+  - ai_qualification_score (0-100), ai_qualification_summary
+  - ai_next_best_action, ai_predicted_value, ai_close_probability (0-1)
+  - ai_estimated_close_date, assigned_to, assigned_type (ai/human)
+- **Indexes**: business_status, assigned, ai_score
+- **UI Relevance**: Lead pipeline, qualification dashboard, AI recommendations
+
+### Conversations (conversations)
+- **Purpose**: All communication history with AI analysis
+- **Key Fields**:
+  - id, business_id, lead_id, contact_id
+  - type (call/email/chat/sms/meeting/demo)
+  - direction (inbound/outbound), participant_type (ai/human/mixed)
+  - subject, transcript, ai_summary
+  - ai_sentiment (positive/neutral/negative)
+  - ai_objections (JSON), ai_commitments (JSON), ai_next_steps (JSON)
+  - duration_seconds, recording_url, external_id, metadata (JSON)
+- **Indexes**: lead, contact
+- **UI Relevance**: Conversation timeline, AI insights panel, call recordings
+
+### AI Tasks (ai_tasks)
+- **Purpose**: Queue for autonomous AI operations
+- **Key Fields**:
+  - id, business_id, type, priority (1-10), payload (JSON)
+  - status (pending/processing/completed/failed/cancelled)
+  - assigned_agent, attempts, max_attempts, last_error
+  - scheduled_at, started_at, completed_at, expires_at
+- **Indexes**: pending (status + priority + created), business, scheduled
+- **UI Relevance**: AI task monitor, agent activity dashboard
+
+### Lead Activities (lead_activities)
+- **Purpose**: Activity timeline for leads
+- **Key Fields**:
+  - id, business_id, lead_id, contact_id
+  - type (call/email/meeting/note/demo/proposal/contract/ai_action)
+  - description, outcome (positive/neutral/negative)
+  - ai_generated (boolean), metadata (JSON), created_by
+- **Indexes**: lead, type
+- **UI Relevance**: Activity timeline, activity feed
+
+### Email Sequences (email_sequences)
+- **Purpose**: Automated email nurture campaigns
+- **Key Fields**:
+  - id, business_id, name, description
+  - trigger_type (lead_created/status_change/time_based/behavior_based)
+  - trigger_conditions (JSON), is_active, ai_optimization
+- **UI Relevance**: Sequence builder, campaign manager
+
+### Email Sequence Steps (email_sequence_steps)
+- **Purpose**: Individual steps in email sequences
+- **Key Fields**:
+  - id, sequence_id, step_order (unique per sequence), delay_hours
+  - subject_template, body_template, ai_personalization, is_active
+- **UI Relevance**: Step editor, sequence flow designer
+
+### Lead Scoring Rules (lead_scoring_rules)
+- **Purpose**: Configurable lead scoring system
+- **Key Fields**:
+  - id, business_id, name
+  - category (demographic/firmographic/behavioral/engagement)
+  - condition_field, condition_operator (equals/contains/greater_than/less_than/in/not_in)
+  - condition_value, score_points, is_active
+- **UI Relevance**: Scoring rules manager, score calculation explainer
+
+---
+
+## Audit & Compliance Tables
+
+### Audit Log (audit_log)
+- **Purpose**: System-wide audit trail
+- **Key Fields**:
+  - id (auto-increment), business_id, user_id, action, resource
+  - metadata (JSON), timestamp
+- **Indexes**: business_time
+- **UI Relevance**: Audit log viewer, compliance reports
+
+### Ledger Entries (ledger_entries)
+- **Purpose**: General ledger entries (legacy/simplified)
+- **Key Fields**:
+  - id, business_id, account_id, amount, type (debit/credit)
+  - description, metadata (JSON), created_at
+- **Indexes**: business_date, account
+- **UI Relevance**: Transaction history (simplified view)
+
+---
+
+## Database Views
+
+### account_balances
+- **Purpose**: Real-time account balance calculation
+- **Aggregates**: total_debits, total_credits, balance, last_transaction_date
+- **UI Relevance**: Account balance displays, quick balance lookups
+
+### trial_balance
+- **Purpose**: Trial balance report view
+- **Aggregates**: debit_balance, credit_balance by period and account
+- **UI Relevance**: Trial balance report
+
+### profit_loss_summary
+- **Purpose**: P&L summary by period
+- **Aggregates**: total_revenue, total_cogs, total_operating_expenses, net_income
+- **UI Relevance**: P&L report, dashboard KPIs
+
+### cash_flow_summary
+- **Purpose**: Cash flow analysis by period
+- **Aggregates**: net_cash_flow, operating_cash_flow
+- **UI Relevance**: Cash flow report, cash dashboard
+
+---
+
+## Database Triggers
+
+### Finance Triggers
+- **update_journal_entry_timestamp**: Updates timestamp when journal lines change
+- **validate_journal_balance**: Ensures debits = credits for journal entries
+- **prevent_posted_entry_modification**: Prevents changes to posted entries
+- **prevent_posted_entry_deletion**: Prevents deletion of posted entries
+- **update_general_ledger**: Updates ledger balances when entries are posted
+- **prevent_closed_period_modification**: Protects closed/locked periods
+- **update_invoice_balance_on_payment**: Auto-updates invoice balance and status
+- **auto_generate_invoice_number**: Sequential invoice numbering
+- **update_overdue_status**: Auto-marks overdue invoices
+
+### CRM Triggers
+- **update_companies_updated_at**: Timestamp update trigger
+- **update_contacts_updated_at**: Timestamp update trigger
+- **update_leads_updated_at**: Timestamp update trigger
+- **update_ai_tasks_updated_at**: Timestamp update trigger
+- **update_email_sequences_updated_at**: Timestamp update trigger
+
+---
+
+## Schema Analysis for UI Integration
+
+### High-Priority UI Gaps (Based on Schema)
+1. **Finance Module**
+   - Chart of accounts management interface
+   - Journal entry editor with line-by-line input
+   - Period closing workflow UI
+   - Reconciliation interface with matching tools
+   - Budget vs actual dashboard
+   - Invoice approval workflow interface
+   - Multi-level approval configuration
+   - Custom report builder UI
+   - Report scheduling interface
+   - GDPR export wizard
+
+2. **CRM Module**
+   - Company intelligence dashboard (ICP scoring, AI summary)
+   - Contact enrichment status and triggers
+   - Lead qualification AI panel (show AI reasoning)
+   - Conversation intelligence viewer (sentiment, objections, commitments)
+   - AI task queue monitor and manual intervention
+   - Lead scoring rules builder
+   - Email sequence designer (visual flow builder)
+   - Activity timeline with AI-generated entries
+
+3. **Compliance & Audit**
+   - Audit log viewer with filtering and search
+   - Compliance reports dashboard
+   - GDPR data export interface
+
+### Schema Metadata
+- **Total Tables**: 60+
+- **Total Views**: 4
+- **Total Triggers**: 15+
+- **Total Indexes**: 100+
+- **Primary Database**: Cloudflare D1 (SQLite)
+- **JSON Fields**: Extensive use for flexible metadata and complex structures
+- **Multi-tenancy**: business_id foreign key on all tenant-specific tables
+- **AI Integration**: Native AI fields (ai_summary, ai_score, ai_sentiment) throughout CRM schema
+
+---
+
+## Next Steps for Terminal Y
+When auditing UI coverage, cross-reference:
+1. Each table should have corresponding CRUD interfaces
+2. JSON fields need specialized editors (not just text areas)
+3. Complex relationships need visual representations (e.g., journal lines, sequence flows)
+4. AI-generated fields need explanation/reasoning displays
+5. Triggers and constraints need UI validation to prevent user errors
+6. Views should have corresponding report interfaces

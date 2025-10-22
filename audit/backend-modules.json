@@ -1,0 +1,56 @@
+[
+  {
+    "Name": "abac"
+  },
+  {
+    "Name": "accounting"
+  },
+  {
+    "Name": "agent-system"
+  },
+  {
+    "Name": "agents"
+  },
+  {
+    "Name": "audit"
+  },
+  {
+    "Name": "auth"
+  },
+  {
+    "Name": "business-context"
+  },
+  {
+    "Name": "business-switch"
+  },
+  {
+    "Name": "capabilities"
+  },
+  {
+    "Name": "chat"
+  },
+  {
+    "Name": "chat-widget"
+  },
+  {
+    "Name": "compliance"
+  },
+  {
+    "Name": "dashboard"
+  },
+  {
+    "Name": "database"
+  },
+  {
+    "Name": "finance"
+  },
+  {
+    "Name": "inventory"
+  },
+  {
+    "Name": "sse"
+  },
+  {
+    "Name": "workflow"
+  }
+]
