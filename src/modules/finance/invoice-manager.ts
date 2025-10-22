@@ -696,9 +696,9 @@ class InvoiceManager {
       customerId: row.customer_id,
       customerName: row.customer_name,
       customerEmail: row.customer_email || undefined,
-      customerAddress: row.customer_address ? JSON.parse(row.customer_address) : undefined,
-      billToAddress: row.bill_to_address ? JSON.parse(row.bill_to_address) : undefined,
-      shipToAddress: row.ship_to_address ? JSON.parse(row.ship_to_address) : undefined,
+      customerAddress: safeParseJson(row.customer_address),
+      billToAddress: safeParseJson(row.bill_to_address),
+      shipToAddress: safeParseJson(row.ship_to_address),
       issueDate: row.issue_date,
       dueDate: row.due_date,
       currency: row.currency,
@@ -709,10 +709,10 @@ class InvoiceManager {
       total: row.total,
       balanceDue: row.balance_due,
       status: row.status as InvoiceStatus,
-      terms: JSON.parse(row.terms),
-      lines: JSON.parse(row.lines),
-      taxLines: row.tax_lines ? JSON.parse(row.tax_lines) : undefined,
-      discounts: row.discounts ? JSON.parse(row.discounts) : undefined,
+      terms: safeParseJson(row.terms) ?? {},
+      lines: safeParseJson(row.lines) ?? [],
+      taxLines: safeParseJson(row.tax_lines),
+      discounts: safeParseJson(row.discounts),
       notes: row.notes || undefined,
       internalNotes: row.internal_notes || undefined,
       referenceNumber: row.reference_number || undefined,
@@ -720,7 +720,7 @@ class InvoiceManager {
       journalEntryId: row.journal_entry_id || undefined,
       approvalRequired: Boolean(row.approval_required),
       approvalStatus: row.approval_status as ApprovalStatus || undefined,
-      approvals: row.approvals ? JSON.parse(row.approvals) : undefined,
+      approvals: safeParseJson(row.approvals),
       pdfUrl: row.pdf_url || undefined,
       sentAt: row.sent_at || undefined,
       sentBy: row.sent_by || undefined,
@@ -730,7 +730,7 @@ class InvoiceManager {
       updatedAt: row.updated_at,
       updatedBy: row.updated_by || undefined,
       businessId: row.business_id,
-      metadata: row.metadata ? JSON.parse(row.metadata) : undefined
+      metadata: safeParseJson(row.metadata)
     };
   }
 
@@ -746,16 +746,36 @@ class InvoiceManager {
       website: row.website || undefined,
       taxId: row.tax_id || undefined,
       currency: row.currency,
-      paymentTerms: JSON.parse(row.payment_terms),
+      paymentTerms: safeParseJson(row.payment_terms),
       creditLimit: row.credit_limit || undefined,
-      billingAddress: row.billing_address ? JSON.parse(row.billing_address) : undefined,
-      shippingAddress: row.shipping_address ? JSON.parse(row.shipping_address) : undefined,
-      contacts: row.contacts ? JSON.parse(row.contacts) : undefined,
+      billingAddress: safeParseJson(row.billing_address),
+      shippingAddress: safeParseJson(row.shipping_address),
+      contacts: safeParseJson(row.contacts),
       isActive: Boolean(row.is_active),
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       businessId: row.business_id,
-      metadata: row.metadata ? JSON.parse(row.metadata) : undefined
+      metadata: safeParseJson(row.metadata)
     };
   }
 }
+const safeParseJson = <T = unknown>(value: unknown): T | undefined => {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+
+    try {
+      return JSON.parse(trimmed) as T;
+    } catch {
+      return undefined;
+    }
+  }
+
+  return value as T;
+};

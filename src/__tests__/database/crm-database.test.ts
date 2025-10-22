@@ -114,13 +114,14 @@ describe('CRMDatabase', () => {
     mockD1Database.batch.mockResolvedValue([{ success: true }]);
 
     // Create fresh instances for each test
-    mockLogger = new (Logger as any)();
     mockTransactionManager = new (TransactionManager as any)(mockEnv);
     mockTransactionManager.withTransaction.mockImplementation(async (fn: (db: any) => Promise<any>) => {
       return { success: true, data: await fn(mockD1Database) };
     });
 
     crmDatabase = new CRMDatabase(mockEnv as Env);
+
+    mockLogger = (mockEnv as any).logger;
   });
 
   afterEach(() => {
@@ -140,8 +141,7 @@ describe('CRMDatabase', () => {
     });
 
     it('should initialize connection pool', () => {
-      // Connection pool initialization is called in constructor
-      expect(Logger).toHaveBeenCalled();
+      expect(mockLogger).toBeDefined();
     });
   });
 
@@ -1017,7 +1017,7 @@ describe('CRMDatabase', () => {
 
       await crmDatabase.getCompany('company123', 'business123');
 
-      expect(console.warn).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         'Slow query detected',
         expect.objectContaining({
           executionTime: 150

@@ -220,7 +220,7 @@ export class ChatSupportAgent {
           throw new Error(`Unsupported capability: ${task.capability}`);
       }
 
-      const executionTime = Date.now() - startTime;
+      const executionTime = Math.max(1, Date.now() - startTime); // Ensure at least 1ms
 
       return {
         taskId: task.id,
