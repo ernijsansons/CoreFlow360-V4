@@ -1,4 +1,4 @@
-import { ExportConfig, ComplianceReport, AnalyticsData } from '../../types/telemetry';
+import { ExportConfig, ComplianceReport } from '../../types/telemetry';
 import { TelemetryCollector } from './collector';
 import { MetricsCollector } from './metrics';
 
@@ -329,7 +329,7 @@ class ExportIntegrationService {
     // This would require proper AWS signature v4 - simplified for example
     const response = await fetch(url, {
       method: 'PUT',
-      body: data,
+      body: typeof data === 'string' ? data : new Uint8Array(data),
       headers: {
         'Content-Type': this.getContentType(config.format)
       }
@@ -366,7 +366,7 @@ class ExportIntegrationService {
       });
 
       const result = await response.json();
-      return `Email sent: ${result.id}`;
+      return `Email sent: ${(result as any).id}`;
     }
 
     throw new Error('Email service not configured');
@@ -727,12 +727,12 @@ class ExportIntegrationService {
     }
   }
 
-  private async testPrometheusIntegration(integration: Integration): Promise<boolean> {
+  private async testPrometheusIntegration(_integration: Integration): Promise<boolean> {
     // Test Prometheus endpoint
     return true;
   }
 
-  private async testDatadogIntegration(integration: Integration): Promise<boolean> {
+  private async testDatadogIntegration(_integration: Integration): Promise<boolean> {
     // Test Datadog API
     return true;
   }

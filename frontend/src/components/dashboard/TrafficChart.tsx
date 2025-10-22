@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
   SelectContent,
@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import {
   BarChart3,
   LineChart,
@@ -23,7 +22,7 @@ import {
 
 export function TrafficChart() {
   const [chartType, setChartType] = React.useState('line')
-  const [metric, setMetric] = React.useState('users')
+  const [,] = React.useState('users')
   const [granularity, setGranularity] = React.useState('daily')
 
   const generateTrafficData = () => {
@@ -53,7 +52,7 @@ export function TrafficChart() {
         {
           label: 'Page Views',
           data: generateValues().map(v => v * 2.5),
-          color: 'rgb(168, 85, 247)'
+          color: 'rgb(var(--brand-accent-600))'
         }
       ]
     }
@@ -262,7 +261,7 @@ export function TrafficChart() {
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center space-x-1">
-                <Eye className="h-4 w-4 text-purple-600" />
+                <Eye className="h-4 w-4 text-brand-accent-600" />
                 <p className="text-2xl font-bold">156K</p>
               </div>
               <p className="text-xs text-gray-500">Page Views</p>

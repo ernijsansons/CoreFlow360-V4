@@ -7,7 +7,7 @@
 import { Logger } from '../shared/logger';
 import { webGPUAccelerator, type EdgeInferenceModel } from './webgpu-neural-accelerator';
 import { AutomatedAIOptimizer } from './automated-ai-optimizer';
-import type { OptimizationStrategy } from './automated-ai-optimizer';
+import { getNavigator, getPerformance, getEdgeDeviceInfo } from '../shared/worker-polyfills';
 
 export interface EdgeNode {
   nodeId: string;
@@ -481,22 +481,19 @@ export class EdgeAIOrchestrator {
    */
   private async discoverEdgeNodes(): Promise<void> {
     // Discover browser capabilities
-    // @ts-ignore - window is not available in Workers environment
-    if (typeof globalThis !== 'undefined' && typeof globalThis.window !== 'undefined') {
+    // Browser node (Worker-safe check)
+    if (typeof globalThis !== 'undefined' && typeof (globalThis as any).window !== 'undefined') {
+      getNavigator();
+      getPerformance();
+      const deviceInfo = getEdgeDeviceInfo();
+
       this.edgeNodes.set('browser-main', {
         nodeId: 'browser-main',
         location: 'browser',
-        capabilities: {
-          // @ts-ignore - navigator is browser-specific
-          webGPU: 'gpu' in navigator,
-          wasmSimd: typeof WebAssembly !== 'undefined',
-          tensorflowLite: false,
-          memoryMB: (performance as any).memory?.jsHeapSizeLimit / 1024 / 1024 || 2048,
-          computeUnits: navigator.hardwareConcurrency || 4
-        },
-        latency: 1,
-        bandwidth: 1000,
-        reliability: 0.99
+        capabilities: deviceInfo.capabilities,
+        latency: deviceInfo.latency,
+        bandwidth: deviceInfo.bandwidth,
+        reliability: deviceInfo.reliability
       });
     }
 
@@ -528,7 +525,8 @@ export class EdgeAIOrchestrator {
   }
 
   private startPerformanceMonitoring(): void {
-    setInterval(() => {
+    // eslint-disable-next-line no-undef
+    (setInterval as any)(() => {
       this.analyzePerformanceMetrics();
       this.adjustAdaptiveThresholds();
       this.cleanupCache();
@@ -578,7 +576,7 @@ export class EdgeAIOrchestrator {
   private paramsToStrategy(
     params: Float32Array,
     nodes: EdgeNode[],
-    request: DistributedInferenceRequest
+    _request: DistributedInferenceRequest
   ): InferenceStrategy {
     const selectedNodes: EdgeNode[] = [];
     const modelPartitioning: ModelPartition[] = [];
@@ -663,15 +661,16 @@ export class EdgeAIOrchestrator {
 
   private async executeTransferStep(
     step: ExecutionStep,
-    results: Map<string, Float32Array>
+    _results: Map<string, Float32Array>
   ): Promise<void> {
     // Simulate data transfer between nodes
-    await new Promise(resolve => setTimeout(resolve, step.estimatedTime));
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, step.estimatedTime));
   }
 
   private async aggregateResults(
     results: Map<string, Float32Array>,
-    strategy: InferenceStrategy
+    _strategy: InferenceStrategy
   ): Promise<Float32Array> {
     const arrays = Array.from(results.values());
     if (arrays.length === 0) {
@@ -698,14 +697,14 @@ export class EdgeAIOrchestrator {
   private async updatePerformanceMetrics(
     inferenceId: string,
     strategy: InferenceStrategy,
-    result: Float32Array
+    _result: Float32Array
   ): Promise<void> {
     // Track performance metrics for continuous improvement
     const metrics: PerformanceMetric = {
       architecture: this.nasEngine?.currentArchitecture || this.createInitialArchitecture(),
       latency: strategy.expectedLatency,
       accuracy: 0.95, // Would be calculated from actual result
-      energyConsumption: this.estimateEnergyConsumption(this.nasEngine?.currentArchitecture!),
+      energyConsumption: this.estimateEnergyConsumption(this.nasEngine?.currentArchitecture || this.createInitialArchitecture()),
       timestamp: Date.now()
     };
 
@@ -754,7 +753,7 @@ export class EdgeAIOrchestrator {
     };
   }
 
-  private async deployJsModel(modelId: string, partition: ModelPartition): Promise<EdgeInferenceModel> {
+  private async deployJsModel(modelId: string, _partition: ModelPartition): Promise<EdgeInferenceModel> {
     return {
       modelId: `js_${modelId}`,
       quantizationLevel: 'FP32',
@@ -764,17 +763,17 @@ export class EdgeAIOrchestrator {
     };
   }
 
-  private async executeCloudflareInference(model: EdgeInferenceModel, request: DistributedInferenceRequest): Promise<Float32Array> {
+  private async executeCloudflareInference(_model: EdgeInferenceModel, _request: DistributedInferenceRequest): Promise<Float32Array> {
     // Simulate Cloudflare Worker inference
     return new Float32Array(100);
   }
 
-  private async executeMobileInference(model: EdgeInferenceModel, request: DistributedInferenceRequest): Promise<Float32Array> {
+  private async executeMobileInference(_model: EdgeInferenceModel, _request: DistributedInferenceRequest): Promise<Float32Array> {
     // Simulate mobile inference
     return new Float32Array(100);
   }
 
-  private async executeIoTInference(model: EdgeInferenceModel, request: DistributedInferenceRequest): Promise<Float32Array> {
+  private async executeIoTInference(_model: EdgeInferenceModel, _request: DistributedInferenceRequest): Promise<Float32Array> {
     // Simulate IoT device inference
     return new Float32Array(100);
   }
@@ -933,7 +932,7 @@ export class EdgeAIOrchestrator {
     }
 
     // Cleanup model cache
-    for (const [modelId, cache] of this.modelCache) {
+    for (const cache of this.modelCache.values()) {
       const recentPatterns = cache.accessPatterns.filter(p => p.timestamp > cutoffTime);
       cache.accessPatterns = recentPatterns;
     }

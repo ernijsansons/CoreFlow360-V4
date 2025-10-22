@@ -239,7 +239,7 @@ export class AIPromptSanitizer {
 
     // Final safety check
     const finalRisk = Math.min(riskScore, 1.0);
-    const blocked = finalRisk >= 0.8 && options.strictMode;
+    const blocked = finalRisk >= 0.8 && (options.strictMode ?? false);
 
     this.logger.debug('Input sanitization completed', {
       originalLength: input.length,
@@ -320,6 +320,7 @@ export class AIPromptSanitizer {
     output: string,
     options: SanitizationOptions = {}
   ): SanitizationResult {
+    void options;
     // For outputs, we're mainly concerned with leaked system information
     const violations: string[] = [];
     let sanitized = output;

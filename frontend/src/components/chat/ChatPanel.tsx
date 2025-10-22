@@ -3,9 +3,9 @@
  * Sliding panel with magnetic snap points and glass morphism design
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion'
-import { MessageSquare, X, Maximize2, Minimize2, Settings, Mic, MicOff } from 'lucide-react'
+import { MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ChatMessageList } from './ChatMessageList'
 import { ChatInput } from './ChatInput'
@@ -34,13 +34,11 @@ const MAGNETIC_THRESHOLD = 50
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
   className,
-  defaultPosition = 'right',
   defaultSize = 'normal',
   onToggle
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [panelSize, setPanelSize] = useState<keyof typeof SNAP_POINTS>(defaultSize)
-  const [position, setPosition] = useState(defaultPosition)
   const [isDragging, setIsDragging] = useState(false)
   const [showCommandPalette, setShowCommandPalette] = useState(false)
 
@@ -86,28 +84,26 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
     togglePanel()
   }, [isOpen, onToggle, togglePanel])
 
-  const handleDragEnd = useCallback((event: any, info: PanInfo) => {
+  const handleDragEnd = useCallback((event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     setIsDragging(false)
 
     const { offset, velocity } = info
-    const { innerWidth } = window
+    void event // Suppress unused warning
 
     // Magnetic snapping logic
-    const snapToClosest = (value: number, snapPoints: number[]) => {
-      return snapPoints.reduce((prev, curr) => {
-        return Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
-      })
-    }
+    // const snapToClosest = (value: number, snapPoints: number[]) => {
+    //   return snapPoints.reduce((prev, curr) => {
+    //     return Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+    //   })
+    // }
 
     // Calculate new position based on drag
-    if (position === 'right') {
-      const targetX = offset.x + velocity.x * 0.2
-      if (targetX > MAGNETIC_THRESHOLD) {
-        setIsOpen(false)
-        x.set(0)
-      } else {
-        x.set(0)
-      }
+    const targetX = offset.x + velocity.x * 0.2
+    if (targetX > MAGNETIC_THRESHOLD) {
+      setIsOpen(false)
+      x.set(0)
+    } else {
+      x.set(0)
     }
 
     // Handle panel size changes based on drag distance
@@ -119,7 +115,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         setPanelSize('normal')
       }
     }
-  }, [position, panelSize, x])
+  }, [panelSize, x])
 
   const getPanelWidth = () => {
     if (typeof SNAP_POINTS[panelSize] === 'string') {
@@ -154,7 +150,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         className={cn(
           "fixed bottom-6 right-6 z-40",
           "w-14 h-14 rounded-full",
-          "bg-gradient-to-r from-blue-600 to-purple-600",
+          "bg-gradient-to-r from-brand-primary-600 to-brand-accent-600",
           "shadow-xl hover:shadow-2xl",
           "flex items-center justify-center",
           "text-white transition-all duration-300",
@@ -286,9 +282,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       <CommandPalette
         isOpen={showCommandPalette}
         onClose={() => setShowCommandPalette(false)}
-        onCommand={(command) => {
+        onCommand={() => {
           setShowCommandPalette(false)
-          // Handle command execution
+          // TODO: Handle command execution
         }}
       />
     </>

@@ -4,30 +4,23 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import {
-  IAgent,
+import { IAgent,
   AgentTask,
   BusinessContext,
   AgentResult,
   ValidationResult,
   HealthStatus,
-  ExecutionMetrics,
-  TaskConstraints,
   StreamingChunk,
-  DEPARTMENT_CAPABILITIES
-} from './types';
+  DEPARTMENT_CAPABILITIES } from './types';
 import { Logger } from '../../shared/logger';
-import { CorrelationId } from '../../shared/security-utils';
+
 import { circuitBreakerRegistry, CircuitBreakerConfigs } from '../../shared/circuit-breaker';
-import { errorHandler, ErrorFactories, ErrorCategory } from '../../shared/error-handling';
-import {
-  validateApiKeyFormat,
+import { errorHandler, ErrorFactories } from '../../shared/error-handling';
+import { validateApiKeyFormat,
   maskApiKey,
-  sanitizeErrorForUser,
   sanitizeForLogging,
-  redactPII
-} from './security-utils';
-import { sanitizeUserInput, createSecureAIPrompt, validateAIPrompt } from '../../security/ai-prompt-sanitizer';
+  redactPII } from './security-utils';
+import { sanitizeUserInput, validateAIPrompt } from '../../security/ai-prompt-sanitizer';
 
 export class ClaudeNativeAgent implements IAgent {
   readonly id = 'claude-native';
@@ -494,7 +487,7 @@ ${JSON.stringify(sanitizedData, null, 2)}`;
     return 'general';
   }
 
-  private formatTask(task: AgentTask, context: BusinessContext): string {
+  private formatTask(task: AgentTask, _context: BusinessContext): string {
     // Sanitize input to prevent prompt injection using new framework
     const inputText = typeof task.input === 'string'
       ? task.input
@@ -660,7 +653,7 @@ ${JSON.stringify(sanitizedData, null, 2)}`;
     };
   }
 
-  private calculateConfidence(content: string, task: AgentTask): number {
+  private calculateConfidence(content: string, _task: AgentTask): number {
     let confidence = 0.7; // Base confidence
 
     // Increase confidence for longer, detailed responses
@@ -702,7 +695,7 @@ ${JSON.stringify(sanitizedData, null, 2)}`;
     return suggestions;
   }
 
-  private extractNextActions(content: string, task: AgentTask): any[] {
+  private extractNextActions(content: string, _task: AgentTask): any[] {
     const nextActions: any[] = [];
 
     // Look for action items in the response

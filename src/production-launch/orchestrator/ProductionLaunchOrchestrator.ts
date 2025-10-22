@@ -1,14 +1,10 @@
-import {
-  LaunchStatus,
+import { LaunchStatus,
   LaunchStage,
   ProgressiveRolloutConfig,
   LaunchStageConfig,
   PreFlightChecks,
   LaunchMetrics,
-  LaunchIssue,
-  RollbackPlan,
-  LaunchReport
-} from '../types/index';
+  LaunchReport } from '../types/index';
 import { PreFlightValidator } from '../validators/PreFlightValidator';
 import { ProgressiveRolloutEngine } from './ProgressiveRolloutEngine';
 import { MonitoringSystem } from '../monitoring/MonitoringSystem';
@@ -104,7 +100,7 @@ export class ProductionLaunchOrchestrator {
     // Log detailed results
 
     if (!checks.allPassed) {
-      checks.failures.forEach((failure, index) => {
+      checks.failures.forEach((_failure, _index) => {
       });
     }
 
@@ -313,6 +309,7 @@ export class ProductionLaunchOrchestrator {
   private async performPostLaunchValidation(): Promise<void> {
 
     const finalMetrics = await this.monitoring.getCurrentMetrics();
+    void finalMetrics;
     const healthCheck = await this.monitoring.performHealthCheck();
 
     if (!healthCheck.healthy) {
@@ -326,7 +323,7 @@ export class ProductionLaunchOrchestrator {
     const criticalIssues = checks.failures.filter((f: any) => f.includes('critical') || f.includes('failed'));
 
     if (criticalIssues.length > 0) {
-      criticalIssues.forEach((issue, index) => {
+      criticalIssues.forEach((_issue, _index) => {
       });
     }
 
@@ -382,7 +379,7 @@ export class ProductionLaunchOrchestrator {
     };
   }
 
-  private async notifyStakeholders(type: string, data: any): Promise<void> {
+  private async notifyStakeholders(_type: string, _data: any): Promise<void> {
     // Implementation would send actual notifications
   }
 

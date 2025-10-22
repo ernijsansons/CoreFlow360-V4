@@ -28,14 +28,14 @@ export { CostTracker } from './cost-tracker';
 // Retry and fallback logic
 export { RetryHandler } from './retry-handler';
 
+// Integration tests
+export { runIntegrationTests } from './integration-tests';
+
 // Streaming responses
 export { StreamingHandler } from './streaming-handler';
 
 // Capability contracts
 export { CapabilityRegistry } from './capability-registry';
-
-// Integration tests
-export { runIntegrationTests } from './integration-tests';
 
 // ============================================================================
 // FACTORY FUNCTIONS
@@ -137,7 +137,7 @@ export class AgentSystemFactory {
         this.costTracker = new CostTracker(
           this.config.kv,
           this.config.db,
-          this.config.defaultCostLimits
+          this.config.defaultCostLimits as CostLimits | undefined
         );
       }
 
@@ -154,7 +154,9 @@ export class AgentSystemFactory {
         this.registry,
         this.memory!,
         this.costTracker!,
-        this.retryHandler!
+        this.retryHandler!,
+        this.config.kv,
+        this.config.db
       );
 
       // Register Claude agent if API key is provided
@@ -177,6 +179,7 @@ export class AgentSystemFactory {
         this.registry,
         this.orchestrator,
         this.capabilityRegistry,
+        this.config,
         this.memory,
         this.costTracker,
         this.retryHandler,
@@ -221,6 +224,7 @@ export class AgentSystem {
     private registry: AgentRegistry,
     private orchestrator: AgentOrchestrator,
     private capabilityRegistry: CapabilityRegistry,
+    private config: AgentSystemConfig,
     private memory?: AgentMemory,
     private costTracker?: CostTracker,
     private retryHandler?: RetryHandler,
@@ -504,9 +508,10 @@ export class AgentSystem {
       shutdownTasks.push(this.registry.shutdown());
     }
 
-    if (this.memory) {
-      shutdownTasks.push(this.memory.cleanup());
-    }
+    // Memory cleanup would need businessId, skip for now
+    // if (this.memory) {
+    //   shutdownTasks.push(this.memory.cleanup(businessId));
+    // }
 
     if (this.costTracker) {
       shutdownTasks.push(this.costTracker.cleanup());
@@ -529,7 +534,7 @@ export class AgentSystem {
   private async checkDatabaseHealth(): Promise<boolean> {
     try {
       // Simple database connectivity check
-      await this.orchestrator['db']?.prepare('SELECT 1').first();
+      await this.config.db.prepare('SELECT 1').first();
       return true;
     } catch {
       return false;
@@ -557,16 +562,16 @@ export class ExampleSpecializedAgent {
   readonly costPerCall = 0.001;
   readonly maxConcurrency = 100;
 
-  async execute(task: AgentTask, context: BusinessContext): Promise<any> {
+  async execute(_task: AgentTask, _context: BusinessContext): Promise<any> {
     // Your future implementation here
     throw new Error('Not implemented yet - placeholder for future specialized agent');
   }
 
-  validateInput(input: unknown): any {
+  validateInput(_input: unknown): any {
     return { valid: true };
   }
 
-  estimateCost(task: AgentTask): number {
+  estimateCost(_task: AgentTask): number {
     return this.costPerCall;
   }
 
@@ -681,5 +686,4 @@ export default {
   ExampleSpecializedAgent,
   registerSpecializedAgent,
   DEPARTMENT_PROMPTS,
-  runIntegrationTests,
 };

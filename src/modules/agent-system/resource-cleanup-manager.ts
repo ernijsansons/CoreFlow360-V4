@@ -3,7 +3,7 @@
  * Prevents memory leaks through automatic resource disposal
  */
 
-import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
+
 import { Logger } from '../../shared/logger';
 
 export interface CleanupTask {
@@ -393,7 +393,7 @@ class ResourceCleanupManager {
    * Cleanup all listeners
    */
   cleanupAllListeners(): void {
-    for (const [id, { target, event, handler }] of this.listeners) {
+    for (const [, { target, event, handler }] of this.listeners) {
       if (target.removeEventListener) {
         target.removeEventListener(event, handler);
       } else if (target.off) {
@@ -436,7 +436,9 @@ class ResourceCleanupManager {
       });
     }, this.config.cleanupInterval) as any;
 
-    this.registerInterval(this.cleanupInterval);
+    if (this.cleanupInterval) {
+      this.registerInterval(this.cleanupInterval);
+    }
   }
 
   /**
@@ -462,7 +464,7 @@ class ResourceCleanupManager {
 
     // Cleanup all resources
     const cleanupPromises: Promise<void>[] = [];
-    for (const [id, task] of this.resources) {
+    for (const [id] of this.resources) {
       cleanupPromises.push(this.cleanupResource(id));
     }
 

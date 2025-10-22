@@ -1,9 +1,7 @@
 import type { Env } from '../types/env';
-import type {
-  AudioStream,
+import type { Participant } from '../types/crm';
+import type { AudioStream,
   Transcript,
-  TranscriptSegment,
-  Participant,
   ConversationAnalysis,
   SentimentAnalysis,
   TopicAnalysis,
@@ -13,19 +11,8 @@ import type {
   ConversationMetrics,
   ConversationInsights,
   CallCoaching,
-  RealTimeCoaching,
-  CoachingAlert,
-  CoachingRecommendation,
-  SpeakingRatio,
-  QuestionAnalysis,
-  MonologueAnalysis,
   ConversationScore,
-  ConversationSummary,
-  TalkTrack,
-  ObjectionResponse,
-  EmotionalState,
-  EngagementMetrics
-} from '../types/crm';
+  ConversationSummary } from '../types/conversation-intelligence';
 
 export class ConversationIntelligence {
   private env: Env;
@@ -44,8 +31,8 @@ export class ConversationIntelligence {
   ): Promise<ConversationAnalysis> {
     const startTime = Date.now();
 
-    // Real-time transcription if audio
-    const transcript = recording instanceof AudioStream || 'stream' in recording
+    // Real-time transcription if audio (check for stream property to identify AudioStream)
+    const transcript = 'stream' in recording && recording.stream
       ? await this.transcribe(recording as AudioStream)
       : recording as Transcript;
 
@@ -79,7 +66,7 @@ export class ConversationIntelligence {
     return analysis;
   }
 
-  private async transcribe(audio: AudioStream): Promise<Transcript> {
+  private async transcribe(_audio: AudioStream): Promise<Transcript> {
     // Mock transcription - would use real speech-to-text service in production
     return {
       id: `transcript_${Date.now()}`,
@@ -108,7 +95,7 @@ export class ConversationIntelligence {
     };
   }
 
-  private async analyzeSentiment(transcript: Transcript): Promise<SentimentAnalysis> {
+  private async analyzeSentiment(_transcript: Transcript): Promise<SentimentAnalysis> {
     // Mock sentiment analysis - would use real AI in production
     return {
       overall: {
@@ -141,7 +128,7 @@ export class ConversationIntelligence {
     };
   }
 
-  private async analyzeTopics(transcript: Transcript): Promise<TopicAnalysis> {
+  private async analyzeTopics(_transcript: Transcript): Promise<TopicAnalysis> {
     // Mock topic analysis - would use real AI in production
     return {
       primaryTopics: ['product_features', 'pricing', 'implementation'],
@@ -165,7 +152,7 @@ export class ConversationIntelligence {
     };
   }
 
-  private async analyzeObjections(transcript: Transcript): Promise<ObjectionAnalysis> {
+  private async analyzeObjections(_transcript: Transcript): Promise<ObjectionAnalysis> {
     // Mock objection analysis - would use real AI in production
     return {
       detected: [
@@ -205,7 +192,7 @@ export class ConversationIntelligence {
     };
   }
 
-  private async analyzeCompetitors(transcript: Transcript): Promise<CompetitorAnalysis> {
+  private async analyzeCompetitors(_transcript: Transcript): Promise<CompetitorAnalysis> {
     // Mock competitor analysis - would use real AI in production
     return {
       mentioned: ['competitor_a', 'competitor_b'],
@@ -230,7 +217,7 @@ export class ConversationIntelligence {
     };
   }
 
-  private async analyzeNextSteps(transcript: Transcript): Promise<NextStepAnalysis> {
+  private async analyzeNextSteps(_transcript: Transcript): Promise<NextStepAnalysis> {
     // Mock next steps analysis - would use real AI in production
     return {
       identified: [
@@ -270,7 +257,7 @@ export class ConversationIntelligence {
 
   private async calculateMetrics(
     transcript: Transcript,
-    participants: Participant[]
+    _participants: Participant[]
   ): Promise<ConversationMetrics> {
     // Mock metrics calculation - would use real analysis in production
     return {
@@ -315,8 +302,8 @@ export class ConversationIntelligence {
   }
 
   private async generateInsights(
-    transcript: Transcript,
-    participants: Participant[]
+    _transcript: Transcript,
+    _participants: Participant[]
   ): Promise<ConversationInsights> {
     // Mock insights generation - would use real AI in production
     return {
@@ -363,8 +350,8 @@ export class ConversationIntelligence {
   }
 
   private async generateCoaching(
-    transcript: Transcript,
-    participants: Participant[]
+    _transcript: Transcript,
+    _participants: Participant[]
   ): Promise<CallCoaching> {
     // Mock coaching generation - would use real AI in production
     return {
@@ -413,7 +400,7 @@ export class ConversationIntelligence {
     };
   }
 
-  private async generateSummary(transcript: Transcript): Promise<ConversationSummary> {
+  private async generateSummary(_transcript: Transcript): Promise<ConversationSummary> {
     // Mock summary generation - would use real AI in production
     return {
       overview: 'Product discussion with interested prospect',
@@ -438,8 +425,8 @@ export class ConversationIntelligence {
   }
 
   private async calculateScore(
-    transcript: Transcript,
-    participants: Participant[]
+    _transcript: Transcript,
+    _participants: Participant[]
   ): Promise<ConversationScore> {
     // Mock score calculation - would use real analysis in production
     return {

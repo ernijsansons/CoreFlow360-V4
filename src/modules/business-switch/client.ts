@@ -2,6 +2,25 @@
  * Client-side helper for business switching
  * This would be used in the frontend application
  */
+
+import { Logger } from '../../shared/logger';
+
+const logger = new Logger({ component: 'business-switch-client' });
+
+// Define Storage interface for browser environment
+interface Storage {
+  readonly length: number;
+  clear(): void;
+  getItem(key: string): string | null;
+  key(index: number): string | null;
+  removeItem(key: string): void;
+  setItem(key: string, value: string): void;
+  [name: string]: any;
+}
+
+// Declare localStorage for browser environment
+declare const localStorage: Storage;
+
 interface BusinessSwitchClient {
   currentBusinessId: string | null;
   accessToken: string | null;
@@ -32,7 +51,7 @@ export class BusinessSwitchClientHelper {
     });
 
     if (response.ok) {
-      const data = await response.json();
+      const data = await response.json() as any;
       this.storeContext(data.business);
     }
   }
@@ -67,9 +86,9 @@ export class BusinessSwitchClientHelper {
       this.recordPerformance('switch_business', duration);
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as any;
         this.storeContext(data.business);
-        
+
         if (this.onSwitch) {
           this.onSwitch(data.business);
         }
@@ -80,7 +99,7 @@ export class BusinessSwitchClientHelper {
           performanceMs: duration,
         };
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json() as any;
         return {
           success: false,
           error: errorData.message || 'Business switch failed',
@@ -121,13 +140,13 @@ export class BusinessSwitchClientHelper {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as any;
         return {
           success: true,
           businesses: data.businesses,
         };
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json() as any;
         return {
           success: false,
           error: errorData.message || 'Failed to get available businesses',
@@ -151,7 +170,7 @@ export class BusinessSwitchClientHelper {
         return JSON.parse(stored);
       }
     } catch (error: any) {
-      console.error('Failed to parse stored business context:', error);
+      logger.error('Failed to parse stored business context:', error);
     }
     return null;
   }
@@ -168,7 +187,7 @@ export class BusinessSwitchClientHelper {
       };
       localStorage.setItem('business_context', JSON.stringify(businessContext));
     } catch (error: any) {
-      console.error('Failed to store business context:', error);
+      logger.error('Failed to store business context:', error);
     }
   }
 
@@ -179,7 +198,7 @@ export class BusinessSwitchClientHelper {
     try {
       localStorage.removeItem('business_context');
     } catch (error: any) {
-      console.error('Failed to clear business context:', error);
+      logger.error('Failed to clear business context:', error);
     }
   }
 
@@ -277,13 +296,13 @@ export class BusinessSwitchClientHelper {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as any;
         return {
           success: true,
           business: data.business,
         };
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json() as any;
         return {
           success: false,
           error: errorData.message || 'Failed to get business details',
@@ -314,14 +333,14 @@ export class BusinessSwitchClientHelper {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as any;
         this.storeContext(data.business);
         return {
           success: true,
           context: data.business,
         };
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json() as any;
         return {
           success: false,
           error: errorData.message || 'Failed to refresh context',
@@ -380,7 +399,7 @@ export class BusinessSwitchClientHelper {
       try {
         return JSON.parse(history);
       } catch (error: any) {
-        console.error('Failed to parse switch history:', error);
+        logger.error('Failed to parse switch history:', error);
       }
     }
     return [];
@@ -409,7 +428,7 @@ export class BusinessSwitchClientHelper {
 
       localStorage.setItem('business_switch_history', JSON.stringify(history));
     } catch (error: any) {
-      console.error('Failed to add to switch history:', error);
+      logger.error('Failed to add to switch history:', error);
     }
   }
 
@@ -420,7 +439,7 @@ export class BusinessSwitchClientHelper {
     try {
       localStorage.removeItem('business_switch_history');
     } catch (error: any) {
-      console.error('Failed to clear switch history:', error);
+      logger.error('Failed to clear switch history:', error);
     }
   }
 }

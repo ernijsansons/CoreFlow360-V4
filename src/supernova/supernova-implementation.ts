@@ -5,9 +5,9 @@
 
 import { Logger } from '../shared/logger';
 import { SupernovaOptimizer } from '../performance/supernova-optimizations';
-import { SupernovaSecurityUtils } from '../security/supernova-security-hardening';
+
 import { SupernovaArchitectureUtils } from '../architecture/supernova-architecture-improvements';
-import { SupernovaCodeQualityUtils } from '../code-quality/supernova-code-quality';
+
 
 const logger = new Logger({ component: 'supernova-implementation' });
 
@@ -118,13 +118,13 @@ export class SupernovaImplementation {
       const securityScan = await this.performSecurityScan();
       
       // Apply XSS protection
-      const xssProtection = await this.applyXSSProtection();
+      await this.applyXSSProtection();
       
       // Apply SQL injection protection
-      const sqlProtection = await this.applySQLInjectionProtection();
+      await this.applySQLInjectionProtection();
       
       // Apply secret detection and removal
-      const secretProtection = await this.applySecretProtection();
+      await this.applySecretProtection();
 
       const endTime = Date.now();
       const totalTime = endTime - startTime;
@@ -213,7 +213,7 @@ export class SupernovaImplementation {
       const complexityImprovements = await this.improveCodeComplexity();
       
       // Apply code formatting
-      const formattingImprovements = await this.applyCodeFormatting();
+      await this.applyCodeFormatting();
 
       const endTime = Date.now();
       const totalTime = endTime - startTime;

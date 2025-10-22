@@ -137,6 +137,7 @@ export class QuantumCodeAuditor {
 
     // Report duplicates
     for (const [block, files] of codeBlocks) {
+    void block;
       if (files.length > 1) {
         issues.push({
           id: `duplication-${Date.now()}-${files.length}`,

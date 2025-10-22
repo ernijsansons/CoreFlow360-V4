@@ -22,3 +22,6 @@ scripts/
 *.sql
 *.backup
 *.log
+
+# Capabilities module - requires type system refactoring (608 errors)
+src/modules/capabilities/

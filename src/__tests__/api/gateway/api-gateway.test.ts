@@ -1,6 +1,25 @@
 import { describe, it, expect, beforeEach, afterEach, vi, MockedFunction } from 'vitest';
 import { APIGateway, APIGatewayConfig, APIRoute, HTTPMethod, APIVersion, RateLimitType, AuthenticationMethod } from '../../../api/gateway/api-gateway';
 import { z } from 'zod';
+import { Logger } from '../../../shared/logger';
+
+const loggerInstances: any[] = [];
+
+vi.mock('../../../shared/logger', () => {
+  const instances: any[] = [];
+  const LoggerMock = vi.fn().mockImplementation(() => {
+    const instance = {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn()
+    };
+    instances.push(instance);
+    return instance;
+  });
+  (LoggerMock as any).__instances = instances;
+  return { Logger: LoggerMock };
+});
 
 // Mock performance.now for consistent testing
 const mockPerformanceNow = vi.fn();
@@ -24,6 +43,7 @@ describe('APIGateway', () => {
   let gateway: APIGateway;
   let config: APIGatewayConfig;
   let testRoute: APIRoute;
+  let mockLogger: any;
 
   beforeEach(() => {
     // Reset performance.now mock
@@ -95,6 +115,19 @@ describe('APIGateway', () => {
     };
 
     gateway = new APIGateway(config);
+    const loggerMock = Logger as any;
+    const instances = loggerMock.__instances ?? [];
+    mockLogger = instances[instances.length - 1];
+    if (!mockLogger) {
+      mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn()
+      };
+      instances.push(mockLogger);
+      loggerMock.__instances = instances;
+    }
   });
 
   afterEach(() => {
@@ -166,7 +199,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(200);
 
-      const data = await response.json();
+      const data = await response.json() as {success: boolean; route: string};
       expect(data.success).toBe(true);
       expect(data.route).toBe('test-route');
     });
@@ -179,7 +212,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(404);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toBe('Route not found');
     });
 
@@ -234,7 +267,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(400);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toContain('Validation error');
     });
   });
@@ -260,7 +293,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(401);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toBe('Authentication required');
     });
 
@@ -287,7 +320,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(401);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toBe('Invalid token format');
     });
 
@@ -423,7 +456,7 @@ describe('APIGateway', () => {
       const response3 = await gateway.handleRequest(createRequest());
       expect(response3.status).toBe(429);
 
-      const data = await response3.json();
+      const data = await response3.json() as any;
       expect(data.error).toBe('Rate limit exceeded');
     });
 
@@ -656,7 +689,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(400);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toContain('Validation error');
     });
   });
@@ -730,8 +763,13 @@ describe('APIGateway', () => {
       });
 
       await gateway.handleRequest(request);
-      // Slow query warning should be logged (mocked console.warn)
-      expect(console.warn).toHaveBeenCalled();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Slow API response detected',
+        expect.objectContaining({
+          responseTime: 150,
+          path: '/api/v1/test'
+        })
+      );
     });
   });
 
@@ -796,6 +834,7 @@ describe('APIGateway', () => {
         ...testRoute,
         id: 'error-route',
         path: '/api/v1/error',
+        method: HTTPMethod.POST,
         validation: {
           body: z.object({
             required: z.string()
@@ -815,7 +854,7 @@ describe('APIGateway', () => {
       const response = await gateway.handleRequest(request);
       expect(response.status).toBe(500);
 
-      const data = await response.json();
+      const data = await response.json() as any;
       expect(data.error).toBe('Internal server error');
     });
 
@@ -844,7 +883,7 @@ describe('APIGateway', () => {
       });
 
       const response = await gateway.handleRequest(request);
-      const data = await response.json();
+      const data = await response.json() as any;
 
       expect(data.data).toBeInstanceOf(Array);
       expect(data.pagination).toHaveProperty('page');
@@ -866,7 +905,7 @@ describe('APIGateway', () => {
       });
 
       const response = await gateway.handleRequest(request);
-      const data = await response.json();
+      const data = await response.json() as any;
 
       expect(data.data).toBeInstanceOf(Array);
       expect(data.count).toBe(25);
@@ -886,7 +925,7 @@ describe('APIGateway', () => {
       });
 
       const response = await gateway.handleRequest(request);
-      const data = await response.json();
+      const data = await response.json() as any;
 
       expect(data.data).toHaveProperty('totalLeads');
       expect(data.data).toHaveProperty('conversionRate');
@@ -966,6 +1005,13 @@ describe('APIGateway', () => {
 
     it('should handle very large payloads', async () => {
       const largeData = 'x'.repeat(10000);
+      const largePayloadRoute: APIRoute = {
+        ...testRoute,
+        id: 'large-payload-route',
+        method: HTTPMethod.POST
+      };
+
+      gateway.addRoute(largePayloadRoute);
       const request = new Request('http://localhost/api/v1/test', {
         method: 'POST',
         body: JSON.stringify({ data: largeData })

@@ -194,7 +194,7 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       const order: PayPalOrder = await response.json()
@@ -218,8 +218,9 @@ export class PayPalPaymentGateway {
 
       throw new AppError(
         'PayPal order creation failed',
-        'PAYPAL_ORDER_ERROR',
         500,
+        'PAYPAL_ORDER_ERROR',
+        true,
         { originalError: error, request }
       )
     }
@@ -238,11 +239,11 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       const captureData = await response.json()
-      const capture = captureData.purchase_units[0].payments.captures[0] as PayPalCapture
+      const capture = (captureData as any).purchase_units[0].payments.captures[0] as PayPalCapture
 
       auditLogger.log({
         action: 'paypal_order_captured',
@@ -264,8 +265,9 @@ export class PayPalPaymentGateway {
 
       throw new AppError(
         'PayPal order capture failed',
-        'PAYPAL_CAPTURE_ERROR',
         500,
+        'PAYPAL_CAPTURE_ERROR',
+        true,
         { originalError: error, orderId }
       )
     }
@@ -308,7 +310,7 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       const refund: PayPalRefund = await response.json()
@@ -333,8 +335,9 @@ export class PayPalPaymentGateway {
 
       throw new AppError(
         'PayPal refund failed',
-        'PAYPAL_REFUND_ERROR',
         500,
+        'PAYPAL_REFUND_ERROR',
+        true,
         { originalError: error, captureId }
       )
     }
@@ -348,7 +351,7 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       return await response.json()
@@ -356,8 +359,9 @@ export class PayPalPaymentGateway {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve PayPal order',
-        'PAYPAL_ORDER_RETRIEVAL_ERROR',
         500,
+        'PAYPAL_ORDER_RETRIEVAL_ERROR',
+        true,
         { originalError: error, orderId }
       )
     }
@@ -393,8 +397,8 @@ export class PayPalPaymentGateway {
         if (!isValid) {
           throw new AppError(
             'Invalid PayPal webhook signature',
-            'INVALID_WEBHOOK_SIGNATURE',
-            400
+            400,
+            'INVALID_WEBHOOK_SIGNATURE'
           )
         }
       }
@@ -420,8 +424,9 @@ export class PayPalPaymentGateway {
 
       throw new AppError(
         'PayPal webhook processing failed',
-        'WEBHOOK_PROCESSING_ERROR',
         500,
+        'WEBHOOK_PROCESSING_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -549,12 +554,12 @@ export class PayPalPaymentGateway {
       const tokenData = await response.json()
 
       this.accessToken = {
-        scope: tokenData.scope,
-        accessToken: tokenData.access_token,
-        tokenType: tokenData.token_type,
-        appId: tokenData.app_id,
-        expiresIn: tokenData.expires_in,
-        nonce: tokenData.nonce,
+        scope: (tokenData as any).scope,
+        accessToken: (tokenData as any).access_token,
+        tokenType: (tokenData as any).token_type,
+        appId: (tokenData as any).app_id,
+        expiresIn: (tokenData as any).expires_in,
+        nonce: (tokenData as any).nonce,
         obtainedAt: Date.now()
       }
 
@@ -571,8 +576,9 @@ export class PayPalPaymentGateway {
 
       throw new AppError(
         'Failed to refresh PayPal access token',
-        'PAYPAL_AUTH_ERROR',
         500,
+        'PAYPAL_AUTH_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -635,24 +641,24 @@ export class PayPalPaymentGateway {
     if (request.amount <= 0) {
       throw new AppError(
         'Payment amount must be greater than zero',
-        'INVALID_PAYMENT_AMOUNT',
-        400
+        400,
+        'INVALID_PAYMENT_AMOUNT'
       )
     }
 
     if (!request.currency || request.currency.length !== 3) {
       throw new AppError(
         'Valid 3-character currency code is required',
-        'INVALID_CURRENCY_CODE',
-        400
+        400,
+        'INVALID_CURRENCY_CODE'
       )
     }
 
     if (request.amount > 10000) { // PayPal limit varies by account
       throw new AppError(
         'Payment amount exceeds maximum allowed',
-        'AMOUNT_TOO_LARGE',
-        400
+        400,
+        'AMOUNT_TOO_LARGE'
       )
     }
   }
@@ -678,7 +684,7 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       return await response.json()
@@ -686,8 +692,9 @@ export class PayPalPaymentGateway {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve PayPal capture',
-        'PAYPAL_CAPTURE_RETRIEVAL_ERROR',
         500,
+        'PAYPAL_CAPTURE_RETRIEVAL_ERROR',
+        true,
         { originalError: error, captureId }
       )
     }
@@ -701,7 +708,7 @@ export class PayPalPaymentGateway {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(`PayPal API error: ${errorData.message || response.statusText}`)
+        throw new Error(`PayPal API error: ${(errorData as any).message || response.statusText}`)
       }
 
       return await response.json()
@@ -709,8 +716,9 @@ export class PayPalPaymentGateway {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve PayPal refund',
-        'PAYPAL_REFUND_RETRIEVAL_ERROR',
         500,
+        'PAYPAL_REFUND_RETRIEVAL_ERROR',
+        true,
         { originalError: error, refundId }
       )
     }

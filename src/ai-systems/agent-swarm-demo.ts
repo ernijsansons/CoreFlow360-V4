@@ -4,7 +4,6 @@
  */
 
 import { Logger } from '../shared/logger';
-import { AgentOrchestrationFramework } from './agent-orchestration-framework';
 import { AgentCoordinationSystem } from './agent-coordination-system';
 import { verificationQualitySystem } from './verification-quality-system';
 
@@ -198,13 +197,14 @@ export class AgentSwarmDemo {
   async runAllScenarios(): Promise<Map<string, DemoResult>> {
     const results = new Map<string, DemoResult>();
 
-    for (const [scenarioId, scenario] of this.demoScenarios) {
+    for (const scenarioId of this.demoScenarios.keys()) {
       try {
         const result = await this.runDemoScenario(scenarioId);
         results.set(scenarioId, result);
 
         // Brief pause between scenarios
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // eslint-disable-next-line no-undef
+        await new Promise(resolve => (setTimeout as any)(resolve, 1000));
       } catch (error) {
         this.logger.error('Failed to run scenario', { scenarioId, error });
       }
@@ -352,7 +352,7 @@ export class AgentSwarmDemo {
 
 ## Scenario Results
 
-${Array.from(results.entries()).map(([scenarioId, result]) => `
+${Array.from(results.entries()).map(([, result]) => `
 ### ${result.scenario.name}
 - **Status**: ${result.success ? '✅ SUCCESS' : '❌ FAILED'}
 - **Quality Achieved**: ${result.qualityAchieved.toFixed(3)} (Target: ${result.scenario.qualityTarget})

@@ -81,8 +81,9 @@ TWILIO_AUTH_TOKEN=${SECRET_TWILIO_TOKEN}
 #### `wrangler.toml`
 ```toml
 name = "coreflow360-v4"
-main = "src/index.ts"
-compatibility_date = "2024-01-01"
+main = "src/index.production.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
 
 [env.production]
 name = "coreflow360-v4-prod"
@@ -128,6 +129,8 @@ main = "./dist/index.js"
 tag = "v1"
 new_classes = ["WorkflowEngine", "RealtimeCoordinator"]
 ```
+
+> ℹ️ **Production domain note:** until the Cloudflare zone cutover is complete, the live API is reachable at `https://coreflow360-v4-prod.ernijs-ansons.workers.dev`. Ensure DNS for `api.coreflow360.com` is configured before enabling the custom route; the deployed CORS policy already allows both the Workers.dev host and the Pages domain (`https://main.coreflow360-frontend.pages.dev`).
 
 ## Deployment Process
 

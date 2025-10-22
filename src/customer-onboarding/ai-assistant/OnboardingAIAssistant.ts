@@ -103,7 +103,7 @@ export class OnboardingAIAssistant {
     this.conversationHistory = [];
   }
 
-  private async loadConversationHistory(customerId: string): Promise<void> {
+  private async loadConversationHistory(_customerId: string): Promise<void> {
     this.conversationHistory = [];
   }
 
@@ -128,7 +128,7 @@ export class OnboardingAIAssistant {
     };
   }
 
-  private async generateContextualHelp(stepId: string, context: OnboardingContext): Promise<ContextualHelp> {
+  private async generateContextualHelp(stepId: string, _context: OnboardingContext): Promise<ContextualHelp> {
     const help = this.getStepHelp(stepId);
     
     return {
@@ -167,7 +167,7 @@ export class OnboardingAIAssistant {
     return levelResponses[Math.floor(Math.random() * levelResponses.length)];
   }
 
-  private generateSuggestions(context: OnboardingContext): string[] {
+  private generateSuggestions(_context: OnboardingContext): string[] {
     const suggestions = [
       "Try exploring the dashboard to get familiar with the interface",
       "Check out our video tutorials for hands-on learning",
@@ -179,7 +179,7 @@ export class OnboardingAIAssistant {
     return suggestions.slice(0, 3);
   }
 
-  private generateNextSteps(context: OnboardingContext): string[] {
+  private generateNextSteps(_context: OnboardingContext): string[] {
     const nextSteps = [
       "Complete your profile setup",
       "Configure your first integration",
@@ -191,7 +191,7 @@ export class OnboardingAIAssistant {
     return nextSteps.slice(0, 3);
   }
 
-  private generateResources(context: OnboardingContext): string[] {
+  private generateResources(_context: OnboardingContext): string[] {
     const resources = [
       "https://docs.coreflow360.com/getting-started",
       "https://docs.coreflow360.com/tutorials",
@@ -203,7 +203,7 @@ export class OnboardingAIAssistant {
     return resources.slice(0, 3);
   }
 
-  private generateTroubleshootingSteps(issue: string, context: OnboardingContext): string[] {
+  private generateTroubleshootingSteps(_issue: string, _context: OnboardingContext): string[] {
     const steps = [
       "Check your internet connection",
       "Verify your login credentials",
@@ -228,7 +228,7 @@ export class OnboardingAIAssistant {
     return 'medium';
   }
 
-  private getPrerequisites(issue: string): string[] {
+  private getPrerequisites(_issue: string): string[] {
     return [
       "Basic understanding of the platform",
       "Access to your account",
@@ -236,7 +236,7 @@ export class OnboardingAIAssistant {
     ];
   }
 
-  private getTroubleshootingResources(issue: string): string[] {
+  private getTroubleshootingResources(_issue: string): string[] {
     return [
       "https://docs.coreflow360.com/troubleshooting",
       "https://support.coreflow360.com/common-issues",
@@ -305,22 +305,22 @@ export class OnboardingAIAssistant {
   // MISSING METHODS
   // =====================================================
 
-  async generateTips(context: OnboardingContext): Promise<string[]> {
+  async generateTips(_context: OnboardingContext): Promise<string[]> {
     // TODO: Implement tip generation
     return ['Take your time', 'Ask for help if needed'];
   }
 
-  async generateCommonMistakes(context: OnboardingContext): Promise<string[]> {
+  async generateCommonMistakes(_context: OnboardingContext): Promise<string[]> {
     // TODO: Implement common mistakes generation
     return ['Skipping setup steps', 'Not reading instructions carefully'];
   }
 
-  async generateBestPractices(context: OnboardingContext): Promise<string[]> {
+  async generateBestPractices(_context: OnboardingContext): Promise<string[]> {
     // TODO: Implement best practices generation
     return ['Follow the recommended workflow', 'Test each step before proceeding'];
   }
 
-  async processUserMessage(message: string, context: OnboardingContext): Promise<AIGuidance> {
+  async processUserMessage(_message: string, _context: OnboardingContext): Promise<AIGuidance> {
     // TODO: Implement user message processing
     return {
       tips: ['Thank you for your message. I\'m here to help!'],

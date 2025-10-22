@@ -168,7 +168,7 @@ class InvoiceEmailManager {
 
       // Send email
       const result = await this.deliverEmail({
-        to: customer.email,
+        to: customer.email || '',
         from: configuration.fromEmail,
         fromName: configuration.fromName,
         replyTo: configuration.replyToEmail,
@@ -243,7 +243,7 @@ class InvoiceEmailManager {
 
       // Send email
       const result = await this.deliverEmail({
-        to: customer.email,
+        to: customer.email || '',
         from: configuration.fromEmail,
         fromName: configuration.fromName,
         replyTo: configuration.replyToEmail,
@@ -316,7 +316,11 @@ class InvoiceEmailManager {
           subject: 'Invoice {{invoiceNumber}} from {{businessName}}',
           htmlBody: this.getDefaultHTMLTemplate(),
           textBody: this.getDefaultTextTemplate(),
-          isDefault: true
+          isDefault: true,
+          layout: 'standard' as const,
+          showTaxColumn: true,
+          showDiscountColumn: true,
+          businessId
         },
         {
           id: 'reminder',
@@ -324,7 +328,11 @@ class InvoiceEmailManager {
           subject: 'Payment Reminder - Invoice {{invoiceNumber}}',
           htmlBody: this.getReminderHTMLTemplate(),
           textBody: this.getReminderTextTemplate(),
-          isDefault: false
+          isDefault: false,
+          layout: 'standard' as const,
+          showTaxColumn: true,
+          showDiscountColumn: true,
+          businessId
         }
       ];
     } catch (error: any) {
@@ -383,14 +391,29 @@ class InvoiceEmailManager {
       id: invoiceId,
       invoiceNumber: 'INV-123456',
       customerId: 'cust_123',
+      customerName: 'John Doe',
+      customerEmail: 'john.doe@example.com',
+      issueDate: Date.now(),
+      dueDate: new Date('2024-12-31').getTime(),
+      currency: 'USD',
+      exchangeRate: 1.0,
       businessId,
       status: 'draft' as InvoiceStatus,
       subtotal: 1000.00,
-      taxAmount: 100.00,
-      totalAmount: 1100.00,
-      dueDate: new Date('2024-12-31'),
-      createdAt: new Date(),
-      updatedAt: new Date()
+      taxTotal: 100.00,
+      discountTotal: 0,
+      total: 1100.00,
+      balanceDue: 1100.00,
+      terms: {
+        type: 'NET' as any,
+        netDays: 30,
+        description: 'Net 30'
+      },
+      lines: [],
+      approvalRequired: false,
+      createdAt: Date.now(),
+      createdBy: 'system',
+      updatedAt: Date.now()
     };
   }
 
@@ -403,15 +426,22 @@ class InvoiceEmailManager {
       name: 'John Doe',
       email: 'john.doe@example.com',
       phone: '+1-555-0123',
-      address: {
-        street: '123 Main St',
+      currency: 'USD',
+      paymentTerms: {
+        type: 'NET' as any,
+        netDays: 30,
+        description: 'Net 30'
+      },
+      billingAddress: {
+        line1: '123 Main St',
         city: 'Anytown',
         state: 'CA',
-        zipCode: '12345',
+        postalCode: '12345',
         country: 'US'
       },
-      createdAt: new Date(),
-      updatedAt: new Date()
+      isActive: true,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
     };
   }
 
@@ -426,17 +456,20 @@ class InvoiceEmailManager {
 
     const businessInfo: BusinessInfo = {
       name: 'Example Business',
-      address: '456 Business Ave',
-      city: 'Business City',
-      state: 'CA',
-      zipCode: '54321',
-      country: 'US',
+      address: {
+        line1: '456 Business Ave',
+        city: 'Business City',
+        state: 'CA',
+        postalCode: '54321',
+        country: 'US'
+      },
       phone: '+1-555-0456',
       email: 'business@example.com',
       website: 'https://example.com'
     };
 
-    return await this.pdfGenerator.generateInvoicePDF(invoice, customer, businessInfo);
+    const result = await this.pdfGenerator.generateInvoicePDF(invoice, businessInfo, customer, businessId);
+    return result.pdfBuffer instanceof ArrayBuffer ? new Uint8Array(result.pdfBuffer) : new Uint8Array(0);
   }
 
   private async generateEmailTemplate(
@@ -446,20 +479,20 @@ class InvoiceEmailManager {
     businessId?: string
   ): Promise<EmailTemplate> {
     const template = await this.getEmailTemplate(templateId || 'default', businessId);
-    
+
     const variables = {
       invoiceNumber: invoice.invoiceNumber,
       customerName: customer.name,
       businessName: 'Example Business',
-      totalAmount: formatCurrency(invoice.totalAmount),
+      totalAmount: formatCurrency(invoice.total),
       dueDate: formatDate(invoice.dueDate),
       invoiceUrl: `https://app.example.com/invoices/${invoice.id}`
     };
 
     return {
-      subject: this.interpolateTemplate(template.subject, variables),
-      htmlBody: this.interpolateTemplate(template.htmlBody, variables),
-      textBody: this.interpolateTemplate(template.textBody, variables)
+      subject: this.interpolateTemplate(template.subject || '', variables),
+      htmlBody: this.interpolateTemplate(template.htmlBody || '', variables),
+      textBody: this.interpolateTemplate(template.textBody || '', variables)
     };
   }
 
@@ -469,21 +502,23 @@ class InvoiceEmailManager {
     businessId: string
   ): Promise<EmailTemplate> {
     const template = await this.getEmailTemplate('reminder', businessId);
-    
+
+    const daysOverdue = Math.max(0, Math.floor((Date.now() - invoice.dueDate) / (1000 * 60 * 60 * 24)));
+
     const variables = {
       invoiceNumber: invoice.invoiceNumber,
       customerName: customer.name,
       businessName: 'Example Business',
-      totalAmount: formatCurrency(invoice.totalAmount),
+      totalAmount: formatCurrency(invoice.total),
       dueDate: formatDate(invoice.dueDate),
-      daysOverdue: Math.max(0, Math.floor((Date.now() - invoice.dueDate.getTime()) / (1000 * 60 * 60 * 24))),
+      daysOverdue: daysOverdue.toString(),
       invoiceUrl: `https://app.example.com/invoices/${invoice.id}`
     };
 
     return {
-      subject: this.interpolateTemplate(template.subject, variables),
-      htmlBody: this.interpolateTemplate(template.htmlBody, variables),
-      textBody: this.interpolateTemplate(template.textBody, variables)
+      subject: this.interpolateTemplate(template.subject || '', variables),
+      htmlBody: this.interpolateTemplate(template.htmlBody || '', variables),
+      textBody: this.interpolateTemplate(template.textBody || '', variables)
     };
   }
 
@@ -495,27 +530,28 @@ class InvoiceEmailManager {
     businessId: string
   ): Promise<EmailTemplate> {
     const template = await this.getEmailTemplate('payment_confirmation', businessId);
-    
+
     const variables = {
       invoiceNumber: invoice.invoiceNumber,
       customerName: customer.name,
       businessName: 'Example Business',
       paymentAmount: formatCurrency(paymentAmount),
       paymentMethod,
-      paymentDate: formatDate(new Date()),
+      paymentDate: formatDate(Date.now()),
       invoiceUrl: `https://app.example.com/invoices/${invoice.id}`
     };
 
     return {
-      subject: this.interpolateTemplate(template.subject, variables),
-      htmlBody: this.interpolateTemplate(template.htmlBody, variables),
-      textBody: this.interpolateTemplate(template.textBody, variables)
+      subject: this.interpolateTemplate(template.subject || '', variables),
+      htmlBody: this.interpolateTemplate(template.htmlBody || '', variables),
+      textBody: this.interpolateTemplate(template.textBody || '', variables)
     };
   }
 
   private async getEmailTemplate(templateId: string, businessId?: string): Promise<InvoiceTemplate> {
     // This would typically query a database
     // For now, we'll return mock templates
+    const bid = businessId || 'default-business';
     const templates: Record<string, InvoiceTemplate> = {
       default: {
         id: 'default',
@@ -523,7 +559,11 @@ class InvoiceEmailManager {
         subject: 'Invoice {{invoiceNumber}} from {{businessName}}',
         htmlBody: this.getDefaultHTMLTemplate(),
         textBody: this.getDefaultTextTemplate(),
-        isDefault: true
+        isDefault: true,
+        layout: 'standard' as const,
+        showTaxColumn: true,
+        showDiscountColumn: true,
+        businessId: bid
       },
       reminder: {
         id: 'reminder',
@@ -531,7 +571,11 @@ class InvoiceEmailManager {
         subject: 'Payment Reminder - Invoice {{invoiceNumber}}',
         htmlBody: this.getReminderHTMLTemplate(),
         textBody: this.getReminderTextTemplate(),
-        isDefault: false
+        isDefault: false,
+        layout: 'standard' as const,
+        showTaxColumn: true,
+        showDiscountColumn: true,
+        businessId: bid
       },
       payment_confirmation: {
         id: 'payment_confirmation',
@@ -539,14 +583,18 @@ class InvoiceEmailManager {
         subject: 'Payment Confirmation - Invoice {{invoiceNumber}}',
         htmlBody: this.getPaymentConfirmationHTMLTemplate(),
         textBody: this.getPaymentConfirmationTextTemplate(),
-        isDefault: false
+        isDefault: false,
+        layout: 'standard' as const,
+        showTaxColumn: true,
+        showDiscountColumn: true,
+        businessId: bid
       }
     };
 
     return templates[templateId] || templates.default;
   }
 
-  private async deliverEmail(email: {
+  private async deliverEmail(_email: {
     to: string;
     from: string;
     fromName: string;

@@ -14,7 +14,6 @@ import {
   MicOff,
   Wifi,
   WifiOff,
-  MessageSquare,
   Brain
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -58,7 +57,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2">
           <div className="relative">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-primary-600 to-brand-accent-600 flex items-center justify-center">
               <Brain className="w-5 h-5 text-white" />
             </div>
             {/* Connection Indicator */}

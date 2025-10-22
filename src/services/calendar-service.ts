@@ -1,10 +1,6 @@
-import type {
-  CalendarSlot,
-  CalendarProvider,
+import type { CalendarSlot,
   CalendarEvent,
-  Meeting,
-  MeetingAttendee
-} from '../types/crm';
+  Meeting } from '../types/crm';
 import type { Env } from '../types/env';
 
 export interface CalendarIntegration {
@@ -283,20 +279,20 @@ class GoogleCalendarIntegration implements CalendarIntegration {
     return this.simulateAvailableSlots(startDate, endDate, duration);
   }
 
-  async createEvent(event: CalendarEventRequest): Promise<string> {
+  async createEvent(_event: CalendarEventRequest): Promise<string> {
     // Implementation would call Google Calendar API
     return `google_${Date.now()}`;
   }
 
-  async updateEvent(eventId: string, updates: Partial<CalendarEventRequest>): Promise<boolean> {
+  async updateEvent(_eventId: string, _updates: Partial<CalendarEventRequest>): Promise<boolean> {
     return true;
   }
 
-  async deleteEvent(eventId: string): Promise<boolean> {
+  async deleteEvent(_eventId: string): Promise<boolean> {
     return true;
   }
 
-  async getEvent(eventId: string): Promise<CalendarEvent | null> {
+  async getEvent(_eventId: string): Promise<CalendarEvent | null> {
     // Implementation would fetch from Google Calendar API
     return null;
   }
@@ -341,23 +337,23 @@ class OutlookCalendarIntegration implements CalendarIntegration {
     return this.simulateAvailableSlots(startDate, endDate, duration);
   }
 
-  async createEvent(event: CalendarEventRequest): Promise<string> {
+  async createEvent(_event: CalendarEventRequest): Promise<string> {
     return `outlook_${Date.now()}`;
   }
 
-  async updateEvent(eventId: string, updates: Partial<CalendarEventRequest>): Promise<boolean> {
+  async updateEvent(_eventId: string, _updates: Partial<CalendarEventRequest>): Promise<boolean> {
     return true;
   }
 
-  async deleteEvent(eventId: string): Promise<boolean> {
+  async deleteEvent(_eventId: string): Promise<boolean> {
     return true;
   }
 
-  async getEvent(eventId: string): Promise<CalendarEvent | null> {
+  async getEvent(_eventId: string): Promise<CalendarEvent | null> {
     return null;
   }
 
-  private simulateAvailableSlots(startDate: Date, endDate: Date, duration: number): CalendarSlot[] {
+  private simulateAvailableSlots(_startDate: Date, _endDate: Date, _duration: number): CalendarSlot[] {
     // Similar implementation to Google Calendar
     return [];
   }
@@ -371,24 +367,24 @@ class CalDAVIntegration implements CalendarIntegration {
     this.env = env;
   }
 
-  async getAvailableSlots(startDate: Date, endDate: Date, duration: number): Promise<CalendarSlot[]> {
+  async getAvailableSlots(_startDate: Date, _endDate: Date, _duration: number): Promise<CalendarSlot[]> {
     // Implementation would use CalDAV protocol
     return [];
   }
 
-  async createEvent(event: CalendarEventRequest): Promise<string> {
+  async createEvent(_event: CalendarEventRequest): Promise<string> {
     return `caldav_${Date.now()}`;
   }
 
-  async updateEvent(eventId: string, updates: Partial<CalendarEventRequest>): Promise<boolean> {
+  async updateEvent(_eventId: string, _updates: Partial<CalendarEventRequest>): Promise<boolean> {
     return true;
   }
 
-  async deleteEvent(eventId: string): Promise<boolean> {
+  async deleteEvent(_eventId: string): Promise<boolean> {
     return true;
   }
 
-  async getEvent(eventId: string): Promise<CalendarEvent | null> {
+  async getEvent(_eventId: string): Promise<CalendarEvent | null> {
     return null;
   }
 }
@@ -402,7 +398,7 @@ class EmailService {
     this.env = env;
   }
 
-  async sendCalendarInvite(options: {
+  async sendCalendarInvite(_options: {
     to: string[];
     subject: string;
     icsContent: string;

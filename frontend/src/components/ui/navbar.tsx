@@ -5,7 +5,6 @@ import { Button } from './button'
 import {
   Menu,
   X,
-  Home,
   ChevronDown,
   User,
   Settings,

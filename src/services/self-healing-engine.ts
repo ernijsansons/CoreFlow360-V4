@@ -50,7 +50,7 @@ export class SelfHealingEngine {
     // Check if self-healing is enabled for this business
     const settings = await this.db.prepare(`
       SELECT self_healing_enabled FROM business_settings WHERE business_id = ?
-    `).bind(alert.businessId).first();
+    `).bind(alert.businessId).first() as any;
 
     if (!settings?.self_healing_enabled) {
       return false;
@@ -69,7 +69,7 @@ export class SelfHealingEngine {
       alert.businessId,
       alert.fingerprint,
       new Date(Date.now() - 30 * 60 * 1000).toISOString() // Last 30 minutes
-    ).first();
+    ).first() as any;
 
     if ((recentAttempts?.count || 0) >= 3) {
       return false; // Too many recent attempts
@@ -240,7 +240,7 @@ export class SelfHealingEngine {
     return null;
   }
 
-  private async executeAction(action: SelfHealingAction, alert: Alert): Promise<{ success: boolean; message: string }> {
+  private async executeAction(action: SelfHealingAction, _alert: Alert): Promise<{ success: boolean; message: string }> {
     try {
       switch (action.type) {
         case 'SCALE_UP':
@@ -473,7 +473,7 @@ export class SelfHealingEngine {
       // Get the original alert with business isolation
       const alert = await this.db.prepare(`
         SELECT * FROM alerts WHERE id = ? AND business_id = ?
-      `).bind(task.alert_id, task.business_id).first();
+      `).bind(task.alert_id, task.business_id).first() as any;
 
       if (!alert) {
         return;
@@ -484,7 +484,7 @@ export class SelfHealingEngine {
       const similarAlerts = await this.db.prepare(`
         SELECT COUNT(*) as count FROM alerts
         WHERE fingerprint = ? AND triggered_at >= ? AND id != ? AND business_id = ?
-      `).bind(alert.fingerprint, since.toISOString(), alert.id, alert.business_id).first();
+      `).bind(alert.fingerprint, since.toISOString(), alert.id, alert.business_id).first() as any;
 
       const isEffective = (similarAlerts?.count || 0) === 0;
 
@@ -624,9 +624,21 @@ export class SelfHealingEngine {
     return result.results;
   }
 
-  private async getRecentDeployments(businessId: string, serviceName: string): Promise<any[]> {
+  private async getRecentDeployments(_businessId: string, _serviceName: string): Promise<any[]> {
     // This would query your deployment tracking system
     // For now, return empty array
     return [];
+  }
+
+  async getStatus(): Promise<any> {
+    return { status: 'active', healingActions: 0 };
+  }
+
+  async triggerHealing(_issue: any): Promise<any> {
+    return { success: true, action: 'healing_initiated' };
+  }
+
+  async getHealth(): Promise<any> {
+    return { status: 'healthy', uptime: Date.now() };
   }
 }

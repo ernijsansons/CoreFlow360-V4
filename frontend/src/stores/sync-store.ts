@@ -1,7 +1,8 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import type { SyncQueueItem, ConnectivityStatus } from '@/types'
+import { createSafeJSONStorage } from '@/lib/safe-storage'
 
 interface SyncStore {
   queue: SyncQueueItem[]
@@ -154,7 +155,7 @@ export const useSyncStore = create<SyncStore>()(
     })),
     {
       name: 'sync-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createSafeJSONStorage(),
       partialize: (state) => ({
         queue: state.queue,
       }),
@@ -172,19 +173,34 @@ window.addEventListener('offline', () => {
 })
 
 // Enhanced connectivity detection
+interface NetworkInformation {
+  type?: 'wifi' | 'cellular' | 'ethernet' | 'other'
+  effectiveType?: '2g' | '3g' | '4g'
+  downlink?: number
+  rtt?: number
+  addEventListener: (type: string, listener: () => void) => void
+  removeEventListener: (type: string, listener: () => void) => void
+}
+
+interface NavigatorWithConnection extends Navigator {
+  connection?: NetworkInformation
+}
+
 if ('connection' in navigator) {
-  const connection = (navigator as any).connection
+  const connection = (navigator as NavigatorWithConnection).connection
 
-  const updateConnectionInfo = () => {
-    useSyncStore.getState().setConnectivity({
-      online: navigator.onLine,
-      connectionType: connection.type,
-      effectiveType: connection.effectiveType,
-      downlink: connection.downlink,
-      rtt: connection.rtt,
-    })
+  if (connection) {
+    const updateConnectionInfo = () => {
+      useSyncStore.getState().setConnectivity({
+        online: navigator.onLine,
+        connectionType: connection.type,
+        effectiveType: connection.effectiveType,
+        downlink: connection.downlink,
+        rtt: connection.rtt,
+      })
+    }
+
+    connection.addEventListener('change', updateConnectionInfo)
+    updateConnectionInfo()
   }
-
-  connection.addEventListener('change', updateConnectionInfo)
-  updateConnectionInfo()
 }

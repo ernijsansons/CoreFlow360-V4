@@ -12,38 +12,20 @@ import { CashFlowGenerator } from './cash-flow-generator';
 import { AgingReportsGenerator } from './aging-reports-generator';
 import { CustomReportBuilder } from './custom-report-builder';
 import { ReportExportManager } from './report-export-manager';
-import {
-  FinancialReport,
+import { FinancialReport,
   FinancialReportType,
   ReportStatus,
   GenerateReportRequest,
   GenerateCustomReportRequest,
-  ReportExportRequest,
-  ExportFormat,
-  ReportParameters
-} from './types';
+  ReportExportRequest } from './types';
 import { validateBusinessId } from './utils';
-import {
-  generateReportRequestSchema,
-  reportParametersSchema,
+import { generateReportRequestSchema,
   exportRequestSchema,
-  validateInput,
-  ValidationError
-} from './validation';
-import {
-  RateLimiter,
+  validateInput } from './validation';
+import { RateLimiter,
   RateLimitError,
-  RATE_LIMIT_CONFIGS,
-  createRateLimitMiddleware
-} from './rate-limiter';
-import {
-  ErrorHandler,
-  BusinessLogicError,
-  DatabaseTransactionError,
-  ErrorCategory,
-  ErrorSeverity,
-  createErrorHandler
-} from './error-handler';
+  RATE_LIMIT_CONFIGS } from './rate-limiter';
+import { createErrorHandler } from './error-handler';
 import {
   PerformanceMonitor,
   getGlobalMonitor,
@@ -493,7 +475,7 @@ export class FinancialReportingEngine {
       const result = await this.db.prepare(`
         SELECT * FROM financial_reports
         WHERE id = ? AND business_id = ?
-      `).bind(reportId, validBusinessId).first();
+      `).bind(reportId, validBusinessId).first() as any;
 
       if (!result) {
         return null;
@@ -557,7 +539,7 @@ export class FinancialReportingEngine {
         SELECT COUNT(*) as count
         FROM financial_reports
         WHERE ${whereClause}
-      `).bind(...params).first();
+      `).bind(...params).first() as any;
 
       const total = (countResult?.count as number) || 0;
 
@@ -618,6 +600,7 @@ export class FinancialReportingEngine {
       // Delete exports from R2 if they exist
       if (report.exportUrls) {
         for (const [format, url] of Object.entries(report.exportUrls)) {
+        void format;
           try {
             const filename = url.split('/').pop() || '';
             await this.exportManager.deleteExport(reportId, filename, validBusinessId);
@@ -657,7 +640,7 @@ export class FinancialReportingEngine {
   /**
    * Validate business access (placeholder - would integrate with auth system)
    */
-  private async validateBusinessAccess(businessId: string, userId: string): Promise<void> {
+  private async validateBusinessAccess(businessId: string, _userId: string): Promise<void> {
     // In a real implementation, this would verify that the user has access to the business
     // For now, we'll just validate that the businessId is properly formatted
     if (!businessId || businessId.length < 3) {

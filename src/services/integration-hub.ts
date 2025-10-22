@@ -246,7 +246,8 @@ export class IntegrationHub {
       if (result.status === 'success' && result.recordsSynced > 0) {
         // Trigger pattern analysis on new data
         const db = this.env.DB_CRM;
-        await db.prepare(`
+        if (db) {
+          await db.prepare(`
           INSERT INTO learning_triggers (
             trigger_type, trigger_source, data, created_at
           ) VALUES (?, ?, ?, ?)
@@ -256,6 +257,7 @@ export class IntegrationHub {
           JSON.stringify({ recordsSynced: result.recordsSynced }),
           new Date().toISOString()
         ).run();
+        }
       }
     }
   }
@@ -449,7 +451,7 @@ export class IntegrationHub {
         COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_syncs
       FROM sync_logs
       WHERE created_at >= datetime('now', '-${daysBack} days')
-    `).first();
+    `).first() as any;
 
     return stats;
   }

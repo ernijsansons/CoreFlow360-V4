@@ -6,11 +6,8 @@
 import type { KVNamespace } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
 import { AgentTask, OrchestratorResult } from './types';
-import {
-  generateSecureToken,
-  hashSensitiveData,
-  sanitizeBusinessId
-} from './security-utils';
+import { hashSensitiveData,
+  sanitizeBusinessId } from './security-utils';
 
 export interface IdempotencyRecord {
   key: string;
@@ -189,7 +186,12 @@ class IdempotencyManager {
       // Create or update record in KV
       const existingData = await this.kv.get(key, 'json') as IdempotencyRecord | null;
 
-      const record: IdempotencyRecord = existingData || {
+      const record: IdempotencyRecord = existingData ? {
+        ...existingData,
+        status: 'pending',
+        updatedAt: Date.now(),
+        executionCount: (existingData.executionCount || 0) + 1,
+      } : {
         key,
         taskId: task.id,
         businessId: safeBusinessId,
@@ -197,7 +199,7 @@ class IdempotencyManager {
         createdAt: Date.now(),
         updatedAt: Date.now(),
         expiresAt: Date.now() + (this.config.ttlSeconds * 1000),
-        executionCount: (existingData?.executionCount || 0) + 1,
+        executionCount: 1,
         metadata: {
           capability: task.capability,
           department: task.context.department,
@@ -410,8 +412,8 @@ class IdempotencyManager {
     this.config = {
       ...this.config,
       ...config
-    };
+    } as IdempotencyConfig;
 
-    this.logger.info('Updated idempotency configuration', this.config);
+    this.logger.info('Updated idempotency configuration', this.config as unknown as Record<string, unknown>);
   }
 }

@@ -183,6 +183,7 @@ export class DepartmentProfiler {
       
       // Analyze department capabilities
       const capabilities = await this.analyzeCapabilities(departmentName, departmentData);
+      void capabilities;
       
       // Generate department profile
       const profile: DepartmentProfile = {
@@ -441,16 +442,16 @@ export class DepartmentProfiler {
     }
   }
 
-  private async analyzeCapabilities(departmentName: string, departmentData: any): Promise<DepartmentCapabilities> {
+  private async analyzeCapabilities(departmentName: string, _departmentData: any): Promise<DepartmentCapabilities> {
     return await this.getDepartmentCapabilities(departmentName);
   }
 
-  private async identifyResponsibilities(departmentName: string, departmentData: any): Promise<string[]> {
+  private async identifyResponsibilities(departmentName: string, _departmentData: any): Promise<string[]> {
     const capabilities = await this.getDepartmentCapabilities(departmentName);
     return capabilities.allowedOperations;
   }
 
-  private async identifyGoals(departmentName: string, departmentData: any): Promise<string[]> {
+  private async identifyGoals(departmentName: string, _departmentData: any): Promise<string[]> {
     // Mock implementation - in real scenario, this would analyze department data
     const goals: Record<string, string[]> = {
       finance: ['Improve financial accuracy', 'Reduce processing time', 'Enhance compliance'],
@@ -464,7 +465,7 @@ export class DepartmentProfiler {
     return goals[departmentName.toLowerCase() as keyof typeof goals] || ['Improve performance', 'Enhance efficiency'];
   }
 
-  private async identifyChallenges(departmentName: string, departmentData: any): Promise<string[]> {
+  private async identifyChallenges(departmentName: string, _departmentData: any): Promise<string[]> {
     // Mock implementation - in real scenario, this would analyze department data
     const challenges: Record<string, string[]> = {
       finance: ['Regulatory compliance', 'Data accuracy', 'Process automation'],
@@ -478,7 +479,7 @@ export class DepartmentProfiler {
     return challenges[departmentName.toLowerCase() as keyof typeof challenges] || ['Resource constraints', 'Process improvement'];
   }
 
-  private async identifyMetrics(departmentName: string, departmentData: any): Promise<string[]> {
+  private async identifyMetrics(departmentName: string, _departmentData: any): Promise<string[]> {
     // Mock implementation - in real scenario, this would analyze department data
     const metrics: Record<string, string[]> = {
       finance: ['Revenue growth', 'Cost reduction', 'Compliance rate'],
@@ -492,47 +493,47 @@ export class DepartmentProfiler {
     return metrics[departmentName.toLowerCase() as keyof typeof metrics] || ['Performance score', 'Efficiency rate'];
   }
 
-  private async calculatePerformanceScore(departmentName: string, departmentData: any): Promise<number> {
+  private async calculatePerformanceScore(_departmentName: string, _departmentData: any): Promise<number> {
     // Mock implementation - in real scenario, this would calculate based on actual metrics
     return Math.floor(Math.random() * 40) + 60; // 60-100
   }
 
-  private async calculateEfficiencyRating(departmentName: string, departmentData: any): Promise<number> {
+  private async calculateEfficiencyRating(_departmentName: string, _departmentData: any): Promise<number> {
     // Mock implementation - in real scenario, this would calculate based on actual metrics
     return Math.floor(Math.random() * 30) + 70; // 70-100
   }
 
-  private async assessCollaborationLevel(departmentName: string, departmentData: any): Promise<number> {
+  private async assessCollaborationLevel(_departmentName: string, _departmentData: any): Promise<number> {
     // Mock implementation - in real scenario, this would assess based on actual data
     return Math.floor(Math.random() * 40) + 60; // 60-100
   }
 
-  private async calculateInnovationIndex(departmentName: string, departmentData: any): Promise<number> {
+  private async calculateInnovationIndex(_departmentName: string, _departmentData: any): Promise<number> {
     // Mock implementation - in real scenario, this would calculate based on actual data
     return Math.floor(Math.random() * 50) + 50; // 50-100
   }
 
-  private async assessRiskLevel(departmentName: string, departmentData: any): Promise<number> {
+  private async assessRiskLevel(_departmentName: string, _departmentData: any): Promise<number> {
     // Mock implementation - in real scenario, this would assess based on actual data
     return Math.floor(Math.random() * 30) + 20; // 20-50
   }
 
-  private async assessComplianceStatus(departmentName: string, departmentData: any): Promise<number> {
+  private async assessComplianceStatus(_departmentName: string, _departmentData: any): Promise<number> {
     // Mock implementation - in real scenario, this would assess based on actual data
     return Math.floor(Math.random() * 20) + 80; // 80-100
   }
 
-  private async assessTechnologyAdoption(departmentName: string, departmentData: any): Promise<number> {
+  private async assessTechnologyAdoption(_departmentName: string, _departmentData: any): Promise<number> {
     // Mock implementation - in real scenario, this would assess based on actual data
     return Math.floor(Math.random() * 40) + 60; // 60-100
   }
 
-  private async identifyTrainingNeeds(departmentName: string, departmentData: any): Promise<string[]> {
+  private async identifyTrainingNeeds(_departmentName: string, _departmentData: any): Promise<string[]> {
     // Mock implementation - in real scenario, this would identify based on actual data
     return ['Technical skills', 'Soft skills', 'Industry knowledge'];
   }
 
-  private async identifyImprovementOpportunities(departmentName: string, departmentData: any): Promise<string[]> {
+  private async identifyImprovementOpportunities(_departmentName: string, _departmentData: any): Promise<string[]> {
     // Mock implementation - in real scenario, this would identify based on actual data
     return ['Process automation', 'Skill development', 'Technology adoption'];
   }

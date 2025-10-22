@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL UNIQUE,
     username TEXT UNIQUE,
     password_hash TEXT NOT NULL,
+    password_salt TEXT, -- PBKDF2 salt for password hashing
 
     -- Personal Information
     first_name TEXT NOT NULL,

@@ -9,16 +9,32 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 shadow-sm",
         outline:
           "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs",
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // CoreFlow360 Premium Brand Colors
+        success:
+          "bg-success-500 text-white hover:bg-success-600 shadow-sm focus-visible:ring-success-500/30",
+        warning:
+          "bg-warning-500 text-white hover:bg-warning-600 shadow-sm focus-visible:ring-warning-500/30",
+        error:
+          "bg-error-500 text-white hover:bg-error-600 shadow-sm focus-visible:ring-error-500/30",
+        info:
+          "bg-info-500 text-white hover:bg-info-600 shadow-sm focus-visible:ring-info-500/30",
+        // Brand variants
+        brand:
+          "bg-brand-primary-600 text-white hover:bg-brand-primary-700 shadow-primary-md focus-visible:ring-brand-primary-500/30",
+        accent:
+          "bg-brand-accent-600 text-white hover:bg-brand-accent-700 shadow-md focus-visible:ring-brand-accent-500/30",
+        teal:
+          "bg-brand-teal-600 text-white hover:bg-brand-teal-700 shadow-sm focus-visible:ring-brand-teal-500/30",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -55,4 +71,5 @@ function Button({
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Button, buttonVariants }

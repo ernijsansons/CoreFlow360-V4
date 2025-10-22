@@ -660,7 +660,7 @@ export class CacheConsistencyValidator {
     }
   }
 
-  private async analyzeInvalidation(config: any): Promise<InvalidationAnalysis> {
+  private async analyzeInvalidation(_config: any): Promise<InvalidationAnalysis> {
     this.logger.info('Analyzing cache invalidation');
 
     const [failedInvalidations, cascadeIssues, ttlAnalysis] = await Promise.all([
@@ -948,7 +948,7 @@ export class CacheConsistencyValidator {
     }
   }
 
-  private async analyzeCoherence(config: any): Promise<CacheCoherence> {
+  private async analyzeCoherence(_config: any): Promise<CacheCoherence> {
     this.logger.info('Analyzing cache coherence');
 
     const [multiLayerConsistency, distributedCoherence] = await Promise.all([
@@ -1108,7 +1108,7 @@ export class CacheConsistencyValidator {
   private collectIssues(
     validation: CacheValidation,
     invalidation: InvalidationAnalysis,
-    coherence: CacheCoherence
+    _coherence: CacheCoherence
   ): CacheIssue[] {
     const issues: CacheIssue[] = [];
 
@@ -1161,7 +1161,7 @@ export class CacheConsistencyValidator {
     invalidation: InvalidationAnalysis,
     coherence: CacheCoherence,
     performance: CachePerformanceMetrics,
-    issues: CacheIssue[]
+    _issues: CacheIssue[]
   ): CacheRecommendation[] {
     const recommendations: CacheRecommendation[] = [];
 

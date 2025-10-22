@@ -1,12 +1,5 @@
 import type { Env } from '../types/env';
-import type {
-  Pattern,
-  Interaction,
-  Outcome,
-  Lead,
-  CustomerSegment,
-  Strategy
-} from '../types/crm';
+import type { Pattern } from '../types/crm';
 
 export class PatternRecognition {
   private env: Env;
@@ -34,7 +27,10 @@ export class PatternRecognition {
   }
 
   private async getSuccessfulDeals(): Promise<any[]> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
     const successfulDeals = await db.prepare(`
       SELECT
@@ -351,21 +347,26 @@ export class PatternRecognition {
   }
 
   private async updateStrategiesWithPattern(pattern: Pattern): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
     // Find strategies that could benefit from this pattern
+    const applicability = pattern.applicability || [];
     const relevantStrategies = await db.prepare(`
       SELECT * FROM strategies
-      WHERE type = ? OR target_segment IN (${pattern.applicability.map(() => '?').join(',')})
-    `).bind(pattern.type, ...pattern.applicability).all();
+      WHERE type = ? OR target_segment IN (${applicability.map(() => '?').join(',')})
+    `).bind(pattern.type, ...applicability).all();
 
     for (const strategyRow of relevantStrategies.results) {
-      const strategy = JSON.parse(strategyRow.strategy_data as string);
+      const strategy = JSON.parse((strategyRow as any).strategy_data as string);
 
       // Apply pattern insights to strategy
       const updatedStrategy = await this.applyPatternToStrategy(strategy, pattern);
 
       // Store updated strategy
+      if (!db) continue;
       await db.prepare(`
         UPDATE strategies SET
           strategy_data = ?,
@@ -382,30 +383,32 @@ export class PatternRecognition {
 
   private async applyPatternToStrategy(strategy: any, pattern: Pattern): Promise<any> {
     const updatedStrategy = { ...strategy };
+    const actions = pattern.actions || { content: [], timing: [], followUp: [] };
+    const conditions = pattern.conditions || { segment: undefined, stage: undefined, channel: undefined, context: undefined };
 
     switch (pattern.type) {
       case 'timing':
-        if (pattern.actions.timing) {
-          updatedStrategy.approach.timing = pattern.actions.timing;
+        if (actions.timing) {
+          updatedStrategy.approach.timing = actions.timing;
         }
         break;
 
       case 'content':
-        if (pattern.actions.content) {
-          updatedStrategy.prompts.examples.push(pattern.actions.content);
+        if (actions.content) {
+          updatedStrategy.prompts.examples.push(actions.content);
         }
         break;
 
       case 'channel':
-        if (pattern.conditions.channel) {
-          if (!updatedStrategy.approach.channel.includes(pattern.conditions.channel)) {
-            updatedStrategy.approach.channel.push(pattern.conditions.channel);
+        if (conditions.channel) {
+          if (!updatedStrategy.approach.channel.includes(conditions.channel)) {
+            updatedStrategy.approach.channel.push(conditions.channel);
           }
         }
         break;
 
       case 'sequence':
-        updatedStrategy.approach.structure = pattern.actions.followUp || updatedStrategy.approach.structure;
+        updatedStrategy.approach.structure = actions.followUp || updatedStrategy.approach.structure;
         break;
 
       case 'objection_handling':
@@ -427,20 +430,25 @@ export class PatternRecognition {
   }
 
   private async createPatternRecommendations(pattern: Pattern): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
+    const performance = pattern.performance || { winRate: 0, responseRate: 0, dealVelocity: 0, revenueImpact: 0 };
     const recommendation = {
       id: `rec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       patternId: pattern.id,
       type: pattern.type,
       description: `Apply ${pattern.name} pattern`,
       action: pattern.description,
-      expectedImpact: `Improve ${pattern.type} performance by ${(pattern.performance.winRate * 100).toFixed(1)}%`,
-      confidence: pattern.confidence,
-      applicability: pattern.applicability,
+      expectedImpact: `Improve ${pattern.type} performance by ${(performance.winRate * 100).toFixed(1)}%`,
+      confidence: pattern.confidence || 0,
+      applicability: pattern.applicability || [],
       createdAt: new Date().toISOString()
     };
 
+    if (!db) return;
     await db.prepare(`
       INSERT INTO pattern_recommendations (
         id, pattern_id, type, description, action,
@@ -461,15 +469,20 @@ export class PatternRecognition {
 
   private async updateSegmentTargeting(pattern: Pattern): Promise<void> {
     // Update customer segments with pattern insights
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
-    for (const segmentName of pattern.applicability) {
+    const applicability = pattern.applicability || [];
+    for (const segmentName of applicability) {
       const segment = await db.prepare(`
         SELECT * FROM customer_segments WHERE name = ?
-      `).bind(segmentName).first();
+      `).bind(segmentName).first() as any;
 
       if (segment) {
-        const segmentData = JSON.parse(segment.segment_data as string);
+        const segmentRow = segment as Record<string, unknown>;
+        const segmentData = JSON.parse(segmentRow.segment_data as string);
 
         if (!segmentData.patterns) {
           segmentData.patterns = [];
@@ -479,6 +492,7 @@ export class PatternRecognition {
           segmentData.patterns.push(pattern.id);
         }
 
+        if (!db) continue;
         await db.prepare(`
           UPDATE customer_segments SET
             segment_data = ?,
@@ -487,7 +501,7 @@ export class PatternRecognition {
         `).bind(
           JSON.stringify(segmentData),
           new Date().toISOString(),
-          segment.id
+          segmentRow.id as string
         ).run();
       }
     }
@@ -497,10 +511,11 @@ export class PatternRecognition {
     const patterns: Pattern[] = [];
 
     for (const patternData of patternsData) {
+      const patternType = type as Pattern['type'];
       const pattern: Pattern = {
         id: `pattern_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: patternData.name,
-        type: type as any,
+        type: patternType,
         description: patternData.description,
         conditions: patternData.conditions || {},
         actions: patternData.actions || { content: '', timing: '', followUp: [] },
@@ -526,7 +541,10 @@ export class PatternRecognition {
 
   // Data gathering methods
   private async getChannelPerformanceData(): Promise<any> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
     const data = await db.prepare(`
       SELECT
@@ -544,7 +562,10 @@ export class PatternRecognition {
   }
 
   private async getTimingPerformanceData(): Promise<any> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
     const data = await db.prepare(`
       SELECT
@@ -563,7 +584,10 @@ export class PatternRecognition {
   }
 
   private async getContentPerformanceData(): Promise<any> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
     const data = await db.prepare(`
       SELECT
@@ -588,7 +612,10 @@ export class PatternRecognition {
   }
 
   private async getObjectionData(): Promise<any> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
     const data = await db.prepare(`
       SELECT
@@ -609,7 +636,10 @@ export class PatternRecognition {
   }
 
   private async getSequencePerformanceData(): Promise<any> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
     const data = await db.prepare(`
       SELECT
@@ -630,7 +660,10 @@ export class PatternRecognition {
   }
 
   private async getClosingData(): Promise<any> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
     const data = await db.prepare(`
       SELECT
@@ -670,13 +703,19 @@ export class PatternRecognition {
 
   private async callAI(prompt: string): Promise<string> {
     try {
+      if (!this.env.ANTHROPIC_API_KEY) {
+        throw new Error('ANTHROPIC_API_KEY not configured');
+      }
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-api-key': this.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      };
+
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.env.ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01'
-        },
+        headers,
         body: JSON.stringify({
           model: 'claude-3-sonnet-20240229',
           max_tokens: 3000,
@@ -700,7 +739,10 @@ export class PatternRecognition {
   }
 
   private async storePattern(pattern: Pattern): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
     await db.prepare(`
       INSERT OR REPLACE INTO patterns (
@@ -720,7 +762,10 @@ export class PatternRecognition {
   }
 
   private async loadExistingPatterns(): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      return; // Skip loading if DB not available
+    }
 
     const patterns = await db.prepare(`
       SELECT * FROM patterns
@@ -729,7 +774,7 @@ export class PatternRecognition {
     `).all();
 
     for (const row of patterns.results) {
-      const pattern = JSON.parse(row.pattern_data as string) as Pattern;
+      const pattern = JSON.parse((row as any).pattern_data as string) as Pattern;
       this.patterns.set(pattern.id, pattern);
     }
 
@@ -754,9 +799,10 @@ export class PatternRecognition {
   private async validatePatternAgainstRecentData(pattern: Pattern): Promise<{ isValid: boolean; confidence: number }> {
     // Implementation would check if pattern still holds true against recent data
     // For now, return mock validation
+    const confidence = pattern.confidence || 0;
     return {
       isValid: true,
-      confidence: Math.max(0.3, pattern.confidence * 0.95) // Slight confidence decay
+      confidence: Math.max(0.3, confidence * 0.95) // Slight confidence decay
     };
   }
 
@@ -766,12 +812,21 @@ export class PatternRecognition {
 
   async getTopPerformingPatterns(limit: number = 10): Promise<Pattern[]> {
     return Array.from(this.patterns.values())
-      .sort((a, b) => (b.performance.winRate * b.confidence) - (a.performance.winRate * a.confidence))
+      .sort((a, b) => {
+        const aPerf = a.performance || { winRate: 0, responseRate: 0, dealVelocity: 0, revenueImpact: 0 };
+        const bPerf = b.performance || { winRate: 0, responseRate: 0, dealVelocity: 0, revenueImpact: 0 };
+        const aConf = a.confidence || 0;
+        const bConf = b.confidence || 0;
+        return (bPerf.winRate * bConf) - (aPerf.winRate * aConf);
+      })
       .slice(0, limit);
   }
 
   async getPatternRecommendations(segmentId: string): Promise<any[]> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB;
+    if (!db) {
+      throw new Error('Database not available');
+    }
 
     const recommendations = await db.prepare(`
       SELECT * FROM pattern_recommendations
@@ -833,16 +888,19 @@ export class PatternRecognition {
 
     const typePerformance = new Map<string, number>();
     for (const pattern of patterns) {
-      const score = pattern.performance.winRate * pattern.confidence;
-      typePerformance.set(pattern.type, (typePerformance.get(pattern.type) || 0) + score);
+      const perf = pattern.performance || { winRate: 0, responseRate: 0, dealVelocity: 0, revenueImpact: 0 };
+      const conf = pattern.confidence || 0;
+      const score = perf.winRate * conf;
+      const currentScore = typePerformance.get(pattern.type) || 0;
+      typePerformance.set(pattern.type, currentScore + score);
     }
 
-    const topPerformingType = Array.from(typePerformance.entries())
+    const topPerformingType: string = Array.from(typePerformance.entries())
       .sort((a, b) => b[1] - a[1])[0]?.[0] || 'none';
 
     return {
       totalPatterns: patterns.length,
-      averageConfidence: patterns.reduce((sum, p) => sum + p.confidence, 0) / patterns.length,
+      averageConfidence: patterns.reduce((sum, p) => sum + (p.confidence || 0), 0) / patterns.length,
       topPerformingType,
       recentDiscoveries: recentPatterns.length,
       validationRate: 0.85 // Would calculate from actual validation data

@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../shared/logger';
-import { SecurityError } from '../shared/security-utils';
+
 
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
@@ -518,7 +518,7 @@ export const RateLimitConfigs = {
     algorithm: 'token_bucket' as const,
     customRules: [
       {
-        condition: (id, ctx) => ctx?.businessId === 'premium_tier',
+        condition: (id: string, ctx: any) => ctx?.businessId === 'premium_tier',
         config: { maxRequests: 50 }
       }
     ]

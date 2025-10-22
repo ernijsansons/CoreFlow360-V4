@@ -5,8 +5,7 @@
  */
 
 import { Logger } from '../shared/logger';
-import { EdgeAIOrchestrator, type DistributedInferenceRequest } from './edge-ai-orchestrator';
-import type { OptimizationStrategy } from './automated-ai-optimizer';
+import { EdgeAIOrchestrator } from './edge-ai-orchestrator';
 
 export interface Agent {
   id: string;
@@ -18,6 +17,7 @@ export interface Agent {
   workload: number; // 0-100
   specializations: string[];
   performance: PerformanceMetrics;
+  lastHealthCheck?: number;
 }
 
 export interface AgentCapability {
@@ -498,21 +498,22 @@ export class AgentOrchestrationFramework {
         evidence: [`Task executed by ${agent.name}`, `Duration: ${duration}ms`],
         confidence: (qualityScore + performanceScore + securityScore) / 3
       };
-    } catch (error) {
+    } catch (error: unknown) {
       const duration = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : String(error);
 
       this.logger.error('Task execution failed', { taskId: task.id, error });
 
       return {
         success: false,
-        output: { error: error.message },
+        output: { error: errorMessage },
         metrics: {
           duration,
           qualityScore: 0,
           performanceScore: 0,
           securityScore: 0
         },
-        evidence: [`Task failed: ${error.message}`],
+        evidence: [`Task failed: ${errorMessage}`],
         confidence: 0
       };
     }
@@ -774,7 +775,8 @@ export class AgentOrchestrationFramework {
    */
   private async simulateAgentDeployment(agent: Agent): Promise<void> {
     // Simulate deployment delay
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, 100));
 
     // Run agent self-diagnostics
     await this.runAgentDiagnostics(agent);
@@ -792,9 +794,10 @@ export class AgentOrchestrationFramework {
    */
   private async runAgentDiagnostics(agent: Agent): Promise<void> {
     // Verify agent capabilities
-    for (const capability of agent.capabilities) {
+    for (let i = 0; i < agent.capabilities.length; i++) {
       // Simulate capability check
-      await new Promise(resolve => setTimeout(resolve, 10));
+      // eslint-disable-next-line no-undef
+      await new Promise(resolve => (setTimeout as any)(resolve, 10));
     }
 
     // Update agent status
@@ -835,7 +838,7 @@ export class AgentOrchestrationFramework {
     };
   }
 
-  private async executeProactiveDebugging(task: Task): Promise<any> {
+  private async executeProactiveDebugging(_task: Task): Promise<any> {
     // Simulate proactive debugging
     return {
       type: 'debugging',
@@ -848,7 +851,7 @@ export class AgentOrchestrationFramework {
   }
 
   // Additional helper methods would be implemented here...
-  private simulateTaskDecomposition(request: string, options: any): Task[] {
+  private simulateTaskDecomposition(_request: string, _options: any): Task[] {
     // This would normally use the actual task orchestrator agent
     // For now, return a sample decomposition
     return [
@@ -923,7 +926,7 @@ export class AgentOrchestrationFramework {
     }
   }
 
-  private createExecutionPlan(nodes: Map<string, DAGNode>, parallelizationTarget: number): ExecutionPlan {
+  private createExecutionPlan(nodes: Map<string, DAGNode>, _parallelizationTarget: number): ExecutionPlan {
     // Create execution plan with parallel phases
     const phases: ExecutionPhase[] = [];
     const levelMap = new Map<number, string[]>();
@@ -1021,7 +1024,7 @@ export class AgentOrchestrationFramework {
 
   private assessRisksAndPlanVerification(dag: WorkflowDAG, level: string): void {
     // Assess risks and plan verification gates
-    const riskThresholds = {
+    const riskThresholds: Record<string, number> = {
       'basic': 0.7,
       'standard': 0.85,
       'strict': 0.95
@@ -1048,7 +1051,7 @@ export class AgentOrchestrationFramework {
 
   private async assignAgentsToTasks(dag: WorkflowDAG): Promise<void> {
     // Assign agents to tasks based on capabilities and load
-    for (const [nodeId, node] of dag.nodes) {
+    for (const [, node] of dag.nodes) {
       const task = node.task;
       const suitableAgents = this.findSuitableAgents(task);
 
@@ -1180,7 +1183,7 @@ export class AgentOrchestrationFramework {
     return Math.min(1, Math.max(0, ratio));
   }
 
-  private calculateSecurityScore(output: any, task: Task): number {
+  private calculateSecurityScore(output: any, _task: Task): number {
     // Calculate security score
     if (output && output.securityIssues !== undefined) {
       return Math.max(0, 1 - (output.securityIssues * 0.2));
@@ -1222,7 +1225,8 @@ export class AgentOrchestrationFramework {
   }
 
   private startPerformanceMonitoring(): void {
-    setInterval(() => {
+    // eslint-disable-next-line no-undef
+    (setInterval as any)(() => {
       this.updateSystemMetrics();
       this.performHealthChecks();
       this.optimizeAgentAllocation();
@@ -1269,7 +1273,13 @@ export class AgentOrchestrationFramework {
   getSystemStatus(): {
     agents: Agent[];
     activeWorkflows: WorkflowDAG[];
-    systemMetrics: typeof this.systemMetrics;
+    systemMetrics: {
+      totalTasksExecuted: number;
+      averageWorkflowCompletionTime: number;
+      parallelExecutionEfficiency: number;
+      verificationAccuracy: number;
+      conflictResolutionRate: number;
+    };
     collaborationPatterns: AgentCollaborationPattern[];
   } {
     return {

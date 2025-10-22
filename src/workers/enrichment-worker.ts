@@ -143,6 +143,7 @@ export class EnrichmentWorker {
         await this.updateCRMWithEnrichment(enrichmentResult.enriched_lead, job.business_id);
         await this.triggerAIActions(enrichmentResult.enriched_lead, job.business_id);
         updatedCount++;
+        void updatedCount;
       }
     }
 
@@ -253,6 +254,7 @@ export class EnrichmentWorker {
           newStatus = 'qualified';
         } else if (insights.icp_fit_score > 60) {
           newStatus = 'qualifying';
+          void newStatus;
         }
 
         // Update in CRM (would integrate with actual CRM service)

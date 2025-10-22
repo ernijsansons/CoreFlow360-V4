@@ -207,7 +207,7 @@ export class MigrationTester {
   }
 
   private async generateSampleRecord(tableMapping: any, index: number, options: any): Promise<Record<string, any>> {
-    const record: Record<string, any> = {};
+    let record: Record<string, any> = {};
 
     // Generate data for each mapped column
     for (const columnMapping of tableMapping.columnMappings) {
@@ -229,7 +229,7 @@ export class MigrationTester {
     return record;
   }
 
-  private generateSampleValue(fieldName: string, index: number, options: any): any {
+  private generateSampleValue(fieldName: string, index: number, _options: any): any {
     const field = fieldName.toLowerCase();
 
     // Generate realistic test data based on field name
@@ -310,7 +310,7 @@ export class MigrationTester {
       const transformedData: any[] = [];
 
       for (const sourceRecord of sourceData) {
-        const targetRecord: Record<string, any> = {};
+        let targetRecord: Record<string, any> = {};
 
         // Apply column mappings
         for (const columnMapping of tableMapping.columnMappings) {
@@ -361,8 +361,11 @@ export class MigrationTester {
   private evaluateExpression(expression: string, value: any): any {
     try {
       // Simple expression evaluation (replace ${value} with actual value)
+      // Using Function constructor instead of eval() for better security and bundler compatibility
+      // This avoids the "direct eval" warning from esbuild
       const code = expression.replace(/\$\{value\}/g, JSON.stringify(value));
-      return eval(code);
+      const fn = new Function('return ' + code);
+      return fn();
     } catch (error: any) {
       return value; // Return original value if expression fails
     }
@@ -895,7 +898,7 @@ export class MigrationTester {
     return testCase.input;
   }
 
-  private async executePerformanceTest(testCase: TestCase): Promise<any> {
+  private async executePerformanceTest(_testCase: TestCase): Promise<any> {
     // Execute performance test logic
     const startTime = Date.now();
     // Simulate processing

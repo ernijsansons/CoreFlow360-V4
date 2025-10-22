@@ -10,12 +10,12 @@ async function main() {
 
 
     if (report.summary.critical > 0) {
-      report.recommendations.immediate.forEach((issue, index) => {
+      report.recommendations.immediate.forEach((_issue, _index) => {
       });
     }
 
     if (report.nextSteps.immediate.length > 0) {
-      report.nextSteps.immediate.forEach((step, index) => {
+      report.nextSteps.immediate.forEach((_step, _index) => {
       });
     }
 

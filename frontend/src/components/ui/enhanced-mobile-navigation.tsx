@@ -1,8 +1,7 @@
 import * as React from "react"
 import { motion, useDragControls, PanInfo } from "framer-motion"
-import { X, Menu, ChevronLeft, ChevronRight } from "lucide-react"
+import { X, Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { modalAnimations, gestureConfig } from "@/lib/animations"
 
 export interface MobileNavigationProps {
   children: React.ReactNode
@@ -28,10 +27,8 @@ const EnhancedMobileNavigation: React.FC<MobileNavigationProps> = ({
   className
 }) => {
   const dragControls = useDragControls()
-  const [isDragging, setIsDragging] = React.useState(false)
 
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    setIsDragging(false)
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
 
     if (!swipeToClose) return
 
@@ -202,7 +199,6 @@ export interface NavigationTriggerProps {
 const NavigationTrigger: React.FC<NavigationTriggerProps> = ({
   isOpen,
   onToggle,
-  position = 'left',
   className
 }) => {
   return (
@@ -283,7 +279,7 @@ const SwipeableTabs: React.FC<SwipeableTabsProps> = ({
     <div className={cn("space-y-4", className)}>
       {/* Tab Headers */}
       <div className="flex space-x-1 bg-[var(--color-bg-muted)] p-1 rounded-[var(--radius-lg)]">
-        {tabs.map((tab, index) => (
+        {tabs.map((tab) => (
           <motion.button
             key={tab.id}
             className={cn(

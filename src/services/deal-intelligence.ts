@@ -1,6 +1,9 @@
-import type { Lead, Company } from '../types/crm';
+
 import type { Env } from '../types/env';
-import { PredictiveScoring } from './predictive-scoring';
+import { PredictiveScoring } from './predictive-scoring';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-deal-intelligence" });
+
+
 
 export interface Opportunity {
   id: string;
@@ -211,6 +214,7 @@ export class DealIntelligenceService {
 
   async analyzeDeal(opportunity: Opportunity): Promise<DealIntelligence> {
     const startTime = Date.now();
+    void startTime;
 
     // Perform comprehensive deal analysis
     const [
@@ -951,6 +955,7 @@ export class DealIntelligenceService {
       const isCompleted = i < currentIndex;
       const isCurrent = i === currentIndex;
       const isUpcoming = i > currentIndex;
+      void isUpcoming;
 
       stages.push({
         name: stage,
@@ -1156,14 +1161,14 @@ export class DealIntelligenceService {
     return this.analyzeDeal(opportunity);
   }
 
-  async getDealInsights(opportunityId: string): Promise<DealIntelligence | null> {
+  async getDealInsights(_opportunityId: string): Promise<DealIntelligence | null> {
     // This would typically fetch from cache or database
     return null;
   }
 
   async trackDealProgress(opportunityId: string, updates: Partial<Opportunity>): Promise<void> {
     // This would typically update the deal in the database
-    console.log(`Tracking deal progress for ${opportunityId}:`, updates);
+    logger.info(`Tracking deal progress for ${opportunityId}:`, updates);
   }
 }
 

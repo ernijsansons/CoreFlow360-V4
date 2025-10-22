@@ -581,7 +581,7 @@ export class FinanceValidationEngine {
     const result = await this.db.prepare(`
       SELECT * FROM accounting_periods
       WHERE id = ? AND business_id = ?
-    `).bind(periodId, businessId).first();
+    `).bind(periodId, businessId).first() as any;
 
     return result ? {
       id: result.id as string,
@@ -599,7 +599,7 @@ export class FinanceValidationEngine {
     const result = await this.db.prepare(`
       SELECT * FROM chart_of_accounts
       WHERE id = ? AND business_id = ?
-    `).bind(accountId, businessId).first();
+    `).bind(accountId, businessId).first() as any;
 
     return result ? {
       id: result.id as string,
@@ -623,7 +623,7 @@ export class FinanceValidationEngine {
     const result = await this.db.prepare(`
       SELECT * FROM chart_of_accounts
       WHERE code = ? AND business_id = ?
-    `).bind(code, businessId).first();
+    `).bind(code, businessId).first() as any;
 
     return result ? this.getAccount(result.id as string, businessId) : null;
   }
@@ -633,7 +633,7 @@ export class FinanceValidationEngine {
       SELECT COUNT(*) as count
       FROM journal_entries
       WHERE period_id = ? AND business_id = ? AND status != 'POSTED'
-    `).bind(periodId, businessId).first();
+    `).bind(periodId, businessId).first() as any;
 
     return (result?.count as number) || 0;
   }
@@ -660,7 +660,7 @@ export class FinanceValidationEngine {
       FROM journal_lines jl
       JOIN journal_entries je ON jl.journal_entry_id = je.id
       WHERE je.period_id = ? AND je.business_id = ? AND je.status = 'POSTED'
-    `).bind(periodId, businessId).first();
+    `).bind(periodId, businessId).first() as any;
 
     if (!result) return true;
 

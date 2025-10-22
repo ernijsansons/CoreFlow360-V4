@@ -3,13 +3,10 @@
  * Intelligent retry with model downgrade and agent fallback
  */
 
-import {
-  IAgent,
+import { IAgent,
   AgentTask,
   BusinessContext,
-  AgentResult,
-  TaskConstraints
-} from './types';
+  AgentResult } from './types';
 import { AgentRegistry } from './registry';
 import { Logger } from '../../shared/logger';
 
@@ -154,10 +151,11 @@ export class RetryHandler {
       } catch (error: any) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
-        this.logger.warn('Task execution threw exception', lastError, {
+        this.logger.warn('Task execution threw exception', {
           taskId: task.id,
           agentId: currentAgent.id,
           attempt: attempt + 1,
+          error: lastError.message
         });
 
         // Check if error is retryable

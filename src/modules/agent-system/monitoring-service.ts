@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../../shared/logger';
-import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
+import type { KVNamespace, D1Database, D1PreparedStatement } from '@cloudflare/workers-types';
 
 export interface Metric {
   name: string;
@@ -495,7 +495,7 @@ class MonitoringService {
   /**
    * Update aggregated metrics
    */
-  private updateAggregatedMetric(name: string, value: number, type: Metric['type']): void {
+  private updateAggregatedMetric(name: string, value: number, _type: Metric['type']): void {
     let agg = this.aggregatedMetrics.get(name);
 
     if (!agg) {
@@ -568,10 +568,11 @@ class MonitoringService {
   private async exportMetrics(): Promise<void> {
     if (!this.db) return;
 
-    const batch = this.db.batch([]);
+    const batch: D1PreparedStatement[] = [];
     const now = Date.now();
 
     for (const [name, metrics] of this.metrics) {
+    void name;
       for (const metric of metrics) {
         // Only export recent metrics
         if (now - metric.timestamp < 300000) { // 5 minutes

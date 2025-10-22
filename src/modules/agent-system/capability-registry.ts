@@ -3,15 +3,12 @@
  * Manages capability definitions and agent compatibility
  */
 
-import {
-  CapabilityContract,
-  CapabilityExample,
+import { CapabilityContract,
   JSONSchema,
   AgentTask,
   ValidationResult,
   CapabilityContractSchema,
-  DEPARTMENT_CAPABILITIES
-} from './types';
+  DEPARTMENT_CAPABILITIES } from './types';
 import { Logger } from '../../shared/logger';
 
 export class CapabilityRegistry {
@@ -354,7 +351,7 @@ export class CapabilityRegistry {
 
     // Validate properties for object type
     if (schema.type === 'object' && schema.properties) {
-      for (const [key, propSchema] of Object.entries(schema.properties)) {
+      for (const [, propSchema] of Object.entries(schema.properties)) {
         if (typeof propSchema === 'object') {
           this.validateJSONSchema(propSchema);
         }
@@ -368,8 +365,9 @@ export class CapabilityRegistry {
   }
 
   private validateAgainstSchema(data: unknown, schema: JSONSchema): ValidationResult {
-    const errors: string[] = [];
-    const warnings: string[] = [];
+    // TODO: Implement error and warning collection when needed
+    // const errors: string[] = [];
+    // const warnings: string[] = [];
 
     try {
       const validated = this.validateValue(data, schema, '');

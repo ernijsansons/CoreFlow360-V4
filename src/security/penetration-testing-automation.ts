@@ -3,7 +3,7 @@
  * Automated security testing and vulnerability assessment
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 
@@ -339,7 +339,7 @@ export class PenetrationTestingAutomation {
     suite: PenTestSuite,
     businessId: string,
     environment: Environment,
-    correlationId: string
+    _correlationId: string
   ): Promise<TestResult> {
     const findings: Finding[] = [];
     const evidence: Evidence[] = [];
@@ -894,9 +894,9 @@ export class PenetrationTestingAutomation {
   }
 
   private async checkSessionManagement(
-    test: PenTest,
-    businessId: string,
-    environment: Environment
+    _test: PenTest,
+    _businessId: string,
+    _environment: Environment
   ): Promise<{ finding?: Finding; evidence?: Evidence }> {
     // This would check for session-related vulnerabilities
     // Implementation details depend on specific requirements
@@ -904,9 +904,9 @@ export class PenetrationTestingAutomation {
   }
 
   private async checkCryptographicIssues(
-    test: PenTest,
-    businessId: string,
-    environment: Environment
+    _test: PenTest,
+    _businessId: string,
+    _environment: Environment
   ): Promise<{ finding?: Finding; evidence?: Evidence }> {
     // This would check for crypto-related vulnerabilities
     // Implementation details depend on specific requirements
@@ -917,9 +917,9 @@ export class PenetrationTestingAutomation {
    * Helper methods
    */
   private async sendTestRequest(
-    payload: TestPayload,
-    businessId: string,
-    environment: Environment
+    _payload: TestPayload,
+    _businessId: string,
+    _environment: Environment
   ): Promise<ResponseData> {
     // Simplified - would use actual HTTP client
     return {
@@ -1017,7 +1017,7 @@ export class PenetrationTestingAutomation {
     };
   }
 
-  private determineTestStatus(findings: Finding[], expectedResults: ExpectedResult[]): TestStatus {
+  private determineTestStatus(findings: Finding[], _expectedResults: ExpectedResult[]): TestStatus {
     if (findings.some(f => f.severity === 'critical')) {
       return 'failed';
     }
@@ -1056,7 +1056,7 @@ export class PenetrationTestingAutomation {
     });
   }
 
-  private async generateRemediationAdvice(finding: Finding, category: TestCategory): Promise<RemediationAdvice> {
+  private async generateRemediationAdvice(finding: Finding, _category: TestCategory): Promise<RemediationAdvice> {
     // Generate specific remediation advice based on finding type
     return {
       priority: finding.severity === 'critical' ? 'immediate' : 'high',
@@ -1069,12 +1069,12 @@ export class PenetrationTestingAutomation {
     };
   }
 
-  private analyzeFuzzResponse(response: ResponseData, payload: TestPayload): any {
+  private analyzeFuzzResponse(_response: ResponseData, _payload: TestPayload): any {
     // Analyze fuzzing response for vulnerabilities
     return { isVulnerable: false };
   }
 
-  private isSignificantError(error: any): boolean {
+  private isSignificantError(_error: any): boolean {
     // Determine if error indicates a vulnerability
     return false;
   }
@@ -1107,26 +1107,26 @@ export class PenetrationTestingAutomation {
     };
   }
 
-  private async runStaticAnalysis(test: PenTest, businessId: string,
-  environment: Environment): Promise<{ findings: Finding[]; evidence: Evidence[] }> {
+  private async runStaticAnalysis(_test: PenTest, _businessId: string,
+  _environment: Environment): Promise<{ findings: Finding[]; evidence: Evidence[] }> {
     // Static analysis implementation
     return { findings: [], evidence: [] };
   }
 
-  private async runDynamicAnalysis(test: PenTest, businessId: string,
-  environment: Environment): Promise<{ findings: Finding[]; evidence: Evidence[] }> {
+  private async runDynamicAnalysis(_test: PenTest, _businessId: string,
+  _environment: Environment): Promise<{ findings: Finding[]; evidence: Evidence[] }> {
     // Dynamic analysis implementation
     return { findings: [], evidence: [] };
   }
 
-  private async runComplianceCheck(test: PenTest, businessId: string,
-  environment: Environment): Promise<{ findings: Finding[]; evidence: Evidence[] }> {
+  private async runComplianceCheck(_test: PenTest, _businessId: string,
+  _environment: Environment): Promise<{ findings: Finding[]; evidence: Evidence[] }> {
     // Compliance checking implementation
     return { findings: [], evidence: [] };
   }
 
-  private async runPenetrationTestAttacks(test: PenTest, businessId: string,
-  environment: Environment): Promise<{ findings: Finding[]; evidence: Evidence[] }> {
+  private async runPenetrationTestAttacks(_test: PenTest, _businessId: string,
+  _environment: Environment): Promise<{ findings: Finding[]; evidence: Evidence[] }> {
     // Penetration testing attacks implementation
     return { findings: [], evidence: [] };
   }
@@ -1136,7 +1136,7 @@ export class PenetrationTestingAutomation {
  * Payload database for test payloads
  */
 class PayloadDatabase {
-  async generateFuzzPayloads(category: TestCategory): Promise<TestPayload[]> {
+  async generateFuzzPayloads(_category: TestCategory): Promise<TestPayload[]> {
     // Generate fuzzing payloads for category
     return [];
   }
@@ -1162,7 +1162,7 @@ class PayloadDatabase {
  * Vulnerability scanner
  */
 class VulnerabilityScanner {
-  async scanEndpoint(url: string): Promise<Finding[]> {
+  async scanEndpoint(_url: string): Promise<Finding[]> {
     // Scan specific endpoint for vulnerabilities
     return [];
   }

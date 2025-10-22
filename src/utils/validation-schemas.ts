@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod';
-import { preventXSS, sanitizeInput } from '../middleware/security';
+import { preventXSS } from '../middleware/security';
 
 // =====================================================
 // ENHANCED SECURITY VALIDATION PATTERNS
@@ -101,7 +101,7 @@ const safeName = secureName;
 const safeText = secureText;
 const safeUrl = secureUrl;
 
-const _pagination = z.object({
+export const paginationSchema = z.object({
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(20),
   sortBy: z.string().regex(/^[a-zA-Z_]+$/).optional(),
@@ -231,7 +231,7 @@ export const integrationConfigSchema = z.object({
     webhookUrl: safeUrl.optional(),
     syncInterval: z.number().min(1).max(1440).optional(), // Max 24 hours in minutes
     syncDirection: z.enum(['inbound', 'outbound', 'bidirectional']),
-    options: z.record(z.unknown()).optional()
+    _options: z.record(z.unknown()).optional()
   }).strict()
 }).strict();
 
@@ -492,7 +492,7 @@ export const secureChangePasswordSchema = z.object({
 export function validateWithSecurity<T>(
   schema: z.ZodSchema<T>, 
   data: unknown,
-  options: {
+  _options: {
     sanitize?: boolean;
     checkBusinessId?: string;
     requireAuth?: boolean;

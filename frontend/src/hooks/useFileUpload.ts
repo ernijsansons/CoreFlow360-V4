@@ -100,6 +100,7 @@ export const useFileUpload = () => {
       // Clean up progress after delay
       setTimeout(() => {
         setUploadProgress(prev => {
+           
           const { [fileId]: _, ...rest } = prev
           return rest
         })

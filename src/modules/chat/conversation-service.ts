@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Conversation Management Service
  * Manages chat conversations with D1 storage and advanced features
@@ -135,9 +136,10 @@ class ConversationService {
 
       throw new AppError(
         'Failed to create conversation',
-        'CONVERSATION_CREATION_FAILED',
         500,
-        error instanceof Error ? error.message : undefined
+        'CONVERSATION_CREATION_FAILED',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -170,9 +172,10 @@ class ConversationService {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve conversation',
-        'DATABASE_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'DATABASE_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -219,9 +222,9 @@ class ConversationService {
       // Get total count
       const countResult = await this.env.DB.prepare(`
         SELECT COUNT(*) as total FROM conversations ${whereClause}
-      `).bind(...params).first()
+      `).bind(...params).first() as { total?: number } | undefined
 
-      const total = countResult?.total as number || 0
+      const total = countResult?.total || 0
 
       // Get conversations
       const results = await this.env.DB.prepare(`
@@ -245,9 +248,10 @@ class ConversationService {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve conversations',
-        'DATABASE_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'DATABASE_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -263,7 +267,7 @@ class ConversationService {
     try {
       const conversation = await this.getConversation(conversationId, userId)
       if (!conversation) {
-        throw new AppError('Conversation not found', 'CONVERSATION_NOT_FOUND', 404)
+        throw new AppError('Conversation not found', 404, 'CONVERSATION_NOT_FOUND')
       }
 
       const now = new Date().toISOString()
@@ -300,9 +304,10 @@ class ConversationService {
 
       throw new AppError(
         'Failed to update conversation',
-        'UPDATE_FAILED',
         500,
-        error instanceof Error ? error.message : undefined
+        'UPDATE_FAILED',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -317,7 +322,7 @@ class ConversationService {
     try {
       const conversation = await this.getConversation(conversationId, userId)
       if (!conversation) {
-        throw new AppError('Conversation not found', 'CONVERSATION_NOT_FOUND', 404)
+        throw new AppError('Conversation not found', 404, 'CONVERSATION_NOT_FOUND')
       }
 
       // Soft delete - mark as deleted
@@ -346,9 +351,10 @@ class ConversationService {
 
       throw new AppError(
         'Failed to delete conversation',
-        'DELETE_FAILED',
         500,
-        error instanceof Error ? error.message : undefined
+        'DELETE_FAILED',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -418,9 +424,10 @@ class ConversationService {
     } catch (error: any) {
       throw new AppError(
         'Failed to add message',
-        'MESSAGE_ADD_FAILED',
         500,
-        error instanceof Error ? error.message : undefined
+        'MESSAGE_ADD_FAILED',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -450,7 +457,7 @@ class ConversationService {
       // Verify conversation access - extract businessId from conversation
       const conversation = await this.getConversation(conversationId, userId)
       if (!conversation) {
-        throw new AppError('Conversation not found', 'CONVERSATION_NOT_FOUND', 404)
+        throw new AppError('Conversation not found', 404, 'CONVERSATION_NOT_FOUND')
       }
       const businessId = conversation.businessId
 
@@ -476,9 +483,9 @@ class ConversationService {
       // Get total count
       const countResult = await this.env.DB.prepare(`
         SELECT COUNT(*) as total FROM chat_messages ${whereClause}
-      `).bind(...params).first()
+      `).bind(...params).first() as { total?: number } | undefined
 
-      const total = countResult?.total as number || 0
+      const total = countResult?.total || 0
 
       // Get messages with LIMIT to prevent unbounded queries
       const results = await this.env.DB.prepare(`
@@ -506,9 +513,10 @@ class ConversationService {
 
       throw new AppError(
         'Failed to retrieve messages',
-        'DATABASE_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'DATABASE_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -559,9 +567,9 @@ class ConversationService {
         WHERE c.user_id = ? AND c.business_id = ?
         AND (c.title LIKE ? OR m.content LIKE ?)
         AND c.status != 'deleted'
-      `).bind(...params).first()
+      `).bind(...params).first() as { total?: number } | undefined
 
-      const total = countResult?.total as number || 0
+      const total = countResult?.total || 0
 
       // Get conversations
       const results = await this.env.DB.prepare(`
@@ -604,9 +612,10 @@ class ConversationService {
     } catch (error: any) {
       throw new AppError(
         'Failed to search conversations',
-        'SEARCH_FAILED',
         500,
-        error instanceof Error ? error.message : undefined
+        'SEARCH_FAILED',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -619,9 +628,9 @@ class ConversationService {
       // Check if conversation already has a custom title
       const conversation = await this.env.DB.prepare(`
         SELECT title, message_count FROM conversations WHERE id = ?
-      `).bind(conversationId).first()
+      `).bind(conversationId).first() as { title?: unknown; message_count?: unknown } | undefined
 
-      if (!conversation || conversation.message_count > 1 || conversation.title !== 'New Conversation') {
+      if (!conversation || (conversation.message_count as number) > 1 || conversation.title !== 'New Conversation') {
         return
       }
 

@@ -4,7 +4,8 @@
  * Handles WebSocket connections, real-time updates, and state synchronization
  */
 
-import type { DurableObject, DurableObjectState, AnalyticsEngineDataset } from '../types/cloudflare';
+import type { DurableObject, DurableObjectState } from '../types/cloudflare';
+import type { Env } from '../../types/env';
 
 interface BroadcastRequest {
   roomId: string;
@@ -99,7 +100,7 @@ export class RealtimeCoordinator implements DurableObject {
       this.handleDisconnection(connectionId);
     });
 
-    server.addEventListener('error', (error) => {
+    server.addEventListener('error', (_error) => {
       this.handleDisconnection(connectionId);
     });
 
@@ -529,7 +530,7 @@ export class RealtimeCoordinator implements DurableObject {
     }
 
     // Schedule next cleanup
-    await this.state.setAlarm(Date.now() + 60 * 60 * 1000); // 1 hour
+    await this.state.storage.setAlarm(Date.now() + 60 * 60 * 1000); // 1 hour
   }
 }
 
@@ -541,20 +542,10 @@ interface UserSession {
   lastActivity: Date;
 }
 
-interface Env {
-  ENVIRONMENT?: string;
-  ANALYTICS?: AnalyticsEngineDataset;
-}
-
-// Type definitions
+// Type definitions - Env imported from canonical source
 interface UserSession {
   userId: string;
   roomId: string;
   connectedAt: Date;
   lastActivity: Date;
-}
-
-interface Env {
-  ENVIRONMENT?: string;
-  ANALYTICS?: AnalyticsEngineDataset;
 }

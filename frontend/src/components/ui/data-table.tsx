@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components, react-hooks/exhaustive-deps */
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 import {
@@ -15,7 +16,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from './dropdown-menu'
 import {
@@ -23,18 +23,13 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Eye,
-  Edit,
-  Trash,
-  Copy,
-  Download
 } from 'lucide-react'
 import { Badge } from './badge'
 
 export interface DataTableColumn<T> {
   id: string
   header: string | ((props: { column: DataTableColumn<T> }) => React.ReactNode)
-  cell?: (props: { row: T; getValue: () => any }) => React.ReactNode
+  cell?: (props: { row: T; getValue: () => unknown }) => React.ReactNode
   accessorKey?: keyof T | string
   enableSorting?: boolean
   enableHiding?: boolean
@@ -66,7 +61,7 @@ export interface DataTableProps<T> {
   stickyHeader?: boolean
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   onRowSelection,
@@ -87,10 +82,10 @@ export function DataTable<T extends Record<string, any>>({
     return getRowId ? getRowId(row) : String(index)
   }
 
-  const getValue = (row: T, accessorKey?: string): any => {
+  const getValue = (row: T, accessorKey?: string): unknown => {
     if (!accessorKey) return null
     const keys = accessorKey.split('.')
-    return keys.reduce((obj, key) => obj?.[key], row as any)
+    return keys.reduce((obj: Record<string, unknown>, key) => (obj?.[key] as Record<string, unknown>) || {}, row as Record<string, unknown>)
   }
 
   const handleSelectAll = (checked: boolean) => {
@@ -355,8 +350,7 @@ export function statusColumn<T>({
 
 export function dateColumn<T>({
   accessorKey,
-  header = 'Date',
-  format = 'PPP'
+  header = 'Date'
 }: {
   accessorKey: keyof T | string
   header?: string

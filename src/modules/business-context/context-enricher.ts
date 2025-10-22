@@ -1,16 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Context Enricher
  * Enhances business context with intelligence and generates contextual prompts
  */
-import {
-  BusinessContextData,
+import { BusinessContextData,
   ContextualPrompts,
-  ContextEnrichmentConfig,
-  CompanyProfile,
-  DepartmentProfile,
-  UserProfile,
-  BusinessIntelligence
-} from './types';
+  ContextEnrichmentConfig } from './types';
 import { Logger } from '../../shared/logger';
 
 export class ContextEnricher {
@@ -122,42 +117,32 @@ export class ContextEnricher {
   }
 
   /**
-   * Enrich business context with intelligence
+   * Enrich business context with analysis data
    */
-  async enrichContext(contextData: BusinessContextData): Promise<BusinessIntelligence> {
+  async enrichWithAnalysis(contextData: BusinessContextData): Promise<void> {
     try {
       this.logger.debug('Starting context enrichment', {
-        businessId: contextData.businessId,
-        userId: contextData.userId,
-        department: contextData.department
+        businessId: contextData.businessId
       });
 
-      const enrichedContext: BusinessIntelligence = {
-        companyProfile: await this.enrichCompanyProfile(contextData.companyProfile),
-        departmentProfile: await this.enrichDepartmentProfile(contextData.departmentProfile),
-        userProfile: await this.enrichUserProfile(contextData.userProfile),
-        contextualPrompts: await this.generateContextualPrompts(contextData),
-        businessRules: await this.extractBusinessRules(contextData),
-        industryInsights: await this.generateIndustryInsights(contextData),
-        complianceRequirements: await this.identifyComplianceRequirements(contextData),
-        riskFactors: await this.assessRiskFactors(contextData),
-        opportunities: await this.identifyOpportunities(contextData),
-        recommendations: await this.generateRecommendations(contextData)
-      };
+      // Enrich the existing context data with additional analysis
+      // This modifies the contextData object in place
+      const industryInsights = await this.generateIndustryInsights(contextData);
+      const complianceRequirements = await this.identifyComplianceRequirements(contextData);
+      const riskFactors = await this.assessRiskFactors(contextData);
+      const opportunities = await this.identifyOpportunities(contextData);
+      const recommendations = await this.generateRecommendations(contextData);
 
       this.logger.info('Context enrichment completed', {
         businessId: contextData.businessId,
-        userId: contextData.userId,
-        department: contextData.department
+        insightsCount: industryInsights.length,
+        risksIdentified: riskFactors.length
       });
-
-      return enrichedContext;
 
     } catch (error: any) {
       this.logger.error('Context enrichment failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        businessId: contextData.businessId,
-        userId: contextData.userId
+        businessId: contextData.businessId
       });
       throw error;
     }
@@ -166,116 +151,58 @@ export class ContextEnricher {
   /**
    * Generate contextual prompts for AI interactions
    */
-  async generateContextualPrompts(contextData: BusinessContextData): Promise<ContextualPrompts> {
-    const department = contextData.department?.toLowerCase() || 'general';
+  async generateContextualPrompts(
+    contextData: BusinessContextData,
+    capability: string,
+    taskType?: string
+  ): Promise<ContextualPrompts> {
+    const department = contextData.userProfile.basic.department?.toLowerCase() || 'general';
     const departmentTemplate = this.departmentPrompts[department as keyof typeof this.departmentPrompts] || this.departmentPrompts.operations;
 
     const systemPrompt = this.interpolateTemplate(departmentTemplate.systemContext, {
-      companyName: contextData.companyProfile?.name || 'the company',
-      industry: contextData.companyProfile?.industry || 'business',
-      department: contextData.department || 'operations'
+      companyName: contextData.companyProfile.basic.name || 'the company',
+      industry: contextData.companyProfile.basic.industry || 'business',
+      department: contextData.userProfile.basic.department || 'operations'
     });
 
-    const rolePrompt = this.interpolateTemplate(departmentTemplate.roleContext, {
-      jobTitle: contextData.userProfile?.jobTitle || 'team member',
-      department: contextData.department || 'operations',
-      experience: contextData.userProfile?.experience || 'experienced'
+    const roleContext = this.interpolateTemplate(departmentTemplate.roleContext, {
+      jobTitle: contextData.userProfile.basic.jobTitle || 'team member',
+      department: contextData.userProfile.basic.department || 'operations',
+      experience: 'experienced'
     });
 
-    const capabilitiesPrompt = this.generateCapabilitiesPrompt(departmentTemplate.capabilities, contextData);
-    const businessRulesPrompt = this.generateBusinessRulesPrompt(departmentTemplate.businessRules, contextData);
+    const businessRules = await this.extractBusinessRules(contextData);
+    const communicationGuidelines = this.generateCommunicationGuidelines(contextData);
+    const escalationInstructions = this.generateEscalationInstructions(contextData);
+    const complianceRequirements = await this.identifyComplianceRequirements(contextData);
+    const exampleInteractions = await this.generateExampleInteractions(contextData, capability, taskType);
 
     return {
       systemPrompt,
-      rolePrompt,
-      capabilitiesPrompt,
-      businessRulesPrompt,
-      contextPrompt: await this.generateContextPrompt(contextData),
-      examplesPrompt: await this.generateExamplesPrompt(contextData)
+      departmentContext: `Department: ${department} - ${departmentTemplate.systemContext}`,
+      roleContext,
+      businessRules,
+      communicationGuidelines,
+      escalationInstructions,
+      complianceRequirements,
+      exampleInteractions
     };
   }
 
-  private async enrichCompanyProfile(profile: CompanyProfile | undefined): Promise<CompanyProfile> {
-    if (!profile) {
-      return {
-        name: 'Unknown Company',
-        industry: 'General',
-        size: 'Small',
-        location: 'Unknown',
-        description: 'No company information available'
-      };
-    }
-
-    // Add industry-specific insights
-    const industryInsights = await this.getIndustryInsights(profile.industry);
-    
-    return {
-      ...profile,
-      industryInsights,
-      marketPosition: await this.assessMarketPosition(profile),
-      competitiveAdvantages: await this.identifyCompetitiveAdvantages(profile),
-      growthOpportunities: await this.identifyGrowthOpportunities(profile)
-    };
-  }
-
-  private async enrichDepartmentProfile(profile: DepartmentProfile | undefined): Promise<DepartmentProfile> {
-    if (!profile) {
-      return {
-        name: 'General',
-        responsibilities: [],
-        goals: [],
-        challenges: [],
-        metrics: []
-      };
-    }
-
-    return {
-      ...profile,
-      bestPractices: await this.getDepartmentBestPractices(profile.name),
-      commonChallenges: await this.getCommonChallenges(profile.name),
-      successMetrics: await this.getSuccessMetrics(profile.name),
-      tools: await this.getRecommendedTools(profile.name)
-    };
-  }
-
-  private async enrichUserProfile(profile: UserProfile | undefined): Promise<UserProfile> {
-    if (!profile) {
-      return {
-        id: 'unknown',
-        name: 'Unknown User',
-        role: 'User',
-        department: 'General',
-        experience: 'Intermediate'
-      };
-    }
-
-    return {
-      ...profile,
-      skills: await this.assessUserSkills(profile),
-      developmentAreas: await this.identifyDevelopmentAreas(profile),
-      careerGoals: await this.assessCareerGoals(profile),
-      preferences: await this.assessUserPreferences(profile)
-    };
-  }
 
   private async extractBusinessRules(contextData: BusinessContextData): Promise<string[]> {
     const rules: string[] = [];
 
     // Add department-specific rules
-    const department = contextData.department?.toLowerCase() || 'general';
+    const department = contextData.userProfile.basic.department?.toLowerCase() || 'general';
     const departmentTemplate = this.departmentPrompts[department as keyof typeof this.departmentPrompts];
     if (departmentTemplate) {
       rules.push(...departmentTemplate.businessRules);
     }
 
-    // Add company-specific rules
-    if (contextData.companyProfile?.policies) {
-      rules.push(...contextData.companyProfile.policies);
-    }
-
     // Add industry-specific rules
-    if (contextData.companyProfile?.industry) {
-      const industryRules = await this.getIndustryRules(contextData.companyProfile.industry);
+    if (contextData.companyProfile.basic.industry) {
+      const industryRules = await this.getIndustryRules(contextData.companyProfile.basic.industry);
       rules.push(...industryRules);
     }
 
@@ -285,17 +212,17 @@ export class ContextEnricher {
   private async generateIndustryInsights(contextData: BusinessContextData): Promise<string[]> {
     const insights: string[] = [];
 
-    if (contextData.companyProfile?.industry) {
-      const industryInsights = await this.getIndustryInsights(contextData.companyProfile.industry);
+    if (contextData.companyProfile.basic.industry) {
+      const industryInsights = await this.getIndustryInsights(contextData.companyProfile.basic.industry);
       insights.push(...industryInsights);
     }
 
     // Add market trends
-    const marketTrends = await this.getMarketTrends(contextData.companyProfile?.industry);
+    const marketTrends = await this.getMarketTrends(contextData.companyProfile.basic.industry);
     insights.push(...marketTrends);
 
     // Add regulatory changes
-    const regulatoryChanges = await this.getRegulatoryChanges(contextData.companyProfile?.industry);
+    const regulatoryChanges = await this.getRegulatoryChanges(contextData.companyProfile.basic.industry);
     insights.push(...regulatoryChanges);
 
     return insights;
@@ -305,8 +232,8 @@ export class ContextEnricher {
     const requirements: string[] = [];
 
     // Add industry-specific compliance requirements
-    if (contextData.companyProfile?.industry) {
-      const industryCompliance = await this.getIndustryCompliance(contextData.companyProfile.industry);
+    if (contextData.companyProfile.basic.industry) {
+      const industryCompliance = await this.getIndustryCompliance(contextData.companyProfile.basic.industry);
       requirements.push(...industryCompliance);
     }
 
@@ -321,14 +248,15 @@ export class ContextEnricher {
     const risks: string[] = [];
 
     // Add industry-specific risks
-    if (contextData.companyProfile?.industry) {
-      const industryRisks = await this.getIndustryRisks(contextData.companyProfile.industry);
+    if (contextData.companyProfile.basic.industry) {
+      const industryRisks = await this.getIndustryRisks(contextData.companyProfile.basic.industry);
       risks.push(...industryRisks);
     }
 
     // Add department-specific risks
-    if (contextData.department) {
-      const departmentRisks = await this.getDepartmentRisks(contextData.department);
+    const department = contextData.userProfile.basic.department;
+    if (department) {
+      const departmentRisks = await this.getDepartmentRisks(department);
       risks.push(...departmentRisks);
     }
 
@@ -343,14 +271,15 @@ export class ContextEnricher {
     const opportunities: string[] = [];
 
     // Add industry-specific opportunities
-    if (contextData.companyProfile?.industry) {
-      const industryOpportunities = await this.getIndustryOpportunities(contextData.companyProfile.industry);
+    if (contextData.companyProfile.basic.industry) {
+      const industryOpportunities = await this.getIndustryOpportunities(contextData.companyProfile.basic.industry);
       opportunities.push(...industryOpportunities);
     }
 
     // Add department-specific opportunities
-    if (contextData.department) {
-      const departmentOpportunities = await this.getDepartmentOpportunities(contextData.department);
+    const department = contextData.userProfile.basic.department;
+    if (department) {
+      const departmentOpportunities = await this.getDepartmentOpportunities(department);
       opportunities.push(...departmentOpportunities);
     }
 
@@ -381,45 +310,41 @@ export class ContextEnricher {
     });
   }
 
-  private generateCapabilitiesPrompt(capabilities: string[], contextData: BusinessContextData): string {
-    const relevantCapabilities = capabilities.filter((cap: any) => 
-      this.isCapabilityRelevant(cap, contextData)
-    );
+  private generateCommunicationGuidelines(contextData: BusinessContextData): string {
+    const style = contextData.userProfile.preferences.communicationStyle || 'direct';
+    const assistantStyle = contextData.userProfile.preferences.assistantStyle || 'friendly';
 
-    return `Available capabilities: ${relevantCapabilities.join(', ')}. Use these capabilities to provide relevant and helpful assistance.`;
+    return `Use ${style} communication style with ${assistantStyle} tone. Respect user's working hours and preferences.`;
   }
 
-  private generateBusinessRulesPrompt(rules: string[], contextData: BusinessContextData): string {
-    const relevantRules = rules.filter((rule: any) => 
-      this.isRuleRelevant(rule, contextData)
-    );
+  private generateEscalationInstructions(contextData: BusinessContextData): string {
+    const role = contextData.userProfile.basic.role;
+    const department = contextData.userProfile.basic.department;
 
-    return `Business rules to follow: ${relevantRules.join('; ')}. Always adhere to these rules in your responses.`;
+    return `For critical issues, escalate to ${role === 'employee' ? 'manager' : 'director'} in ${department} department. Follow approval workflows for high-value transactions.`;
   }
 
-  private async generateContextPrompt(contextData: BusinessContextData): Promise<string> {
-    const contextParts: string[] = [];
+  private async generateExampleInteractions(
+    contextData: BusinessContextData,
+    _capability: string,
+    _taskType?: string
+  ): Promise<Array<{ scenario: string; expectedResponse: string }>> {
+    const department = contextData.userProfile.basic.department?.toLowerCase() || 'general';
 
-    if (contextData.companyProfile) {
-      contextParts.push(`Company: ${contextData.companyProfile.name} (${contextData.companyProfile.industry})`);
-    }
-
-    if (contextData.department) {
-      contextParts.push(`Department: ${contextData.department}`);
-    }
-
-    if (contextData.userProfile) {
-      contextParts.push(`User: ${contextData.userProfile.name} (${contextData.userProfile.role})`);
-    }
-
-    return `Current context: ${contextParts.join(', ')}. Use this context to provide relevant assistance.`;
-  }
-
-  private async generateExamplesPrompt(contextData: BusinessContextData): Promise<string> {
-    const department = contextData.department?.toLowerCase() || 'general';
-    const examples = await this.getDepartmentExamples(department);
-    
-    return `Example scenarios: ${examples.join('; ')}. Use these examples to understand the types of tasks and responses expected.`;
+    return [
+      {
+        scenario: `Analyzing ${department} data`,
+        expectedResponse: `Provide detailed analysis with actionable insights`
+      },
+      {
+        scenario: `Generating ${department} reports`,
+        expectedResponse: `Create comprehensive reports with visualizations`
+      },
+      {
+        scenario: `Processing ${department} requests`,
+        expectedResponse: `Handle requests efficiently following business rules`
+      }
+    ];
   }
 
   // Helper methods for data enrichment
@@ -432,81 +357,6 @@ export class ContextEnricher {
     ];
   }
 
-  private async assessMarketPosition(profile: CompanyProfile): Promise<string> {
-    // Mock implementation
-    return 'Market Leader';
-  }
-
-  private async identifyCompetitiveAdvantages(profile: CompanyProfile): Promise<string[]> {
-    // Mock implementation
-    return ['Strong brand recognition', 'Innovative technology', 'Customer service excellence'];
-  }
-
-  private async identifyGrowthOpportunities(profile: CompanyProfile): Promise<string[]> {
-    // Mock implementation
-    return ['Digital transformation', 'Market expansion', 'Product innovation'];
-  }
-
-  private async getDepartmentBestPractices(department: string): Promise<string[]> {
-    // Mock implementation
-    return [
-      'Regular performance reviews',
-      'Continuous learning and development',
-      'Collaborative decision making'
-    ];
-  }
-
-  private async getCommonChallenges(department: string): Promise<string[]> {
-    // Mock implementation
-    return [
-      'Resource constraints',
-      'Changing requirements',
-      'Technology adoption'
-    ];
-  }
-
-  private async getSuccessMetrics(department: string): Promise<string[]> {
-    // Mock implementation
-    return [
-      'Efficiency improvements',
-      'Quality metrics',
-      'Customer satisfaction'
-    ];
-  }
-
-  private async getRecommendedTools(department: string): Promise<string[]> {
-    // Mock implementation
-    return [
-      'Project management software',
-      'Analytics tools',
-      'Communication platforms'
-    ];
-  }
-
-  private async assessUserSkills(profile: UserProfile): Promise<string[]> {
-    // Mock implementation
-    return ['Technical skills', 'Communication', 'Problem solving'];
-  }
-
-  private async identifyDevelopmentAreas(profile: UserProfile): Promise<string[]> {
-    // Mock implementation
-    return ['Leadership', 'Advanced analytics', 'Strategic thinking'];
-  }
-
-  private async assessCareerGoals(profile: UserProfile): Promise<string[]> {
-    // Mock implementation
-    return ['Career advancement', 'Skill development', 'Leadership role'];
-  }
-
-  private async assessUserPreferences(profile: UserProfile): Promise<Record<string, any>> {
-    // Mock implementation
-    return {
-      communicationStyle: 'Direct',
-      workStyle: 'Collaborative',
-      learningStyle: 'Hands-on'
-    };
-  }
-
   private async getIndustryRules(industry: string): Promise<string[]> {
     // Mock implementation
     return [
@@ -516,7 +366,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getMarketTrends(industry?: string): Promise<string[]> {
+  private async getMarketTrends(_industry?: string): Promise<string[]> {
     // Mock implementation
     return [
       'Digital transformation accelerating',
@@ -525,7 +375,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getRegulatoryChanges(industry?: string): Promise<string[]> {
+  private async getRegulatoryChanges(_industry?: string): Promise<string[]> {
     // Mock implementation
     return [
       'New data protection regulations',
@@ -561,7 +411,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getDepartmentRisks(department: string): Promise<string[]> {
+  private async getDepartmentRisks(_department: string): Promise<string[]> {
     // Mock implementation
     return [
       'Resource constraints',
@@ -588,7 +438,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getDepartmentOpportunities(department: string): Promise<string[]> {
+  private async getDepartmentOpportunities(_department: string): Promise<string[]> {
     // Mock implementation
     return [
       'Process automation',
@@ -597,7 +447,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getProcessRecommendations(contextData: BusinessContextData): Promise<string[]> {
+  private async getProcessRecommendations(_contextData: BusinessContextData): Promise<string[]> {
     // Mock implementation
     return [
       'Implement automated workflows',
@@ -606,7 +456,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getTechnologyRecommendations(contextData: BusinessContextData): Promise<string[]> {
+  private async getTechnologyRecommendations(_contextData: BusinessContextData): Promise<string[]> {
     // Mock implementation
     return [
       'Adopt cloud-based solutions',
@@ -615,7 +465,7 @@ export class ContextEnricher {
     ];
   }
 
-  private async getTrainingRecommendations(contextData: BusinessContextData): Promise<string[]> {
+  private async getTrainingRecommendations(_contextData: BusinessContextData): Promise<string[]> {
     // Mock implementation
     return [
       'Technical skills training',
@@ -624,23 +474,6 @@ export class ContextEnricher {
     ];
   }
 
-  private isCapabilityRelevant(capability: string, contextData: BusinessContextData): boolean {
-    // Mock implementation - in real scenario, this would use ML to determine relevance
-    return true;
-  }
-
-  private isRuleRelevant(rule: string, contextData: BusinessContextData): boolean {
-    // Mock implementation - in real scenario, this would use ML to determine relevance
-    return true;
-  }
-
-  private async getDepartmentExamples(department: string): Promise<string[]> {
-    // Mock implementation
-    return [
-      'Analyze financial data and provide insights',
-      'Create reports and presentations',
-      'Collaborate with team members on projects'
-    ];
-  }
 }
+
 

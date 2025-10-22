@@ -4,7 +4,7 @@
  */
 
 import { Logger } from './logger';
-import { SecurityError, createSecurityContext } from './security-utils';
+import { SecurityError } from './security-utils';
 import type { Env } from '../types/env';
 
 export interface TransactionContext {

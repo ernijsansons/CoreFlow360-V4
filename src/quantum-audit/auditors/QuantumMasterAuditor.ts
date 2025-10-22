@@ -243,7 +243,7 @@ export class QuantumMasterAuditor {
     };
   }
 
-  private async prioritizeFixes(analysis: AIAnalysis, options: any): Promise<Issue[]> {
+  private async prioritizeFixes(analysis: AIAnalysis, _options: any): Promise<Issue[]> {
     const allIssues: Issue[] = [];
 
     Object.values(analysis).forEach((category: any) => {
@@ -260,7 +260,7 @@ export class QuantumMasterAuditor {
     });
   }
 
-  private generateActionPlan(issues: Issue[]): ActionPlan {
+  private generateActionPlan(_issues: Issue[]): ActionPlan {
     return {
       immediate: [
         'Fix all critical security vulnerabilities',

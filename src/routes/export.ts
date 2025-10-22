@@ -6,7 +6,9 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { nanoid } from 'nanoid'
-import { ExportEngine, ExportRequest } from '../services/export-engine'
+import { ExportRequest } from '../services/export-engine'
+// TODO: Use ExportEngine when implementing export functionality
+// import { ExportEngine } from '../services/export-engine'
 
 const router = Router()
 
@@ -63,7 +65,7 @@ const ExportRequestSchema = z.object({
 })
 
 // POST /api/export - Create export request
-router.post('/', async (req, res) => {
+router.post('/', async (req: any, res: any) => {
   try {
     const validatedData = ExportRequestSchema.parse(req.body)
 
@@ -112,7 +114,7 @@ router.post('/', async (req, res) => {
 })
 
 // GET /api/export/:id/progress - Get export progress
-router.get('/:id/progress', async (req, res) => {
+router.get('/:id/progress', async (req: any, res: any) => {
   try {
     const { id } = req.params
 
@@ -145,9 +147,9 @@ router.get('/:id/progress', async (req, res) => {
 })
 
 // WebSocket endpoint for real-time progress updates
-router.get('/:id/progress/ws', async (req, res) => {
+router.get('/:id/progress/ws', async (req: any, res: any) => {
   try {
-    const { id } = req.params
+    // const { id: _id } = req.params
 
     // Upgrade to WebSocket
     const upgradeHeader = req.headers.upgrade
@@ -175,7 +177,7 @@ router.get('/:id/progress/ws', async (req, res) => {
 })
 
 // GET /api/export/:id/download - Download completed export
-router.get('/:id/download', async (req, res) => {
+router.get('/:id/download', async (req: any, res: any) => {
   try {
     const { id } = req.params
 
@@ -189,13 +191,13 @@ router.get('/:id/download', async (req, res) => {
       })
     }
 
-    const metadata = exportFile.customMetadata
-    const httpMetadata = exportFile.httpMetadata
+    // const _metadata = exportFile.customMetadata
+    const _httpMetadata = exportFile.httpMetadata
 
     // Set appropriate headers
     res.set({
-      'Content-Type': httpMetadata?.contentType || 'application/octet-stream',
-      'Content-Disposition': httpMetadata?.contentDisposition || `attachment; filename="export-${id}"`,
+      'Content-Type': _httpMetadata?.contentType || 'application/octet-stream',
+      'Content-Disposition': _httpMetadata?.contentDisposition || `attachment; filename="export-${id}"`,
       'Content-Length': exportFile.size.toString(),
       'Cache-Control': 'private, max-age=3600'
     })
@@ -215,7 +217,7 @@ router.get('/:id/download', async (req, res) => {
 })
 
 // DELETE /api/export/:id - Delete export file
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: any, res: any) => {
   try {
     const { id } = req.params
 
@@ -258,7 +260,7 @@ router.delete('/:id', async (req, res) => {
 })
 
 // GET /api/export/history - Get user's export history
-router.get('/history', async (req, res) => {
+router.get('/history', async (req: any, res: any) => {
   try {
     const userId = req.user?.id
     const page = parseInt(req.query.page as string) || 1
@@ -316,9 +318,9 @@ router.get('/history', async (req, res) => {
 })
 
 // POST /api/export/batch - Batch export multiple dashboards/widgets
-router.post('/batch', async (req, res) => {
+router.post('/batch', async (req: any, res: any) => {
   try {
-    const { exports, options = {} } = req.body
+    const { exports } = req.body
 
     if (!Array.isArray(exports) || exports.length === 0) {
       return res.status(400).json({
@@ -385,7 +387,7 @@ router.post('/batch', async (req, res) => {
 })
 
 // GET /api/export/templates - Get available export templates
-router.get('/templates', async (req, res) => {
+router.get('/templates', async (req: any, res: any) => {
   try {
     const templates = [
       {

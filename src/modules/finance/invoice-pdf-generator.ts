@@ -288,7 +288,7 @@ export class InvoicePDFGenerator {
   /**
    * Generate CSS styles for invoice
    */
-  private getInvoiceCSS(colors: any, layout: string): string {
+  private getInvoiceCSS(colors: any, _layout: string): string {
     return `
         * {
             margin: 0;

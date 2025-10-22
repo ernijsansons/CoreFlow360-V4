@@ -23,7 +23,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
 
 const billingSchema = z.object({
   cardNumber: z.string()
@@ -82,7 +81,7 @@ export function BillingForm() {
     }
   }
 
-  const onSubmit = async (data: BillingFormData) => {
+  const onSubmit = async () => {
     setIsLoading(true)
     setError(null)
     setSuccess(false)

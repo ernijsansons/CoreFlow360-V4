@@ -1,15 +1,16 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import type { AuthState, User } from '@/types'
-import { isTokenExpired, parseJwt } from '@/lib/utils'
+import { isTokenExpired } from '@/lib/utils'
 import { authService } from '@/lib/api/services/auth.service'
 import { useEntityStore } from './entity-store'
 import { useCacheStore } from './cache-store'
+import { createSafeJSONStorage } from '@/lib/safe-storage'
 
 interface AuthStore extends AuthState {
   login: (token: string, refreshToken: string, user: User) => void
-  logout: () => void
+  logout: () => Promise<void>
   updateUser: (user: Partial<User>) => void
   refreshAuth: () => Promise<boolean>
   setLoading: (loading: boolean) => void
@@ -35,7 +36,15 @@ export const useAuthStore = create<AuthStore>()(
         })
       },
 
-      logout: () => {
+      logout: async () => {
+        try {
+          // Call logout API with CSRF token (handled by API client)
+          await authService.logout()
+        } catch (error) {
+          console.error('Logout API call failed:', error)
+          // Continue with local logout even if API call fails
+        }
+
         set((state) => {
           state.user = null
           state.token = null
@@ -113,7 +122,7 @@ export const useAuthStore = create<AuthStore>()(
     })),
     {
       name: 'auth-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createSafeJSONStorage(),
       partialize: (state) => ({
         token: state.token,
         refreshToken: state.refreshToken,

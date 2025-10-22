@@ -20,8 +20,7 @@ export type {
   AuditSpec,
   CapabilityExecutionContext,
   CapabilityExecutionResult,
-  ParameterType,
-  CostEstimate
+  ParameterType
 } from './types';
 
 // Error types
@@ -47,13 +46,11 @@ export {
   EXECUTION_LIMITS
 } from './types';
 
-// Example capabilities and validators
+// Example capabilities
 export {
   InvoiceCreationCapability,
   LedgerPostingCapability,
-  PaymentProcessingCapability,
-  ExampleCapabilities,
-  ExampleValidators
+  CustomerLookupCapability
 } from './examples';
 
 import { CapabilityValidator } from './validator';
@@ -67,7 +64,6 @@ import {
   CapabilityExecutionResult,
   CapabilityValidationError
 } from './types';
-import { ExampleValidators } from './examples';
 
 /**
  * Capability Manager
@@ -345,10 +341,10 @@ class CapabilityManager {
    */
 
   private registerBuiltInValidators(): void {
-    // Register example validators
-    for (const [name, validator] of Object.entries(ExampleValidators)) {
-      this.validator.registerValidator(name, validator);
-    }
+    // TODO: Register example validators when ExampleValidators is implemented
+    // for (const [name, validator] of Object.entries(ExampleValidators)) {
+    //   this.validator.registerValidator(name, validator);
+    // }
 
     // Register additional business logic validators
     this.validator.registerValidator('validateCustomerExists', (customerId: unknown) => {
@@ -395,10 +391,10 @@ export async function createCapabilityManager(
   const manager = new CapabilityManager(permissionEngine, auditService, config);
 
   // Register example capabilities
-  const { ExampleCapabilities } = await import('./examples');
-  for (const capability of Object.values(ExampleCapabilities)) {
-    manager.registerCapability(capability);
-  }
+  const examples = await import('./examples');
+  manager.registerCapability(examples.InvoiceCreationCapability);
+  manager.registerCapability(examples.LedgerPostingCapability);
+  manager.registerCapability(examples.CustomerLookupCapability);
 
   return manager;
 }

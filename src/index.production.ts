@@ -1,38 +1,23 @@
 // Production-Ready CoreFlow360 V4 Worker with Full Authentication
-import { AuthSystem, User, LoginRequest, RegisterRequest } from './auth/auth-system';
+import { AuthSystem, User } from './auth/auth-system';
+import { CORSManager } from './security/cors-config';
+import { AuthSchemas, InputSanitizer } from './security/validation-schemas';
+import { DistributedRateLimiter } from './security/security-utilities';
+import { SecurityBootstrap } from './shared/security/security-bootstrap';
 
-export interface Env {
-  // Database bindings
-  DB?: D1Database;
-  DB_MAIN?: D1Database;
-  DB_ANALYTICS?: D1Database;
+import { handleAPIRequest } from './routes';
 
-  // KV Storage
-  KV_CACHE?: KVNamespace;
-  KV_SESSION?: KVNamespace;
-  KV_AUTH?: KVNamespace;
-  KV_RATE_LIMIT_METRICS?: KVNamespace;
+// Use canonical Env type
+import type { Env } from './types/env';import { Logger } from "./shared/logger";
+const logger = new Logger({ component: "indexproduction" });
 
-  // R2 Storage
-  R2_DOCUMENTS?: R2Bucket;
-  R2_BACKUPS?: R2Bucket;
 
-  // Services
-  AI?: any;
-  RATE_LIMITER_DO?: DurableObjectNamespace;
 
-  // Secrets
-  JWT_SECRET?: string;
-  ANTHROPIC_API_KEY?: string;
-  OPENAI_API_KEY?: string;
-  EMAIL_API_KEY?: string;
-  ENCRYPTION_KEY?: string;
+// Re-export canonical type
+export type { Env } from './types/env';
 
-  // Config
-  API_BASE_URL?: string;
-  ENVIRONMENT?: string;
-  ALLOWED_ORIGINS?: string;
-}
+// Global security validation state (per-isolate)
+const securityValidationCache = new Map<string, { validated: boolean; error: string | null }>();
 
 // Enhanced Rate Limiter Durable Object
 export class AdvancedRateLimiterDO {
@@ -140,7 +125,7 @@ class AnalyticsManager {
 
       await this.kvCache.put(cacheKey, JSON.stringify(cached), { expirationTtl: 3600 });
     } catch (error) {
-      console.error('Analytics logging failed:', error);
+      logger.error('Analytics logging failed:', error);
     }
   }
 
@@ -165,7 +150,7 @@ class AnalyticsManager {
 
       return result.results || [];
     } catch (error) {
-      console.error('Stats retrieval failed:', error);
+      logger.error('Stats retrieval failed:', error);
       return [];
     }
   }
@@ -177,8 +162,33 @@ const createProductionRoutes = (
   authSystem: AuthSystem,
   analytics: AnalyticsManager
 ) => ({
+  // Root welcome endpoint
+  '/': async (_request: Request) => {
+    return new Response(JSON.stringify({
+      service: 'CoreFlow360 V4 API',
+      version: '4.2.0',
+      status: 'operational',
+      message: 'Welcome to CoreFlow360 V4 - AI-First Entrepreneurial Scaling Platform',
+      documentation: 'https://docs.coreflow360.com',
+      endpoints: {
+        health: '/health',
+        status: '/api/status',
+        auth: {
+          register: '/api/auth/register',
+          login: '/api/auth/login',
+          refresh: '/api/auth/refresh',
+          logout: '/api/auth/logout'
+        },
+        api: '/api/*'
+      },
+      environment: env.ENVIRONMENT || 'production'
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  },
+
   // Health and status endpoints
-  '/health': async (request: Request) => {
+  '/health': async (_request: Request) => {
     const checks = {
       database: env.DB ? 'healthy' : 'not_configured',
       cache: env.KV_CACHE ? 'healthy' : 'not_configured',
@@ -200,7 +210,7 @@ const createProductionRoutes = (
     });
   },
 
-  '/api/status': async (request: Request) => {
+  '/api/status': async (_request: Request) => {
     const stats = await analytics.getStats();
     const uptime = process.uptime ? process.uptime() : 0;
 
@@ -234,7 +244,9 @@ const createProductionRoutes = (
     }
 
     try {
-      const body = await request.json() as RegisterRequest;
+      const rawBody = await request.json();
+      // Validate and sanitize input
+      const body = await InputSanitizer.validate(AuthSchemas.register, rawBody);
       const result = await authSystem.register(body);
 
       if (result.success) {
@@ -280,7 +292,9 @@ const createProductionRoutes = (
     }
 
     try {
-      const body = await request.json() as LoginRequest;
+      const rawBody = await request.json();
+      // Validate and sanitize input
+      const body = await InputSanitizer.validate(AuthSchemas.login, rawBody);
       const ipAddress = request.headers.get('CF-Connecting-IP') || undefined;
       const userAgent = request.headers.get('User-Agent') || undefined;
 
@@ -497,17 +511,91 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // CORS headers
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': env.ALLOWED_ORIGINS || '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-User-ID'
-    };
+    // ============================================================================
+    // CRITICAL SECURITY VALIDATION - CVSS 9.8 JWT BYPASS PREVENTION
+    // ============================================================================
+    // Skip validation for local development with SKIP_SECURITY_VALIDATION flag
+    if (env.ENVIRONMENT === 'development' && env.SKIP_SECURITY_VALIDATION === 'true') {
+      logger.info('⚠️ Security validation SKIPPED for local development');
+    } else {
+      // Perform security validation (cached per environment configuration)
+      const envKey = `${env.ENVIRONMENT || 'production'}-${env.JWT_SECRET?.substring(0, 10) || 'none'}`;
+      let cached = securityValidationCache.get(envKey);
 
+      if (!cached) {
+        try {
+          logger.info('🔒 Performing startup security validation...');
+          const validation = await SecurityBootstrap.validateStartupSecurity(env);
+
+        if (!validation.passed || validation.blocksStartup) {
+          const errorMessage = [
+            'CRITICAL SECURITY VALIDATION FAILED',
+            '='.repeat(50),
+            '',
+            'Critical Issues:',
+            ...validation.criticalIssues.map(issue => `  - ${issue}`),
+            '',
+            'Application startup blocked for security reasons.',
+            'Fix all critical issues before deployment.',
+            '',
+            'Recommendations:',
+            ...validation.recommendations.map(rec => `  - ${rec}`)
+          ].join('\n');
+
+          logger.error(errorMessage);
+          cached = { validated: false, error: errorMessage };
+        } else {
+          logger.info('✅ Security validation passed - application ready');
+          cached = { validated: true, error: null };
+        }
+
+        securityValidationCache.set(envKey, cached);
+      } catch (error) {
+        const errorMessage = `Security validation system error: ${(error as any).message}`;
+        logger.error(errorMessage);
+        cached = { validated: false, error: errorMessage };
+        securityValidationCache.set(envKey, cached);
+        }
+      }
+
+      // Block requests if security validation failed
+      if (cached && cached.error) {
+        return new Response(JSON.stringify({
+          error: 'Service Unavailable - Security Configuration Error',
+          message: 'The service cannot start due to critical security issues',
+          details: env.ENVIRONMENT === 'development' ? cached.error : 'Contact system administrator',
+          statusCode: 503
+        }), {
+          status: 503,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '300' // Retry after 5 minutes
+          }
+        });
+      }
+    }
+    // ============================================================================
+
+    // Initialize CORS manager with proper configuration
+    const allowedOrigins = env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()).filter(o => o.length > 0) || [];
+    const corsManager = new CORSManager(env.ENVIRONMENT || 'production', allowedOrigins);
+    const origin = request.headers.get('Origin');
+
+    // Handle preflight requests
     if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders
+      return corsManager.handlePreflight(request);
+    }
+
+    // Get CORS headers for this origin
+    const corsHeaders = origin ? corsManager.getCORSHeaders(origin) : {};
+
+    // Check if origin is allowed
+    if (origin && !corsManager.isOriginAllowed(origin)) {
+      return new Response(JSON.stringify({
+        error: 'CORS policy: Origin not allowed'
+      }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
@@ -535,26 +623,14 @@ export default {
         ctx.waitUntil(authSystem.initializeDatabase());
       }
 
-      // Rate limiting check for API endpoints
-      if (path.startsWith('/api/') && env.RATE_LIMITER_DO) {
-        const rateLimiterId = env.RATE_LIMITER_DO.idFromName('global');
-        const rateLimiter = env.RATE_LIMITER_DO.get(rateLimiterId);
+      // Enhanced distributed rate limiting
+      if (path.startsWith('/api/') && env.KV_RATE_LIMIT_METRICS) {
+        const rateLimiter = new DistributedRateLimiter(env.KV_RATE_LIMIT_METRICS);
+        const allowed = await rateLimiter.check(request);
 
-        const checkRequest = new Request(`http://localhost/check`, {
-          headers: {
-            'CF-Connecting-IP': request.headers.get('CF-Connecting-IP') || 'unknown',
-            'X-User-ID': request.headers.get('X-User-ID') || '',
-            'X-Endpoint': path
-          }
-        });
-
-        const rateLimitResponse = await rateLimiter.fetch(checkRequest);
-        const rateLimitData = await rateLimitResponse.json() as any;
-
-        if (!rateLimitData.allowed) {
+        if (!allowed) {
           return new Response(JSON.stringify({
-            error: 'Rate limit exceeded',
-            ...rateLimitData
+            error: 'Rate limit exceeded'
           }), {
             status: 429,
             headers: { 'Content-Type': 'application/json', ...corsHeaders }
@@ -562,17 +638,69 @@ export default {
         }
       }
 
-      // Get routes
+      // Get routes (legacy handlers) and detect API requests
       const routes = createProductionRoutes(env, authSystem, analytics);
+      const handler = routes[path as keyof typeof routes];
+      const isApiRequest = path.startsWith('/api/');
 
-      // Public endpoints (no auth required)
-      const publicEndpoints = ['/health', '/api/status', '/api/auth/register', '/api/auth/login'];
+      const forwardToApiRoutes = async (): Promise<Response> => {
+        let apiRequest = request;
+        const requestUrl = new URL(request.url);
+
+        // Remove /api prefix before forwarding to Hono (Hono app handles /v1/... paths)
+        const suffix = requestUrl.pathname.substring('/api'.length);
+        const rewrittenUrl = new URL(requestUrl.toString());
+        rewrittenUrl.pathname = suffix.startsWith('/v1') ? suffix : `/v1${suffix}`.replace('//', '/');
+        apiRequest = new Request(rewrittenUrl.toString(), request);
+
+        const honoResponse = await handleAPIRequest(apiRequest, env, ctx);
+        const responseHeaders = new Headers(honoResponse.headers);
+
+        Object.entries(corsHeaders).forEach(([key, value]) => {
+          responseHeaders.set(key, value);
+        });
+        const securityHeaders = corsManager.getSecurityHeaders();
+        Object.entries(securityHeaders).forEach(([key, value]) => {
+          if (!responseHeaders.has(key)) {
+            responseHeaders.set(key, value);
+          }
+        });
+
+        const finalResponse = new Response(honoResponse.body, {
+          status: honoResponse.status,
+          statusText: honoResponse.statusText,
+          headers: responseHeaders
+        });
+
+        const responseTime = Date.now() - startTime;
+        const authDetails = await authenticate(request, authSystem).catch(() => ({ user: null as User | null }));
+        const currentUser = authDetails?.user || null;
+
+        ctx.waitUntil(analytics.logRequest({
+          endpoint: path,
+          method: request.method,
+          statusCode: finalResponse.status,
+          responseTime,
+          userId: currentUser?.id,
+          businessId: currentUser?.businessId,
+          ipAddress: request.headers.get('CF-Connecting-IP') || undefined,
+          userAgent: request.headers.get('User-Agent') || undefined
+        }));
+
+        return finalResponse;
+      };
+
+      if (!handler && isApiRequest) {
+        return await forwardToApiRoutes();
+      }
+
+      // Public endpoints (no auth required) for legacy handlers
+      const publicEndpoints = ['/', '/health', '/api/status', '/api/auth/register', '/api/auth/login', '/api/auth/refresh'];
 
       let user: User | null = null;
       let authError: string | undefined;
 
-      // Authenticate for protected endpoints
-      if (!publicEndpoints.includes(path)) {
+      if (typeof handler !== 'undefined' && !publicEndpoints.includes(path)) {
         const authResult = await authenticate(request, authSystem);
         user = authResult.user;
         authError = authResult.error;
@@ -592,11 +720,11 @@ export default {
       let response: Response;
       let statusCode: number;
 
-      const handler = routes[path as keyof typeof routes];
-
       if (handler) {
         response = await handler(request, user!);
         statusCode = response.status;
+      } else if (isApiRequest) {
+        return await forwardToApiRoutes();
       } else {
         response = new Response(JSON.stringify({
           error: 'Endpoint not found',
@@ -610,13 +738,19 @@ export default {
         statusCode = 404;
       }
 
-      // Add CORS headers
+      // Add CORS and security headers
       const newHeaders = new Headers(response.headers);
       Object.entries(corsHeaders).forEach(([key, value]) => {
         newHeaders.set(key, value);
       });
+      const securityHeaders = corsManager.getSecurityHeaders();
+      Object.entries(securityHeaders).forEach(([key, value]) => {
+        if (!newHeaders.has(key)) {
+          newHeaders.set(key, value);
+        }
+      });
 
-      // Log request
+      // Log request for legacy handlers
       const responseTime = Date.now() - startTime;
       ctx.waitUntil(analytics.logRequest({
         endpoint: path,
@@ -636,7 +770,7 @@ export default {
       });
 
     } catch (error: any) {
-      console.error('Worker error:', error);
+      logger.error('Worker error:', error);
       const responseTime = Date.now() - startTime;
 
       return new Response(JSON.stringify({
@@ -652,3 +786,186 @@ export default {
     }
   }
 };
+
+// Export additional Durable Objects required by wrangler.toml
+export class WorkflowExecutorDO {
+  state: DurableObjectState;
+  env: Env;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+    this.env = env;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (request.method === 'POST' && url.pathname === '/execute') {
+      return this.executeWorkflow(request);
+    }
+
+    if (request.method === 'GET' && url.pathname === '/status') {
+      return this.getWorkflowStatus(request);
+    }
+
+    return new Response('Not found', { status: 404 });
+  }
+
+  private async executeWorkflow(request: Request): Promise<Response> {
+    try {
+      const body = await request.json() as { workflowId: string; steps: any[] };
+      const workflowId = body.workflowId;
+
+      // Store workflow state
+      await this.state.storage.put(`workflow:${workflowId}`, {
+        status: 'running',
+        steps: body.steps,
+        startedAt: Date.now(),
+        currentStep: 0
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        workflowId,
+        status: 'running'
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Workflow execution failed'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  private async getWorkflowStatus(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+    const workflowId = url.searchParams.get('workflowId');
+
+    if (!workflowId) {
+      return new Response(JSON.stringify({
+        error: 'workflowId required'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const workflow = await this.state.storage.get(`workflow:${workflowId}`) as any;
+
+    if (!workflow) {
+      return new Response(JSON.stringify({
+        error: 'Workflow not found'
+      }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    return new Response(JSON.stringify(workflow), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+export class RealtimeCoordinatorDO {
+  state: DurableObjectState;
+  env: Env;
+  sessions: Map<string, WebSocket>;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+    this.env = env;
+    this.sessions = new Map();
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    // WebSocket upgrade for real-time connections
+    if (request.headers.get('Upgrade') === 'websocket') {
+      return this.handleWebSocket(request);
+    }
+
+    if (request.method === 'POST' && url.pathname === '/broadcast') {
+      return this.broadcastMessage(request);
+    }
+
+    if (request.method === 'GET' && url.pathname === '/sessions') {
+      return this.getSessions();
+    }
+
+    return new Response('Not found', { status: 404 });
+  }
+
+  private async handleWebSocket(_request: Request): Promise<Response> {
+    const pair = new WebSocketPair();
+    const [client, server] = Object.values(pair);
+
+    const sessionId = crypto.randomUUID();
+    this.sessions.set(sessionId, server);
+
+    server.accept();
+
+    server.addEventListener('message', (event: MessageEvent) => {
+      // Broadcast to all other sessions
+      this.sessions.forEach((ws, id) => {
+        if (id !== sessionId && ws.readyState === WebSocket.OPEN) {
+          ws.send(event.data);
+        }
+      });
+    });
+
+    server.addEventListener('close', () => {
+      this.sessions.delete(sessionId);
+    });
+
+    return new Response(null, {
+      status: 101,
+      webSocket: client
+    });
+  }
+
+  private async broadcastMessage(request: Request): Promise<Response> {
+    try {
+      const body = await request.json() as { message: any };
+      const messageStr = JSON.stringify(body.message);
+
+      let sent = 0;
+      this.sessions.forEach((ws) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(messageStr);
+          sent++;
+        }
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        sentTo: sent
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Broadcast failed'
+      }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
+
+  private async getSessions(): Promise<Response> {
+    return new Response(JSON.stringify({
+      activeSessions: this.sessions.size,
+      sessionIds: Array.from(this.sessions.keys())
+    }), {
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}

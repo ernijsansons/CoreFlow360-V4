@@ -5,6 +5,9 @@
 
 import { Logger } from '../shared/logger';
 
+// Type declaration for HTMLElement (for browser/frontend code only)
+type HTMLElement = any;
+
 const logger = new Logger({ component: 'supernova-security' });
 
 // ============================================================================

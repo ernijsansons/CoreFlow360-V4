@@ -3,23 +3,17 @@
  * Handles short-term (KV) and long-term (D1) memory for agents
  */
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
-import {
-  Memory,
+import { Memory,
   MemoryMessage,
   Knowledge,
   ConversationEntry,
   MemoryContext,
-  AgentResult,
-  AGENT_CONSTANTS
-} from './types';
+  AGENT_CONSTANTS } from './types';
 import { Logger } from '../../shared/logger';
 import { ApplicationError as ValidationError } from '../../shared/error-handling';
-import {
-  sanitizeBusinessId,
-  sanitizeUserId,
+import { sanitizeBusinessId,
   sanitizeSqlParam,
-  sanitizeForLogging
-} from './security-utils';
+  sanitizeForLogging } from './security-utils';
 
 export class AgentMemory {
   private logger: Logger;
@@ -236,8 +230,8 @@ export class AgentMemory {
       params.push(limit);
       
       const result = await this.db.prepare(sql).bind(...params).all();
-      
-      return result.results as Knowledge[];
+
+      return result.results as unknown as Knowledge[];
     } catch (error: any) {
       this.logger.error('Failed to search knowledge', {
         businessId: sanitizeForLogging(businessId),
@@ -307,7 +301,7 @@ export class AgentMemory {
       this.logger.debug('Short-term memory cleared', sanitizeForLogging({
         businessId: safeBusinessId,
         sessionId: safeSessionId
-      }));
+      }) as Record<string, unknown>);
     } catch (error: any) {
       this.logger.error('Failed to clear short-term memory', {
         businessId: sanitizeForLogging(businessId),
@@ -342,7 +336,7 @@ export class AgentMemory {
 
       this.logger.debug('All memory cleared', sanitizeForLogging({
         businessId: safeBusinessId
-      }));
+      }) as Record<string, unknown>);
     } catch (error: any) {
       this.logger.error('Failed to clear all memory', {
         businessId: sanitizeForLogging(businessId),
@@ -374,10 +368,10 @@ export class AgentMemory {
       LIMIT ?
     `).bind(businessId, AGENT_CONSTANTS.MAX_KNOWLEDGE_SIZE).all();
 
-    return result.results as Knowledge[];
+    return result.results as unknown as Knowledge[];
   }
 
-  private async saveLongTerm(businessId: string, knowledge: Knowledge[]): Promise<void> {
+  private async saveLongTerm(_businessId: string, _knowledge: Knowledge[]): Promise<void> {
     // Long-term memory is already persisted in D1, no need to save again
     // This method exists for interface consistency
   }
@@ -385,19 +379,19 @@ export class AgentMemory {
   private async loadConversationHistory(businessId: string, sessionId: string): Promise<ConversationEntry[]> {
     const result = await this.db.prepare(`
       SELECT id, taskId, agentId, input, output, timestamp, success, cost
-      FROM agent_conversations 
+      FROM agent_conversations
       WHERE business_id = ? AND session_id = ?
       ORDER BY timestamp DESC
       LIMIT ?
     `).bind(businessId, sessionId, 100).all();
 
-    return result.results as ConversationEntry[];
+    return result.results as unknown as ConversationEntry[];
   }
 
   private async saveConversationHistory(
-    businessId: string, 
-    sessionId: string, 
-    entries: ConversationEntry[]
+    _businessId: string, 
+    _sessionId: string, 
+    _entries: ConversationEntry[]
   ): Promise<void> {
     // Conversation history is already persisted in D1, no need to save again
     // This method exists for interface consistency
@@ -409,6 +403,21 @@ export class AgentMemory {
 
   private generateId(): string {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  async clearSession(businessId: string, sessionId: string): Promise<void> {
+    const key = this.getShortTermKey(businessId, sessionId);
+    await this.kv.delete(key);
+    this.logger.info('Session memory cleared', { businessId, sessionId });
+  }
+
+  async cleanup(businessId: string): Promise<void> {
+    // Cleanup old memories from database
+    await this.db.prepare(`
+      DELETE FROM agent_memory
+      WHERE business_id = ? AND created_at < datetime('now', '-30 days')
+    `).bind(businessId).run();
+    this.logger.info('Memory cleanup completed', { businessId });
   }
 }
 

@@ -308,8 +308,8 @@ export class SecurityMiddleware {
    * Validate request path
    */
   private async validatePath(request: Request): Promise<SecurityCheck> {
-    const url = new URL(request.url);
-    const path = url.pathname;
+    const requestUrl = new URL(request.url);
+    const path = requestUrl.pathname;
 
     // Check for path traversal
     if (path.includes('../') || path.includes('..\\')) {
@@ -347,6 +347,7 @@ export class SecurityMiddleware {
    */
   private async detectSuspiciousPatterns(request: Request): Promise<SecurityCheck> {
     const url = new URL(request.url);
+    void url;
     const fullUrl = request.url;
 
     // SQL injection patterns

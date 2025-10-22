@@ -64,7 +64,7 @@ class CurrencyService {
   constructor(config?: {
     baseCurrency?: string
     apiKey?: string
-    rateProvider?: typeof this.rateProvider
+    rateProvider?: 'fixer' | 'exchangerate' | 'openexchange'
   }) {
     if (config?.baseCurrency) this.baseCurrency = config.baseCurrency
     if (config?.apiKey) this.apiKey = config.apiKey
@@ -146,8 +146,9 @@ class CurrencyService {
 
       throw new AppError(
         'Currency conversion failed',
-        'CURRENCY_CONVERSION_ERROR',
         500,
+        'CURRENCY_CONVERSION_ERROR',
+        true,
         { originalError: error, request }
       )
     }
@@ -192,8 +193,8 @@ class CurrencyService {
     if (!this.apiKey) {
       throw new AppError(
         'Exchange rate API key not configured',
-        'MISSING_API_KEY',
-        500
+        500,
+        'MISSING_API_KEY'
       )
     }
 
@@ -213,7 +214,7 @@ class CurrencyService {
           ({ rate, timestamp } = await this.fetchFromOpenExchange(fromCurrency, toCurrency))
           break
         default:
-          throw new AppError('Invalid rate provider', 'INVALID_RATE_PROVIDER', 500)
+          throw new AppError('Invalid rate provider', 500, 'INVALID_RATE_PROVIDER')
       }
 
       const exchangeRate: ExchangeRate = {
@@ -241,8 +242,9 @@ class CurrencyService {
     } catch (error: any) {
       throw new AppError(
         `Failed to fetch exchange rate from ${this.rateProvider}`,
-        'RATE_FETCH_ERROR',
         500,
+        'RATE_FETCH_ERROR',
+        true,
         { fromCurrency, toCurrency, provider: this.rateProvider, originalError: error }
       )
     }
@@ -265,8 +267,8 @@ class CurrencyService {
     if (!this.apiKey) {
       throw new AppError(
         'Exchange rate API key not configured',
-        'MISSING_API_KEY',
-        500
+        500,
+        'MISSING_API_KEY'
       )
     }
 
@@ -285,7 +287,7 @@ class CurrencyService {
           ({ rate, timestamp } = await this.fetchHistoricalFromOpenExchange(fromCurrency, toCurrency, date))
           break
         default:
-          throw new AppError('Invalid rate provider', 'INVALID_RATE_PROVIDER', 500)
+          throw new AppError('Invalid rate provider', 500, 'INVALID_RATE_PROVIDER')
       }
 
       const exchangeRate: ExchangeRate = {
@@ -305,8 +307,9 @@ class CurrencyService {
     } catch (error: any) {
       throw new AppError(
         `Failed to fetch historical exchange rate`,
-        'HISTORICAL_RATE_FETCH_ERROR',
         500,
+        'HISTORICAL_RATE_FETCH_ERROR',
+        true,
         { fromCurrency, toCurrency, date, originalError: error }
       )
     }
@@ -323,13 +326,13 @@ class CurrencyService {
 
     const data = await response.json()
 
-    if (!data.success) {
-      throw new Error(`Fixer API error: ${data.error?.info || 'Unknown error'}`)
+    if (!(data as any).success) {
+      throw new Error(`Fixer API error: ${(data as any).error?.info || 'Unknown error'}`)
     }
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.timestamp * 1000).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).timestamp * 1000).toISOString()
     }
   }
 
@@ -346,8 +349,8 @@ class CurrencyService {
     const data = await response.json()
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.date).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).date).toISOString()
     }
   }
 
@@ -364,8 +367,8 @@ class CurrencyService {
     const data = await response.json()
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.timestamp * 1000).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).timestamp * 1000).toISOString()
     }
   }
 
@@ -382,13 +385,13 @@ class CurrencyService {
 
     const data = await response.json()
 
-    if (!data.success) {
-      throw new Error(`Fixer API error: ${data.error?.info || 'Unknown error'}`)
+    if (!(data as any).success) {
+      throw new Error(`Fixer API error: ${(data as any).error?.info || 'Unknown error'}`)
     }
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.date).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).date).toISOString()
     }
   }
 
@@ -406,8 +409,8 @@ class CurrencyService {
     const data = await response.json()
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.date).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).date).toISOString()
     }
   }
 
@@ -425,8 +428,8 @@ class CurrencyService {
     const data = await response.json()
 
     return {
-      rate: data.rates[toCurrency],
-      timestamp: new Date(data.timestamp * 1000).toISOString()
+      rate: (data as any).rates[toCurrency],
+      timestamp: new Date((data as any).timestamp * 1000).toISOString()
     }
   }
 
@@ -439,8 +442,8 @@ class CurrencyService {
     if (!currency) {
       throw new AppError(
         `Currency ${currencyCode} not found`,
-        'CURRENCY_NOT_FOUND',
-        400
+        400,
+        'CURRENCY_NOT_FOUND'
       )
     }
 
@@ -467,40 +470,40 @@ class CurrencyService {
     if (!request.fromCurrency || !request.toCurrency) {
       throw new AppError(
         'From and to currencies are required',
-        'INVALID_CURRENCY_REQUEST',
-        400
+        400,
+        'INVALID_CURRENCY_REQUEST'
       )
     }
 
     if (!this.currencies.has(request.fromCurrency)) {
       throw new AppError(
         `Currency ${request.fromCurrency} not supported`,
-        'UNSUPPORTED_CURRENCY',
-        400
+        400,
+        'UNSUPPORTED_CURRENCY'
       )
     }
 
     if (!this.currencies.has(request.toCurrency)) {
       throw new AppError(
         `Currency ${request.toCurrency} not supported`,
-        'UNSUPPORTED_CURRENCY',
-        400
+        400,
+        'UNSUPPORTED_CURRENCY'
       )
     }
 
     if (typeof request.amount !== 'number' || request.amount < 0) {
       throw new AppError(
         'Amount must be a non-negative number',
-        'INVALID_AMOUNT',
-        400
+        400,
+        'INVALID_AMOUNT'
       )
     }
 
     if (request.date && !this.isValidDate(request.date)) {
       throw new AppError(
         'Invalid date format',
-        'INVALID_DATE',
-        400
+        400,
+        'INVALID_DATE'
       )
     }
   }
@@ -586,8 +589,8 @@ class CurrencyService {
     if (!this.currencies.has(currencyCode)) {
       throw new AppError(
         `Currency ${currencyCode} not supported`,
-        'UNSUPPORTED_CURRENCY',
-        400
+        400,
+        'UNSUPPORTED_CURRENCY'
       )
     }
 

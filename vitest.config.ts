@@ -15,6 +15,9 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     css: true,
+    env: {
+      VITEST: 'true'
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

@@ -1,31 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Bot,
   Brain,
-  Cpu,
   MessageSquare,
   Zap,
-  Play,
-  Pause,
   Settings,
-  CheckCircle,
-  AlertCircle,
-  Info,
   TrendingUp,
   Activity,
   Clock,
-  BarChart3,
   Send,
   Mic,
   Paperclip,
   ChevronDown,
   ChevronRight,
   RefreshCw,
-  Download,
-  Upload,
   Shield,
-  AlertTriangle,
   Command,
   Sparkles
 } from 'lucide-react';
@@ -56,25 +46,8 @@ interface AIAgent {
   };
 }
 
-interface Conversation {
-  id: string;
-  agentId: string;
-  messages: Message[];
-  status: 'active' | 'resolved' | 'pending';
-}
-
-interface Message {
-  id: string;
-  sender: 'user' | 'agent';
-  content: string;
-  timestamp: Date;
-  attachments?: string[];
-  suggestions?: string[];
-}
-
 export const AIAgentInterface: React.FC = () => {
   const [selectedAgent, setSelectedAgent] = useState<AIAgent | null>(null);
-  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [showCapabilities, setShowCapabilities] = useState(false);
@@ -191,15 +164,15 @@ export const AIAgentInterface: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400';
+        return 'bg-success-100 text-success-700 dark:bg-success-900/20 dark:text-success-400';
       case 'processing':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400';
+        return 'bg-brand-primary-100 text-brand-primary-700 dark:bg-brand-primary-900/20 dark:text-brand-primary-400';
       case 'idle':
         return 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400';
       case 'error':
-        return 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400';
+        return 'bg-error-100 text-error-700 dark:bg-error-900/20 dark:text-error-400';
       case 'learning':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400';
+        return 'bg-brand-accent-100 text-brand-accent-700 dark:bg-brand-accent-900/20 dark:text-brand-accent-400';
       default:
         return 'bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400';
     }
@@ -208,26 +181,28 @@ export const AIAgentInterface: React.FC = () => {
   const handleSendMessage = () => {
     if (!message.trim() || !selectedAgent) return;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'user',
-      content: message,
-      timestamp: new Date()
-    };
+    // TODO: Implement message sending
+    // const newMessage: Message = {
+    //   id: Date.now().toString(),
+    //   sender: 'user',
+    //   content: message,
+    //   timestamp: new Date()
+    // };
 
     // Simulate agent response
     setTimeout(() => {
-      const agentResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        sender: 'agent',
-        content: `I understand your request about "${message}". I'm processing this now and will have results for you shortly.`,
-        timestamp: new Date(),
-        suggestions: [
-          'View detailed analysis',
-          'Export report',
-          'Schedule follow-up'
-        ]
-      };
+      // TODO: Implement agent response
+      // const agentResponse: Message = {
+      //   id: (Date.now() + 1).toString(),
+      //   sender: 'agent',
+      //   content: `I understand your request about "${message}". I'm processing this now and will have results for you shortly.`,
+      //   timestamp: new Date(),
+      //   suggestions: [
+      //     'View detailed analysis',
+      //     'Export report',
+      //     'Schedule follow-up'
+      //   ]
+      // };
       // Update conversation with agent response
     }, 1000);
 
@@ -241,7 +216,7 @@ export const AIAgentInterface: React.FC = () => {
         <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg">
+              <div className="p-2 bg-gradient-to-r from-brand-accent-600 to-brand-primary-600 rounded-lg">
                 <Brain className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -349,7 +324,7 @@ export const AIAgentInterface: React.FC = () => {
               <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl">
+                    <div className="p-3 bg-gradient-to-r from-brand-accent-600 to-brand-primary-600 rounded-xl">
                       {getAgentIcon(selectedAgent.type)}
                     </div>
                     <div>
@@ -368,7 +343,7 @@ export const AIAgentInterface: React.FC = () => {
                     <button className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">
                       <Settings className="h-4 w-4" />
                     </button>
-                    <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700">
+                    <button className="px-4 py-2 bg-gradient-to-r from-brand-primary-600 to-brand-accent-600 text-white rounded-lg hover:from-brand-primary-700 hover:to-brand-accent-700">
                       <Command className="h-4 w-4 inline mr-2" />
                       Assign Task
                     </button>
@@ -529,7 +504,7 @@ export const AIAgentInterface: React.FC = () => {
                     </button>
                     <button
                       onClick={handleSendMessage}
-                      className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700"
+                      className="px-4 py-2 bg-gradient-to-r from-brand-primary-600 to-brand-accent-600 text-white rounded-lg hover:from-brand-primary-700 hover:to-brand-accent-700"
                     >
                       <Send className="h-5 w-5" />
                     </button>

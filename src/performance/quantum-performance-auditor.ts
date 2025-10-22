@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../shared/logger';
-import type { Env } from '../types/env';
+
 import type { Context } from 'hono';
 import { DatabaseQueryAnalyzer } from './database-query-analyzer';
 import { CacheEffectivenessAnalyzer } from './cache-effectiveness-analyzer';
@@ -688,8 +688,8 @@ export class QuantumPerformanceAuditor {
   private collectCacheIssues(
     cacheAudit: CacheAuditReport,
     issues: PerformanceIssue[],
-    optimizations: PerformanceOptimization[],
-    autoFixable: AutoFixableIssue[]
+    _optimizations: PerformanceOptimization[],
+    _autoFixable: AutoFixableIssue[]
   ): void {
     // Low cache hit ratio
     for (const endpoint of cacheAudit.endpoints) {
@@ -718,8 +718,8 @@ export class QuantumPerformanceAuditor {
   private collectBundleIssues(
     bundleAudit: BundleAuditReport,
     issues: PerformanceIssue[],
-    optimizations: PerformanceOptimization[],
-    autoFixable: AutoFixableIssue[]
+    _optimizations: PerformanceOptimization[],
+    _autoFixable: AutoFixableIssue[]
   ): void {
     // Large bundle size
     if (bundleAudit.initialBundleSize > 100000) { // 100KB
@@ -767,8 +767,8 @@ export class QuantumPerformanceAuditor {
   private collectLatencyIssues(
     latencyAudit: LatencyAuditReport,
     issues: PerformanceIssue[],
-    optimizations: PerformanceOptimization[],
-    autoFixable: AutoFixableIssue[]
+    _optimizations: PerformanceOptimization[],
+    _autoFixable: AutoFixableIssue[]
   ): void {
     // Slow endpoints
     for (const endpoint of latencyAudit.slowEndpoints) {
@@ -797,8 +797,8 @@ export class QuantumPerformanceAuditor {
   private collectResourceIssues(
     resourceAudit: ResourceAuditReport,
     issues: PerformanceIssue[],
-    optimizations: PerformanceOptimization[],
-    autoFixable: AutoFixableIssue[]
+    _optimizations: PerformanceOptimization[],
+    _autoFixable: AutoFixableIssue[]
   ): void {
     // Memory leaks
     for (const leak of resourceAudit.memoryUsage.leaks) {

@@ -12,19 +12,21 @@ interface DashboardSubscription {
   filters: Record<string, any>;
 }
 
-interface MetricUpdate {
-  type: 'metrics' | 'alert' | 'trace' | 'log';
-  timestamp: number;
-  data: any;
-  subscription: string;
-}
+// TODO: Use MetricUpdate when implementing metric updates
+// interface MetricUpdate {
+//   type: 'metrics' | 'alert' | 'trace' | 'log';
+//   timestamp: number;
+//   data: any;
+//   subscription: string;
+// }
 
-interface AlertUpdate {
-  type: 'alert';
-  alert: any;
-  severity: string;
-  timestamp: number;
-}
+// TODO: Use AlertUpdate when implementing alert updates
+// interface AlertUpdate {
+//   type: 'alert';
+//   alert: any;
+//   severity: string;
+//   timestamp: number;
+// }
 
 export class DashboardStream {
   private collector: TelemetryCollector;
@@ -173,7 +175,7 @@ export class DashboardStream {
     };
   }
 
-  private async getTableData(widget: WidgetConfig, businessId: string, timeRange: any): Promise<any> {
+  private async getTableData(widget: WidgetConfig, _businessId: string, _timeRange: any): Promise<any> {
     const results = await this.collector.query(widget.query);
 
     return {
@@ -234,7 +236,7 @@ export class DashboardStream {
 
     const data = hours.map((hour: any) =>
       paths.map((path: any) => {
-        const result = results.find(r => r.hour === hour && r.path === path);
+        const result = results.find((r: any) => r.hour === hour && r.path === path);
         return result ? result.avg_latency : 0;
       })
     );
@@ -280,7 +282,7 @@ export class DashboardStream {
     };
   }
 
-  private async getAlertListData(widget: WidgetConfig, businessId: string, timeRange: any): Promise<any> {
+  private async getAlertListData(widget: WidgetConfig, businessId: string, _timeRange: any): Promise<any> {
     const alerts = await this.aiEngine.analyzeMetrics(businessId);
 
     return {

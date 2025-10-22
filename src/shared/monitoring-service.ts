@@ -4,7 +4,7 @@
  */
 
 import { Logger } from './logger';
-import { correlationManager, TraceSpan, TraceContext } from './correlation-id';
+import { correlationManager } from './correlation-id';
 import { circuitBreakerRegistry } from './circuit-breaker';
 
 export interface MetricPoint {
@@ -458,6 +458,7 @@ class MonitoringService {
 
   private collectSystemMetrics(): void {
     const now = Date.now();
+    void now;
 
     // Circuit breaker metrics
     const cbMetrics = circuitBreakerRegistry.getAllMetrics();

@@ -3,7 +3,7 @@
  * Advanced feature flag management with ML optimization and A/B testing
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 
@@ -915,7 +915,7 @@ class FeatureFlagManager {
     this.logger.info('Setting up rollout', { flag: flag.key });
   }
 
-  private async assessFlagHealth(flag: FeatureFlag, metrics: any): Promise<FlagHealth> {
+  private async assessFlagHealth(_flag: FeatureFlag, _metrics: any): Promise<FlagHealth> {
     return {
       status: 'healthy',
       score: 85,
@@ -996,19 +996,19 @@ class FeatureOptimizer {
     return Math.min(options.currentPercentage * 1.1, 100); // Simple 10% increase
   }
 
-  async segment(context: EvaluationContext, options: any): Promise<string> {
+  async segment(_context: EvaluationContext, _options: any): Promise<string> {
     // AI-based user segmentation
     return 'default';
   }
 
-  async calculateProbability(options: any): Promise<number> {
+  async calculateProbability(_options: any): Promise<number> {
     // ML-based probability calculation
     return 0.5;
   }
 }
 
 class ExperimentAnalyzer {
-  async analyzeExperiment(experiment: ExperimentConfig): Promise<ExperimentAnalysis> {
+  async analyzeExperiment(_experiment: ExperimentConfig): Promise<ExperimentAnalysis> {
     return {
       significance: 0.95,
       confidence: 0.8,
@@ -1026,11 +1026,11 @@ class RolloutManager {
 }
 
 class EventTracker {
-  async trackExposure(event: ExposureEvent): Promise<void> {
+  async trackExposure(_event: ExposureEvent): Promise<void> {
     // Track flag exposure for analytics
   }
 
-  async getFlagMetrics(flagKey: string): Promise<FlagMetrics> {
+  async getFlagMetrics(_flagKey: string): Promise<FlagMetrics> {
     return {
       evaluationCount: 1000,
       lastEvaluationTime: Date.now(),
@@ -1039,7 +1039,7 @@ class EventTracker {
     };
   }
 
-  async getMetric(metricName: string): Promise<any> {
+  async getMetric(_metricName: string): Promise<any> {
     return { value: 100 };
   }
 }

@@ -1,4 +1,4 @@
-import { Alert, AlertRule } from '../../types/telemetry';
+import { Alert } from '../../types/telemetry';
 
 interface NotificationChannel {
   id: string;
@@ -333,7 +333,7 @@ export class AlertSystem {
     }
   }
 
-  private generateEmailHTML(alert: Alert, message: any): string {
+  private generateEmailHTML(alert: Alert, _message: any): string {
     const color = this.getAlertColor(alert.severity);
 
     return `
@@ -380,7 +380,7 @@ export class AlertSystem {
     `;
   }
 
-  private isAlertSilenced(alert: Alert): boolean {
+  private isAlertSilenced(_alert: Alert): boolean {
     const now = Date.now();
     for (const [, silence] of this.silenceWindows) {
       if (now >= silence.start && now <= silence.end) {

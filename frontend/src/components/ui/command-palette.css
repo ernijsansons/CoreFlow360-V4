@@ -1,0 +1,323 @@
+/**
+ * Command Palette Premium Styles
+ * Glassmorphism, smooth animations, and premium effects
+ */
+
+/* Command Dialog Animations */
+@keyframes command-palette-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.96) translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+}
+
+@keyframes command-palette-out {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.96) translateY(-20px);
+  }
+}
+
+/* Command Palette Container */
+.command-palette-dialog {
+  --cmdk-shadow: 0 16px 70px rgb(0 0 0 / 0.2);
+  --cmdk-border-radius: 16px;
+}
+
+/* Glassmorphism Effects */
+.command-palette-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.125);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.dark .command-palette-glass {
+  background: rgba(17, 24, 39, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.4),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Smooth Scrolling */
+[cmdk-list] {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+}
+
+[cmdk-list]::-webkit-scrollbar {
+  width: 6px;
+}
+
+[cmdk-list]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[cmdk-list]::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.dark [cmdk-list]::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Command Item Hover Effects */
+[cmdk-item] {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+[cmdk-item]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    transparent,
+    rgba(120, 119, 198, 0.05),
+    transparent
+  );
+  transform: translateX(-100%);
+  transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[cmdk-item][aria-selected="true"]::before {
+  transform: translateX(0);
+}
+
+/* Icon Animations */
+[cmdk-item] .command-icon {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[cmdk-item][aria-selected="true"] .command-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+[cmdk-item]:active .command-icon {
+  transform: scale(0.95);
+}
+
+/* Badge Shimmer Effect */
+.command-badge {
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  overflow: hidden;
+}
+
+.command-badge::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  bottom: -50%;
+  left: -50%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transform: translateX(-100%) translateY(-100%);
+  animation: badge-shimmer 3s infinite;
+}
+
+@keyframes badge-shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%);
+  }
+}
+
+/* Input Field Focus Effect */
+[cmdk-input] {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[cmdk-input]:focus {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(120, 119, 198, 0.03),
+    transparent
+  );
+}
+
+/* Group Headers */
+[cmdk-group-heading] {
+  position: relative;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  opacity: 0.7;
+  padding-left: 24px;
+}
+
+[cmdk-group-heading]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    currentColor,
+    transparent
+  );
+}
+
+/* Empty State Animation */
+[cmdk-empty] {
+  animation: fade-in 300ms ease-out;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Keyboard Shortcut Pills */
+.command-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 6px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 255, 255, 0.7)
+  );
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.dark .command-shortcut {
+  background: linear-gradient(
+    135deg,
+    rgba(55, 65, 81, 0.9),
+    rgba(55, 65, 81, 0.7)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Loading State */
+.command-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.command-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(120, 119, 198, 0.1),
+    transparent
+  );
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Performance Optimizations */
+[cmdk-root] {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[cmdk-list] {
+  contain: layout style paint;
+}
+
+[cmdk-item] {
+  contain: layout style;
+}
+
+/* Accessibility Improvements */
+[cmdk-item]:focus-visible {
+  outline: 2px solid rgb(99, 102, 241);
+  outline-offset: 2px;
+}
+
+/* Reduce Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .command-palette-glass {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid currentColor;
+  }
+
+  .dark .command-palette-glass {
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid currentColor;
+  }
+
+  [cmdk-item][aria-selected="true"] {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+  }
+}

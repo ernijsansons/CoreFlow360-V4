@@ -81,7 +81,7 @@ export class MonitoringSystem {
     return { healthy, score: Math.max(0, score), issues };
   }
 
-  async getHistoricalMetrics(period: string): Promise<LaunchMetrics> {
+  async getHistoricalMetrics(_period: string): Promise<LaunchMetrics> {
     // Simulate historical data retrieval
     return this.baselineMetrics || await this.getCurrentMetrics();
   }
@@ -146,7 +146,7 @@ export class MonitoringSystem {
     }
   }
 
-  async logEvent(event: string, details: any): Promise<void> {
+  async logEvent(_event: string, _details: any): Promise<void> {
   }
 
   async generateMetricsReport(): Promise<string> {

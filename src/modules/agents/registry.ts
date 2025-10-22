@@ -4,20 +4,16 @@
  */
 
 import type { KVNamespace } from '@cloudflare/workers-types';
-import {
-  IAgent,
+import { IAgent,
   AgentConfig,
   AgentRegistryEntry,
   AgentError,
   AgentNotFoundError,
-  AgentUnavailableError,
   HealthStatus,
   AgentStatus,
-  AgentConfigSchema,
-  AGENT_LIMITS
-} from './types';
+  AgentConfigSchema } from './types';
 import { Logger } from '../../shared/logger';
-import { SecurityError, CorrelationId } from '../../shared/security-utils';
+
 
 export class AgentRegistry {
   private logger: Logger;

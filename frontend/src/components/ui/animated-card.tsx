@@ -172,7 +172,7 @@ const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
           {/* Glow effect overlay */}
           {animation === 'glow' && isHovered && (
             <motion.div
-              className="absolute inset-0 rounded-[var(--radius-lg)] bg-gradient-to-r from-blue-500/10 to-purple-500/10 pointer-events-none"
+              className="absolute inset-0 rounded-[var(--radius-lg)] bg-gradient-to-r from-brand-primary-500/10 to-brand-accent-500/10 pointer-events-none"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

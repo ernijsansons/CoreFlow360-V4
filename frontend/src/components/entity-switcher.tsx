@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Check, ChevronDown, Command, Plus, Search } from 'lucide-react'
+import { Check, ChevronDown, Plus, Search } from 'lucide-react'
 import { useEntityStore, useUIStore } from '@/stores'
 import type { EntitySwitcherItem } from '@/types'
 import { cn, getInitials } from '@/lib/utils'
@@ -79,7 +79,7 @@ export function EntitySwitcher({ className }: EntitySwitcherProps) {
       case 'professional':
         return 'bg-success-500'
       case 'enterprise':
-        return 'bg-purple-500'
+        return 'bg-brand-accent-500'
       default:
         return 'bg-gray-500'
     }

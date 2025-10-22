@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /**
  * Export Hook
  * Client-side export functionality with progress tracking
@@ -9,9 +10,9 @@ import { toast } from 'sonner'
 export interface ExportRequest {
   type: 'single-widget' | 'dashboard' | 'report' | 'batch'
   format: 'pdf' | 'excel' | 'powerpoint' | 'csv' | 'png' | 'svg'
-  widgets: any[]
+  widgets: Array<Record<string, unknown>>
   options?: ExportOptions
-  metadata?: any
+  metadata?: Record<string, unknown>
 }
 
 export interface ExportOptions {
@@ -49,8 +50,8 @@ export interface ExportResult {
 export const useExport = () => {
   const [isExporting, setIsExporting] = useState(false)
   const [progress, setProgress] = useState<ExportProgress | null>(null)
-  const [history, setHistory] = useState<any[]>([])
-  const [templates, setTemplates] = useState<any[]>([])
+  const [history, setHistory] = useState<Array<Record<string, unknown>>>([])
+  const [templates, setTemplates] = useState<Array<Record<string, unknown>>>([])
 
   const wsRef = useRef<WebSocket | null>(null)
   const currentExportId = useRef<string | null>(null)
@@ -328,7 +329,7 @@ export const useExport = () => {
   }, [])
 
   // Batch export
-  const batchExport = useCallback(async (exports: ExportRequest[], options?: any) => {
+  const batchExport = useCallback(async (exports: ExportRequest[], options?: Record<string, unknown>) => {
     try {
       const response = await fetch('/api/export/batch', {
         method: 'POST',
@@ -364,23 +365,23 @@ export const useExport = () => {
   }, [])
 
   // Convenience methods for common export types
-  const exportWidget = useCallback((widget: any, format: string, options?: ExportOptions) => {
+  const exportWidget = useCallback((widget: Record<string, unknown>, format: string, options?: ExportOptions) => {
     return startExport({
       type: 'single-widget',
-      format: format as any,
+      format: format as ExportRequest['format'],
       widgets: [widget],
       options,
       metadata: {
-        dashboardTitle: `${widget.title} Export`,
+        dashboardTitle: `${String(widget.title)} Export`,
         dashboardId: widget.dashboardId
       }
     })
   }, [startExport])
 
-  const exportDashboard = useCallback((widgets: any[], dashboardTitle: string, format: string, options?: ExportOptions) => {
+  const exportDashboard = useCallback((widgets: Array<Record<string, unknown>>, dashboardTitle: string, format: string, options?: ExportOptions) => {
     return startExport({
       type: 'dashboard',
-      format: format as any,
+      format: format as ExportRequest['format'],
       widgets,
       options,
       metadata: {

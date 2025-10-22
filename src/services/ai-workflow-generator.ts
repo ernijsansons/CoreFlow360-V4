@@ -3,8 +3,8 @@
  * Natural language to workflow conversion with intelligent templates
  */
 import type { Env } from '../types/env';
-import { getAIClient } from './secure-ai-client';
-import { validateInput } from '../utils/validation-schemas';
+import { AIClient, getAIClient as getAIClientBase } from './ai-client';
+
 import { z } from 'zod';
 
 // =====================================================
@@ -338,12 +338,12 @@ const WorkflowGenerationRequestSchema = z.object({
 // =====================================================
 
 export class AIWorkflowGenerator {
-  private aiClient: any;
+  private aiClient: AIClient;
   private env: Env;
 
   constructor(env: Env) {
     this.env = env;
-    this.aiClient = getAIClient(env);
+    this.aiClient = getAIClientBase(env);
   }
 
   /**
@@ -582,7 +582,7 @@ Return a complete workflow definition with all necessary nodes, edges, and confi
     for (const node of workflow.nodes) {
       if (node.type !== 'trigger' && !connectedNodes.has(node.id)) {
         warnings.push({
-          type: 'logic',
+          type: 'maintainability',
           message: 'Node is not connected to the workflow',
           nodeId: node.id,
           suggestion: 'Connect the node or remove if not needed',
@@ -720,8 +720,8 @@ Return a JSON array of test cases with input data, expected outputs, and test ty
    * Generate deployment configuration
    */
   private async generateDeploymentConfig(
-    workflow: GeneratedWorkflow,
-    request: WorkflowGenerationRequest
+    _workflow: GeneratedWorkflow,
+    _request: WorkflowGenerationRequest
   ): Promise<WorkflowDeployment> {
     return {
       environment: 'development',

@@ -1,10 +1,9 @@
 import { Logger } from '../shared/logger';
-import { ValidationError } from '../shared/error-handler';
-import type { Context } from 'hono';
-import * as fs from 'fs';
-import * as path from 'path';
 
-const logger = new Logger({ component: 'architecture-auditor' });
+import type { Context } from 'hono';
+// TODO: Implement file system operations when needed
+// import * as fs from 'fs';
+// import * as path from 'path';
 
 export interface ArchitectureAuditConfig {
   dependencies: {
@@ -371,10 +370,10 @@ export class ArchitectureAuditor {
   }
 
   private findCyclesFrom(
-    node: string,
-    visited: Set<string>,
-    recursionStack: Set<string>,
-    path: string[]
+    _node: string,
+    _visited: Set<string>,
+    _recursionStack: Set<string>,
+    _path: string[]
   ): string[][] {
     // Simplified cycle detection
     // In production, implement proper DFS cycle detection
@@ -582,7 +581,7 @@ export class ArchitectureAuditor {
   private collectViolations(
     dependencies: DependencyAnalysis,
     patterns: PatternAnalysis,
-    microservices: MicroserviceAnalysis
+    _microservices: MicroserviceAnalysis
   ): ArchitectureViolation[] {
     const violations: ArchitectureViolation[] = [];
 

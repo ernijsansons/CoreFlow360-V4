@@ -1,3 +1,7 @@
+import { Logger } from '../shared/logger';
+
+const logger = new Logger({ component: 'memory-optimizer' });
+
 export interface MemoryMetrics {
   heapUsed: number;
   heapTotal: number;
@@ -47,7 +51,7 @@ export class MemoryOptimizer {
   private async clearCaches(): Promise<void> {
     // Clear any in-memory caches
     // This is environment-specific
-    console.log('Memory optimization: Clearing caches');
+    logger.info('Memory optimization: Clearing caches');
   }
 
   public getMetricsHistory(): MemoryMetrics[] {

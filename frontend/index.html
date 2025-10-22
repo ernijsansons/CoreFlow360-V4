@@ -4,10 +4,176 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <title>CoreFlow360 V4 - AI-First Business Platform</title>
+
+    <!-- Microsoft Clarity - Privacy-compliant analytics -->
+    <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){
+        // Only load Clarity if explicitly enabled via environment variable
+        const clarityId = typeof import.meta !== 'undefined' && import.meta.env?.VITE_CLARITY_ID;
+        if (!clarityId || clarityId === 'disabled') {
+          console.log('[CoreFlow360] Analytics disabled - no tracking ID configured');
+          return;
+        }
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window,document,"clarity","script",typeof import.meta !== 'undefined' && import.meta.env?.VITE_CLARITY_ID);
+    </script>
+
+    <style>
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        z-index: 9999;
+      }
+      .loader {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .loading-text {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      .loading-subtext {
+        font-size: 14px;
+        opacity: 0.8;
+      }
+    </style>
   </head>
   <body>
+    <script>
+      // ============================================================================
+      // FATAL ERROR CAPTURE - Runs BEFORE any ES module evaluation
+      // ============================================================================
+      (function() {
+        window.__CF360_FATAL__ = function(label, detail) {
+          const text =
+            typeof detail === 'string'
+              ? detail
+              : detail instanceof Error
+                ? detail.name + ': ' + detail.message + '\n' + (detail.stack || '')
+                : JSON.stringify(detail, null, 2);
+
+          try {
+            console.error('[CoreFlow360] ' + label + ':', detail);
+          } catch (e) {
+            // Ignore console errors if console has been hijacked
+          }
+
+          // Create user-friendly error panel without blocking alerts
+          let panel = document.getElementById('cf360-fatal-dump');
+          if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'cf360-fatal-dump';
+            panel.style.cssText =
+              'position:fixed;top:0;left:0;right:0;background:#ef4444;color:white;padding:16px 24px;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;z-index:2147483647;box-shadow:0 4px 6px rgba(0,0,0,0.1);';
+            panel.innerHTML = '<strong>Application Error</strong><p style="margin:8px 0 0;font-size:13px;opacity:0.95;">An error occurred. Please refresh the page or contact support if the issue persists.</p><button onclick="this.parentElement.remove()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.2);border:none;color:white;padding:4px 12px;border-radius:4px;cursor:pointer;">Dismiss</button>';
+            document.body.prepend(panel);
+          }
+        };
+
+        // Wire global handlers immediately
+        window.addEventListener('error', function(event) {
+          window.__CF360_FATAL__('EARLY_ERROR', event.error || event.message);
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+          window.__CF360_FATAL__('EARLY_UNHANDLED_REJECTION', event.reason);
+        });
+
+        console.log('[CoreFlow360] Early fatal capture initialized');
+      })();
+    </script>
+
+    <div id="loading-screen">
+      <div class="loader"></div>
+      <div class="loading-text">CoreFlow360 V4</div>
+      <div class="loading-subtext">Initializing AI-First Platform...</div>
+      <div class="loading-subtext" style="margin-top: 20px; font-size: 12px;">If this persists, press F12 to check console</div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Enhanced error handling and diagnostics
+      window.addEventListener('error', function(event) {
+        console.error('[CoreFlow360] Global error caught:', event.error);
+        console.error('[CoreFlow360] Error details:', {
+          message: event.message,
+          filename: event.filename,
+          lineno: event.lineno,
+          colno: event.colno,
+          stack: event.error?.stack
+        });
+      });
+
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('[CoreFlow360] Unhandled promise rejection:', event.reason);
+      });
+
+      // CSS validation function
+      function validateCSSVariables() {
+        const criticalVars = [
+          '--brand-primary-600',
+          '--brand-accent-600',
+          '--brand-teal-600',
+          '--semantic-success-500',
+          '--semantic-warning-500',
+          '--semantic-error-500'
+        ];
+        
+        const missing = [];
+        const rootStyles = getComputedStyle(document.documentElement);
+        
+        for (const variable of criticalVars) {
+          const value = rootStyles.getPropertyValue(variable).trim();
+          if (!value) {
+            missing.push(variable);
+          }
+        }
+        
+        if (missing.length > 0) {
+          console.error('[CoreFlow360] CSS Validation Failed - Missing variables:', missing);
+          return false;
+        } else {
+          console.log('[CoreFlow360] CSS Validation Passed - All critical variables loaded');
+          return true;
+        }
+      }
+
+      // TIMEOUT DISABLED FOR DEBUGGING
+      // The minimal test proved React works - timeout was hiding the issue
+      // Will be re-enabled with smart detection after fixing the real problem
+
+      /*
+      setTimeout(function() {
+        var loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+          loadingScreen.style.display = 'none';
+          console.error('[CoreFlow360] Loading timeout - React failed to mount within 30 seconds');
+          document.body.innerHTML = '<div>Application Loading Failed</div>';
+        }
+      }, 30000);
+      */
+    </script>
   </body>
 </html>

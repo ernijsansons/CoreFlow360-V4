@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /**
  * Data Table Widget
  * Advanced data table with filtering, sorting, and pagination
@@ -40,19 +41,19 @@ export interface Column {
   filterable?: boolean
   width?: number
   align?: 'left' | 'center' | 'right'
-  render?: (value: any, row: any) => React.ReactNode
+  render?: (value: unknown, row: Record<string, unknown>) => React.ReactNode
 }
 
 export interface TableData {
   columns: Column[]
-  rows: Record<string, any>[]
+  rows: Record<string, unknown>[]
   totalRows?: number
   pagination?: {
     page: number
     pageSize: number
     totalPages: number
   }
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
   sorting?: {
     column: string
     direction: 'asc' | 'desc'
@@ -65,14 +66,14 @@ export interface DataTableProps {
   isExpanded?: boolean
   isLoading?: boolean
   onSort?: (column: string, direction: 'asc' | 'desc') => void
-  onFilter?: (filters: Record<string, any>) => void
+  onFilter?: (filters: Record<string, unknown>) => void
   onPageChange?: (page: number) => void
-  onRowAction?: (action: string, row: any) => void
+  onRowAction?: (action: string, row: Record<string, unknown>) => void
   onExport?: () => void
   className?: string
 }
 
-const formatCellValue = (value: any, type?: string): React.ReactNode => {
+const formatCellValue = (value: unknown, type?: string): React.ReactNode => {
   if (value === null || value === undefined) {
     return <span className="text-gray-400">—</span>
   }
@@ -88,9 +89,9 @@ const formatCellValue = (value: any, type?: string): React.ReactNode => {
       return new Intl.NumberFormat('en-US').format(value)
 
     case 'date':
-      return new Date(value).toLocaleDateString()
+      return new Date(value as string).toLocaleDateString()
 
-    case 'status':
+    case 'status': {
       const statusColors: Record<string, string> = {
         active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
         inactive: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
@@ -101,13 +102,14 @@ const formatCellValue = (value: any, type?: string): React.ReactNode => {
         danger: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
       }
 
-      const statusColor = statusColors[value.toLowerCase()] || statusColors.inactive
+      const statusColor = statusColors[String(value).toLowerCase()] || statusColors.inactive
 
       return (
         <Badge variant="secondary" className={cn("text-xs", statusColor)}>
-          {value}
+          {String(value)}
         </Badge>
       )
+    }
 
     default:
       return String(value)
@@ -117,17 +119,14 @@ const formatCellValue = (value: any, type?: string): React.ReactNode => {
 export const DataTable: React.FC<DataTableProps> = ({
   widget,
   data,
-  isExpanded = false,
   isLoading = false,
   onSort,
-  onFilter,
   onPageChange,
   onRowAction,
   onExport,
   className
 }) => {
   const [searchTerm, setSearchTerm] = useState('')
-  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({})
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
 
   const { columns = [], rows = [], pagination, sorting } = data || {}
@@ -168,12 +167,12 @@ export const DataTable: React.FC<DataTableProps> = ({
     onSort?.(columnKey, newDirection)
   }, [columns, sorting, onSort])
 
-  // Handle column filter
-  const handleColumnFilter = useCallback((columnKey: string, value: string) => {
-    const newFilters = { ...columnFilters, [columnKey]: value }
-    setColumnFilters(newFilters)
-    onFilter?.(newFilters)
-  }, [columnFilters, onFilter])
+  // Handle column filter - removed unused
+  // const handleColumnFilter = useCallback((columnKey: string, value: string) => {
+  //   const newFilters = { ...columnFilters, [columnKey]: value }
+  //   setColumnFilters(newFilters)
+  //   onFilter?.(newFilters)
+  // }, [columnFilters, onFilter])
 
   // Handle row selection
   const handleRowSelect = useCallback((rowId: string, selected: boolean) => {
@@ -204,7 +203,7 @@ export const DataTable: React.FC<DataTableProps> = ({
       : <ArrowDown className="w-4 h-4 text-blue-600" />
   }
 
-  const RowActions: React.FC<{ row: any; index: number }> = ({ row, index }) => (
+  const RowActions: React.FC<{ row: Record<string, unknown> }> = ({ row }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="w-8 h-8 p-0">

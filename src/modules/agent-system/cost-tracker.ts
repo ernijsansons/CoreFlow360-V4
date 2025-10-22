@@ -4,12 +4,9 @@
  */
 
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
-import {
-  CostMetrics,
-  CostBreakdown,
+import { CostMetrics,
   CostLimits,
-  ValidationError
-} from './types';
+  ValidationError } from './types';
 import { Logger } from '../../shared/logger';
 import { CorrelationId } from '../../shared/security-utils';
 import {
@@ -543,7 +540,7 @@ export class CostTracker {
       });
 
     } catch (error: any) {
-      this.logger.warn('Failed to update cost counter', error, { costKey: key });
+      this.logger.warn('Failed to update cost counter', error);
     }
   }
 
@@ -551,7 +548,8 @@ export class CostTracker {
     try {
       // Use INSERT OR IGNORE for idempotency - prevents duplicate cost entries
       // The task_id should be unique per task to avoid double-charging
-      const result = await this.db.prepare(`
+      await this.db.prepare(`
+      void result;
         INSERT OR IGNORE INTO agent_costs (
           id, business_id, agent_id, task_id, user_id,
           cost, latency, timestamp, success, capability,

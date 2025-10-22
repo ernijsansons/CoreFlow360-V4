@@ -21,9 +21,7 @@ import {
   TrendingDown,
   Users,
   Eye,
-  MousePointer,
   Clock,
-  Globe,
   Smartphone,
   Monitor,
   Download,
@@ -78,8 +76,8 @@ function AnalyticsDashboard() {
       value: '32.8%',
       change: -5.2,
       icon: TrendingDown,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+      color: 'text-brand-accent-600',
+      bgColor: 'bg-brand-accent-100 dark:bg-brand-accent-900/20',
       sparkline: [45, 42, 40, 38, 35, 33, 32]
     },
     {

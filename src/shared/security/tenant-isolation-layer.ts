@@ -12,8 +12,8 @@
  */
 
 import { Logger } from '../logger';
-import type { D1Database } from '../../cloudflare/types/cloudflare';
-import type { Context } from 'hono';
+
+
 import type { Env } from '../../types/env';
 
 // Security Context Types
@@ -84,12 +84,6 @@ const TENANT_ISOLATED_TABLES = new Set([
 ]);
 
 // Tables that don't require business_id
-const SYSTEM_TABLES = new Set([
-  'migrations',
-  'system_config',
-  'feature_flags',
-  'rate_limit_rules'
-]);
 
 /**
  * Enhanced Tenant Isolation Security Layer

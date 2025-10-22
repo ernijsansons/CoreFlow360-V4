@@ -2,13 +2,7 @@
 import { createDatabase, Database } from '../database/db';
 import { createAIService, AIService } from '../ai/ai-service';
 import { createWebSocketService } from '../realtime/websocket-service';
-import type {
-  Message,
-  D1Database,
-  KVNamespace,
-  R2Bucket,
-  Queue
-} from '../cloudflare/types/cloudflare';
+import type { Message } from '../cloudflare/types/cloudflare';
 import type { Env } from '../types/env';
 
 export interface JobPayload {
@@ -453,7 +447,7 @@ export class QueueHandler {
   }
 
   // Data cleanup and maintenance
-  async dataCleanup(job: JobPayload, env: Env): Promise<void> {
+  async dataCleanup(job: JobPayload, _env: Env): Promise<void> {
     const { businessId, data } = job;
 
     // Clean old audit logs
@@ -474,7 +468,7 @@ export class QueueHandler {
   }
 
   // Webhook delivery with retries
-  async deliverWebhook(job: JobPayload, env: Env): Promise<void> {
+  async deliverWebhook(job: JobPayload, _env: Env): Promise<void> {
     const { businessId, data } = job;
     const { url, payload, headers = {}, secret } = data;
 
@@ -519,7 +513,7 @@ export class QueueHandler {
     );
   }
 
-  private async getOperationalData(businessId: string, filters: any): Promise<any> {
+  private async getOperationalData(businessId: string, _filters: any): Promise<any> {
     return this.db!.getBusinessStats(businessId);
   }
 
@@ -531,7 +525,7 @@ export class QueueHandler {
     );
   }
 
-  private async getCustomReportData(businessId: string, filters: any): Promise<any> {
+  private async getCustomReportData(_businessId: string, _filters: any): Promise<any> {
     // Custom query based on filters
     return [];
   }
@@ -658,10 +652,12 @@ export class QueueHandler {
 
   private async loadEmailTemplate(template: string, env: Env): Promise<any> {
     // Load email template from R2 or predefined templates
-    const response = await env.R2_ASSETS.get(`email-templates/${template}.json`);
+    if (env.R2_ASSETS) {
+      const response = await env.R2_ASSETS.get(`email-templates/${template}.json`);
 
-    if (response) {
-      return await new Response(response.body).json();
+      if (response) {
+        return await new Response(response.body).json();
+      }
     }
 
     // Fallback templates
@@ -696,7 +692,9 @@ export class QueueHandler {
 
   private async queueEmailJob(job: EmailJob, env: Env): Promise<void> {
     // Queue email for processing
-    await env.EMAIL_QUEUE.send(JSON.stringify(job));
+    if (env.EMAIL_QUEUE) {
+      await env.EMAIL_QUEUE.send(JSON.stringify(job));
+    }
   }
 
   private async logJobExecution(job: JobPayload, status: string, env: Env, metadata?: any): Promise<void> {

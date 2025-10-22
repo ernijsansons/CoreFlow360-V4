@@ -364,7 +364,7 @@ export class ABACPerformanceMonitor {
     type: PerformanceAlert['type'],
     value: number,
     threshold: number,
-    severity: PerformanceAlert['severity']
+    _severity: PerformanceAlert['severity']
   ): string {
     const messages = {
       response_time: `Average response time ${value.toFixed(2)}ms exceeds threshold ${threshold}ms`,

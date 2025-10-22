@@ -4,11 +4,9 @@
  */
 
 import type { KVNamespace } from '@cloudflare/workers-types';
-import {
-  IAgent,
+import { IAgent,
   AgentConfig,
   AgentRegistryEntry,
-  AgentStatus,
   AgentMetrics,
   LoadBalancingData,
   HealthStatus,
@@ -17,10 +15,9 @@ import {
   AgentNotFoundError,
   AgentUnavailableError,
   AgentConfigSchema,
-  AGENT_CONSTANTS
-} from './types';
+  AGENT_CONSTANTS } from './types';
 import { Logger } from '../../shared/logger';
-import { CorrelationId } from '../../shared/security-utils';
+
 
 export class AgentRegistry {
   private logger: Logger;
@@ -751,7 +748,7 @@ export class AgentRegistry {
     return score;
   }
 
-  private getRecentTaskCount(entry: AgentRegistryEntry, timeWindow: number): number {
+  private getRecentTaskCount(entry: AgentRegistryEntry, _timeWindow: number): number {
     // This would typically query a task history store
     // For now, use a simple approximation based on throughput
     return entry.metrics.throughput || 0;

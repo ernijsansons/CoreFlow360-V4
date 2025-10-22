@@ -1,8 +1,6 @@
 import * as React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import {
-  TrendingUp,
-  TrendingDown,
   DollarSign,
   Users,
   ShoppingCart,
@@ -75,8 +73,8 @@ export function FinancialMetrics({ timeRange = '30d' }: FinancialMetricsProps) {
       value: `$${metrics.avgOrderValue}`,
       change: metrics.aovGrowth,
       icon: ShoppingCart,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+      color: 'text-brand-accent-600',
+      bgColor: 'bg-brand-accent-100 dark:bg-brand-accent-900/20',
       description: 'Average transaction size'
     },
     {

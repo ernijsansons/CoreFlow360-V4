@@ -9,10 +9,8 @@ import { ModelPerformanceAnalyzer } from './model-performance-analyzer';
 import { AISafetyValidator } from './ai-safety-validator';
 import { WorkflowAutomationAuditor } from './workflow-automation-auditor';
 import { AIBiasDetector } from './ai-bias-detector';
-import { HallucinationDetector } from './hallucination-detector';
-import { AutomatedAIOptimizer } from './automated-ai-optimizer';
 
-const logger = new Logger({ component: 'quantum-ai-auditor' });
+
 
 export interface AIAuditReport {
   overallScore: number;
@@ -1296,7 +1294,7 @@ export class QuantumAIAuditor {
     return Math.round(weightedScore);
   }
 
-  private async generateAIRecommendations(issues: AIIssue[], data: any): Promise<AIRecommendation[]> {
+  private async generateAIRecommendations(issues: AIIssue[], _data: any): Promise<AIRecommendation[]> {
     const recommendations: AIRecommendation[] = [];
 
     // Critical safety issues

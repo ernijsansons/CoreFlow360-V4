@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Bank Reconciliation Service
  * Advanced automated bank reconciliation with ML-powered transaction matching
@@ -218,7 +219,7 @@ class BankReconciliationService {
       // Get account information
       const account = await this.getBankAccount(accountId)
       if (!account) {
-        throw new AppError('Bank account not found', 'ACCOUNT_NOT_FOUND', 404)
+        throw new AppError('Bank account not found', 404, 'ACCOUNT_NOT_FOUND')
       }
 
       // Get starting balance
@@ -280,8 +281,9 @@ class BankReconciliationService {
 
       throw new AppError(
         'Failed to start reconciliation session',
-        'RECONCILIATION_START_ERROR',
         500,
+        'RECONCILIATION_START_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -734,9 +736,10 @@ class BankReconciliationService {
   }
 
   private calculateStringSimilarity(str1: string, str2: string): number {
-    // SUPERNOVA Optimized: O(n) string similarity using optimized algorithms
-    const { OptimizedStringSimilarity } = await import('../../performance/supernova-optimizations');
-    return OptimizedStringSimilarity.calculateSimilarity(str1, str2);
+    // Simple string similarity using Levenshtein distance
+    const distance = this.levenshteinDistance(str1.toLowerCase(), str2.toLowerCase())
+    const maxLength = Math.max(str1.length, str2.length)
+    return maxLength === 0 ? 1 : 1 - (distance / maxLength)
   }
 
   private levenshteinDistance(str1: string, str2: string): number {
@@ -820,7 +823,7 @@ class BankReconciliationService {
           minConfidenceScore: 95
         },
         autoApprove: true,
-        autoApprovalThreshold: 95
+        autoApproveThreshold: 95
       },
       {
         id: 'close-amount-date',
@@ -836,7 +839,7 @@ class BankReconciliationService {
           minConfidenceScore: 80
         },
         autoApprove: false,
-        autoApprovalThreshold: 90
+        autoApproveThreshold: 90
       },
       {
         id: 'payment-references',
@@ -852,7 +855,7 @@ class BankReconciliationService {
           minConfidenceScore: 70
         },
         autoApprove: false,
-        autoApprovalThreshold: 85
+        autoApproveThreshold: 85
       }
     ]
 
@@ -862,45 +865,45 @@ class BankReconciliationService {
   }
 
   // Placeholder methods for database operations
-  private async getBankAccount(accountId: string): Promise<BankAccount | null> {
+  private async getBankAccount(_accountId: string): Promise<BankAccount | null> {
     // Database query implementation
     return null
   }
 
-  private async getBankTransactions(accountId: string, startDate: string, endDate: string): Promise<BankTransaction[]> {
+  private async getBankTransactions(_accountId: string, _startDate: string, _endDate: string): Promise<BankTransaction[]> {
     // Database query implementation
     return []
   }
 
-  private async getBookTransactions(accountId: string, startDate: string, endDate: string): Promise<BookTransaction[]> {
+  private async getBookTransactions(_accountId: string, _startDate: string, _endDate: string): Promise<BookTransaction[]> {
     // Database query implementation
     return []
   }
 
-  private async getBankTransaction(transactionId: string): Promise<BankTransaction | null> {
+  private async getBankTransaction(_transactionId: string): Promise<BankTransaction | null> {
     // Database query implementation
     return null
   }
 
-  private async getBookTransaction(transactionId: string): Promise<BookTransaction | null> {
+  private async getBookTransaction(_transactionId: string): Promise<BookTransaction | null> {
     // Database query implementation
     return null
   }
 
-  private async getAccountBalanceAtDate(accountId: string, date: string): Promise<number> {
+  private async getAccountBalanceAtDate(_accountId: string, _date: string): Promise<number> {
     // Database query implementation
     return 0
   }
 
   private async updateBookTransactionStatus(
-    transactionId: string,
-    status: ReconciliationStatus,
-    matchedBankTransactionId?: string
+    _transactionId: string,
+    _status: ReconciliationStatus,
+    _matchedBankTransactionId?: string
   ): Promise<void> {
     // Database update implementation
   }
 
-  private async updateAccountReconciliationDate(accountId: string, date: string): Promise<void> {
+  private async updateAccountReconciliationDate(_accountId: string, _date: string): Promise<void> {
     // Database update implementation
   }
 

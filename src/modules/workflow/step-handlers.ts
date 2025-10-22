@@ -10,7 +10,7 @@ import {
   WorkflowError
 } from './types';
 import { Logger } from '../../shared/logger';
-import { SecurityError, InputValidator } from '../../shared/security-utils';
+
 
 /**
  * HTTP Request Step Handler
@@ -27,21 +27,26 @@ export class HttpRequestStepHandler implements StepHandler {
         throw new WorkflowError('Missing or invalid URL parameter', 'INVALID_URL');
       }
 
-      const validatedUrl = InputValidator.validateAndSanitize(url, 'url');
+      // Basic URL validation
+      const validatedUrl = this.validateUrl(url);
       const startTime = Date.now();
 
       // Create abort controller for timeout
       const abortController = new AbortController();
-      const timeoutId = setTimeout(() => abortController.abort(), timeout);
+      const timeoutMs = typeof timeout === 'number' ? timeout : 30000;
+      const timeoutId = setTimeout(() => abortController.abort(), timeoutMs);
 
       try {
+        const methodStr = typeof method === 'string' ? method : 'GET';
+        const headersObj = typeof headers === 'object' && headers !== null ? headers as Record<string, string> : {};
+
         const response = await fetch(validatedUrl, {
-          method,
+          method: methodStr,
           headers: {
             'Content-Type': 'application/json',
             'User-Agent': 'CoreFlow360-Workflow/1.0',
             'X-Correlation-ID': context.correlationId,
-            ...headers,
+            ...headersObj,
           },
           body: body ? JSON.stringify(body) : undefined,
           signal: abortController.signal,
@@ -81,10 +86,10 @@ export class HttpRequestStepHandler implements StepHandler {
             success: true,
             output: {
               status: response.status,
-              headers: Object.fromEntries(response.headers.entries()),
+              headers: this.headersToObject(response.headers),
               data: parsedData,
               httpRequestUrl: validatedUrl,
-              httpRequestMethod: method,
+              httpRequestMethod: methodStr,
             },
             cost,
             metadata: {
@@ -118,16 +123,23 @@ export class HttpRequestStepHandler implements StepHandler {
 
   async rollback(step: WorkflowStep, context: any): Promise<any> {
     // For HTTP requests, rollback might involve calling a compensating endpoint
-    const { rollbackUrl, rollbackMethod = 'POST' } = step.rollbackParameters || {};
+    const rollbackParams = step.rollbackParameters || {};
+    const rollbackUrl = typeof rollbackParams === 'object' && rollbackParams !== null
+      ? (rollbackParams as Record<string, unknown>).rollbackUrl
+      : undefined;
+    const rollbackMethod = typeof rollbackParams === 'object' && rollbackParams !== null
+      ? (rollbackParams as Record<string, unknown>).rollbackMethod
+      : 'POST';
 
-    if (!rollbackUrl) {
+    if (!rollbackUrl || typeof rollbackUrl !== 'string') {
       this.logger.info('No rollback URL specified for HTTP step', { stepId: step.id });
       return { success: true };
     }
 
     try {
+      const methodStr = typeof rollbackMethod === 'string' ? rollbackMethod : 'POST';
       const response = await fetch(rollbackUrl, {
-        method: rollbackMethod,
+        method: methodStr,
         headers: {
           'Content-Type': 'application/json',
           'X-Correlation-ID': context.correlationId,
@@ -157,6 +169,32 @@ export class HttpRequestStepHandler implements StepHandler {
       };
     }
   }
+
+  /**
+   * Validate URL format
+   */
+  private validateUrl(url: string): string {
+    try {
+      const parsed = new URL(url);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error('Only HTTP and HTTPS protocols are allowed');
+      }
+      return url;
+    } catch (error) {
+      throw new WorkflowError('Invalid URL format', 'INVALID_URL');
+    }
+  }
+
+  /**
+   * Convert Headers to plain object
+   */
+  private headersToObject(headers: Headers): Record<string, string> {
+    const result: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
+  }
 }
 
 /**
@@ -170,14 +208,15 @@ export class DatabaseStepHandler implements StepHandler {
     try {
       const { operation, table, data, where, transaction = false } = step.parameters;
 
-      if (!operation || !table) {
+      if (!operation || !table || typeof operation !== 'string' || typeof table !== 'string') {
         throw new WorkflowError('Missing operation or table parameter', 'MISSING_DB_PARAMS');
       }
 
       const startTime = Date.now();
+      const transactionFlag = typeof transaction === 'boolean' ? transaction : false;
 
       // Simulate database operation (in real implementation, use actual DB client)
-      await this.simulateDbOperation(operation, table, data, where, transaction);
+      await this.simulateDbOperation(operation, table, data, where, transactionFlag);
 
       const endTime = Date.now();
       const duration = endTime - startTime;
@@ -201,7 +240,7 @@ export class DatabaseStepHandler implements StepHandler {
           operation,
           table,
           affectedRows: 1, // Simulated
-          transactionId: transaction ? this.generateTransactionId() : undefined,
+          transactionId: transactionFlag ? this.generateTransactionId() : undefined,
         },
         cost,
         metadata: {
@@ -226,27 +265,41 @@ export class DatabaseStepHandler implements StepHandler {
 
   async rollback(step: WorkflowStep, context: any): Promise<any> {
     try {
-      const { operation, table } = step.parameters;
+      const { operation, table, where } = step.parameters;
       const originalOutput = context.originalOutput;
+
+      if (typeof operation !== 'string' || typeof table !== 'string') {
+        throw new Error('Invalid operation or table parameter');
+      }
 
       // Determine rollback operation
       let rollbackOperation: string;
+      let rollbackData: any;
+      let rollbackWhere: any;
+
       switch (operation) {
         case 'insert':
           rollbackOperation = 'delete';
+          rollbackData = null;
+          // For delete rollback, use a mock where clause based on inserted data
+          rollbackWhere = { id: 'rollback_generated_id' };
           break;
         case 'update':
           rollbackOperation = 'update'; // Restore original values
+          rollbackData = originalOutput;
+          rollbackWhere = where;
           break;
         case 'delete':
           rollbackOperation = 'insert'; // Restore deleted data
+          rollbackData = originalOutput;
+          rollbackWhere = null;
           break;
         default:
           throw new Error(`Cannot rollback operation: ${operation}`);
       }
 
       // Simulate rollback operation
-      await this.simulateDbOperation(rollbackOperation, table, originalOutput, null, true);
+      await this.simulateDbOperation(rollbackOperation, table, rollbackData, rollbackWhere, true);
 
       this.logger.info('Database rollback completed', {
         stepId: step.id,
@@ -267,7 +320,7 @@ export class DatabaseStepHandler implements StepHandler {
   }
 
   private async simulateDbOperation(operation: string, table: string,
-  data: any, where: any, transaction: boolean): Promise<void> {
+  data: any, where: any, _transaction: boolean): Promise<void> {
     // Simulate database latency
     await new Promise(resolve => setTimeout(resolve, 10 + Math.random() * 90));
 
@@ -307,14 +360,16 @@ export class EmailStepHandler implements StepHandler {
     try {
       const { to, subject, template, templateData, priority = 'normal' } = step.parameters;
 
-      if (!to || !subject) {
+      if (!to || !subject || (typeof to !== 'string' && !Array.isArray(to)) || typeof subject !== 'string') {
         throw new WorkflowError('Missing to or subject parameter', 'MISSING_EMAIL_PARAMS');
       }
 
       const startTime = Date.now();
+      const priorityStr = typeof priority === 'string' ? priority : 'normal';
+      const templateStr = typeof template === 'string' ? template : undefined;
 
       // Simulate email sending
-      await this.simulateEmailSend(to, subject, template, templateData, priority);
+      await this.simulateEmailSend(to, subject, templateStr, templateData, priorityStr);
 
       const endTime = Date.now();
       const duration = endTime - startTime;
@@ -365,9 +420,15 @@ export class EmailStepHandler implements StepHandler {
 
   async rollback(step: WorkflowStep, context: any): Promise<any> {
     // Email rollback might involve sending a cancellation/correction email
-    const { rollbackTemplate, rollbackSubject } = step.rollbackParameters || {};
+    const rollbackParams = step.rollbackParameters || {};
+    const rollbackTemplate = typeof rollbackParams === 'object' && rollbackParams !== null
+      ? (rollbackParams as Record<string, unknown>).rollbackTemplate
+      : undefined;
+    const rollbackSubject = typeof rollbackParams === 'object' && rollbackParams !== null
+      ? (rollbackParams as Record<string, unknown>).rollbackSubject
+      : undefined;
 
-    if (!rollbackTemplate) {
+    if (!rollbackTemplate || typeof rollbackTemplate !== 'string') {
       this.logger.info('No rollback template specified for email step', { stepId: step.id });
       return { success: true };
     }
@@ -376,9 +437,17 @@ export class EmailStepHandler implements StepHandler {
       const originalOutput = context.originalOutput;
       const { to } = step.parameters;
 
+      if (!to || (typeof to !== 'string' && !Array.isArray(to))) {
+        throw new Error('Invalid recipient address');
+      }
+
+      const subjectStr = typeof rollbackSubject === 'string'
+        ? rollbackSubject
+        : `Correction: ${originalOutput?.subject || 'Previous Email'}`;
+
       await this.simulateEmailSend(
         to,
-        rollbackSubject || `Correction: ${originalOutput.subject}`,
+        subjectStr,
         rollbackTemplate,
         { originalMessage: originalOutput },
         'high'
@@ -441,14 +510,16 @@ export class FileProcessingStepHandler implements StepHandler {
     try {
       const { operation, inputPath, outputPath, options = {} } = step.parameters;
 
-      if (!operation || !inputPath) {
+      if (!operation || !inputPath || typeof operation !== 'string' || typeof inputPath !== 'string') {
         throw new WorkflowError('Missing operation or inputPath parameter', 'MISSING_FILE_PARAMS');
       }
 
       const startTime = Date.now();
+      const outputPathStr = typeof outputPath === 'string' ? outputPath : undefined;
+      const optionsObj = typeof options === 'object' && options !== null ? options : {};
 
       // Simulate file processing
-      const result = await this.simulateFileProcessing(operation, inputPath, outputPath, options);
+      const result = await this.simulateFileProcessing(operation, inputPath, outputPathStr, optionsObj);
 
       const endTime = Date.now();
       const duration = endTime - startTime;
@@ -546,7 +617,7 @@ export class FileProcessingStepHandler implements StepHandler {
   }
 
   private async simulateFileProcessing(operation: string, inputPath:
-  string, outputPath?: string, options?: any): Promise<any> {
+  string, outputPath?: string, _options?: any): Promise<any> {
     // Simulate processing time based on operation
     const processingTime = {
       compress: 2000,
@@ -582,11 +653,11 @@ export class FileProcessingStepHandler implements StepHandler {
     };
   }
 
-  private async simulateFileDelete(filePath: string): Promise<void> {
+  private async simulateFileDelete(_filePath: string): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
 
-  private async simulateFileMove(fromPath: string, toPath: string): Promise<void> {
+  private async simulateFileMove(_fromPath: string, _toPath: string): Promise<void> {
     await new Promise(resolve => setTimeout(resolve, 200));
   }
 }
@@ -609,11 +680,13 @@ export class DelayStepHandler implements StepHandler {
       let actualDelayMs: number;
 
       if (delayUntil) {
-        const targetTime = new Date(delayUntil).getTime();
+        const delayUntilStr = typeof delayUntil === 'string' ? delayUntil : String(delayUntil);
+        const targetTime = new Date(delayUntilStr).getTime();
         const now = Date.now();
         actualDelayMs = Math.max(0, targetTime - now);
       } else {
-        actualDelayMs = parseInt(delayMs, 10);
+        const delayMsNum = typeof delayMs === 'number' ? delayMs : parseInt(String(delayMs), 10);
+        actualDelayMs = delayMsNum;
       }
 
       const startTime = Date.now();
@@ -670,7 +743,7 @@ export class DelayStepHandler implements StepHandler {
     }
   }
 
-  async rollback(step: WorkflowStep, context: any): Promise<any> {
+  async rollback(step: WorkflowStep, _context: any): Promise<any> {
     // Delay steps don't need rollback - they don't modify state
     this.logger.info('Delay step rollback - no action needed', { stepId: step.id });
     return { success: true };

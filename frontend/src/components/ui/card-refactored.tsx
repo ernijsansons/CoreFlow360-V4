@@ -88,18 +88,20 @@ export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
 /**
  * Usage Examples with Design Tokens:
  * 
- * // Basic card with semantic tokens
+ * Basic card with semantic tokens:
+ * ```jsx
  * <Card>
  *   <CardHeader>
  *     <CardTitle>Settings</CardTitle>
  *     <CardDescription>Manage your account preferences</CardDescription>
  *   </CardHeader>
  *   <CardContent>
- *     {/* Content uses consistent spacing */}
+ *     Content uses consistent spacing
  *   </CardContent>
  *   <CardFooter>
  *     <Button>Save</Button>
  *     <Button variant="ghost">Cancel</Button>
  *   </CardFooter>
  * </Card>
+ * ```
  */

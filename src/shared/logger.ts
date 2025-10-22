@@ -3,6 +3,8 @@
  * Provides secure, performant, and correlation-aware logging
  */
 
+/* eslint-disable no-console */
+
 import { PIIRedactor, InputValidator, type SecurityContext } from './security-utils';
 
 /**
@@ -98,21 +100,21 @@ export class Logger {
   /**
    * Debug level logging
    */
-  debug(message: string, context?: Record<string, unknown>, securityContext?: SecurityContext): void {
+  debug(message: string, context?: unknown, securityContext?: SecurityContext): void {
     this.log(LogLevel.DEBUG, message, context, securityContext);
   }
 
   /**
    * Info level logging
    */
-  info(message: string, context?: Record<string, unknown>, securityContext?: SecurityContext): void {
+  info(message: string, context?: unknown, securityContext?: SecurityContext): void {
     this.log(LogLevel.INFO, message, context, securityContext);
   }
 
   /**
    * Warning level logging
    */
-  warn(message: string, context?: Record<string, unknown>, securityContext?: SecurityContext): void {
+  warn(message: string, context?: unknown, securityContext?: SecurityContext): void {
     this.log(LogLevel.WARN, message, context, securityContext);
   }
 
@@ -122,11 +124,12 @@ export class Logger {
   error(
     message: string,
     error?: Error | unknown,
-    context?: Record<string, unknown>,
+    context?: unknown,
     securityContext?: SecurityContext
   ): void {
     const errorInfo = this.extractErrorInfo(error);
-    this.log(LogLevel.ERROR, message, { ...context, error: errorInfo }, securityContext);
+    const baseContext = this.normalizeContext(context) ?? {};
+    this.log(LogLevel.ERROR, message, { ...baseContext, error: errorInfo }, securityContext);
   }
 
   /**
@@ -135,11 +138,12 @@ export class Logger {
   critical(
     message: string,
     error?: Error | unknown,
-    context?: Record<string, unknown>,
+    context?: unknown,
     securityContext?: SecurityContext
   ): void {
     const errorInfo = this.extractErrorInfo(error);
-    this.log(LogLevel.CRITICAL, message, { ...context, error: errorInfo }, securityContext);
+    const baseContext = this.normalizeContext(context) ?? {};
+    this.log(LogLevel.CRITICAL, message, { ...baseContext, error: errorInfo }, securityContext);
   }
 
   /**
@@ -254,10 +258,12 @@ export class Logger {
   private log(
     level: LogLevel,
     message: string,
-    context?: Record<string, unknown>,
+    context?: unknown,
     securityContext?: SecurityContext
   ): void {
     try {
+      const normalizedContext = this.normalizeContext(context);
+
       // Start flush timer on first log (lazy initialization for Workers compatibility)
       if (!this.flushTimer && typeof setInterval !== 'undefined') {
         this.startFlushTimer();
@@ -270,7 +276,7 @@ export class Logger {
       }
 
       // Create log entry
-      const entry = this.createLogEntry(level, message, context, securityContext);
+      const entry = this.createLogEntry(level, message, normalizedContext, securityContext);
 
       // Add to buffer
       this.buffer.push(entry);
@@ -296,6 +302,35 @@ export class Logger {
 
       // Fallback console logging if logger fails
     }
+  }
+
+  private normalizeContext(context?: unknown): Record<string, unknown> | undefined {
+    if (context === undefined || context === null) {
+      return undefined;
+    }
+
+    if (context instanceof Error) {
+      return { error: this.extractErrorInfo(context) };
+    }
+
+    const type = typeof context;
+    if (type === 'string') {
+      return { message: context as string };
+    }
+
+    if (type === 'number' || type === 'boolean' || type === 'bigint' || type === 'symbol') {
+      return { value: context as unknown };
+    }
+
+    if (Array.isArray(context)) {
+      return { data: context };
+    }
+
+    if (type === 'object') {
+      return context as Record<string, unknown>;
+    }
+
+    return { value: context };
   }
 
   /**

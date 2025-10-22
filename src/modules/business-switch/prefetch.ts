@@ -69,10 +69,11 @@ class PrefetchManager {
       .bind(businessId)
       .first();
 
+    const typedResult = result as any;
     return {
-      name: result?.name || '',
-      theme: this.parseJSON(result?.metadata)?.theme || {},
-      settings: this.parseJSON(result?.settings) || {},
+      name: typedResult?.name || '',
+      theme: this.parseJSON(typedResult?.metadata)?.theme || {},
+      settings: this.parseJSON(typedResult?.settings) || {},
     };
   }
 
@@ -98,13 +99,14 @@ class PrefetchManager {
       .bind(businessId, userId)
       .first();
 
+    const typedResult = result as any;
     return {
-      employeeId: result?.employee_id,
-      jobTitle: result?.job_title,
-      department: result?.department,
-      reportsTo: result?.reports_to_user_id,
-      canApproveTransactions: Boolean(result?.can_approve_transactions),
-      spendingLimit: result?.spending_limit || 0,
+      employeeId: typedResult?.employee_id,
+      jobTitle: typedResult?.job_title,
+      department: typedResult?.department,
+      reportsTo: typedResult?.reports_to_user_id,
+      canApproveTransactions: Boolean(typedResult?.can_approve_transactions),
+      spendingLimit: typedResult?.spending_limit || 0,
     };
   }
 
@@ -139,7 +141,8 @@ class PrefetchManager {
       .bind(businessId)
       .first();
 
-    return this.parseJSON(result?.settings) || {};
+    const typedResult = result as any;
+    return this.parseJSON(typedResult?.settings) || {};
   }
 
   /**
@@ -175,7 +178,7 @@ class PrefetchManager {
         WHERE id = ?
       `)
       .bind(businessId)
-      .first();
+      .first() as { subscription_tier?: string } | undefined;
 
     const tier = result?.subscription_tier || 'trial';
 
@@ -238,7 +241,7 @@ class PrefetchManager {
   /**
    * Fetch recent notifications
    */
-  private async fetchNotifications(businessId: string): Promise<any[]> {
+  private async fetchNotifications(_businessId: string): Promise<any[]> {
     // Placeholder - would query notifications table
     return [];
   }
@@ -291,9 +294,9 @@ class PrefetchManager {
     ]);
 
     return {
-      userCount: userCount?.count || 0,
-      documentCount: documentCount?.count || 0,
-      activeWorkflows: activeWorkflows?.count || 0,
+      userCount: (userCount as { count?: number })?.count || 0,
+      documentCount: (documentCount as { count?: number })?.count || 0,
+      activeWorkflows: (activeWorkflows as { count?: number })?.count || 0,
     };
   }
 

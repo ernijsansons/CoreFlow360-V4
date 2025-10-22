@@ -1,18 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Dashboard } from '@/modules/dashboard'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores'
 
 export const Route = createFileRoute('/')({
-  component: Dashboard,
   beforeLoad: () => {
-    // Set breadcrumbs
-    useUIStore.getState().setBreadcrumbs([
-      { label: 'Dashboard' }
-    ])
+    const { isAuthenticated } = useAuthStore.getState()
+
+    if (isAuthenticated) {
+      throw redirect({ to: '/dashboard' })
+    }
+
+    throw redirect({ to: '/landing' })
   },
-  meta: () => [
-    {
-      title: 'Dashboard - CoreFlow360',
-      description: 'Your business command center',
-    },
-  ],
+  component: () => null, // Fallback component (should never render due to redirect)
 })

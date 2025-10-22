@@ -413,7 +413,7 @@ export class StorageMonitor {
   /**
    * Extract key age from key name or metadata
    */
-  private extractKeyAge(key: string, metadata?: any): number | null {
+  private extractKeyAge(key: string, _metadata?: any): number | null {
     try {
       // Try to extract timestamp from key name patterns
       const timestampMatches = [

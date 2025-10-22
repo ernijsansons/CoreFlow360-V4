@@ -9,9 +9,7 @@ import { DatabaseIntegrityChecker } from './database-integrity-checker';
 import { ReplicationConsistencyAnalyzer } from './replication-consistency-analyzer';
 import { CacheConsistencyValidator } from './cache-consistency-validator';
 import { DataAnomalyDetector } from './data-anomaly-detector';
-import { AutomatedDataFixer } from './automated-data-fixer';
 
-const logger = new Logger({ component: 'quantum-data-auditor' });
 
 export interface DataAnomalyReport {
   anomaliesDetected: number;
@@ -812,7 +810,7 @@ export class QuantumDataAuditor {
     return report;
   }
 
-  private async auditDatabase(config: any): Promise<DatabaseAuditReport> {
+  private async auditDatabase(_config: any): Promise<DatabaseAuditReport> {
     const checker = new DatabaseIntegrityChecker(this.context);
     const results = await checker.runAllChecks(this.context.env);
 
@@ -1207,7 +1205,7 @@ export class QuantumDataAuditor {
     const totalRecords = issues.reduce((sum, issue) => sum + issue.affectedRecords, 0);
 
     return {
-      totalRecords: 2500000,
+      totalRecords,
       issuesFound: issues.length,
       criticalIssues: issues.filter((i: any) => i.severity === 'critical').length,
       dataQualityScore: data.dataAnomalies.score,

@@ -340,7 +340,7 @@ export class QuantumSecurityAuditor {
     return files;
   }
 
-  private async findFiles(pattern: string): Promise<string[]> {
+  private async findFiles(_pattern: string): Promise<string[]> {
     const files: string[] = [];
 
     async function scanDirectory(dir: string): Promise<void> {

@@ -2,6 +2,9 @@
  * WebGPU Neural Accelerator
  * Next-generation AI acceleration using WebGPU compute shaders for 30%+ performance improvement
  * Implements federated learning, neuromorphic patterns, and quantum-inspired optimization
+ *
+ * NOTE: This module requires browser environment with WebGPU support.
+ * In Cloudflare Workers, this will gracefully fallback to CPU inference.
  */
 
 import { Logger } from '../shared/logger';
@@ -304,7 +307,7 @@ export class WebGPUNeuralAccelerator {
     this.kernelCache.set(quantizationKernel.id, quantizationKernel);
 
     // Compile compute pipelines
-    for (const [id, kernel] of this.kernelCache) {
+    for (const kernel of this.kernelCache.values()) {
       await this.compileKernel(kernel);
     }
   }
@@ -426,9 +429,6 @@ export class WebGPUNeuralAccelerator {
     this.globalModel = new Float32Array(1024 * 1024); // 1M parameters
 
     // Setup differential privacy noise
-    const noiseScale = 0.01;
-    const clipNorm = 1.0;
-
     this.logger.info('Federated learning initialized with differential privacy');
   }
 
@@ -706,8 +706,6 @@ export class WebGPUNeuralAccelerator {
     const compressed = await this.compressModel(model, quantizationLevel);
 
     // Generate edge-optimized inference kernel
-    const edgeKernel = this.generateEdgeKernel(compressed, quantizationLevel);
-
     const edgeModel: EdgeInferenceModel = {
       modelId: `edge_${Date.now()}`,
       quantizationLevel,
@@ -785,8 +783,6 @@ export class WebGPUNeuralAccelerator {
   }
 
   private selectQuantizationLevel(model: Float32Array, targetLatency: number): 'FP32' | 'FP16' | 'INT8' | 'INT4' {
-    const modelSize = model.byteLength;
-
     if (targetLatency < 5) {
       return 'INT4'; // Most aggressive quantization
     } else if (targetLatency < 10) {
@@ -798,7 +794,7 @@ export class WebGPUNeuralAccelerator {
     }
   }
 
-  private async compressModel(model: Float32Array, quantization: string): Promise<Uint8Array> {
+  private async compressModel(model: Float32Array, _quantization: string): Promise<Uint8Array> {
     // Simplified compression - would use actual quantization in production
     const compressed = new Uint8Array(model.byteLength / 2);
 

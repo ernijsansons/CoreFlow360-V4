@@ -391,6 +391,7 @@ export class PerformanceMonitor extends DurableObject {
 
     const maxMemory = Math.max(...memoryMetrics.map((m: any) => m.value))
     const avgMemory = memoryMetrics.reduce((sum, m) => sum + m.value, 0) / memoryMetrics.length
+    void avgMemory;
 
     if (maxMemory > 200) {
       insights.push({
@@ -518,12 +519,12 @@ export class PerformanceMonitor extends DurableObject {
     return insights
   }
 
-  private generateWidgetOptimizations(metrics: PerformanceMetric[]): PerformanceInsight[] {
+  private generateWidgetOptimizations(_metrics: PerformanceMetric[]): PerformanceInsight[] {
     // Widget-specific optimization logic
     return []
   }
 
-  private generateDashboardOptimizations(metrics: PerformanceMetric[]): PerformanceInsight[] {
+  private generateDashboardOptimizations(_metrics: PerformanceMetric[]): PerformanceInsight[] {
     // Dashboard-specific optimization logic
     return []
   }
@@ -607,27 +608,27 @@ export class PerformanceMonitor extends DurableObject {
     }
   }
 
-  private async broadcastMetricUpdate(metric: PerformanceMetric): Promise<void> {
+  private async broadcastMetricUpdate(_metric: PerformanceMetric): Promise<void> {
     // Broadcast to connected clients via WebSocket
     // Implementation would depend on WebSocket setup
   }
 
-  private async sendAlertNotification(alert: PerformanceAlert): Promise<void> {
+  private async sendAlertNotification(_alert: PerformanceAlert): Promise<void> {
     // Send alert notification via email, Slack, etc.
     // Implementation would depend on notification setup
   }
 
-  private async setupPerformanceObservers(dashboardId: string): Promise<void> {
+  private async setupPerformanceObservers(_dashboardId: string): Promise<void> {
     // Set up browser performance observers
     // This would be implemented on the client side
   }
 
-  private async startResourceMonitoring(dashboardId: string): Promise<void> {
+  private async startResourceMonitoring(_dashboardId: string): Promise<void> {
     // Start monitoring resource usage
     // This would be implemented on the client side
   }
 
-  private async initializeInteractionTracking(dashboardId: string): Promise<void> {
+  private async initializeInteractionTracking(_dashboardId: string): Promise<void> {
     // Initialize user interaction tracking
     // This would be implemented on the client side
   }

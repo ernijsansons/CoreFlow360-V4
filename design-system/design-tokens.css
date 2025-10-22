@@ -1,0 +1,855 @@
+/**
+ * CoreFlow360 V4 Design System - Premium Design Tokens
+ * Fortune-50 Caliber Design System for AI-First Entrepreneurial Platform
+ *
+ * Brand Philosophy: Trust through Technology, Growth through Intelligence
+ * Design Principles: Sophisticated, Accessible, Performant, Scalable
+ *
+ * @version 4.0.0
+ * @author CoreFlow360 Design Team
+ */
+
+:root {
+  /* ============================================
+     BRAND COLORS - Premium Blue Gradient System
+     Trust, Technology, Growth
+     ============================================ */
+
+  /* Primary Brand Palette - Ocean to Sky Gradient */
+  --brand-primary-50: #eff8ff;   /* Whisper Blue */
+  --brand-primary-100: #dbeefe;  /* Morning Mist */
+  --brand-primary-200: #bfdbfe;  /* Sky Light */
+  --brand-primary-300: #93c5fd;  /* Crystal Blue */
+  --brand-primary-400: #60a5fa;  /* Ocean Breeze */
+  --brand-primary-500: #3b82f6;  /* Core Blue */
+  --brand-primary-600: #2563eb;  /* Trust Blue */
+  --brand-primary-700: #1d4ed8;  /* Deep Ocean */
+  --brand-primary-800: #1e40af;  /* Midnight Blue */
+  --brand-primary-900: #1e3a8a;  /* Abyss */
+  --brand-primary-950: #172554;  /* Void */
+
+  /* Secondary Accent - Innovation Purple */
+  --brand-accent-50: #faf5ff;
+  --brand-accent-100: #f3e8ff;
+  --brand-accent-200: #e9d5ff;
+  --brand-accent-300: #d8b4fe;
+  --brand-accent-400: #c084fc;
+  --brand-accent-500: #a855f7;
+  --brand-accent-600: #9333ea;
+  --brand-accent-700: #7e22ce;
+  --brand-accent-800: #6b21a8;
+  --brand-accent-900: #581c87;
+  --brand-accent-950: #3b0764;
+
+  /* Tertiary - Growth Teal */
+  --brand-teal-50: #f0fdfa;
+  --brand-teal-100: #ccfbf1;
+  --brand-teal-200: #99f6e4;
+  --brand-teal-300: #5eead4;
+  --brand-teal-400: #2dd4bf;
+  --brand-teal-500: #14b8a6;
+  --brand-teal-600: #0d9488;
+  --brand-teal-700: #0f766e;
+  --brand-teal-800: #115e59;
+  --brand-teal-900: #134e4a;
+  --brand-teal-950: #042f2e;
+
+  /* ============================================
+     SEMANTIC COLORS - Business Context
+     ============================================ */
+
+  /* Success - Growth Green */
+  --semantic-success-50: #f0fdf4;
+  --semantic-success-100: #dcfce7;
+  --semantic-success-200: #bbf7d0;
+  --semantic-success-300: #86efac;
+  --semantic-success-400: #4ade80;
+  --semantic-success-500: #22c55e;
+  --semantic-success-600: #16a34a;
+  --semantic-success-700: #15803d;
+  --semantic-success-800: #166534;
+  --semantic-success-900: #14532d;
+
+  /* Warning - Attention Amber */
+  --semantic-warning-50: #fffbeb;
+  --semantic-warning-100: #fef3c7;
+  --semantic-warning-200: #fde68a;
+  --semantic-warning-300: #fcd34d;
+  --semantic-warning-400: #fbbf24;
+  --semantic-warning-500: #f59e0b;
+  --semantic-warning-600: #d97706;
+  --semantic-warning-700: #b45309;
+  --semantic-warning-800: #92400e;
+  --semantic-warning-900: #78350f;
+
+  /* Error - Critical Red */
+  --semantic-error-50: #fef2f2;
+  --semantic-error-100: #fee2e2;
+  --semantic-error-200: #fecaca;
+  --semantic-error-300: #fca5a5;
+  --semantic-error-400: #f87171;
+  --semantic-error-500: #ef4444;
+  --semantic-error-600: #dc2626;
+  --semantic-error-700: #b91c1c;
+  --semantic-error-800: #991b1b;
+  --semantic-error-900: #7f1d1d;
+
+  /* Info - Intelligence Blue */
+  --semantic-info-50: #eff6ff;
+  --semantic-info-100: #dbeafe;
+  --semantic-info-200: #bfdbfe;
+  --semantic-info-300: #93c5fd;
+  --semantic-info-400: #60a5fa;
+  --semantic-info-500: #3b82f6;
+  --semantic-info-600: #2563eb;
+  --semantic-info-700: #1d4ed8;
+  --semantic-info-800: #1e40af;
+  --semantic-info-900: #1e3a8a;
+
+  /* ============================================
+     NEUTRAL GRAYS - Sophisticated Palette
+     ============================================ */
+
+  --neutral-0: #ffffff;
+  --neutral-50: #fafafa;
+  --neutral-100: #f4f4f5;
+  --neutral-200: #e4e4e7;
+  --neutral-300: #d4d4d8;
+  --neutral-400: #a1a1aa;
+  --neutral-500: #71717a;
+  --neutral-600: #52525b;
+  --neutral-700: #3f3f46;
+  --neutral-800: #27272a;
+  --neutral-900: #18181b;
+  --neutral-950: #09090b;
+  --neutral-1000: #000000;
+
+  /* Cool Grays for UI */
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  --gray-950: #020617;
+
+  /* ============================================
+     GLASSMORPHISM & SPECIAL EFFECTS
+     ============================================ */
+
+  --glass-white-5: rgba(255, 255, 255, 0.05);
+  --glass-white-10: rgba(255, 255, 255, 0.10);
+  --glass-white-20: rgba(255, 255, 255, 0.20);
+  --glass-white-30: rgba(255, 255, 255, 0.30);
+  --glass-white-40: rgba(255, 255, 255, 0.40);
+  --glass-white-60: rgba(255, 255, 255, 0.60);
+  --glass-white-80: rgba(255, 255, 255, 0.80);
+
+  --glass-black-5: rgba(0, 0, 0, 0.05);
+  --glass-black-10: rgba(0, 0, 0, 0.10);
+  --glass-black-20: rgba(0, 0, 0, 0.20);
+  --glass-black-30: rgba(0, 0, 0, 0.30);
+  --glass-black-40: rgba(0, 0, 0, 0.40);
+  --glass-black-60: rgba(0, 0, 0, 0.60);
+  --glass-black-80: rgba(0, 0, 0, 0.80);
+
+  /* Brand Glass */
+  --glass-primary-5: rgba(37, 99, 235, 0.05);
+  --glass-primary-10: rgba(37, 99, 235, 0.10);
+  --glass-primary-20: rgba(37, 99, 235, 0.20);
+  --glass-primary-30: rgba(37, 99, 235, 0.30);
+
+  /* Blur Effects */
+  --blur-xs: blur(2px);
+  --blur-sm: blur(4px);
+  --blur-md: blur(8px);
+  --blur-lg: blur(12px);
+  --blur-xl: blur(16px);
+  --blur-2xl: blur(24px);
+
+  /* Backdrop Filters */
+  --backdrop-blur-sm: 8px;
+  --backdrop-blur-md: 12px;
+  --backdrop-blur-lg: 16px;
+  --backdrop-blur-xl: 24px;
+
+  /* ============================================
+     TYPOGRAPHY SYSTEM - Performance Optimized
+     ============================================ */
+
+  /* Font Stacks - System Fonts for Performance */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --font-serif: "Georgia", "Cambria", "Times New Roman", "Times", serif;
+  --font-mono: "SF Mono", "Monaco", "Inconsolata", "Fira Code", "Fira Mono", "Roboto Mono", "Courier New", monospace;
+
+  /* Font Sizes - Fluid Typography Scale */
+  --text-xs: clamp(0.69rem, 0.66rem + 0.18vw, 0.75rem);     /* 11-12px */
+  --text-sm: clamp(0.81rem, 0.78rem + 0.19vw, 0.875rem);   /* 13-14px */
+  --text-base: clamp(0.94rem, 0.91rem + 0.19vw, 1rem);     /* 15-16px */
+  --text-lg: clamp(1.06rem, 1.02rem + 0.25vw, 1.125rem);   /* 17-18px */
+  --text-xl: clamp(1.19rem, 1.13rem + 0.38vw, 1.25rem);    /* 19-20px */
+  --text-2xl: clamp(1.38rem, 1.28rem + 0.63vw, 1.5rem);    /* 22-24px */
+  --text-3xl: clamp(1.69rem, 1.52rem + 1.06vw, 1.875rem);  /* 27-30px */
+  --text-4xl: clamp(2.06rem, 1.81rem + 1.56vw, 2.25rem);   /* 33-36px */
+  --text-5xl: clamp(2.5rem, 2.13rem + 2.31vw, 3rem);       /* 40-48px */
+  --text-6xl: clamp(3.13rem, 2.58rem + 3.44vw, 3.75rem);   /* 50-60px */
+  --text-7xl: clamp(3.75rem, 3rem + 4.69vw, 4.5rem);       /* 60-72px */
+  --text-8xl: clamp(4.5rem, 3.5rem + 6.25vw, 6rem);        /* 72-96px */
+
+  /* Line Heights */
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  /* Letter Spacing */
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+  --tracking-widest: 0.1em;
+
+  /* Font Weights */
+  --font-thin: 100;
+  --font-light: 300;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+  --font-black: 900;
+
+  /* ============================================
+     SPACING SYSTEM - 8px Grid Foundation
+     ============================================ */
+
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0\.5: 0.125rem;  /* 2px */
+  --space-1: 0.25rem;      /* 4px */
+  --space-1\.5: 0.375rem;  /* 6px */
+  --space-2: 0.5rem;       /* 8px */
+  --space-2\.5: 0.625rem;  /* 10px */
+  --space-3: 0.75rem;      /* 12px */
+  --space-3\.5: 0.875rem;  /* 14px */
+  --space-4: 1rem;         /* 16px */
+  --space-5: 1.25rem;      /* 20px */
+  --space-6: 1.5rem;       /* 24px */
+  --space-7: 1.75rem;      /* 28px */
+  --space-8: 2rem;         /* 32px */
+  --space-9: 2.25rem;      /* 36px */
+  --space-10: 2.5rem;      /* 40px */
+  --space-11: 2.75rem;     /* 44px */
+  --space-12: 3rem;        /* 48px */
+  --space-14: 3.5rem;      /* 56px */
+  --space-16: 4rem;        /* 64px */
+  --space-20: 5rem;        /* 80px */
+  --space-24: 6rem;        /* 96px */
+  --space-28: 7rem;        /* 112px */
+  --space-32: 8rem;        /* 128px */
+  --space-36: 9rem;        /* 144px */
+  --space-40: 10rem;       /* 160px */
+  --space-44: 11rem;       /* 176px */
+  --space-48: 12rem;       /* 192px */
+  --space-52: 13rem;       /* 208px */
+  --space-56: 14rem;       /* 224px */
+  --space-60: 15rem;       /* 240px */
+  --space-64: 16rem;       /* 256px */
+  --space-72: 18rem;       /* 288px */
+  --space-80: 20rem;       /* 320px */
+  --space-96: 24rem;       /* 384px */
+
+  /* Layout Containers */
+  --container-xs: 20rem;    /* 320px */
+  --container-sm: 24rem;    /* 384px */
+  --container-md: 28rem;    /* 448px */
+  --container-lg: 32rem;    /* 512px */
+  --container-xl: 36rem;    /* 576px */
+  --container-2xl: 42rem;   /* 672px */
+  --container-3xl: 48rem;   /* 768px */
+  --container-4xl: 56rem;   /* 896px */
+  --container-5xl: 64rem;   /* 1024px */
+  --container-6xl: 72rem;   /* 1152px */
+  --container-7xl: 80rem;   /* 1280px */
+  --container-full: 100%;
+
+  /* ============================================
+     SHADOW SYSTEM - Elevation & Depth
+     ============================================ */
+
+  /* Elevation Shadows */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-3xl: 0 35px 60px -15px rgba(0, 0, 0, 0.3);
+
+  /* Colored Brand Shadows */
+  --shadow-primary-sm: 0 1px 3px 0 rgba(37, 99, 235, 0.2), 0 1px 2px -1px rgba(37, 99, 235, 0.2);
+  --shadow-primary-md: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -2px rgba(37, 99, 235, 0.2);
+  --shadow-primary-lg: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -4px rgba(37, 99, 235, 0.2);
+  --shadow-primary-xl: 0 20px 25px -5px rgba(37, 99, 235, 0.2), 0 8px 10px -6px rgba(37, 99, 235, 0.2);
+
+  /* Neumorphic Shadows */
+  --shadow-neumorph-flat: 5px 5px 10px rgba(0, 0, 0, 0.15), -5px -5px 10px rgba(255, 255, 255, 0.7);
+  --shadow-neumorph-concave: inset 5px 5px 10px rgba(0, 0, 0, 0.15), inset -5px -5px 10px rgba(255, 255, 255, 0.7);
+  --shadow-neumorph-convex: 5px 5px 15px rgba(0, 0, 0, 0.2), -5px -5px 15px rgba(255, 255, 255, 0.8);
+  --shadow-neumorph-pressed: inset 3px 3px 6px rgba(0, 0, 0, 0.2), inset -3px -3px 6px rgba(255, 255, 255, 0.8);
+
+  /* Inner Shadows */
+  --shadow-inner-xs: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+  --shadow-inner-sm: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-inner-md: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-inner-lg: inset 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  /* Glow Effects */
+  --glow-primary: 0 0 20px rgba(37, 99, 235, 0.5);
+  --glow-accent: 0 0 20px rgba(147, 51, 234, 0.5);
+  --glow-success: 0 0 20px rgba(34, 197, 94, 0.5);
+  --glow-warning: 0 0 20px rgba(245, 158, 11, 0.5);
+  --glow-error: 0 0 20px rgba(239, 68, 68, 0.5);
+
+  /* ============================================
+     MOTION DESIGN - Smooth Interactions
+     ============================================ */
+
+  /* Duration Tokens */
+  --duration-instant: 50ms;
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-moderate: 350ms;
+  --duration-slow: 450ms;
+  --duration-slower: 600ms;
+  --duration-slowest: 900ms;
+
+  /* Easing Curves */
+  --ease-linear: linear;
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-elastic: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  --ease-smooth: cubic-bezier(0.37, 0, 0.63, 1);
+  --ease-spring: cubic-bezier(0.5, 1.25, 0.75, 1.25);
+
+  /* Common Transitions */
+  --transition-colors: background-color var(--duration-base) var(--ease-in-out),
+                      border-color var(--duration-base) var(--ease-in-out),
+                      color var(--duration-base) var(--ease-in-out);
+  --transition-opacity: opacity var(--duration-base) var(--ease-in-out);
+  --transition-shadow: box-shadow var(--duration-base) var(--ease-in-out);
+  --transition-transform: transform var(--duration-base) var(--ease-in-out);
+  --transition-all: all var(--duration-base) var(--ease-in-out);
+
+  /* ============================================
+     BORDER RADIUS - Smooth Corners
+     ============================================ */
+
+  --radius-none: 0;
+  --radius-xs: 0.125rem;   /* 2px */
+  --radius-sm: 0.25rem;    /* 4px */
+  --radius-md: 0.375rem;   /* 6px */
+  --radius-lg: 0.5rem;     /* 8px */
+  --radius-xl: 0.75rem;    /* 12px */
+  --radius-2xl: 1rem;      /* 16px */
+  --radius-3xl: 1.5rem;    /* 24px */
+  --radius-4xl: 2rem;      /* 32px */
+  --radius-full: 9999px;
+
+  /* ============================================
+     Z-INDEX SCALE - Layering System
+     ============================================ */
+
+  --z-0: 0;
+  --z-10: 10;
+  --z-20: 20;
+  --z-30: 30;
+  --z-40: 40;
+  --z-50: 50;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-notification: 1080;
+  --z-max: 2147483647;
+
+  /* ============================================
+     SEMANTIC TOKENS - Light Theme
+     ============================================ */
+
+  /* Backgrounds */
+  --bg-base: var(--neutral-0);
+  --bg-subtle: var(--gray-50);
+  --bg-surface: var(--neutral-0);
+  --bg-surface-hover: var(--gray-50);
+  --bg-surface-active: var(--gray-100);
+  --bg-elevated: var(--neutral-0);
+  --bg-overlay: var(--glass-black-60);
+  --bg-glass: var(--glass-white-60);
+
+  /* Text Colors */
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-700);
+  --text-tertiary: var(--gray-600);
+  --text-muted: var(--gray-500);
+  --text-disabled: var(--gray-400);
+  --text-inverse: var(--neutral-0);
+  --text-link: var(--brand-primary-600);
+  --text-link-hover: var(--brand-primary-700);
+
+  /* Borders */
+  --border-subtle: var(--gray-200);
+  --border-default: var(--gray-300);
+  --border-strong: var(--gray-400);
+  --border-focus: var(--brand-primary-500);
+  --border-error: var(--semantic-error-500);
+  --border-success: var(--semantic-success-500);
+  --border-warning: var(--semantic-warning-500);
+
+  /* Interactive States */
+  --state-hover-opacity: 0.8;
+  --state-active-opacity: 0.6;
+  --state-disabled-opacity: 0.5;
+  --state-focus-ring: 0 0 0 3px var(--glass-primary-30);
+
+  /* ============================================
+     COMPONENT TOKENS - Design Patterns
+     ============================================ */
+
+  /* Buttons */
+  --button-height-sm: 2rem;     /* 32px */
+  --button-height-md: 2.5rem;   /* 40px */
+  --button-height-lg: 3rem;     /* 48px */
+  --button-padding-sm: var(--space-3) var(--space-4);
+  --button-padding-md: var(--space-3) var(--space-6);
+  --button-padding-lg: var(--space-4) var(--space-8);
+  --button-radius: var(--radius-lg);
+  --button-font-weight: var(--font-semibold);
+  --button-shadow: var(--shadow-sm);
+  --button-shadow-hover: var(--shadow-md);
+
+  /* Cards */
+  --card-padding: var(--space-6);
+  --card-radius: var(--radius-xl);
+  --card-shadow: var(--shadow-md);
+  --card-bg: var(--bg-surface);
+  --card-border: var(--border-subtle);
+  --card-hover-shadow: var(--shadow-lg);
+  --card-hover-translate: translateY(-2px);
+
+  /* Inputs */
+  --input-height-sm: 2rem;     /* 32px */
+  --input-height-md: 2.5rem;   /* 40px */
+  --input-height-lg: 3rem;     /* 48px */
+  --input-padding-x: var(--space-3);
+  --input-padding-y: var(--space-2);
+  --input-radius: var(--radius-lg);
+  --input-border-width: 1px;
+  --input-bg: var(--bg-surface);
+  --input-border: var(--border-default);
+  --input-focus-ring: var(--state-focus-ring);
+
+  /* Navigation */
+  --nav-height: 4rem;          /* 64px */
+  --nav-bg: var(--glass-white-80);
+  --nav-backdrop: var(--blur-md);
+  --nav-border: var(--border-subtle);
+  --nav-shadow: var(--shadow-sm);
+
+  /* Sidebar */
+  --sidebar-width: 16rem;      /* 256px */
+  --sidebar-collapsed-width: 4rem; /* 64px */
+  --sidebar-bg: var(--bg-surface);
+  --sidebar-border: var(--border-subtle);
+
+  /* Modals */
+  --modal-max-width-sm: 24rem;  /* 384px */
+  --modal-max-width-md: 32rem;  /* 512px */
+  --modal-max-width-lg: 48rem;  /* 768px */
+  --modal-max-width-xl: 64rem;  /* 1024px */
+  --modal-padding: var(--space-6);
+  --modal-radius: var(--radius-2xl);
+  --modal-shadow: var(--shadow-2xl);
+
+  /* Tables */
+  --table-header-bg: var(--gray-50);
+  --table-row-hover: var(--gray-50);
+  --table-border: var(--border-subtle);
+  --table-padding: var(--space-3) var(--space-4);
+
+  /* Tooltips */
+  --tooltip-bg: var(--gray-900);
+  --tooltip-text: var(--neutral-0);
+  --tooltip-padding: var(--space-2) var(--space-3);
+  --tooltip-radius: var(--radius-md);
+  --tooltip-shadow: var(--shadow-lg);
+
+  /* Badges */
+  --badge-padding: var(--space-1) var(--space-2);
+  --badge-radius: var(--radius-md);
+  --badge-font-size: var(--text-xs);
+  --badge-font-weight: var(--font-medium);
+}
+
+/* ============================================
+   DARK MODE OVERRIDES
+   Premium Dark Theme with Depth
+   ============================================ */
+
+[data-theme="dark"] {
+  /* Dark Mode Backgrounds */
+  --bg-base: var(--gray-950);
+  --bg-subtle: var(--gray-900);
+  --bg-surface: var(--gray-800);
+  --bg-surface-hover: var(--gray-700);
+  --bg-surface-active: var(--gray-600);
+  --bg-elevated: var(--gray-800);
+  --bg-overlay: var(--glass-black-80);
+  --bg-glass: var(--glass-white-10);
+
+  /* Dark Mode Text */
+  --text-primary: var(--gray-50);
+  --text-secondary: var(--gray-200);
+  --text-tertiary: var(--gray-300);
+  --text-muted: var(--gray-400);
+  --text-disabled: var(--gray-500);
+  --text-inverse: var(--gray-900);
+  --text-link: var(--brand-primary-400);
+  --text-link-hover: var(--brand-primary-300);
+
+  /* Dark Mode Borders */
+  --border-subtle: var(--gray-700);
+  --border-default: var(--gray-600);
+  --border-strong: var(--gray-500);
+
+  /* Dark Mode Shadows - Subtle for depth */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+  /* Dark Mode Components */
+  --card-bg: var(--gray-800);
+  --card-border: var(--gray-700);
+  --input-bg: var(--gray-900);
+  --input-border: var(--gray-700);
+  --nav-bg: var(--glass-black-80);
+  --table-header-bg: var(--gray-800);
+  --table-row-hover: var(--gray-800);
+  --tooltip-bg: var(--gray-700);
+  --tooltip-text: var(--gray-50);
+}
+
+/* ============================================
+   ANIMATION KEYFRAMES
+   Smooth, Professional Animations
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   Essential Helper Classes
+   ============================================ */
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus Styles */
+.focus-visible:focus-visible {
+  outline: 2px solid var(--brand-primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+/* Glass Effect */
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(var(--backdrop-blur-md));
+  -webkit-backdrop-filter: blur(var(--backdrop-blur-md));
+  border: 1px solid var(--border-subtle);
+}
+
+/* Smooth Transitions */
+.transition-smooth {
+  transition: var(--transition-all);
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--brand-primary-500) 0%, var(--brand-accent-500) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Brand Gradient Background */
+.gradient-brand {
+  background: linear-gradient(135deg, var(--brand-primary-600) 0%, var(--brand-primary-800) 100%);
+}
+
+/* Hover Lift Effect */
+.hover-lift {
+  transition: transform var(--duration-base) var(--ease-out),
+              box-shadow var(--duration-base) var(--ease-out);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Glow on Hover */
+.hover-glow:hover {
+  box-shadow: var(--glow-primary);
+}
+
+/* Skeleton Loading */
+.skeleton {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(
+    90deg,
+    var(--gray-200) 0%,
+    var(--gray-100) 50%,
+    var(--gray-200) 100%
+  );
+  background-size: 1000px 100%;
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: var(--container-7xl);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
+/* ============================================
+   LOGO & BRAND VISUAL CONCEPT
+   ============================================ */
+
+/*
+   Logo Concept: "CoreFlow360"
+
+   Visual Design:
+   - Symbol: Interconnected infinity loop with 360° rotation indicator
+   - Represents: Continuous flow, infinite scaling, complete business coverage
+   - Colors: Gradient from brand-primary-600 to brand-accent-600
+
+   Wordmark:
+   - Font: Clean, modern sans-serif (system font for performance)
+   - "Core" in bold weight, "Flow360" in medium weight
+   - Letter spacing: slightly condensed for impact
+
+   Icon Variations:
+   1. Full Logo: Symbol + Wordmark (horizontal)
+   2. Compact: Symbol + "CF360" abbreviation
+   3. Icon Only: Symbol for small spaces
+   4. Monochrome: Single color for print/simple contexts
+
+   Usage Guidelines:
+   - Minimum clear space: 1x height of logo on all sides
+   - Minimum size: 24px height for icon, 120px width for full logo
+   - Always maintain aspect ratio
+   - Use on light backgrounds primarily, inverse version for dark
+
+   Animated Version:
+   - Infinity symbol rotates 360° on hover
+   - Subtle gradient animation flowing through the symbol
+   - Represents AI agents working continuously in the background
+*/
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+
+/*
+   Mobile First Breakpoints:
+   - sm: 640px   (Small tablets)
+   - md: 768px   (Tablets)
+   - lg: 1024px  (Small laptops)
+   - xl: 1280px  (Desktops)
+   - 2xl: 1536px (Large screens)
+   - 3xl: 1920px (Ultra-wide)
+*/
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  :root {
+    --bg-base: white;
+    --text-primary: black;
+    --brand-primary-600: black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-subtle: var(--gray-400);
+    --border-default: var(--gray-500);
+    --border-strong: var(--gray-600);
+    --text-muted: var(--gray-600);
+  }
+}
+
+/*
+   END OF DESIGN SYSTEM
+
+   This Fortune-50 caliber design system provides:
+   - Comprehensive color system with 200+ tokens
+   - Fluid typography scale
+   - Flexible spacing system
+   - Advanced shadow and blur effects
+   - Smooth motion design
+   - Component-specific tokens
+   - Dark mode support
+   - Accessibility features
+   - Performance optimizations
+
+   Ready for production use in CoreFlow360 V4
+*/

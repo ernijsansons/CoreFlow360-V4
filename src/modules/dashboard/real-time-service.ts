@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Real-Time Dashboard Data Service
  * WebSocket-based live data pipeline with Cloudflare Durable Objects
@@ -87,7 +88,7 @@ class RealTimeService {
       this.handleDisconnection(connectionId)
     })
 
-    websocket.addEventListener('error', (error) => {
+    websocket.addEventListener('error', (_error) => {
       this.handleDisconnection(connectionId)
     })
 
@@ -330,6 +331,10 @@ class RealTimeService {
    * Start metric collection from Durable Object
    */
   private async startMetricCollection(subscription: MetricSubscription): Promise<void> {
+    if (!this.env.DASHBOARD_METRICS) {
+      return
+    }
+
     const durableObjectId = this.env.DASHBOARD_METRICS.idFromName(
       `${subscription.metricType}:${subscription.widgetId}`
     )
@@ -349,6 +354,10 @@ class RealTimeService {
    * Stop metric collection
    */
   private async stopMetricCollection(metricKey: string): Promise<void> {
+    if (!this.env.DASHBOARD_METRICS) {
+      return
+    }
+
     const durableObjectId = this.env.DASHBOARD_METRICS.idFromName(metricKey)
     const durableObject = this.env.DASHBOARD_METRICS.get(durableObjectId)
 
@@ -364,6 +373,10 @@ class RealTimeService {
    * Get current metric value
    */
   private async getCurrentMetricValue(subscription: MetricSubscription): Promise<any> {
+    if (!this.env.DASHBOARD_METRICS) {
+      return null
+    }
+
     const metricKey = this.buildMetricKey(subscription)
     const durableObjectId = this.env.DASHBOARD_METRICS.idFromName(metricKey)
     const durableObject = this.env.DASHBOARD_METRICS.get(durableObjectId)

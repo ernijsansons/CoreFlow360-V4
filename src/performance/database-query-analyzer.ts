@@ -146,9 +146,9 @@ export class DatabaseQueryAnalyzer {
     `).first() as any;
 
     // Get table info
-    const tableInfo = await this.env.DB.prepare(`
-      PRAGMA table_info(${tableName})
-    `).all();
+    // const _tableInfo = await this.env.DB.prepare(`
+    //   PRAGMA table_info(${tableName})
+    // `).all();
 
     // Get index info
     const indexList = await this.env.DB.prepare(`
@@ -526,6 +526,7 @@ export class DatabaseQueryAnalyzer {
     const inefficientQueries: InefficientQuery[] = [];
 
     for (const [query, metrics] of this.queryMetrics.entries()) {
+    void metrics;
       const issues = this.analyzeQueryEfficiency(query);
 
       for (const issue of issues) {

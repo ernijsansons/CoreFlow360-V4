@@ -4,11 +4,8 @@
  */
 
 import type { D1Database } from '@cloudflare/workers-types';
-import {
-  CompanyProfile,
-  BusinessIntelligence,
-  CompanyMetrics
-} from './types';
+import { CompanyProfile,
+  BusinessIntelligence } from './types';
 import { Logger } from '../../shared/logger';
 
 export class CompanyAnalyzer {
@@ -106,7 +103,8 @@ export class CompanyAnalyzer {
         return this.getDefaultBusinessModel();
       }
 
-      const settings = JSON.parse(businessData.settings || '{}');
+      const settingsString = typeof businessData.settings === 'string' ? businessData.settings : '{}';
+      const settings = JSON.parse(settingsString) as Record<string, any>;
 
       // Analyze revenue patterns
       const revenueAnalysis = await this.analyzeRevenuePatterns(businessId);
@@ -115,7 +113,7 @@ export class CompanyAnalyzer {
       const customerAnalysis = await this.analyzeCustomerBase(businessId);
 
       return {
-        model: businessData.business_model || 'b2b',
+        model: (businessData.business_model as any) || 'b2b',
         revenue: {
           annual: revenueAnalysis.annual,
           currency: settings.currency || 'USD',
@@ -203,7 +201,8 @@ export class CompanyAnalyzer {
         WHERE id = ?
       `).bind(businessId).first();
 
-      const settings = JSON.parse(businessData?.settings || '{}');
+      const settingsString = businessData && typeof businessData.settings === 'string' ? businessData.settings : '{}';
+      const settings = JSON.parse(settingsString) as Record<string, any>;
       const culture = settings.culture || {};
 
       return {
@@ -242,8 +241,8 @@ export class CompanyAnalyzer {
       const industry = businessData?.industry || 'general';
 
       // Determine financial performance based on size and industry
-      const performance = this.inferFinancialPerformance(size, industry);
-      const constraints = this.inferFinancialConstraints(size, performance);
+      const performance = this.inferFinancialPerformance(size as string, industry as string);
+      const constraints = this.inferFinancialConstraints(size as string, performance);
 
       return {
         performance,
@@ -283,10 +282,10 @@ export class CompanyAnalyzer {
 
       return {
         position: size === 'startup' ? 'growing' : 'stable',
-        competition: this.inferCompetitionLevel(industry),
-        opportunities: this.inferMarketOpportunities(industry, size),
-        threats: this.inferMarketThreats(industry, size),
-        trends: this.inferIndustryTrends(industry),
+        competition: this.inferCompetitionLevel(industry as string),
+        opportunities: this.inferMarketOpportunities(industry as string, size as string),
+        threats: this.inferMarketThreats(industry as string, size as string),
+        trends: this.inferIndustryTrends(industry as string),
       };
 
     } catch (error: any) {
@@ -344,13 +343,13 @@ export class CompanyAnalyzer {
       `).bind(businessId).first();
 
       const size = businessData?.size || 'small';
-      const createdAt = new Date(businessData?.created_at || Date.now());
+      const createdAt = new Date((businessData?.created_at as any) || Date.now());
       const age = (Date.now() - createdAt.getTime()) / (365.25 * 24 * 60 * 60 * 1000); // Years
 
-      const phase = this.inferBusinessPhase(size, age);
-      const focus = this.inferStrategicFocus(phase, size);
+      const phase = this.inferBusinessPhase(size as string, age);
+      const focus = this.inferStrategicFocus(phase, size as string);
       const timeHorizon = this.inferTimeHorizon(phase);
-      const riskTolerance = this.inferRiskTolerance(phase, size);
+      const riskTolerance = this.inferRiskTolerance(phase, size as string);
 
       return {
         phase,
@@ -381,7 +380,7 @@ export class CompanyAnalyzer {
       WHERE business_id = ? AND status = 'active'
     `).bind(businessId).first();
 
-    return result?.count || 0;
+    return (result?.count as number) || 0;
   }
 
   private async getDepartments(businessId: string): Promise<Array<{ name: string; code: string }>> {
@@ -407,7 +406,7 @@ export class CompanyAnalyzer {
     }];
   }
 
-  private async analyzeRevenuePatterns(businessId: string): Promise<{
+  private async analyzeRevenuePatterns(_businessId: string): Promise<{
     annual?: number;
     growthRate?: number;
     stage: CompanyProfile['business']['revenue']['stage'];
@@ -419,7 +418,7 @@ export class CompanyAnalyzer {
     };
   }
 
-  private async analyzeCustomerBase(businessId: string): Promise<{
+  private async analyzeCustomerBase(_businessId: string): Promise<{
     count?: number;
     segments: string[];
     avgLifetimeValue?: number;
@@ -432,8 +431,8 @@ export class CompanyAnalyzer {
     };
   }
 
-  private determineMarketPosition(businessId: string,
-  revenue: any, customers: any): CompanyProfile['business']['marketPosition'] {
+  private determineMarketPosition(_businessId: string,
+  _revenue: any, _customers: any): CompanyProfile['business']['marketPosition'] {
     // Simple heuristic based on available data
     return 'challenger';
   }
@@ -445,7 +444,7 @@ export class CompanyAnalyzer {
     return 'traditional';
   }
 
-  private inferFinancialPerformance(size: string, industry: string): BusinessIntelligence['financial']['performance'] {
+  private inferFinancialPerformance(size: string, _industry: string): BusinessIntelligence['financial']['performance'] {
     return {
       profitability: size === 'startup' ? 'low' : 'medium',
       cashFlow: size === 'startup' ? 'negative' : 'positive',
@@ -478,7 +477,7 @@ export class CompanyAnalyzer {
     return threats;
   }
 
-  private inferIndustryTrends(industry: string): string[] {
+  private inferIndustryTrends(_industry: string): string[] {
     return ['automation', 'sustainability', 'remote work'];
   }
 
@@ -532,7 +531,7 @@ export class CompanyAnalyzer {
     return 'maturity';
   }
 
-  private inferStrategicFocus(phase: string, size: string): string[] {
+  private inferStrategicFocus(phase: string, _size: string): string[] {
     switch (phase) {
       case 'startup':
         return ['product development', 'market validation', 'funding'];

@@ -68,7 +68,7 @@ export async function generateEntryNumber(
     year.toString(),
     businessId,
     `${prefix}-${year}-%`
-  ).first();
+  ).first() as any;
 
   const nextSeq = ((result?.max_seq as number) || 0) + 1;
   const paddedSeq = nextSeq.toString().padStart(6, '0');
@@ -467,4 +467,15 @@ export function formatDate(timestamp: number): string {
     return new Date().toLocaleDateString();
   }
   return new Date(timestamp).toLocaleDateString();
+}
+
+/**
+ * Format currency for display (alias for formatAmount)
+ */
+export function formatCurrency(
+  amount: number,
+  currencyCode: string = 'USD',
+  locale: string = 'en-US'
+): string {
+  return formatAmount(amount, currencyCode, locale);
 }

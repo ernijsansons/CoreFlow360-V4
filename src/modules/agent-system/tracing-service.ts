@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../../shared/logger';
-import type { D1Database } from '@cloudflare/workers-types';
+import type { D1Database, D1PreparedStatement } from '@cloudflare/workers-types';
 
 export interface TraceContext {
   traceId: string;
@@ -254,7 +254,7 @@ class TracingService {
     const parts = traceParent.split('-');
     if (parts.length !== 4) return undefined;
 
-    const [version, traceId, spanId, flags] = parts;
+    const [, traceId, spanId, flagsHex] = parts;
 
     // Parse baggage
     const baggageHeader = this.getHeader(headers, 'baggage');
@@ -269,10 +269,12 @@ class TracingService {
       });
     }
 
+    const flags = parseInt(flagsHex, 16);
+
     return {
       traceId,
       spanId,
-      flags: parseInt(flags, 16),
+      flags,
       baggage
     };
   }
@@ -386,7 +388,7 @@ class TracingService {
     }
 
     try {
-      const batch = this.db.batch([]);
+      const batch: D1PreparedStatement[] = [];
 
       for (const span of spansToExport) {
         batch.push(
@@ -523,7 +525,7 @@ class TracingService {
     await this.exportSpans();
 
     // End all active spans
-    for (const [spanId, span] of this.activeSpans) {
+    for (const [spanId] of this.activeSpans) {
       this.endSpan(spanId, new Error('Tracing shutdown'));
     }
 

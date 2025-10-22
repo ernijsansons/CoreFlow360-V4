@@ -1,0 +1,603 @@
+{
+  "monitoring": {
+    "version": "1.0.0",
+    "environment": "production",
+    "applicationName": "CoreFlow360 V4",
+    "deployment": {
+      "backend": "https://coreflow360-v4-prod.ernijs-ansons.workers.dev",
+      "frontend": "https://production.coreflow360-frontend.pages.dev",
+      "platform": "Cloudflare Workers + Pages",
+      "region": "Global Edge Network"
+    }
+  },
+  "metrics": {
+    "application_performance": {
+      "enabled": true,
+      "collection_interval_seconds": 60,
+      "metrics": [
+        {
+          "name": "api_response_time",
+          "type": "histogram",
+          "description": "API endpoint response times",
+          "unit": "milliseconds",
+          "labels": ["endpoint", "method", "status_code"],
+          "percentiles": [50, 90, 95, 99],
+          "targets": {
+            "p50": 100,
+            "p95": 200,
+            "p99": 500
+          },
+          "alert_threshold": {
+            "p95": 300,
+            "p99": 1000
+          }
+        },
+        {
+          "name": "api_error_rate",
+          "type": "gauge",
+          "description": "Percentage of failed API requests",
+          "unit": "percent",
+          "labels": ["endpoint", "error_type"],
+          "target": 0.1,
+          "alert_threshold": 1.0
+        },
+        {
+          "name": "api_request_rate",
+          "type": "counter",
+          "description": "Number of API requests per second",
+          "unit": "requests/second",
+          "labels": ["endpoint", "method"],
+          "baseline": 100,
+          "spike_threshold": 500
+        },
+        {
+          "name": "worker_cpu_time",
+          "type": "gauge",
+          "description": "CPU time used by Worker",
+          "unit": "milliseconds",
+          "labels": ["worker_name"],
+          "target": 50,
+          "alert_threshold": 100
+        },
+        {
+          "name": "worker_memory_usage",
+          "type": "gauge",
+          "description": "Memory usage of Worker",
+          "unit": "megabytes",
+          "labels": ["worker_name"],
+          "target": 64,
+          "alert_threshold": 100
+        },
+        {
+          "name": "database_query_time",
+          "type": "histogram",
+          "description": "D1 database query execution time",
+          "unit": "milliseconds",
+          "labels": ["query_type", "table"],
+          "percentiles": [50, 90, 95, 99],
+          "targets": {
+            "p50": 10,
+            "p95": 50,
+            "p99": 100
+          },
+          "alert_threshold": {
+            "p95": 100,
+            "p99": 500
+          }
+        },
+        {
+          "name": "cache_hit_rate",
+          "type": "gauge",
+          "description": "KV cache hit rate",
+          "unit": "percent",
+          "labels": ["cache_type"],
+          "target": 80,
+          "alert_threshold": 60
+        },
+        {
+          "name": "cache_latency",
+          "type": "histogram",
+          "description": "KV cache operation latency",
+          "unit": "milliseconds",
+          "labels": ["operation"],
+          "percentiles": [50, 90, 95, 99],
+          "targets": {
+            "p50": 5,
+            "p95": 20,
+            "p99": 50
+          }
+        }
+      ]
+    },
+    "security_metrics": {
+      "enabled": true,
+      "collection_interval_seconds": 30,
+      "metrics": [
+        {
+          "name": "authentication_failures",
+          "type": "counter",
+          "description": "Failed authentication attempts",
+          "unit": "count",
+          "labels": ["reason", "ip_address"],
+          "baseline": 5,
+          "alert_threshold": 50
+        },
+        {
+          "name": "rate_limit_violations",
+          "type": "counter",
+          "description": "Rate limit violations",
+          "unit": "count",
+          "labels": ["endpoint", "user_id"],
+          "baseline": 10,
+          "alert_threshold": 100
+        },
+        {
+          "name": "jwt_validation_errors",
+          "type": "counter",
+          "description": "JWT token validation failures",
+          "unit": "count",
+          "labels": ["error_type"],
+          "baseline": 0,
+          "alert_threshold": 10
+        },
+        {
+          "name": "waf_blocks",
+          "type": "counter",
+          "description": "Web Application Firewall blocks",
+          "unit": "count",
+          "labels": ["rule_id", "action"],
+          "baseline": 20,
+          "spike_threshold": 200
+        },
+        {
+          "name": "suspicious_activity",
+          "type": "counter",
+          "description": "Suspicious activity patterns detected",
+          "unit": "count",
+          "labels": ["activity_type", "severity"],
+          "baseline": 0,
+          "alert_threshold": 5
+        },
+        {
+          "name": "security_validation_failures",
+          "type": "counter",
+          "description": "Security validation failures",
+          "unit": "count",
+          "labels": ["validation_type"],
+          "baseline": 0,
+          "alert_threshold": 20
+        }
+      ]
+    },
+    "business_metrics": {
+      "enabled": true,
+      "collection_interval_seconds": 300,
+      "metrics": [
+        {
+          "name": "active_users",
+          "type": "gauge",
+          "description": "Number of active users in the last 5 minutes",
+          "unit": "count",
+          "labels": ["user_type"],
+          "baseline": 100
+        },
+        {
+          "name": "ai_agent_invocations",
+          "type": "counter",
+          "description": "AI agent invocation count",
+          "unit": "count",
+          "labels": ["agent_type", "capability"],
+          "baseline": 500
+        },
+        {
+          "name": "ai_agent_cost",
+          "type": "counter",
+          "description": "AI agent cost in cents",
+          "unit": "cents",
+          "labels": ["provider", "model"],
+          "daily_budget": 10000,
+          "alert_threshold": 12000
+        },
+        {
+          "name": "api_calls_by_endpoint",
+          "type": "counter",
+          "description": "API calls per endpoint",
+          "unit": "count",
+          "labels": ["endpoint", "business_id"],
+          "baseline": 1000
+        },
+        {
+          "name": "business_operations",
+          "type": "counter",
+          "description": "Business operations executed",
+          "unit": "count",
+          "labels": ["operation_type", "status"],
+          "baseline": 200
+        },
+        {
+          "name": "data_processing_volume",
+          "type": "counter",
+          "description": "Volume of data processed",
+          "unit": "megabytes",
+          "labels": ["data_type"],
+          "daily_baseline": 10000
+        }
+      ]
+    },
+    "infrastructure_health": {
+      "enabled": true,
+      "collection_interval_seconds": 60,
+      "metrics": [
+        {
+          "name": "worker_health_status",
+          "type": "gauge",
+          "description": "Worker health check status (1=healthy, 0=unhealthy)",
+          "unit": "boolean",
+          "labels": ["worker_name"],
+          "alert_on": 0
+        },
+        {
+          "name": "d1_database_availability",
+          "type": "gauge",
+          "description": "D1 database availability",
+          "unit": "percent",
+          "labels": ["database_name"],
+          "target": 100,
+          "alert_threshold": 99
+        },
+        {
+          "name": "d1_connection_pool_usage",
+          "type": "gauge",
+          "description": "D1 connection pool usage",
+          "unit": "percent",
+          "labels": ["database_name"],
+          "target": 70,
+          "alert_threshold": 90
+        },
+        {
+          "name": "kv_namespace_availability",
+          "type": "gauge",
+          "description": "KV namespace availability",
+          "unit": "percent",
+          "labels": ["namespace"],
+          "target": 100,
+          "alert_threshold": 99
+        },
+        {
+          "name": "kv_storage_usage",
+          "type": "gauge",
+          "description": "KV namespace storage usage",
+          "unit": "percent",
+          "labels": ["namespace"],
+          "target": 70,
+          "alert_threshold": 85
+        },
+        {
+          "name": "r2_bucket_availability",
+          "type": "gauge",
+          "description": "R2 bucket availability",
+          "unit": "percent",
+          "labels": ["bucket_name"],
+          "target": 100,
+          "alert_threshold": 99
+        },
+        {
+          "name": "durable_object_performance",
+          "type": "histogram",
+          "description": "Durable Object operation latency",
+          "unit": "milliseconds",
+          "labels": ["do_type", "operation"],
+          "percentiles": [50, 90, 95, 99],
+          "targets": {
+            "p50": 20,
+            "p95": 100,
+            "p99": 200
+          }
+        },
+        {
+          "name": "cloudflare_worker_invocations",
+          "type": "counter",
+          "description": "Total worker invocations",
+          "unit": "count",
+          "daily_baseline": 100000
+        },
+        {
+          "name": "cloudflare_worker_errors",
+          "type": "counter",
+          "description": "Worker error count",
+          "unit": "count",
+          "labels": ["error_type"],
+          "baseline": 10,
+          "alert_threshold": 100
+        }
+      ]
+    }
+  },
+  "data_sources": {
+    "cloudflare_analytics": {
+      "enabled": true,
+      "endpoint": "https://api.cloudflare.com/client/v4/accounts/{account_id}/analytics_engine/sql",
+      "auth_header": "Bearer ${CLOUDFLARE_ANALYTICS_TOKEN}",
+      "query_interval_seconds": 60
+    },
+    "sentry": {
+      "enabled": true,
+      "dsn": "${SENTRY_DSN}",
+      "environment": "production",
+      "sample_rate": 0.1,
+      "traces_sample_rate": 0.1,
+      "profiles_sample_rate": 0.1
+    },
+    "d1_database": {
+      "enabled": true,
+      "tables": {
+        "log_entries": {
+          "retention_days": 30,
+          "query_interval_seconds": 60
+        },
+        "metrics": {
+          "retention_days": 90,
+          "query_interval_seconds": 60
+        },
+        "alerts": {
+          "retention_days": 90,
+          "query_interval_seconds": 30
+        },
+        "service_performance": {
+          "retention_days": 90,
+          "query_interval_seconds": 60
+        }
+      }
+    },
+    "kv_namespaces": {
+      "enabled": true,
+      "namespaces": [
+        "KV_CACHE",
+        "KV_SESSION",
+        "KV_RATE_LIMIT_METRICS",
+        "KV_AUTH",
+        "AGENT_CACHE",
+        "AGENT_MEMORY",
+        "PATTERN_CACHE"
+      ],
+      "metrics_prefix": "kv_metrics:"
+    }
+  },
+  "dashboards": {
+    "production_overview": {
+      "refresh_interval_seconds": 30,
+      "panels": [
+        {
+          "title": "API Response Times (P95)",
+          "type": "line_chart",
+          "metric": "api_response_time",
+          "aggregation": "p95",
+          "time_window": "1h"
+        },
+        {
+          "title": "Error Rate",
+          "type": "gauge",
+          "metric": "api_error_rate",
+          "aggregation": "avg",
+          "time_window": "5m"
+        },
+        {
+          "title": "Request Rate",
+          "type": "line_chart",
+          "metric": "api_request_rate",
+          "aggregation": "sum",
+          "time_window": "1h"
+        },
+        {
+          "title": "Active Users",
+          "type": "stat",
+          "metric": "active_users",
+          "aggregation": "sum",
+          "time_window": "5m"
+        },
+        {
+          "title": "Worker CPU Usage",
+          "type": "line_chart",
+          "metric": "worker_cpu_time",
+          "aggregation": "avg",
+          "time_window": "1h"
+        },
+        {
+          "title": "Cache Hit Rate",
+          "type": "gauge",
+          "metric": "cache_hit_rate",
+          "aggregation": "avg",
+          "time_window": "5m"
+        },
+        {
+          "title": "Database Query Performance",
+          "type": "heatmap",
+          "metric": "database_query_time",
+          "aggregation": "p95",
+          "time_window": "1h"
+        },
+        {
+          "title": "Recent Alerts",
+          "type": "table",
+          "data_source": "d1_database",
+          "query": "SELECT * FROM alerts WHERE status='firing' ORDER BY triggered_at DESC LIMIT 10"
+        }
+      ]
+    },
+    "security_dashboard": {
+      "refresh_interval_seconds": 30,
+      "panels": [
+        {
+          "title": "Authentication Failures",
+          "type": "line_chart",
+          "metric": "authentication_failures",
+          "aggregation": "sum",
+          "time_window": "1h"
+        },
+        {
+          "title": "Rate Limit Violations",
+          "type": "bar_chart",
+          "metric": "rate_limit_violations",
+          "aggregation": "sum",
+          "time_window": "1h",
+          "group_by": "endpoint"
+        },
+        {
+          "title": "WAF Activity",
+          "type": "line_chart",
+          "metric": "waf_blocks",
+          "aggregation": "sum",
+          "time_window": "1h"
+        },
+        {
+          "title": "Security Events",
+          "type": "table",
+          "data_source": "d1_database",
+          "query": "SELECT * FROM log_entries WHERE level='ERROR' AND error_type LIKE '%security%' ORDER BY timestamp DESC LIMIT 20"
+        }
+      ]
+    },
+    "business_intelligence": {
+      "refresh_interval_seconds": 300,
+      "panels": [
+        {
+          "title": "AI Agent Cost Trends",
+          "type": "area_chart",
+          "metric": "ai_agent_cost",
+          "aggregation": "sum",
+          "time_window": "24h",
+          "group_by": "provider"
+        },
+        {
+          "title": "AI Agent Usage",
+          "type": "bar_chart",
+          "metric": "ai_agent_invocations",
+          "aggregation": "sum",
+          "time_window": "24h",
+          "group_by": "agent_type"
+        },
+        {
+          "title": "API Usage by Endpoint",
+          "type": "pie_chart",
+          "metric": "api_calls_by_endpoint",
+          "aggregation": "sum",
+          "time_window": "24h",
+          "group_by": "endpoint"
+        },
+        {
+          "title": "Business Operations Status",
+          "type": "stacked_bar_chart",
+          "metric": "business_operations",
+          "aggregation": "sum",
+          "time_window": "24h",
+          "group_by": "status"
+        }
+      ]
+    },
+    "infrastructure_health": {
+      "refresh_interval_seconds": 60,
+      "panels": [
+        {
+          "title": "D1 Database Health",
+          "type": "stat",
+          "metric": "d1_database_availability",
+          "aggregation": "avg",
+          "time_window": "5m"
+        },
+        {
+          "title": "KV Namespace Health",
+          "type": "stat",
+          "metric": "kv_namespace_availability",
+          "aggregation": "avg",
+          "time_window": "5m"
+        },
+        {
+          "title": "R2 Bucket Health",
+          "type": "stat",
+          "metric": "r2_bucket_availability",
+          "aggregation": "avg",
+          "time_window": "5m"
+        },
+        {
+          "title": "Worker Invocations",
+          "type": "line_chart",
+          "metric": "cloudflare_worker_invocations",
+          "aggregation": "sum",
+          "time_window": "1h"
+        },
+        {
+          "title": "Worker Errors",
+          "type": "line_chart",
+          "metric": "cloudflare_worker_errors",
+          "aggregation": "sum",
+          "time_window": "1h",
+          "group_by": "error_type"
+        }
+      ]
+    }
+  },
+  "integrations": {
+    "grafana": {
+      "enabled": false,
+      "url": "${GRAFANA_URL}",
+      "api_key": "${GRAFANA_API_KEY}",
+      "dashboards": [
+        "production_overview",
+        "security_dashboard",
+        "business_intelligence",
+        "infrastructure_health"
+      ]
+    },
+    "datadog": {
+      "enabled": false,
+      "api_key": "${DATADOG_API_KEY}",
+      "site": "datadoghq.com"
+    },
+    "prometheus": {
+      "enabled": false,
+      "endpoint": "/metrics",
+      "format": "prometheus"
+    }
+  },
+  "retention": {
+    "raw_logs": {
+      "days": 30,
+      "compression": true
+    },
+    "aggregated_metrics": {
+      "1m_resolution": 7,
+      "5m_resolution": 30,
+      "1h_resolution": 90,
+      "1d_resolution": 365
+    },
+    "traces": {
+      "days": 30,
+      "sampling_rate": 0.1
+    },
+    "alerts": {
+      "active_days": 90,
+      "resolved_days": 365
+    }
+  },
+  "cost_optimization": {
+    "analytics_engine": {
+      "daily_writes_limit": 1000000,
+      "alert_at_percent": 80
+    },
+    "d1_database": {
+      "daily_reads_limit": 5000000,
+      "daily_writes_limit": 1000000,
+      "alert_at_percent": 80
+    },
+    "kv_operations": {
+      "daily_reads_limit": 10000000,
+      "daily_writes_limit": 1000000,
+      "alert_at_percent": 80
+    },
+    "ai_agent_cost": {
+      "daily_budget_cents": 10000,
+      "alert_at_cents": 8000,
+      "critical_at_cents": 12000
+    }
+  }
+}

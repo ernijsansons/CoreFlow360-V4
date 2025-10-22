@@ -12,9 +12,7 @@ import {
   Settings,
   Maximize2,
   BarChart3,
-  PieChart,
   TrendingUp,
-  Users,
   Calendar,
   Globe,
   RefreshCw,
@@ -22,13 +20,7 @@ import {
   Edit,
   Copy,
   Trash2,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Target,
-  Zap,
   ArrowRight,
-  ExternalLink,
   MoreVertical
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -50,7 +42,7 @@ export interface QuickAction {
   category: 'filter' | 'export' | 'view' | 'edit' | 'share' | 'drill-down'
   shortcut?: string
   description?: string
-  handler: (widget: Widget, context?: any) => void | Promise<void>
+  handler: (widget: Widget, context?: unknown) => void | Promise<void>
   condition?: (widget: Widget) => boolean
   destructive?: boolean
 }
@@ -58,7 +50,7 @@ export interface QuickAction {
 export interface DrillDownPath {
   level: string
   label: string
-  filters: Record<string, any>
+  filters: Record<string, unknown>
   breadcrumb: string[]
 }
 
@@ -75,13 +67,13 @@ export interface QuickActionsProps {
 
 export interface FilterPanelProps {
   widget: Widget
-  onApplyFilter: (filters: Record<string, any>) => void
+  onApplyFilter: (filters: Record<string, unknown>) => void
   onClose: () => void
 }
 
 export interface ExportOptionsProps {
   widget: Widget
-  onExport: (format: string, options: any) => void
+  onExport: (format: string, options: unknown) => void
   onClose: () => void
 }
 
@@ -249,8 +241,8 @@ const TABLE_ACTIONS: QuickAction[] = [
   }
 ]
 
-const FilterPanel: React.FC<FilterPanelProps> = ({ widget, onApplyFilter, onClose }) => {
-  const [filters, setFilters] = useState<Record<string, any>>({})
+const FilterPanel: React.FC<FilterPanelProps> = ({ onApplyFilter, onClose }) => {
+  const [filters, setFilters] = useState<Record<string, unknown>>({})
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({})
 
   const handleApplyFilters = () => {

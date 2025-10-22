@@ -4,13 +4,10 @@
  */
 import { Logger } from '../shared/logger';
 import type { Context } from 'hono';
-import type {
-  DataAnomalyReport,
-  DataAnomaly,
+import type { DataAnomalyReport,
   AnomalyPattern,
   AnomalyPrediction,
-  AnomalyStatistics
-} from './quantum-data-auditor';
+  AnomalyStatistics } from './quantum-data-auditor';
 
 // Additional type definitions for missing properties
 interface DataAnomalyReportExtended extends Omit<DataAnomalyReport, 'anomalies'> {
@@ -554,7 +551,7 @@ export class DataAnomalyDetector {
     return Math.max(0, 1 - coefficientOfVariation);
   }
 
-  private predictValue(samples: DataSample[], pattern: AnomalyPattern): number {
+  private predictValue(samples: DataSample[], _pattern: AnomalyPattern): number {
     // Simple linear prediction based on most recent values
     const recentValues = samples.slice(-10).map((s: any) => parseFloat(s.value.toString()));
     const mean = recentValues.reduce((sum, val) => sum + val, 0) / recentValues.length;

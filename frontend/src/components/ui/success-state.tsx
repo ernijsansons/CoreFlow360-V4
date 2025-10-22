@@ -6,8 +6,7 @@ import {
   CheckCircle2,
   PartyPopper,
   Trophy,
-  ArrowRight,
-  Home
+  ArrowRight
 } from 'lucide-react'
 
 export interface SuccessStateProps {
@@ -50,7 +49,7 @@ export function SuccessState({
   const iconColors = {
     success: 'text-green-500',
     celebration: 'text-yellow-500',
-    achievement: 'text-purple-500'
+    achievement: 'text-brand-accent-500'
   }
 
   const sizeClasses = {
@@ -94,7 +93,7 @@ export function SuccessState({
         "rounded-full bg-green-100 dark:bg-green-900/20 p-4 mb-4",
         size === 'lg' && "p-6",
         variant === 'celebration' && "bg-yellow-100 dark:bg-yellow-900/20",
-        variant === 'achievement' && "bg-purple-100 dark:bg-purple-900/20"
+        variant === 'achievement' && "bg-brand-accent-100 dark:bg-brand-accent-900/20"
       )}>
         <Icon className={cn(
           sizes.icon,

@@ -32,8 +32,9 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
     },
     ref
   ) => {
-    const fieldId = id || React.useId()
-    
+    const generatedId = React.useId()
+    const fieldId = id || generatedId
+
     return (
       <div className={cn("space-y-2", containerClassName)}>
         {label && (

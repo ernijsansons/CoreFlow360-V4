@@ -1,7 +1,9 @@
 import { Logger } from '../shared/logger';
 import { SecurityError, ValidationError } from '../shared/error-handler';
 import type { Context } from 'hono';
-import { QuantumPerformanceAuditor, type PerformanceAuditReport, type AutoFixableIssue } from './quantum-performance-auditor';
+import { QuantumPerformanceAuditor, type AutoFixableIssue } from './quantum-performance-auditor';
+// TODO: Implement performance audit report when needed
+// import type { PerformanceAuditReport } from './quantum-performance-auditor';
 
 const logger = new Logger({ component: 'automated-performance-fixer' });
 
@@ -234,7 +236,7 @@ export class AutomatedPerformanceFixer {
     return currentRisk <= maxRisk;
   }
 
-  private async performSafetyValidation(issues: AutoFixableIssue[]): Promise<SafetyValidation> {
+  private async performSafetyValidation(_issues: AutoFixableIssue[]): Promise<SafetyValidation> {
     const checks: SafetyCheck[] = [];
     const blockers: string[] = [];
     const warnings: string[] = [];
@@ -497,7 +499,7 @@ export class AutomatedPerformanceFixer {
     return session;
   }
 
-  private async executeFixSafely(issue: AutoFixableIssue, backup: BackupState | null): Promise<AutoFixResult> {
+  private async executeFixSafely(issue: AutoFixableIssue, _backup: BackupState | null): Promise<AutoFixResult> {
     const startTime = Date.now();
     let beforeMetric: number | undefined;
     let afterMetric: number | undefined;

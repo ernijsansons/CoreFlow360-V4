@@ -1,7 +1,8 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import type { NotificationItem, ModalState, ToastMessage, LoadingState } from '@/types'
+import { createSafeJSONStorage } from '@/lib/safe-storage'
 
 interface UIStore {
   theme: 'light' | 'dark' | 'system'
@@ -223,7 +224,7 @@ export const useUIStore = create<UIStore>()(
     })),
     {
       name: 'ui-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createSafeJSONStorage(),
       partialize: (state) => ({
         theme: state.theme,
         sidebarOpen: state.sidebarOpen,

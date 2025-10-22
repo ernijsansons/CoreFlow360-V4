@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { crmService } from '@/lib/api/services/crm.service'
 import { toast } from '@/hooks/use-toast'
+import type { LeadUpdateData, DealUpdateData } from '@/types/crm'
 
 // Query Keys
 export const crmKeys = {
@@ -67,7 +68,7 @@ export function useUpdateLead() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: LeadUpdateData }) =>
       crmService.updateLead(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: crmKeys.lead(variables.id) })
@@ -158,7 +159,7 @@ export function useUpdateDeal() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: DealUpdateData }) =>
       crmService.updateDeal(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: crmKeys.deal(variables.id) })
@@ -260,7 +261,7 @@ export function useBulkUpdateLeads() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ ids, updates }: { ids: string[]; updates: any }) =>
+    mutationFn: ({ ids, updates }: { ids: string[]; updates: LeadUpdateData }) =>
       crmService.bulkUpdateLeads(ids, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: crmKeys.leads() })

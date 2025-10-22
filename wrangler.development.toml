@@ -1,5 +1,5 @@
 name = "coreflow360-v4-dev"
-main = "src/index.minimal-test.ts"
+main = "src/index.dev-full.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -38,23 +38,26 @@ preview_id = "dev-kv-session"
 
 [[kv_namespaces]]
 binding = "KV_RATE_LIMIT_METRICS"
-id = "rate-limit-metrics-namespace"
+id = "59f91cf8a4704cbc978b06fe31fec7bc"
 preview_id = "dev-rate-limit"
 
 [[kv_namespaces]]
 binding = "KV_AUTH"
-id = "auth-namespace"
+id = "091859c74f514d5eae66f3e2937b345e"
 preview_id = "dev-auth"
 
-# Rate Limiter binding
-[[rate_limiters]]
-binding = "RATE_LIMITER"
-namespace_id = "coreflow360_rate_limiter"
+# Rate Limiter binding removed - using Durable Object instead
+# Disabled for simple dev server
 
 # Durable Objects
-[[durable_objects.bindings]]
-name = "RATE_LIMITER_DO"
-class_name = "AdvancedRateLimiterDO"
+# [[durable_objects.bindings]]
+# name = "RATE_LIMITER_DO"
+# class_name = "AdvancedRateLimiterDO"
+
+# Durable Object migrations
+# [[migrations]]
+# tag = "v1"
+# new_classes = ["AdvancedRateLimiterDO"]
 
 # R2 Bucket bindings - Development
 [[r2_buckets]]
@@ -65,9 +68,10 @@ bucket_name = "coreflow360-documents"
 binding = "R2_BACKUPS"
 bucket_name = "coreflow360-backups"
 
-# AI binding
+# AI binding (remote resources)
 [ai]
 binding = "AI"
+remote = true
 
 # Development variables
 [vars]

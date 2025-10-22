@@ -1,16 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { CRMDashboard } from '@/modules/crm'
-import { useEntityPermissions } from '@/hooks'
+import { useUIStore } from '@/stores/ui-store'
 
 export const Route = createFileRoute('/crm/')({
   component: CRMPage,
   beforeLoad: () => {
-    const { hasPermission } = useEntityPermissions()
-
-    if (!hasPermission('crm:view')) {
-      throw new Error('Insufficient permissions')
-    }
-
     // Set breadcrumbs
     useUIStore.getState().setBreadcrumbs([
       { label: 'Dashboard', href: '/' },

@@ -3,14 +3,11 @@
  * Handles streaming for all agent types
  */
 
-import {
-  IAgent,
+import { IAgent,
   AgentTask,
   BusinessContext,
   StreamingChunk,
-  StreamingConfig,
-  AgentResult
-} from './types';
+  StreamingConfig } from './types';
 import { Logger } from '../../shared/logger';
 
 export class StreamingHandler {
@@ -39,6 +36,7 @@ export class StreamingHandler {
     writer: WritableStreamDefaultWriter<Uint8Array>
   ): Promise<void> {
     const encoder = new TextEncoder();
+    void encoder;
 
     try {
       // Send immediate acknowledgment
@@ -302,7 +300,7 @@ export class StreamingHandler {
         });
 
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json() as any;
 
           if (data.chunks) {
             // Send all available chunks
@@ -327,7 +325,7 @@ export class StreamingHandler {
         await new Promise(resolve => setTimeout(resolve, 1000));
 
       } catch (error: any) {
-        this.logger.warn('External stream poll failed', error, { taskId, pollAttempts });
+        this.logger.warn('External stream poll failed', { taskId, pollAttempts, error: error.message });
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
@@ -389,7 +387,7 @@ export class StreamingHandler {
           metadata: { heartbeat: true },
         });
       } catch (error: any) {
-        this.logger.warn('Heartbeat failed', error, { agentId, taskId });
+        this.logger.warn('Heartbeat failed', { agentId, taskId, error: error.message });
       }
     }, this.config.heartbeatInterval);
   }
@@ -423,7 +421,7 @@ export class StreamingHandler {
 
     // Start streaming in the background
     handler.streamResponse(agent, task, writer)
-      .catch((error: any) => {
+      .catch((_error: any) => {
       })
       .finally(() => {
         writer.close();
@@ -452,6 +450,6 @@ export class StreamingHandler {
    */
   updateConfig(newConfig: Partial<StreamingConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    this.logger.info('Streaming configuration updated', this.config);
+    this.logger.info('Streaming configuration updated', this.config as unknown as Record<string, unknown>);
   }
 }

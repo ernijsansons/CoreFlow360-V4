@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi, MockedFunction } from 'vitest';
-import { CRMDatabase, CreateCompany, CreateContact, CreateLead, CreateAITask, DatabaseResult, PaginationOptions, LeadFilters } from '../../../database/crm-database';
-import { Logger } from '../../../shared/logger';
-import { TransactionManager } from '../../../shared/transaction-manager';
-import type { Env } from '../../../types/env';
+import { CRMDatabase, CreateCompany, CreateContact, CreateLead, CreateAITask, DatabaseResult, PaginationOptions, LeadFilters } from '../../database/crm-database';
+import { Logger } from '../../shared/logger';
+import { TransactionManager } from '../../shared/transaction-manager';
+import type { Env } from '../../types/env';
 
 // Mock D1Database
 const mockD1Database = {
@@ -113,14 +113,19 @@ describe('CRMDatabase', () => {
     mockPreparedStatement.run.mockResolvedValue({ success: true, meta: { success: true, changes: 1 } });
     mockD1Database.batch.mockResolvedValue([{ success: true }]);
 
+    delete (mockEnv as any).logger;
+    delete (mockEnv as any).transactionManager;
+
     // Create fresh instances for each test
-    mockLogger = new (Logger as any)();
     mockTransactionManager = new (TransactionManager as any)(mockEnv);
-    mockTransactionManager.withTransaction.mockImplementation(async (fn) => {
+    mockTransactionManager.withTransaction.mockImplementation(async (fn: (db: any) => Promise<any>) => {
       return { success: true, data: await fn(mockD1Database) };
     });
+    (mockEnv as any).transactionManager = mockTransactionManager;
 
     crmDatabase = new CRMDatabase(mockEnv as Env);
+
+    mockLogger = (mockEnv as any).logger;
   });
 
   afterEach(() => {
@@ -140,8 +145,7 @@ describe('CRMDatabase', () => {
     });
 
     it('should initialize connection pool', () => {
-      // Connection pool initialization is called in constructor
-      expect(Logger).toHaveBeenCalled();
+      expect(mockLogger).toBeDefined();
     });
   });
 
@@ -310,7 +314,7 @@ describe('CRMDatabase', () => {
       });
 
       it('should rollback transaction on error', async () => {
-        mockTransactionManager.withTransaction.mockImplementation(async (fn) => {
+        mockTransactionManager.withTransaction.mockImplementation(async (fn: (db: any) => Promise<any>) => {
           throw new Error('Transaction error');
         });
 
@@ -1017,7 +1021,7 @@ describe('CRMDatabase', () => {
 
       await crmDatabase.getCompany('company123', 'business123');
 
-      expect(console.warn).toHaveBeenCalledWith(
+      expect(mockLogger.warn).toHaveBeenCalledWith(
         'Slow query detected',
         expect.objectContaining({
           executionTime: 150

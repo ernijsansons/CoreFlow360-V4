@@ -17,12 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  Download,
-  FileText,
-  TrendingUp,
-  DollarSign,
-  CreditCard,
-  Calendar
+  Download
 } from 'lucide-react'
 import { useUIStore } from '@/stores'
 
@@ -115,7 +110,7 @@ function FinanceDashboard() {
                     </div>
                     <div className="flex justify-between items-center">
                       <div className="flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-purple-500 rounded-full" />
+                        <div className="w-3 h-3 bg-brand-accent-500 rounded-full" />
                         <span className="text-sm">Operations</span>
                       </div>
                       <span className="font-medium">$6,780</span>

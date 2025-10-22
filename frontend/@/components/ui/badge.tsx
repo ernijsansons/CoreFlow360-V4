@@ -15,6 +15,22 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        // CoreFlow360 Premium Brand Colors
+        success:
+          "border-transparent bg-success-500 text-white hover:bg-success-600 shadow-sm",
+        warning:
+          "border-transparent bg-warning-500 text-white hover:bg-warning-600 shadow-sm",
+        error:
+          "border-transparent bg-error-500 text-white hover:bg-error-600 shadow-sm",
+        info:
+          "border-transparent bg-info-500 text-white hover:bg-info-600 shadow-sm",
+        // Brand variants
+        brand:
+          "border-transparent bg-brand-primary-600 text-white hover:bg-brand-primary-700 shadow-primary-sm",
+        accent:
+          "border-transparent bg-brand-accent-600 text-white hover:bg-brand-accent-700 shadow-sm",
+        teal:
+          "border-transparent bg-brand-teal-600 text-white hover:bg-brand-teal-700 shadow-sm",
       },
     },
     defaultVariants: {
@@ -33,4 +49,5 @@ function Badge({ className, variant, ...props }: BadgeProps) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { Badge, badgeVariants }

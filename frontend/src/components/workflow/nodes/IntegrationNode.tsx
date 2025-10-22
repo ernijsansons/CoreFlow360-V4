@@ -24,15 +24,11 @@ import {
   FileText,
   MessageSquare,
   Settings,
-  Key,
   Zap,
   CheckCircle,
   AlertCircle,
-  Clock,
-  Shield,
   Activity,
   ArrowUpDown,
-  Filter,
   RefreshCw
 } from 'lucide-react';
 
@@ -49,7 +45,7 @@ interface IntegrationNodeData {
   retryPolicy: RetryConfig;
   timeout: number;
   status?: 'idle' | 'running' | 'completed' | 'failed';
-  lastResponse?: any;
+  lastResponse?: unknown;
   connectionStatus?: 'connected' | 'disconnected' | 'error';
 }
 
@@ -156,7 +152,7 @@ const INTEGRATION_PROVIDERS = {
   file: {
     label: 'File Storage',
     icon: FileText,
-    color: 'bg-purple-500',
+    color: 'bg-brand-accent-500',
     providers: [
       { id: 'aws_s3', name: 'Amazon S3', icon: '🪣' },
       { id: 'google_drive', name: 'Google Drive', icon: '💾' },
@@ -168,7 +164,7 @@ const INTEGRATION_PROVIDERS = {
   database: {
     label: 'Databases',
     icon: Database,
-    color: 'bg-indigo-500',
+    color: 'bg-brand-primary-500',
     providers: [
       { id: 'mysql', name: 'MySQL', icon: '🐬' },
       { id: 'postgresql', name: 'PostgreSQL', icon: '🐘' },
@@ -180,7 +176,7 @@ const INTEGRATION_PROVIDERS = {
   api: {
     label: 'REST APIs',
     icon: Globe,
-    color: 'bg-cyan-500',
+    color: 'bg-brand-teal-500',
     providers: [
       { id: 'stripe', name: 'Stripe', icon: '💳' },
       { id: 'paypal', name: 'PayPal', icon: '💰' },
@@ -212,7 +208,7 @@ const INTEGRATION_PROVIDERS = {
 export const IntegrationNode = memo(({ data, selected }: NodeProps<IntegrationNodeData>) => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [localData, setLocalData] = useState(data);
-  const [testResponse, setTestResponse] = useState<any>(null);
+  const [testResponse, setTestResponse] = useState<unknown>(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 
   const integrationType = INTEGRATION_PROVIDERS[localData.integrationType];
@@ -243,7 +239,7 @@ export const IntegrationNode = memo(({ data, selected }: NodeProps<IntegrationNo
     }
   };
 
-  const handleConfigChange = (field: string, value: any) => {
+  const handleConfigChange = (field: string, value: unknown) => {
     const newData = { ...localData, [field]: value };
     setLocalData(newData);
   };
@@ -260,7 +256,7 @@ export const IntegrationNode = memo(({ data, selected }: NodeProps<IntegrationNo
         data: { message: 'Connection successful' }
       });
       handleConfigChange('connectionStatus', 'connected');
-    } catch (error) {
+    } catch {
       setTestResponse({
         success: false,
         error: 'Connection failed',

@@ -1,35 +1,20 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import {
   Building2,
-  TrendingUp,
   Users,
   DollarSign,
-  Package,
   Bot,
   Brain,
   Activity,
-  Globe,
   ArrowUpRight,
   ArrowDownRight,
-  ChevronRight,
   Plus,
-  Settings,
-  BarChart3,
-  PieChart,
-  LineChart,
-  Zap,
-  Shield,
-  Bell,
-  Search,
-  Filter,
   Calendar,
-  Download,
   RefreshCw,
   MoreVertical,
-  CheckCircle,
-  AlertCircle,
-  Clock
+  CheckCircle
 } from 'lucide-react';
 
 interface Business {
@@ -60,8 +45,7 @@ interface AIAgent {
 }
 
 export const MultiBusinessDashboard: React.FC = () => {
-  const [selectedBusiness, setSelectedBusiness] = useState<string>('all');
-  const [timeRange, setTimeRange] = useState<string>('7d');
+  const [, setSelectedBusiness] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Mock data for demonstration
@@ -188,7 +172,7 @@ export const MultiBusinessDashboard: React.FC = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl">
+            <div className="p-3 bg-gradient-to-r from-brand-primary-600 to-brand-accent-600 rounded-xl">
               <Building2 className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -208,7 +192,7 @@ export const MultiBusinessDashboard: React.FC = () => {
             <button className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <RefreshCw className="h-4 w-4" />
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-brand-primary-600 to-brand-accent-600 text-white rounded-lg hover:from-brand-primary-700 hover:to-brand-accent-700 transition-colors">
               <Plus className="h-4 w-4" />
               Add Business
             </button>
@@ -268,8 +252,8 @@ export const MultiBusinessDashboard: React.FC = () => {
           className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-              <Bot className="h-5 w-5 text-purple-600" />
+            <div className="p-2 bg-brand-accent-100 dark:bg-brand-accent-900/20 rounded-lg">
+              <Bot className="h-5 w-5 text-brand-accent-600" />
             </div>
             <span className="flex items-center gap-1 text-sm text-green-600">
               <CheckCircle className="h-3 w-3" />
@@ -369,7 +353,7 @@ export const MultiBusinessDashboard: React.FC = () => {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg">
+                    <div className="p-3 bg-gradient-to-r from-brand-primary-500 to-brand-accent-500 rounded-lg">
                       <Building2 className="h-5 w-5 text-white" />
                     </div>
                     <div>
@@ -431,7 +415,7 @@ export const MultiBusinessDashboard: React.FC = () => {
 
                 <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex items-center gap-2">
-                    <Bot className="h-4 w-4 text-purple-600" />
+                    <Bot className="h-4 w-4 text-brand-accent-600" />
                     <span className="text-sm text-gray-600 dark:text-gray-400">
                       {business.metrics.aiAgents} AI Agents
                     </span>
@@ -453,8 +437,8 @@ export const MultiBusinessDashboard: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-              <Brain className="h-5 w-5 text-purple-600" />
+            <div className="p-2 bg-brand-accent-100 dark:bg-brand-accent-900/20 rounded-lg">
+              <Brain className="h-5 w-5 text-brand-accent-600" />
             </div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               Autonomous AI Agents

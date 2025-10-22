@@ -4,19 +4,16 @@
  */
 
 import { z } from 'zod';
-import {
-  AccountType,
+import { AccountType,
   AccountCategory,
   JournalEntryType,
-  JournalEntryStatus,
   ReportType,
   ReportDataSource,
   FilterOperator,
   FilterDataType,
   AggregationType,
   InvoiceStatus,
-  PaymentMethod
-} from './types';
+  PaymentMethod } from './types';
 
 // Enhanced security validation patterns
 const businessIdSchema = z.string()

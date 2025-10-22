@@ -1,10 +1,9 @@
 import { Logger } from '../shared/logger';
 import type { Context } from 'hono';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as ts from 'typescript';
-
-const logger = new Logger({ component: 'complexity-analyzer' });
+// TODO: Implement TypeScript analysis when needed
+// import * as fs from 'fs';
+// import * as path from 'path';
+// import * as ts from 'typescript';
 
 export interface ComplexityAnalyzerConfig {
   cyclomatic: {
@@ -187,8 +186,6 @@ export class ComplexityAnalyzer {
   }
 
   private async discoverSourceFiles(): Promise<void> {
-    const srcPath = path.join(process.cwd(), 'src');
-
     // In production, this would recursively find all .ts/.js files
     // For now, we'll simulate with sample data
     this.sourceFiles = [

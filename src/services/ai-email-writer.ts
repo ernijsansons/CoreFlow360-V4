@@ -1,10 +1,5 @@
-import type {
-  Lead,
-  Contact,
-  Company,
-  ChannelContent,
-  CallToAction
-} from '../types/crm';
+import type { Lead,
+  CallToAction } from '../types/crm';
 import type { Env } from '../types/env';
 
 export type EmailStage = 'cold' | 'follow_up' | 'breakup' | 'nurture' | 'reengagement';
@@ -225,6 +220,7 @@ export class AIEmailWriter {
   private async gatherIntelligence(lead: Lead): Promise<LeadIntelligence> {
     // Check cache first
     const cacheKey = `${lead.id}_${Date.now()}`;
+    void cacheKey;
     if (this.intelligenceCache.has(lead.id)) {
       const cached = this.intelligenceCache.get(lead.id);
       // Return cached if less than 1 hour old
@@ -412,6 +408,10 @@ export class AIEmailWriter {
 
   private async generateWithAI(prompt: string): Promise<any> {
     try {
+      if (!this.env.ANTHROPIC_API_KEY) {
+        throw new Error('ANTHROPIC_API_KEY not configured');
+      }
+
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -527,6 +527,7 @@ export class AIEmailWriter {
   private async generateOpeningVariations(originalBody: string, count: number): Promise<string[]> {
     const firstLine = originalBody.split('\n')[0];
     const restOfBody = originalBody.split('\n').slice(1).join('\n');
+    void restOfBody;
 
     const prompt = `
       Generate ${count} alternative opening lines for this email.
@@ -699,12 +700,14 @@ export class AIEmailWriter {
   private async fetchRecentActivity(lead: Lead): Promise<string | undefined> {
     // Check CRM for recent activities
     const db = this.env.DB_CRM;
+    if (!db) return undefined;
+
     const result = await db.prepare(`
       SELECT description FROM lead_activities
       WHERE lead_id = ?
       ORDER BY created_at DESC
       LIMIT 1
-    `).bind(lead.id).first();
+    `).bind(lead.id).first() as any;
 
     return result?.description as string | undefined;
   }
@@ -765,7 +768,7 @@ export class AIEmailWriter {
     return { personality, style };
   }
 
-  private async gatherCompanyIntelligence(companyId: string): Promise<{
+  private async gatherCompanyIntelligence(_companyId: string): Promise<{
     growthStage?: string;
     techStack?: string[];
     competitors?: string[];
@@ -781,6 +784,8 @@ export class AIEmailWriter {
 
   private async getEngagementHistory(leadId: string): Promise<any> {
     const db = this.env.DB_CRM;
+    if (!db) return { opens: 0, clicks: 0, replies: 0 };
+
     const result = await db.prepare(`
       SELECT
         COUNT(CASE WHEN opened_at IS NOT NULL THEN 1 END) as opens,
@@ -788,7 +793,7 @@ export class AIEmailWriter {
         COUNT(CASE WHEN replied_at IS NOT NULL THEN 1 END) as replies
       FROM channel_messages
       WHERE lead_id = ? AND channel = 'email'
-    `).bind(leadId).first();
+    `).bind(leadId).first() as any;
 
     return {
       opens: result?.opens || 0,
@@ -822,12 +827,14 @@ export class AIEmailWriter {
 
   private async checkRecentEngagement(leadId: string): Promise<boolean> {
     const db = this.env.DB_CRM;
+    if (!db) return false;
+
     const result = await db.prepare(`
       SELECT COUNT(*) as count
       FROM lead_activities
       WHERE lead_id = ?
         AND created_at >= datetime('now', '-7 days')
-    `).bind(leadId).first();
+    `).bind(leadId).first() as any;
 
     return (result?.count as number) > 0;
   }
@@ -875,7 +882,7 @@ export class AIEmailWriter {
   }
 
   // Public methods for email management
-  async selectBestVariation(variations: EmailVariation[], lead: Lead): Promise<EmailVariation> {
+  async selectBestVariation(variations: EmailVariation[], _lead: Lead): Promise<EmailVariation> {
     // In production, use ML model to predict best variation
     // For now, return random variation
     return variations[Math.floor(Math.random() * variations.length)];
@@ -888,6 +895,7 @@ export class AIEmailWriter {
   }): Promise<void> {
     // Update email performance metrics in database
     const db = this.env.DB_CRM;
+    if (!db) return;
 
     const updates = [];
     const values = [];

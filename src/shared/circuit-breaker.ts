@@ -370,6 +370,7 @@ export class CircuitBreakerRegistry {
    */
   resetAll(): void {
     for (const [name, breaker] of this.breakers) {
+    void name;
       breaker.reset();
     }
 

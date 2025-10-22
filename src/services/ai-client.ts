@@ -10,6 +10,9 @@ export class AIClient {
   private readonly REQUEST_TIMEOUT = 30000; // 30 seconds
 
   constructor(env: Env) {
+    if (!env.AI) {
+      throw new Error('AI binding not available in environment');
+    }
     this.ai = env.AI;
     this.env = env;
   }
@@ -74,23 +77,25 @@ export class AIClient {
   }): Promise<string> {
     return this.queueRequest(async () => {
       try {
-        const response = await this.ai.run('@cf/meta/llama-3.1-8b-instruct', {
+        const response = await this.ai.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast' as any, {
           prompt,
           max_tokens: Math.min(options?.maxTokens || 2048, 4096), // Limit token usage
           temperature: options?.temperature || 0.7,
           stream: options?.stream || false,
-        });
+        }) as any;
 
-        if (typeof response.response === 'string') {
-          return response.response;
+        if (typeof response === 'string') {
+          return response;
         }
 
-        // Handle different response formats
-        if (response.response && typeof response.response === 'object') {
+        if (response && typeof response === 'object' && 'response' in response) {
+          if (typeof response.response === 'string') {
+            return response.response;
+          }
           return JSON.stringify(response.response);
         }
 
-        return String(response.response || '');
+        return String(response || '');
 
       } catch (error: any) {
         throw new Error(`AI generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -145,7 +150,7 @@ ${prompt}
 
 Return only valid JSON without any explanation or markdown formatting.`;
 
-      const response = await this.generateText(schemaPrompt, options);
+      await this.generateText(schemaPrompt, options);
       const parsed = await this.parseJSONResponse(schemaPrompt);
       
       return parsed as T;
@@ -293,7 +298,7 @@ Return a JSON response with:
 
 Format as valid JSON.`;
 
-      const response = await this.generateText(analysisPrompt, options);
+      await this.generateText(analysisPrompt, options);
       return await this.parseJSONResponse(analysisPrompt);
 
     } catch (error: any) {
@@ -364,7 +369,7 @@ ${text}
 
 Return only a JSON array of numbers representing the embedding.`;
 
-      const response = await this.generateText(embeddingPrompt, {
+      await this.generateText(embeddingPrompt, {
         ...options,
         maxTokens: 1000,
         temperature: 0.1,
@@ -413,8 +418,8 @@ Return only a JSON array of numbers representing the embedding.`;
   }
 
   async generateImage(
-    prompt: string,
-    options?: {
+    _prompt: string,
+    _options?: {
       model?: string;
       size?: '256x256' | '512x512' | '1024x1024';
       quality?: 'standard' | 'hd';
@@ -456,7 +461,7 @@ Return a JSON response with:
 
 Format as valid JSON.`;
 
-      const response = await this.generateText(moderationPrompt, {
+      await this.generateText(moderationPrompt, {
         ...options,
         maxTokens: 500,
         temperature: 0.1,

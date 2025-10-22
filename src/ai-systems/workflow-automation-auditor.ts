@@ -40,8 +40,6 @@ import type {
   WorkflowRecommendation
 } from './quantum-ai-auditor';
 
-const logger = new Logger({ component: 'workflow-automation-auditor' });
-
 export interface WorkflowAnalysisConfig {
   correctness: {
     validateLogic: boolean;
@@ -493,7 +491,7 @@ export class WorkflowAutomationAuditor {
 
   private async analyzeCorrectness(
     workflows: WorkflowDefinition[],
-    config: WorkflowAnalysisConfig
+    _config: WorkflowAnalysisConfig
   ): Promise<CorrectnessAnalysis> {
     // Logic validation
     const logicValidation = await this.validateWorkflowLogic(workflows);
@@ -730,7 +728,7 @@ export class WorkflowAutomationAuditor {
   private async analyzeEfficiency(
     workflows: WorkflowDefinition[],
     analyses: WorkflowAnalysis[],
-    config: WorkflowAnalysisConfig
+    _config: WorkflowAnalysisConfig
   ): Promise<WorkflowEfficiencyAnalysis> {
     // Redundancy analysis
     const redundancyCheck = await this.analyzeRedundancy(workflows);
@@ -914,7 +912,7 @@ export class WorkflowAutomationAuditor {
 
   private async analyzeErrorHandling(
     workflows: WorkflowDefinition[],
-    analyses: WorkflowAnalysis[]
+    _analyses: WorkflowAnalysis[]
   ): Promise<ErrorHandlingAnalysis> {
     const unhandledErrors: UnhandledError[] = [];
     let totalSteps = 0;
@@ -1082,7 +1080,7 @@ export class WorkflowAutomationAuditor {
     correctness: CorrectnessAnalysis,
     efficiency: WorkflowEfficiencyAnalysis,
     reliability: WorkflowReliabilityAnalysis,
-    analyses: WorkflowAnalysis[]
+    _analyses: WorkflowAnalysis[]
   ): Promise<WorkflowRecommendation[]> {
     const recommendations: WorkflowRecommendation[] = [];
 
@@ -1185,12 +1183,12 @@ export class WorkflowAutomationAuditor {
     return workflow.triggers.length > 0 && step.dependencies.length === 0;
   }
 
-  private findUnreachableSteps(workflow: WorkflowDefinition): string[] {
+  private findUnreachableSteps(_workflow: WorkflowDefinition): string[] {
     // Simplified implementation - in real scenario would perform graph traversal
     return [];
   }
 
-  private findResourceConflicts(workflow: WorkflowDefinition): string[] {
+  private findResourceConflicts(_workflow: WorkflowDefinition): string[] {
     // Simplified implementation - would check for resource contention
     return [];
   }

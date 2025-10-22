@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { financeService } from '@/lib/api/services/finance.service'
 import { useToast } from '@/hooks/use-toast'
+import type { InvoiceUpdateData, PaymentIntentData, ExportParams } from '@/types/finance'
 
 // Query Keys
 export const financeKeys = {
@@ -73,7 +74,7 @@ export function useUpdateInvoice() {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: InvoiceUpdateData }) =>
       financeService.updateInvoice(id, data),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: financeKeys.invoice(variables.id) })
@@ -293,7 +294,7 @@ export function useCreateJournalEntry() {
 
   return useMutation({
     mutationFn: financeService.createJournalEntry,
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: financeKeys.journalEntries() })
       queryClient.invalidateQueries({ queryKey: financeKeys.accounts() })
       toast({
@@ -329,7 +330,7 @@ export function useFinancialReport(
   })
 }
 
-export function useCustomReport(reportId: string, params?: any) {
+export function useCustomReport(reportId: string, params?: Record<string, unknown>) {
   return useQuery({
     queryKey: [...financeKeys.reports(), 'custom', reportId, params],
     queryFn: () => financeService.getCustomReport(reportId, params),
@@ -379,7 +380,7 @@ export function useCreateBudget() {
 
   return useMutation({
     mutationFn: financeService.createBudget,
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: financeKeys.budgets() })
       toast({
         title: 'Budget created',
@@ -415,7 +416,7 @@ export function useCreateSubscription() {
 
   return useMutation({
     mutationFn: financeService.createSubscription,
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: financeKeys.subscriptions() })
       toast({
         title: 'Subscription created',
@@ -440,7 +441,7 @@ export function useCancelSubscription() {
   return useMutation({
     mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       financeService.cancelSubscription(id, reason),
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: financeKeys.subscriptions() })
       toast({
         title: 'Subscription canceled',
@@ -463,11 +464,7 @@ export function useCreatePaymentIntent() {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: ({ amount, currency, metadata }: {
-      amount: number
-      currency: string
-      metadata?: any
-    }) => financeService.createPaymentIntent({ amount, currency, metadata }),
+    mutationFn: (data: PaymentIntentData) => financeService.createPaymentIntent(data),
     onError: (error) => {
       toast({
         title: 'Payment error',
@@ -507,10 +504,7 @@ export function useExportInvoices() {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: ({ format, filters }: {
-      format: 'csv' | 'excel' | 'pdf'
-      filters?: any
-    }) => financeService.exportInvoices(format, filters),
+    mutationFn: ({ format, filters }: ExportParams) => financeService.exportInvoices(format, filters),
     onSuccess: (blob, variables) => {
       // Create download link
       const url = window.URL.createObjectURL(blob)

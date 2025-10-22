@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { AlertTriangle, RefreshCw, Home, Copy, CheckCircle2, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,7 +20,6 @@ export const Route = createFileRoute('/error/error')({
 })
 
 function ErrorPage({ error, statusCode = 500, reset }: ErrorPageProps) {
-  const router = useRouter()
   const [copied, setCopied] = React.useState(false)
   const [reportSent, setReportSent] = React.useState(false)
   const [isReporting, setIsReporting] = React.useState(false)

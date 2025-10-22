@@ -71,7 +71,7 @@ export function ProfileForm() {
     }
   })
 
-  const onSubmit = async (data: ProfileFormData) => {
+  const onSubmit = async () => {
     setIsLoading(true)
     setError(null)
     setSuccess(false)

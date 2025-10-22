@@ -30,12 +30,12 @@ export function RevenueChart({ detailed = false }: RevenueChartProps) {
     }
     
     if (period === 'weekly') {
-      return ['Week 1', 'Week 2', 'Week 3', 'Week 4'].map((week, i) => ({
+      return ['Week 1', 'Week 2', 'Week 3', 'Week 4'].map((week) => ({
         label: week,
         value: Math.round(20000 + Math.random() * 5000)
       }))
     }
-    
+
     return months.slice(0, detailed ? 12 : 6).map((month, i) => ({
       label: month,
       value: baseValues[i]

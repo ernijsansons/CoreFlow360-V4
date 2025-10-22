@@ -3,16 +3,11 @@
  * Provides unified interface for different AI services
  */
 
-import {
-  AIProvider,
-  StreamStartData,
-  TokenData,
+import { AIProvider,
   FunctionCallData,
-  FunctionResultData,
   StreamEndData,
   ErrorData,
-  SSEStreamConfig
-} from './types';
+  SSEStreamConfig } from './types';
 import { SSEStreamController } from './stream-controller';
 import { Logger } from '../../shared/logger';
 import { SecurityError, InputValidator } from '../../shared/security-utils';
@@ -127,7 +122,7 @@ export class AIStreamAdapter {
     const abortController = new AbortController();
 
     try {
-      const aiStream = await provider.stream({
+      await provider.stream({
         prompt: validatedPrompt,
         model: validatedModel,
         options: {
@@ -149,7 +144,7 @@ export class AIStreamAdapter {
             correlationId: request.correlationId
           });
         },
-        onComplete: async (result: StreamEndData) => {
+        onComplete: async (_result: StreamEndData) => {
           await controller.endStream('complete');
         },
         onError: async (error: ErrorData) => {

@@ -3,7 +3,7 @@
  * Advanced migration system for D1 database with multiple deployment strategies
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 
@@ -879,7 +879,7 @@ export class MigrationOrchestrator {
     return this.database; // Simplified
   }
 
-  private async copyDatabaseToGreen(greenDatabase: DatabaseConnection): Promise<void> {
+  private async copyDatabaseToGreen(_greenDatabase: DatabaseConnection): Promise<void> {
     // Implementation for copying database to green instance
   }
 
@@ -887,16 +887,16 @@ export class MigrationOrchestrator {
     await greenDatabase.execute(migration.upSql);
   }
 
-  private async verifyMigrationOnGreen(migration: Migration, greenDatabase: DatabaseConnection): Promise<VerificationResult> {
+  private async verifyMigrationOnGreen(migration: Migration, _greenDatabase: DatabaseConnection): Promise<VerificationResult> {
     return await this.validator.verifyMigration(migration);
   }
 
-  private async getAffectedRowCount(migration: Migration, database?: DatabaseConnection): Promise<number> {
+  private async getAffectedRowCount(_migration: Migration, _database?: DatabaseConnection): Promise<number> {
     // Count affected rows for the migration
     return 0;
   }
 
-  private async measureMigrationPerformance(migration: Migration, database?: DatabaseConnection): Promise<MigrationPerformance> {
+  private async measureMigrationPerformance(_migration: Migration, _database?: DatabaseConnection): Promise<MigrationPerformance> {
     return {
       executionTime: 1000,
       lockTime: 0,
@@ -907,7 +907,7 @@ export class MigrationOrchestrator {
     };
   }
 
-  private async switchToGreenDatabase(greenDatabase: DatabaseConnection): Promise<void> {
+  private async switchToGreenDatabase(_greenDatabase: DatabaseConnection): Promise<void> {
     // Switch application traffic to green database
   }
 
@@ -935,7 +935,7 @@ export class MigrationOrchestrator {
     return await this.validator.verifyDataConsistency(migration, shadowTables);
   }
 
-  private async switchToShadowTables(migration: Migration, shadowTables: ShadowTable[]): Promise<void> {
+  private async switchToShadowTables(_migration: Migration, _shadowTables: ShadowTable[]): Promise<void> {
     // Switch application to use shadow tables
   }
 
@@ -985,7 +985,7 @@ export class MigrationOrchestrator {
     return stages;
   }
 
-  private async executeMigrationStage(stage: Migration[], correlationId: string): Promise<MigrationResult[]> {
+  private async executeMigrationStage(stage: Migration[], _correlationId: string): Promise<MigrationResult[]> {
     const results: MigrationResult[] = [];
 
     for (const migration of stage) {
@@ -1064,7 +1064,7 @@ export class MigrationOrchestrator {
     };
   }
 
-  private async verifyStage(stage: Migration[]): Promise<StageVerificationResult> {
+  private async verifyStage(_stage: Migration[]): Promise<StageVerificationResult> {
     // Verify all migrations in the stage completed successfully
     return {
       success: true,
@@ -1092,17 +1092,17 @@ export class MigrationOrchestrator {
 class ShadowTableManager {
   constructor(private database: DatabaseConnection) {}
 
-  async createShadowTables(migration: Migration): Promise<ShadowTable[]> {
+  async createShadowTables(_migration: Migration): Promise<ShadowTable[]> {
     // Implementation for creating shadow tables
     return [];
   }
 
-  async createShadowTablesWithNewSchema(migration: Migration): Promise<ShadowTable[]> {
+  async createShadowTablesWithNewSchema(_migration: Migration): Promise<ShadowTable[]> {
     // Implementation for creating shadow tables with new schema
     return [];
   }
 
-  async copyDataInBatches(options: CopyOptions): Promise<CopyResult> {
+  async copyDataInBatches(_options: CopyOptions): Promise<CopyResult> {
     // Implementation for copying data in batches
     return {
       totalRows: 0,
@@ -1114,11 +1114,11 @@ class ShadowTableManager {
     };
   }
 
-  async populateShadowTables(migration: Migration, shadowTables: ShadowTable[]): Promise<void> {
+  async populateShadowTables(_migration: Migration, _shadowTables: ShadowTable[]): Promise<void> {
     // Implementation for populating shadow tables
   }
 
-  async promoteShadowTables(migration: Migration, shadowTables: ShadowTable[]): Promise<void> {
+  async promoteShadowTables(_migration: Migration, _shadowTables: ShadowTable[]): Promise<void> {
     // Implementation for promoting shadow tables
   }
 }
@@ -1127,12 +1127,12 @@ class ShadowTableManager {
 class TriggerManager {
   constructor(private database: DatabaseConnection) {}
 
-  async setupDualWriteTriggers(migration: Migration, shadowTables: ShadowTable[]): Promise<Trigger[]> {
+  async setupDualWriteTriggers(_migration: Migration, _shadowTables: ShadowTable[]): Promise<Trigger[]> {
     // Implementation for setting up dual-write triggers
     return [];
   }
 
-  async setupDataSync(migration: Migration, shadowTables: ShadowTable[]): Promise<Trigger[]> {
+  async setupDataSync(_migration: Migration, _shadowTables: ShadowTable[]): Promise<Trigger[]> {
     // Implementation for setting up data sync triggers
     return [];
   }
@@ -1141,7 +1141,7 @@ class TriggerManager {
 class MigrationValidator {
   constructor(private database: DatabaseConnection) {}
 
-  async validate(migration: Migration): Promise<MigrationValidationResult> {
+  async validate(_migration: Migration): Promise<MigrationValidationResult> {
     return {
       valid: true,
       errors: [],
@@ -1149,7 +1149,7 @@ class MigrationValidator {
     };
   }
 
-  async verifyDataConsistency(migration: Migration, shadowTables: ShadowTable[]): Promise<ConsistencyResult> {
+  async verifyDataConsistency(_migration: Migration, _shadowTables: ShadowTable[]): Promise<ConsistencyResult> {
     return {
       consistent: true,
       issues: [],
@@ -1157,7 +1157,7 @@ class MigrationValidator {
     };
   }
 
-  async verifyMigration(migration: Migration): Promise<VerificationResult> {
+  async verifyMigration(_migration: Migration): Promise<VerificationResult> {
     return {
       dataIntegrity: true,
       schemaConsistency: true,
@@ -1170,7 +1170,7 @@ class MigrationValidator {
 }
 
 class MigrationAnalyzer {
-  async analyze(migrations: Migration[], options: AnalysisOptions): Promise<MigrationAnalysis> {
+  async analyze(_migrations: Migration[], _options: AnalysisOptions): Promise<MigrationAnalysis> {
     // AI-powered analysis of migrations
     return {
       strategy: 'ONLINE',

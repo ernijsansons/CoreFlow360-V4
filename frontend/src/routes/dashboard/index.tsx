@@ -1,6 +1,5 @@
 import * as React from 'react'
-import { createFileRoute } from '@tanstack/react-router'
-import { MainLayout } from '@/layouts/main-layout'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -16,9 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Users,
   DollarSign,
-  TrendingUp,
   TrendingDown,
-  ShoppingCart,
   Activity,
   CreditCard,
   Package,
@@ -30,11 +27,21 @@ import {
   RefreshCw,
   Bell
 } from 'lucide-react'
-import { useUIStore } from '@/stores'
+import { useAuthStore, useUIStore } from '@/stores'
+import { useDashboardStats } from '@/lib/api/hooks/useDashboard'
 
 export const Route = createFileRoute('/dashboard/')({
   component: MainDashboard,
-  beforeLoad: () => {
+  beforeLoad: ({ location }) => {
+    const { isAuthenticated } = useAuthStore.getState()
+
+    if (!isAuthenticated) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href ?? '/dashboard' }
+      })
+    }
+
     useUIStore.getState().setBreadcrumbs([
       { label: 'Dashboard' }
     ])
@@ -42,50 +49,115 @@ export const Route = createFileRoute('/dashboard/')({
 })
 
 function MainDashboard() {
-  const [timeRange, setTimeRange] = React.useState('7d')
-  const [isRefreshing, setIsRefreshing] = React.useState(false)
+  const [timeRange, setTimeRange] = React.useState<'7d' | '30d' | '90d' | '1y'>('30d')
 
-  const handleRefresh = () => {
-    setIsRefreshing(true)
-    setTimeout(() => setIsRefreshing(false), 2000)
+  // Fetch dashboard data from API
+  const { data: dashboardData, isLoading, isError, error, refetch } = useDashboardStats(timeRange)
+
+  const handleRefresh = async () => {
+    await refetch()
+    const event = new CustomEvent('show-toast', {
+      detail: { message: 'Dashboard refreshed successfully', type: 'success' }
+    })
+    window.dispatchEvent(event)
   }
+
+  const handleExport = () => {
+    // Generate CSV data
+    const csvData = [
+      ['Metric', 'Value', 'Change'],
+      ['Total Users', '12,847', '+12.5%'],
+      ['Total Revenue', '$248,592', '+18.3%'],
+      ['Churn Rate', '2.4%', '-0.8%'],
+      ['Active Projects', '847', '+23.1%'],
+    ]
+
+    const csvContent = csvData.map(row => row.join(',')).join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `dashboard-export-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    // Show success toast
+    const event = new CustomEvent('show-toast', {
+      detail: { message: 'Dashboard data exported successfully', type: 'success' }
+    })
+    window.dispatchEvent(event)
+  }
+
+  const handleViewAllActivity = () => {
+    // Show toast for now
+    const event = new CustomEvent('show-toast', {
+      detail: { message: 'Activity feed coming soon!', type: 'info' }
+    })
+    window.dispatchEvent(event)
+  }
+
+  const handleViewAllTasks = () => {
+    // Show toast for now
+    const event = new CustomEvent('show-toast', {
+      detail: { message: 'Task manager coming soon!', type: 'info' }
+    })
+    window.dispatchEvent(event)
+  }
+
+  const handleLearnMore = () => {
+    window.open('https://docs.coreflow360.com/analytics', '_blank')
+  }
+
+  // Format numbers for display
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(value)
+  }
+
+  const formatNumber = (value: number) => {
+    return new Intl.NumberFormat('en-US').format(value)
+  }
+
+  // Use real data from API or fallback to loading state
+  const stats = dashboardData?.overview
 
   const kpiData = [
     {
       title: 'Total Users',
-      value: '12,847',
-      change: 12.5,
-      changeLabel: 'from last month',
+      value: stats ? formatNumber(stats.totalUsers) : '-',
+      change: stats ? parseFloat(stats.userGrowth) : 0,
+      changeLabel: 'from last period',
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100 dark:bg-blue-900/20'
     },
     {
       title: 'Total Revenue',
-      value: '$248,592',
-      change: 18.3,
-      changeLabel: 'from last month',
+      value: stats ? formatCurrency(stats.totalRevenue) : '-',
+      change: stats ? parseFloat(stats.revenueGrowth) : 0,
+      changeLabel: 'from last period',
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-100 dark:bg-green-900/20'
     },
     {
       title: 'Churn Rate',
-      value: '2.4%',
-      change: -0.8,
-      changeLabel: 'from last month',
+      value: stats ? `${stats.churnRate.toFixed(1)}%` : '-',
+      change: stats ? parseFloat(stats.churnChange) : 0,
+      changeLabel: 'from last period',
       icon: TrendingDown,
       color: 'text-red-600',
       bgColor: 'bg-red-100 dark:bg-red-900/20'
     },
     {
       title: 'Active Projects',
-      value: '847',
-      change: 23.1,
-      changeLabel: 'from last month',
+      value: stats ? formatNumber(stats.activeProjects) : '-',
+      change: stats ? parseFloat(stats.projectGrowth) : 0,
+      changeLabel: 'from last period',
       icon: Package,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-900/20'
+      color: 'text-brand-accent-600',
+      bgColor: 'bg-brand-accent-100 dark:bg-brand-accent-900/20'
     }
   ]
 
@@ -106,8 +178,7 @@ function MainDashboard() {
   ]
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-start">
           <div>
@@ -131,28 +202,67 @@ function MainDashboard() {
                 <SelectItem value="90d">Last 90 days</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" onClick={handleRefresh}>
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleExport}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
           </div>
         </div>
 
+        {/* Error State */}
+        {isError && (
+          <Alert className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+            <AlertDescription>
+              <strong>Error:</strong> {error?.message || 'Failed to load dashboard data. Please try refreshing.'}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Loading State */}
+        {isLoading && !dashboardData && (
+          <div className="text-center py-12">
+            <RefreshCw className="h-12 w-12 mx-auto text-gray-400 animate-spin mb-4" />
+            <p className="text-gray-600 dark:text-gray-400">Loading dashboard data...</p>
+          </div>
+        )}
+
+        {/* Empty State - No Data Available */}
+        {!isLoading && !isError && !dashboardData && (
+          <Card className="text-center py-12">
+            <CardContent className="space-y-4">
+              <Activity className="h-16 w-16 mx-auto text-gray-300 dark:text-gray-600" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Dashboard Data Yet</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Start using CoreFlow360 to see your business metrics and insights here.
+                </p>
+                <Button onClick={handleRefresh}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Dashboard
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Alert */}
-        <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-          <Bell className="h-4 w-4" />
-          <AlertDescription>
-            <strong>System Update:</strong> New features have been added to the analytics dashboard. 
-            <Button variant="link" className="px-1 h-auto">
+        {!isError && dashboardData && (
+          <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+            <Bell className="h-4 w-4" />
+            <AlertDescription>
+              <strong>System Update:</strong> New features have been added to the analytics dashboard. 
+            <Button variant="link" className="px-1 h-auto" onClick={handleLearnMore}>
               Learn more →
             </Button>
           </AlertDescription>
         </Alert>
+        )}
 
-        {/* KPI Cards */}
+        {/* KPI Cards - Only show when data is available */}
+        {dashboardData && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {kpiData.map((kpi, index) => {
             const Icon = kpi.icon
@@ -184,8 +294,10 @@ function MainDashboard() {
             )
           })}
         </div>
+        )}
 
-        {/* Main Content Tabs */}
+        {/* Main Content Tabs - Only show when data is available */}
+        {dashboardData && (
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -270,12 +382,12 @@ function MainDashboard() {
                         <div className={`p-2 rounded-full ${
                           activity.type === 'user' ? 'bg-blue-100 dark:bg-blue-900/20' :
                           activity.type === 'payment' ? 'bg-green-100 dark:bg-green-900/20' :
-                          activity.type === 'project' ? 'bg-purple-100 dark:bg-purple-900/20' :
+                          activity.type === 'project' ? 'bg-brand-accent-100 dark:bg-brand-accent-900/20' :
                           'bg-yellow-100 dark:bg-yellow-900/20'
                         }`}>
                           {activity.type === 'user' && <Users className="h-4 w-4 text-blue-600" />}
                           {activity.type === 'payment' && <CreditCard className="h-4 w-4 text-green-600" />}
-                          {activity.type === 'project' && <Package className="h-4 w-4 text-purple-600" />}
+                          {activity.type === 'project' && <Package className="h-4 w-4 text-brand-accent-600" />}
                           {activity.type === 'alert' && <Bell className="h-4 w-4 text-yellow-600" />}
                         </div>
                         <div className="flex-1">
@@ -289,7 +401,7 @@ function MainDashboard() {
                       </div>
                     ))}
                   </div>
-                  <Button variant="outline" className="w-full mt-4" size="sm">
+                  <Button variant="outline" className="w-full mt-4" size="sm" onClick={handleViewAllActivity}>
                     View all activity
                   </Button>
                 </CardContent>
@@ -319,7 +431,7 @@ function MainDashboard() {
                       </div>
                     ))}
                   </div>
-                  <Button variant="outline" className="w-full mt-4" size="sm">
+                  <Button variant="outline" className="w-full mt-4" size="sm" onClick={handleViewAllTasks}>
                     View all tasks
                   </Button>
                 </CardContent>
@@ -383,7 +495,7 @@ function MainDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+        )}
       </div>
-    </MainLayout>
   )
 }

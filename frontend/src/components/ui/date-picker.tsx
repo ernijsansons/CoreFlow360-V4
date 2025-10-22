@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
@@ -8,7 +9,7 @@ import {
   PopoverTrigger
 } from '@/@/components/ui/popover'
 import { CalendarIcon, X } from 'lucide-react'
-import { format, isValid, parse } from 'date-fns'
+import { format, isValid } from 'date-fns'
 
 export interface DatePickerProps {
   value?: Date
@@ -38,15 +39,6 @@ export function DatePicker({
   size = 'md'
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState('')
-
-  React.useEffect(() => {
-    if (value && isValid(value)) {
-      setInputValue(format(value, dateFormat))
-    } else {
-      setInputValue('')
-    }
-  }, [value, dateFormat])
 
   const handleSelect = (date: Date | undefined) => {
     onChange?.(date)
@@ -56,18 +48,6 @@ export function DatePicker({
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation()
     onChange?.(undefined)
-    setInputValue('')
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    setInputValue(val)
-    
-    // Try to parse the input as a date
-    const parsed = parse(val, dateFormat, new Date())
-    if (isValid(parsed)) {
-      onChange?.(parsed)
-    }
   }
 
   const sizeClasses = {

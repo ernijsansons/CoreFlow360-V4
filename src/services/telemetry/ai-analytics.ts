@@ -1,4 +1,4 @@
-import { Alert, AlertRule, LogEntry, Metric, AnalyticsData } from '../../types/telemetry';
+import { Alert, AnalyticsData } from '../../types/telemetry';
 import { TelemetryCollector } from './collector';
 
 interface AnomalyDetectionConfig {
@@ -139,7 +139,7 @@ export class AIAlertEngine {
     const errorStats = this.calculateStats(errors);
     const costStats = this.calculateStats(costs);
 
-    metrics.forEach((metric, index) => {
+    metrics.forEach((metric, _index) => {
       const latency = metric.metrics.golden.latency.p95;
       const errorRate = metric.metrics.golden.errors.errorRate;
       const cost = metric.metrics.ai.costCents;
@@ -254,7 +254,7 @@ export class AIAlertEngine {
       });
 
       const result = await response.json();
-      return result.anomalies || [];
+      return (result as any).anomalies || [];
     } catch (error: any) {
       return this.detectStatisticalAnomalies(metrics, config);
     }
@@ -333,7 +333,7 @@ export class AIAlertEngine {
 
   private async performRCA(
     metrics: AnalyticsData[],
-    config: RootCauseConfig
+    _config: RootCauseConfig
   ): Promise<RootCause[]> {
     const rootCauses: RootCause[] = [];
 

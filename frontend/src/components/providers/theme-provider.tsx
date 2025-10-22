@@ -28,7 +28,6 @@ export interface ThemeProviderProps {
 export function ThemeProvider({
   children,
   defaultTheme: defaultThemeProp = defaultTheme,
-  storageKey = 'coreflow360-theme',
   enableSystem = true,
   disableTransitionOnChange = false,
   attribute = 'data-theme',
@@ -231,7 +230,7 @@ export function ThemeToggle({
   variant = 'icon',
   showTooltip = true
 }: ThemeToggleProps) {
-  const { theme, toggleTheme, resolvedTheme } = React.useContext(ThemeContext)!
+  const { toggleTheme, resolvedTheme } = React.useContext(ThemeContext)!
 
   const sizeClasses = {
     sm: 'h-8 w-8 text-xs',

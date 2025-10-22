@@ -8,7 +8,10 @@
  */
 
 import { SecurityError } from './errors/app-error';
-import { JWTSecretManager } from './security/jwt-secret-manager';
+import { JWTSecretManager } from './security/jwt-secret-manager';import { Logger } from "./logger";
+const logger = new Logger({ component: "shared-environment-validator" });
+
+
 
 export interface RequiredSecrets {
   JWT_SECRET: string;
@@ -278,7 +281,7 @@ export class EnvironmentValidator {
     const required = this.validateSecrets(env);
     const optional = this.validateOptionalSecrets(env);
 
-    console.log('✅ Environment validation passed - JWT Authentication Bypass vulnerability mitigated');
+    logger.info('✅ Environment validation passed - JWT Authentication Bypass vulnerability mitigated');
     return { required, optional };
   }
 
@@ -321,7 +324,7 @@ export class EnvironmentValidator {
 
     // Log warnings if any
     if (validation.warnings.length > 0) {
-      console.warn('JWT Secret Warnings:', validation.warnings.join(', '));
+      logger.warn('JWT Secret Warnings:', validation.warnings.join(', '));
     }
   }
 }

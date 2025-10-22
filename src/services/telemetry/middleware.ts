@@ -68,8 +68,13 @@ export class ObservabilityMiddleware {
       try {
         // Start tracing
         if (this.config.enableTracing) {
-          const context = this.tracing.extractContext(Object.fromEntries(request.headers.entries()));
-          span = this.tracing.startSpan(`${request.method} ${url.pathname}`, context);
+          // Convert Headers to plain object for tracing context
+          const headersObj: Record<string, string> = {};
+          request.headers.forEach((value, key) => {
+            headersObj[key] = value;
+          });
+          const context = this.tracing.extractContext(headersObj);
+          span = this.tracing.startSpan(`${request.method} ${url.pathname}`, context || undefined);
 
           this.tracing.setTag(span, 'http.method', request.method);
           this.tracing.setTag(span, 'http.url', request.url);
@@ -534,6 +539,7 @@ export class DatabaseObservabilityMiddleware {
   ): Promise<T> {
     const startTime = Date.now();
     const requestId = crypto.randomUUID();
+    void requestId;
 
     try {
       const result = await fn();

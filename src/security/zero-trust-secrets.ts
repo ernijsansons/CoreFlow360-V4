@@ -3,7 +3,7 @@
  * Enterprise-grade secrets handling with zero-trust principles
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 
@@ -667,7 +667,7 @@ class ZeroTrustSecretsManager {
     return Math.min(risk, 1.0);
   }
 
-  private async getUserRole(userId: string, businessId: string): Promise<string> {
+  private async getUserRole(_userId: string, _businessId: string): Promise<string> {
     // Simplified - would integrate with actual RBAC system
     return 'user';
   }
@@ -689,7 +689,7 @@ class ZeroTrustSecretsManager {
     return null;
   }
 
-  private async checkRateLimit(userId: string, serviceId: string, secretId: string): Promise<string | null> {
+  private async checkRateLimit(_userId: string, _serviceId: string, _secretId: string): Promise<string | null> {
     // Simplified rate limiting
     return null;
   }
@@ -722,6 +722,7 @@ class ZeroTrustSecretsManager {
     const secrets: SecretMetadata[] = [];
 
     for (const [_, encryptedSecret] of this.secretStore) {
+    void _;
       if (encryptedSecret.metadata.businessId === businessId) {
         // Check if user has access to list this secret
         if (encryptedSecret.metadata.accessPolicy.allowedRoles.includes(userRole)) {

@@ -1,21 +1,13 @@
 // Simple Cloudflare Worker without external dependencies
-export interface Env {
-  DB?: D1Database;
-  KV_CACHE?: KVNamespace;
-  KV_SESSION?: KVNamespace;
-  KV_AUTH?: KVNamespace;
-  KV_RATE_LIMIT_METRICS?: KVNamespace;
-  R2_DOCUMENTS?: R2Bucket;
-  R2_BACKUPS?: R2Bucket;
-  AI?: any;
-  RATE_LIMITER_DO?: DurableObjectNamespace;
-  JWT_SECRET?: string;
-  ANTHROPIC_API_KEY?: string;
-  EMAIL_API_KEY?: string;
-  API_BASE_URL?: string;
-  ENVIRONMENT?: string;
-  ALLOWED_ORIGINS?: string;
-}
+
+// Use canonical Env type
+import type { Env } from './types/env';import { Logger } from "./shared/logger";
+const logger = new Logger({ component: "indexsimple" });
+
+
+
+// Re-export canonical type
+export type { Env } from './types/env';
 
 // Export Durable Object class
 export class AdvancedRateLimiterDO {
@@ -126,7 +118,7 @@ const routes: Record<string, (request: Request, env: Env) => Response | Promise<
 
 // Main fetch handler
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -178,7 +170,7 @@ export default {
       });
 
     } catch (error: any) {
-      console.error('Worker error:', error);
+      logger.error('Worker error:', error);
       return new Response(JSON.stringify({
         error: 'Internal Server Error',
         message: error.message || 'An unexpected error occurred',

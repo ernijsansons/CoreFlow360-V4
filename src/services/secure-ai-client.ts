@@ -6,14 +6,15 @@
 
 import type { Env } from '../types/env';
 
-interface AIResponse {
-  response: string;
-  confidence?: number;
-  usage?: {
-    promptTokens: number;
-    completionTokens: number;
-  };
-}
+// TODO: Use AIResponse interface when implementing responses
+// interface AIResponse {
+//   response: string;
+//   confidence?: number;
+//   usage?: {
+//     promptTokens: number;
+//     completionTokens: number;
+//   };
+// }
 
 interface AIRequest {
   prompt: string;
@@ -57,7 +58,7 @@ export class SecureAIClient {
    * Execute AI call with Cloudflare Workers AI
    */
   private async executeAICall(request: AIRequest): Promise<string> {
-    const { prompt, temperature = 0.4, maxTokens = 2000 } = request;
+    const { temperature = 0.4, maxTokens = 2000 } = request;
 
     // Use Cloudflare AI (no API key needed)
     if (this.env.AI) {
@@ -254,8 +255,8 @@ export class SecureAIClient {
    * Specialized method for CRM analytics
    */
   async analyzeCRMData(data: any, analysisType: string): Promise<any> {
-    const systemPrompt = `You are a CRM analytics expert. Analyze the provided data and return insights in JSON format.
-    Focus on actionable recommendations and specific metrics.`;
+    // const _systemPrompt = `You are a CRM analytics expert. Analyze the provided data and return insights in JSON format.
+    // Focus on actionable recommendations and specific metrics.`;
 
     const prompt = `
       Analysis Type: ${analysisType}

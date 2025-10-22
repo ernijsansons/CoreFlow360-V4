@@ -1,7 +1,10 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 import type { Entity, EntitySwitcherItem } from '@/types'
+import apiClient from '@/lib/api/client'
+import { useAuthStore } from './auth-store'
+import { createSafeJSONStorage } from '@/lib/safe-storage'
 
 interface EntityStore {
   currentEntity: Entity | null
@@ -64,22 +67,14 @@ export const useEntityStore = create<EntityStore>()(
           setError(null)
 
           // Call API to switch entity and get full entity data
-          const response = await fetch(`/api/entities/${entityId}/switch`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${useAuthStore.getState().token}`,
-              'Content-Type': 'application/json',
-            },
-          })
+          const response = await apiClient.post<Entity>(`/api/entities/${entityId}/switch`)
 
-          if (!response.ok) {
-            throw new Error('Failed to switch entity')
+          if (!response.success || !response.data) {
+            throw new Error(response.error?.message || 'Failed to switch entity')
           }
 
-          const { data: fullEntity } = await response.json()
-
           set((state) => {
-            state.currentEntity = fullEntity
+            state.currentEntity = response.data!
             state.isLoading = false
           })
 
@@ -102,20 +97,14 @@ export const useEntityStore = create<EntityStore>()(
           setLoading(true)
           setError(null)
 
-          const response = await fetch('/api/entities', {
-            headers: {
-              'Authorization': `Bearer ${useAuthStore.getState().token}`,
-            },
-          })
+          const response = await apiClient.get<EntitySwitcherItem[]>('/api/entities')
 
-          if (!response.ok) {
-            throw new Error('Failed to load entities')
+          if (!response.success || !response.data) {
+            throw new Error(response.error?.message || 'Failed to load entities')
           }
 
-          const { data: entities } = await response.json()
-
           set((state) => {
-            state.entities = entities
+            state.entities = response.data!
             state.isLoading = false
           })
         } catch (error) {
@@ -184,7 +173,7 @@ export const useEntityStore = create<EntityStore>()(
     })),
     {
       name: 'entity-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createSafeJSONStorage(),
       partialize: (state) => ({
         currentEntity: state.currentEntity,
         recentEntities: state.recentEntities,

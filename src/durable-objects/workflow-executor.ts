@@ -7,7 +7,10 @@
 import type { Env } from '../types/env';
 import { getAIClient } from '../services/secure-ai-client';
 import { validateInput } from '../utils/validation-schemas';
-import { z } from 'zod';
+import { z } from 'zod';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "durable-objects-workflow-executor" });
+
+
 
 // =====================================================
 // TYPES AND INTERFACES
@@ -918,7 +921,7 @@ export class WorkflowExecutor {
   }
 
   // WebSocket handling
-  private async handleWebSocket(request: Request): Promise<Response> {
+  private async handleWebSocket(_request: Request): Promise<Response> {
     const { 0: client, 1: server } = new WebSocketPair();
 
     server.accept();
@@ -1095,7 +1098,8 @@ export class WorkflowExecutor {
   }
 
   private async saveExecutionResults(context: ExecutionContext, results: any): Promise<void> {
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+    if (!db) throw new Error('Database not configured');
     
     await db.prepare(`
       INSERT OR REPLACE INTO workflow_executions (
@@ -1158,7 +1162,8 @@ export class WorkflowExecutor {
 
   private async gatherExecutionMetrics(): Promise<any> {
     // Gather historical execution metrics for AI adaptation
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+    if (!db) throw new Error('Database not configured');
     
     const metrics = await db.prepare(`
       SELECT 
@@ -1236,8 +1241,9 @@ export class WorkflowExecutor {
     }, delay);
   }
 
-  private async createApprovalChain(node: ExecutionNode, context: ExecutionContext, inputData: WorkflowInputData): Promise<any> {
-    const db = this.env.DB_CRM;
+  private async createApprovalChain(node: ExecutionNode, context: ExecutionContext, _inputData: WorkflowInputData): Promise<any> {
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+    if (!db) throw new Error('Database not configured');
     
     const approvalChain = {
       id: `approval_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -1267,7 +1273,7 @@ export class WorkflowExecutor {
   private async sendApprovalRequests(approvalChain: any, config: any): Promise<void> {
     // Send approval requests to designated approvers
     // This would integrate with notification systems
-    console.log(`Sending approval requests for chain ${approvalChain.id} to ${config.approvers.join(', ')}`);
+    logger.info(`Sending approval requests for chain ${approvalChain.id} to ${config.approvers.join(', ')}`);
   }
 
   private async executeHttpRequest(config: any, inputData: WorkflowInputData): Promise<WorkflowOutputData> {
@@ -1281,26 +1287,27 @@ export class WorkflowExecutor {
     return await response.json();
   }
 
-  private async executeDatabaseQuery(config: any, inputData: WorkflowInputData, context: ExecutionContext): Promise<WorkflowOutputData> {
+  private async executeDatabaseQuery(config: any, inputData: WorkflowInputData, _context: ExecutionContext): Promise<WorkflowOutputData> {
     // Execute database query integration
-    const db = this.env.DB_CRM;
+    const db = this.env.DB_CRM || this.env.DB_MAIN;
+    if (!db) throw new Error('Database not configured');
     const result = await db.prepare(config.query).bind(...Object.values(inputData)).all();
     return { results: result.results || [] };
   }
 
-  private async executeFileOperation(config: any, inputData: WorkflowInputData): Promise<WorkflowOutputData> {
+  private async executeFileOperation(config: any, _inputData: WorkflowInputData): Promise<WorkflowOutputData> {
     // Execute file operation integration
     // This would integrate with R2 or other storage systems
     return { success: true, operation: config.operation };
   }
 
-  private async sendEmail(config: any, inputData: WorkflowInputData, context: ExecutionContext): Promise<WorkflowOutputData> {
+  private async sendEmail(_config: any, _inputData: WorkflowInputData, _context: ExecutionContext): Promise<WorkflowOutputData> {
     // Send email integration
     // This would integrate with email services
     return { success: true, messageId: `email_${Date.now()}` };
   }
 
-  private async sendSlackMessage(config: any, inputData: WorkflowInputData): Promise<WorkflowOutputData> {
+  private async sendSlackMessage(_config: any, _inputData: WorkflowInputData): Promise<WorkflowOutputData> {
     // Send Slack message integration
     // This would integrate with Slack API
     return { success: true, messageId: `slack_${Date.now()}` };
@@ -1322,21 +1329,22 @@ export class WorkflowExecutor {
     return { webhookUrl: `${config.baseUrl}/webhook/${context.executionId}`, status: 'active' };
   }
 
-  private async setupScheduleTrigger(config: any, context: ExecutionContext): Promise<WorkflowOutputData> {
+  private async setupScheduleTrigger(config: any, _context: ExecutionContext): Promise<WorkflowOutputData> {
     // Setup schedule trigger
     return { schedule: config.schedule, status: 'active' };
   }
 
-  private async setupEventTrigger(config: any, context: ExecutionContext): Promise<WorkflowOutputData> {
+  private async setupEventTrigger(config: any, _context: ExecutionContext): Promise<WorkflowOutputData> {
     // Setup event trigger
     return { eventSource: config.source, eventType: config.eventType, status: 'active' };
   }
 
-  private evaluateCondition(expression: string, inputData: WorkflowInputData, context: ExecutionContext): WorkflowOutputData {
+  private evaluateCondition(expression: string, _inputData: WorkflowInputData, _context: ExecutionContext): WorkflowOutputData {
     // Evaluate condition expression
-    // This would use a safe expression evaluator
+    // Using Function constructor instead of eval() for better security and bundler compatibility
     try {
-      const result = eval(expression); // In production, use a safe expression evaluator
+      const fn = new Function('return ' + expression);
+      const result = fn();
       return { conditionResult: result };
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -1344,7 +1352,7 @@ export class WorkflowExecutor {
     }
   }
 
-  private async executeLoop(config: any, inputData: WorkflowInputData, context: ExecutionContext): Promise<WorkflowOutputData> {
+  private async executeLoop(config: any, inputData: WorkflowInputData, _context: ExecutionContext): Promise<WorkflowOutputData> {
     // Execute loop logic
     const results = [];
     for (let i = 0; i < config.maxIterations; i++) {
@@ -1358,7 +1366,7 @@ export class WorkflowExecutor {
     return { transformedData: inputData, transformation };
   }
 
-  private async executeParallelGate(config: any, inputData: WorkflowInputData, context: ExecutionContext): Promise<WorkflowOutputData> {
+  private async executeParallelGate(config: any, inputData: WorkflowInputData, _context: ExecutionContext): Promise<WorkflowOutputData> {
     // Execute parallel gate logic
     return { gateResult: true, inputData };
   }

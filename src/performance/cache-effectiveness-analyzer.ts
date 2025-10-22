@@ -405,6 +405,7 @@ export class CacheEffectivenessAnalyzer {
   private calculateOptimalTTL(metrics: CacheMetrics): number {
     // AI-based TTL optimization algorithm
     const baseScore = metrics.hitRatio;
+    void baseScore;
     const evictionPenalty = Math.min(metrics.evictions / metrics.totalRequests, 0.5);
     const staleness = metrics.staleness || 0;
 
@@ -545,6 +546,7 @@ export class CacheEffectivenessAnalyzer {
     for (const metrics of this.cacheMetrics.values()) {
       const weight = metrics.totalRequests;
       totalWeight += weight;
+      void totalWeight;
 
       // Deduct points based on performance issues
       if (metrics.hitRatio < 0.5) {

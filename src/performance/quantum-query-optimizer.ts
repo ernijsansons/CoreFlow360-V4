@@ -218,11 +218,11 @@ export class QueryMLModel {
     return this.parseQuery(query).complexity || 1;
   }
 
-  private estimateSelectivity(query: SQLQuery, dataDistribution: any): number {
+  private estimateSelectivity(_query: SQLQuery, _dataDistribution: any): number {
     return 0.1;
   }
 
-  private estimateCardinality(query: SQLQuery, dataDistribution: any): number {
+  private estimateCardinality(_query: SQLQuery, _dataDistribution: any): number {
     return 1000;
   }
 
@@ -232,7 +232,7 @@ export class QueryMLModel {
     return baseCost * loadMultiplier;
   }
 
-  private identifyBottlenecks(query: SQLQuery, context: any): string[] {
+  private identifyBottlenecks(query: SQLQuery, _context: any): string[] {
     const bottlenecks: string[] = [];
 
     if (query.sql.toLowerCase().includes('select *')) {
@@ -246,7 +246,7 @@ export class QueryMLModel {
     return bottlenecks;
   }
 
-  private suggestOptimizations(query: SQLQuery, context: any): string[] {
+  private suggestOptimizations(query: SQLQuery, _context: any): string[] {
     const optimizations: string[] = [];
 
     if (query.sql.toLowerCase().includes('select *')) {
@@ -260,7 +260,7 @@ export class QueryMLModel {
     return optimizations;
   }
 
-  private scoreStrategy(strategy: any, constraints: any): number {
+  private scoreStrategy(_strategy: any, _constraints: any): number {
     return Math.random();
   }
 
@@ -289,11 +289,11 @@ export class QueryMLModel {
     );
   }
 
-  private async getHistoricalUsage(fingerprint: string): Promise<any[]> {
+  private async getHistoricalUsage(_fingerprint: string): Promise<any[]> {
     return [];
   }
 
-  private analyzeTimePattern(usage: any[]): any {
+  private analyzeTimePattern(_usage: any[]): any {
     return {
       frequency: 0.5,
       peaks: [],
@@ -301,31 +301,31 @@ export class QueryMLModel {
     };
   }
 
-  private calculateLikelihood(pattern: any, timeWindow: string): number {
+  private calculateLikelihood(_pattern: any, _timeWindow: string): number {
     return 0.7;
   }
 
-  private calculateOptimalTTL(pattern: any): number {
+  private calculateOptimalTTL(_pattern: any): number {
     return 300;
   }
 
-  private calculatePriority(query: SQLQuery, pattern: any): number {
+  private calculatePriority(query: SQLQuery, _pattern: any): number {
     return query.context.priority === 'critical' ? 10 : 5;
   }
 
-  private calculateSimilarity(fp1: string, analysis: QueryAnalysis): number {
+  private calculateSimilarity(_fp1: string, _analysis: QueryAnalysis): number {
     return 0.5;
   }
 
-  private extractCommonColumns(queries: string[]): string[] {
+  private extractCommonColumns(_queries: string[]): string[] {
     return ['users.id', 'orders.user_id'];
   }
 
-  private extractJoinPatterns(queries: string[]): string[] {
+  private extractJoinPatterns(_queries: string[]): string[] {
     return ['users.id = orders.user_id'];
   }
 
-  private extractFilterPatterns(queries: string[]): string[] {
+  private extractFilterPatterns(_queries: string[]): string[] {
     return ['WHERE status = ?', 'WHERE created_at > ?'];
   }
 }
@@ -370,7 +370,7 @@ export class QuantumQueryOptimizer {
     this.queryCache = new DistributedCache();
   }
 
-  async optimizeQuery(query: SQLQuery, context: QueryContext): Promise<OptimizedQuery> {
+  async optimizeQuery(query: SQLQuery, _context: QueryContext): Promise<OptimizedQuery> {
     const analysis = await this.mlOptimizer.analyze(query, {
       historicalPatterns: await this.getQueryHistory(query.fingerprint),
       systemLoad: await this.getSystemMetrics(),
@@ -438,7 +438,7 @@ export class QuantumQueryOptimizer {
     return null;
   }
 
-  private async getQueryHistory(fingerprint: string): Promise<QueryAnalysis[]> {
+  private async getQueryHistory(_fingerprint: string): Promise<QueryAnalysis[]> {
     return [];
   }
 
@@ -483,7 +483,7 @@ export class QuantumQueryOptimizer {
     };
   }
 
-  private async optimizeJoinOrder(query: SQLQuery, analysis: QueryAnalysis): Promise<any> {
+  private async optimizeJoinOrder(_query: SQLQuery, _analysis: QueryAnalysis): Promise<any> {
     return {
       type: 'join-optimization',
       newOrder: [],
@@ -491,7 +491,7 @@ export class QuantumQueryOptimizer {
     };
   }
 
-  private async optimizeSubqueries(query: SQLQuery, analysis: QueryAnalysis): Promise<any> {
+  private async optimizeSubqueries(_query: SQLQuery, _analysis: QueryAnalysis): Promise<any> {
     return {
       type: 'subquery-optimization',
       transformations: [],
@@ -499,7 +499,7 @@ export class QuantumQueryOptimizer {
     };
   }
 
-  private async optimizeAggregations(query: SQLQuery, analysis: QueryAnalysis): Promise<any> {
+  private async optimizeAggregations(_query: SQLQuery, _analysis: QueryAnalysis): Promise<any> {
     return {
       type: 'aggregation-optimization',
       pushdowns: [],
@@ -507,7 +507,7 @@ export class QuantumQueryOptimizer {
     };
   }
 
-  private async optimizePartitioning(query: SQLQuery, analysis: QueryAnalysis): Promise<any> {
+  private async optimizePartitioning(_query: SQLQuery, _analysis: QueryAnalysis): Promise<any> {
     return {
       type: 'partition-optimization',
       pruning: [],
@@ -540,7 +540,7 @@ export class QuantumQueryOptimizer {
     return sql;
   }
 
-  private async generateExecutionPlan(query: SQLQuery): Promise<ExecutionPlan> {
+  private async generateExecutionPlan(_query: SQLQuery): Promise<ExecutionPlan> {
     return {
       operations: [],
       parallelizable: true,
@@ -554,20 +554,20 @@ export class QuantumQueryOptimizer {
     return [];
   }
 
-  private async createIndexConcurrently(index: IndexRecommendation): Promise<void> {
+  private async createIndexConcurrently(_index: IndexRecommendation): Promise<void> {
   }
 
-  private async measureIndexImpact(index: IndexRecommendation): Promise<{ degradation: number }> {
+  private async measureIndexImpact(_index: IndexRecommendation): Promise<{ degradation: number }> {
     return { degradation: 0 };
   }
 
-  private async dropIndex(index: IndexRecommendation): Promise<void> {
+  private async dropIndex(_index: IndexRecommendation): Promise<void> {
   }
 
-  private async updateStatistics(index: IndexRecommendation): Promise<void> {
+  private async updateStatistics(_index: IndexRecommendation): Promise<void> {
   }
 
-  private async executeInBackground(query: SQLQuery): Promise<any> {
+  private async executeInBackground(_query: SQLQuery): Promise<any> {
     return { data: [], metadata: { rows: 0 } };
   }
 }
@@ -575,6 +575,7 @@ export class QuantumQueryOptimizer {
 export class ExecutionPlanOptimizer {
   async optimizePlan(plan: ExecutionPlan): Promise<ExecutionPlan> {
     const analysis = await this.analyzePlan(plan);
+    void analysis;
 
     const optimizations = {
       parallelization: this.identifyParallelizable(plan),
@@ -587,7 +588,7 @@ export class ExecutionPlanOptimizer {
     return this.applyOptimizations(plan, optimizations);
   }
 
-  private async analyzePlan(plan: ExecutionPlan): Promise<any> {
+  private async analyzePlan(_plan: ExecutionPlan): Promise<any> {
     return {
       bottlenecks: [],
       opportunities: []
@@ -601,35 +602,35 @@ export class ExecutionPlanOptimizer {
     };
   }
 
-  private optimizeBatchSizes(plan: ExecutionPlan): any {
+  private optimizeBatchSizes(_plan: ExecutionPlan): any {
     return {
       optimalBatchSize: 1000,
       operations: ['bulk_insert', 'bulk_update']
     };
   }
 
-  private identifyMaterialization(plan: ExecutionPlan): any {
+  private identifyMaterialization(_plan: ExecutionPlan): any {
     return {
       candidates: [],
       estimatedBenefit: 0.3
     };
   }
 
-  private rewriteQueries(plan: ExecutionPlan): any {
+  private rewriteQueries(_plan: ExecutionPlan): any {
     return {
       rewrites: [],
       estimatedImprovement: 0.2
     };
   }
 
-  private updateStatistics(plan: ExecutionPlan): any {
+  private updateStatistics(_plan: ExecutionPlan): any {
     return {
       tables: [],
       outdated: false
     };
   }
 
-  private applyOptimizations(plan: ExecutionPlan, optimizations: any): ExecutionPlan {
+  private applyOptimizations(plan: ExecutionPlan, _optimizations: any): ExecutionPlan {
     return {
       ...plan,
       parallelizable: true,

@@ -1,4 +1,4 @@
-import { SyncConfig, CDCEvent, ConflictResolutionStrategy, ScheduleConfig } from '../../types/migration';
+import { SyncConfig, CDCEvent, ScheduleConfig } from '../../types/migration';
 
 interface SyncState {
   id: string;
@@ -224,16 +224,16 @@ export class SyncEngine {
     }
   }
 
-  private async setupPostgreSQLCDC(syncState: SyncState): Promise<void> {
+  private async setupPostgreSQLCDC(_syncState: SyncState): Promise<void> {
     // PostgreSQL logical replication setup
     // This would use pg_notify or logical replication slots
   }
 
-  private async setupMySQLCDC(syncState: SyncState): Promise<void> {
+  private async setupMySQLCDC(_syncState: SyncState): Promise<void> {
     // MySQL binlog replication setup
   }
 
-  private async setupMongoCDC(syncState: SyncState): Promise<void> {
+  private async setupMongoCDC(_syncState: SyncState): Promise<void> {
     // MongoDB change streams setup
   }
 
@@ -256,7 +256,7 @@ export class SyncEngine {
     return this.applyFilters(changes, syncState.config.filters);
   }
 
-  private async getDatabaseChanges(connection: any, since: Date): Promise<CDCEvent[]> {
+  private async getDatabaseChanges(_connection: any, _since: Date): Promise<CDCEvent[]> {
     const changes: CDCEvent[] = [];
 
     // This would query the database for changes
@@ -546,8 +546,8 @@ export class SyncEngine {
     return null;
   }
 
-  private async getRecordFromDatabase(connection: any, table: string,
-  primaryKey: Record<string, any>): Promise<Record<string, any> | null> {
+  private async getRecordFromDatabase(_connection: any, _table: string,
+  _primaryKey: Record<string, any>): Promise<Record<string, any> | null> {
     // Database query implementation
     return null;
   }
@@ -653,7 +653,7 @@ export class SyncEngine {
     }
   }
 
-  private async applyToDatabaseTarget(connection: any, event: CDCEvent): Promise<void> {
+  private async applyToDatabaseTarget(_connection: any, _event: CDCEvent): Promise<void> {
     // Database operation implementation
   }
 
@@ -723,6 +723,7 @@ export class SyncEngine {
         events,
         timestamp: new Date()
       };
+      void payload;
 
       // This would send to WebSocket clients
     }

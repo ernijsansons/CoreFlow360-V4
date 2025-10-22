@@ -5,15 +5,9 @@
 
 import type { D1Database } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
-import {
-  PaymentTerms,
+import { PaymentTerms,
   PaymentTermType,
-  Invoice,
-  InvoiceStatus,
-  AgingReport,
-  InvoicePayment,
-  Customer
-} from './types';
+  AgingReport } from './types';
 import { validateBusinessId, roundToCurrency } from './utils';
 import { CurrencyManager } from './currency-manager';
 
@@ -278,7 +272,7 @@ class PaymentTermsManager {
       const customerResult = await this.db.prepare(`
         SELECT id, name FROM customers
         WHERE id = ? AND business_id = ?
-      `).bind(customerId, validBusinessId).first();
+      `).bind(customerId, validBusinessId).first() as any;
 
       if (!customerResult) {
         return null;

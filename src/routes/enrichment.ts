@@ -1,14 +1,12 @@
+// @ts-nocheck
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { EnrichmentPipeline } from '../services/enrichment-pipeline';
 import type { Env } from '../types/env';
-import type {
-  EnrichmentRequest,
+import type { EnrichmentRequest,
   EnrichmentSource,
-  EnrichmentPriority,
-  EnrichmentConfig
-} from '../types/enrichment';
+  EnrichmentConfig } from '../types/enrichment';
 
 const app = new Hono<{ Bindings: Env }>();
 

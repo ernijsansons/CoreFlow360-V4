@@ -1,0 +1,654 @@
+{
+  "alerting": {
+    "version": "1.0.0",
+    "environment": "production",
+    "evaluation_interval_seconds": 60,
+    "notification_channels": {
+      "pagerduty_critical": {
+        "type": "pagerduty",
+        "integration_key": "${PAGERDUTY_INTEGRATION_KEY}",
+        "severity": "critical"
+      },
+      "slack_alerts": {
+        "type": "slack",
+        "webhook_url": "${SLACK_WEBHOOK_URL}",
+        "channel": "#production-alerts"
+      },
+      "email_ops": {
+        "type": "email",
+        "recipients": [
+          "ops@coreflow360.com",
+          "oncall@coreflow360.com"
+        ]
+      },
+      "sms_oncall": {
+        "type": "sms",
+        "recipients": [
+          "${ONCALL_PHONE_PRIMARY}",
+          "${ONCALL_PHONE_BACKUP}"
+        ]
+      },
+      "discord_engineering": {
+        "type": "discord",
+        "webhook_url": "${DISCORD_WEBHOOK_URL}"
+      }
+    }
+  },
+  "priority_levels": {
+    "P0_CRITICAL": {
+      "description": "Service down or security breach - immediate response required",
+      "sla_response_minutes": 5,
+      "sla_resolution_minutes": 60,
+      "notification_channels": [
+        "pagerduty_critical",
+        "sms_oncall",
+        "slack_alerts",
+        "email_ops"
+      ],
+      "escalation": {
+        "enabled": true,
+        "levels": [
+          {
+            "delay_minutes": 5,
+            "notify": ["oncall_lead", "engineering_manager"]
+          },
+          {
+            "delay_minutes": 15,
+            "notify": ["cto", "vp_engineering"]
+          }
+        ]
+      }
+    },
+    "P1_HIGH": {
+      "description": "High error rates or performance degradation affecting users",
+      "sla_response_minutes": 15,
+      "sla_resolution_minutes": 240,
+      "notification_channels": [
+        "slack_alerts",
+        "email_ops"
+      ],
+      "escalation": {
+        "enabled": true,
+        "levels": [
+          {
+            "delay_minutes": 30,
+            "notify": ["oncall_lead"]
+          }
+        ]
+      }
+    },
+    "P2_MEDIUM": {
+      "description": "Elevated resource usage or warning conditions",
+      "sla_response_minutes": 60,
+      "sla_resolution_minutes": 1440,
+      "notification_channels": [
+        "slack_alerts"
+      ],
+      "escalation": {
+        "enabled": false
+      }
+    },
+    "P3_LOW": {
+      "description": "Informational warnings and recommendations",
+      "sla_response_minutes": 240,
+      "sla_resolution_minutes": 10080,
+      "notification_channels": [
+        "slack_alerts"
+      ],
+      "escalation": {
+        "enabled": false
+      }
+    }
+  },
+  "alert_rules": {
+    "service_availability": [
+      {
+        "id": "worker_down",
+        "name": "Worker Service Down",
+        "priority": "P0_CRITICAL",
+        "description": "Cloudflare Worker is not responding to health checks",
+        "condition": {
+          "metric": "worker_health_status",
+          "operator": "eq",
+          "threshold": 0,
+          "duration_minutes": 2
+        },
+        "labels": {
+          "category": "availability",
+          "component": "worker"
+        },
+        "annotations": {
+          "summary": "Worker {{worker_name}} is down",
+          "description": "Health check failed for worker {{worker_name}} for 2 consecutive minutes",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/worker-down"
+        },
+        "notification_channels": ["pagerduty_critical", "sms_oncall", "slack_alerts"]
+      },
+      {
+        "id": "d1_database_unavailable",
+        "name": "D1 Database Unavailable",
+        "priority": "P0_CRITICAL",
+        "description": "D1 database is not accessible",
+        "condition": {
+          "metric": "d1_database_availability",
+          "operator": "lt",
+          "threshold": 99,
+          "duration_minutes": 3
+        },
+        "labels": {
+          "category": "availability",
+          "component": "database"
+        },
+        "annotations": {
+          "summary": "D1 Database {{database_name}} unavailable",
+          "description": "Database availability below 99% for 3 minutes",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/d1-unavailable"
+        },
+        "notification_channels": ["pagerduty_critical", "slack_alerts"]
+      },
+      {
+        "id": "kv_namespace_unavailable",
+        "name": "KV Namespace Unavailable",
+        "priority": "P1_HIGH",
+        "description": "KV namespace is not accessible",
+        "condition": {
+          "metric": "kv_namespace_availability",
+          "operator": "lt",
+          "threshold": 99,
+          "duration_minutes": 5
+        },
+        "labels": {
+          "category": "availability",
+          "component": "cache"
+        },
+        "annotations": {
+          "summary": "KV Namespace {{namespace}} unavailable",
+          "description": "KV namespace availability below 99% for 5 minutes",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/kv-unavailable"
+        },
+        "notification_channels": ["slack_alerts", "email_ops"]
+      }
+    ],
+    "performance_degradation": [
+      {
+        "id": "api_response_time_high",
+        "name": "API Response Time High",
+        "priority": "P1_HIGH",
+        "description": "API response times are above acceptable thresholds",
+        "condition": {
+          "metric": "api_response_time",
+          "aggregation": "p95",
+          "operator": "gt",
+          "threshold": 300,
+          "duration_minutes": 5
+        },
+        "labels": {
+          "category": "performance",
+          "component": "api"
+        },
+        "annotations": {
+          "summary": "High API response time on {{endpoint}}",
+          "description": "P95 response time is {{value}}ms, threshold is 300ms",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/slow-api"
+        },
+        "notification_channels": ["slack_alerts"]
+      },
+      {
+        "id": "database_query_slow",
+        "name": "Database Queries Slow",
+        "priority": "P1_HIGH",
+        "description": "Database query performance has degraded",
+        "condition": {
+          "metric": "database_query_time",
+          "aggregation": "p95",
+          "operator": "gt",
+          "threshold": 100,
+          "duration_minutes": 5
+        },
+        "labels": {
+          "category": "performance",
+          "component": "database"
+        },
+        "annotations": {
+          "summary": "Slow database queries on {{table}}",
+          "description": "P95 query time is {{value}}ms, threshold is 100ms",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/slow-queries"
+        },
+        "notification_channels": ["slack_alerts"]
+      },
+      {
+        "id": "cache_hit_rate_low",
+        "name": "Cache Hit Rate Low",
+        "priority": "P2_MEDIUM",
+        "description": "Cache hit rate has dropped below target",
+        "condition": {
+          "metric": "cache_hit_rate",
+          "operator": "lt",
+          "threshold": 60,
+          "duration_minutes": 10
+        },
+        "labels": {
+          "category": "performance",
+          "component": "cache"
+        },
+        "annotations": {
+          "summary": "Low cache hit rate for {{cache_type}}",
+          "description": "Cache hit rate is {{value}}%, target is 80%",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/cache-miss"
+        },
+        "notification_channels": ["slack_alerts"]
+      },
+      {
+        "id": "worker_cpu_high",
+        "name": "Worker CPU Usage High",
+        "priority": "P2_MEDIUM",
+        "description": "Worker CPU usage is elevated",
+        "condition": {
+          "metric": "worker_cpu_time",
+          "operator": "gt",
+          "threshold": 100,
+          "duration_minutes": 10
+        },
+        "labels": {
+          "category": "performance",
+          "component": "worker"
+        },
+        "annotations": {
+          "summary": "High CPU usage on {{worker_name}}",
+          "description": "CPU time is {{value}}ms, threshold is 100ms",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/high-cpu"
+        },
+        "notification_channels": ["slack_alerts"]
+      }
+    ],
+    "error_rates": [
+      {
+        "id": "api_error_rate_high",
+        "name": "API Error Rate High",
+        "priority": "P0_CRITICAL",
+        "description": "API error rate exceeds critical threshold",
+        "condition": {
+          "metric": "api_error_rate",
+          "operator": "gt",
+          "threshold": 5.0,
+          "duration_minutes": 3
+        },
+        "labels": {
+          "category": "errors",
+          "component": "api"
+        },
+        "annotations": {
+          "summary": "Critical error rate on {{endpoint}}",
+          "description": "Error rate is {{value}}%, critical threshold is 5%",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/high-errors"
+        },
+        "notification_channels": ["pagerduty_critical", "slack_alerts"]
+      },
+      {
+        "id": "api_error_rate_elevated",
+        "name": "API Error Rate Elevated",
+        "priority": "P1_HIGH",
+        "description": "API error rate is elevated above normal",
+        "condition": {
+          "metric": "api_error_rate",
+          "operator": "gt",
+          "threshold": 1.0,
+          "duration_minutes": 5
+        },
+        "labels": {
+          "category": "errors",
+          "component": "api"
+        },
+        "annotations": {
+          "summary": "Elevated error rate on {{endpoint}}",
+          "description": "Error rate is {{value}}%, threshold is 1%",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/elevated-errors"
+        },
+        "notification_channels": ["slack_alerts"]
+      },
+      {
+        "id": "worker_errors_spike",
+        "name": "Worker Errors Spike",
+        "priority": "P1_HIGH",
+        "description": "Worker error count has spiked",
+        "condition": {
+          "metric": "cloudflare_worker_errors",
+          "operator": "gt",
+          "threshold": 100,
+          "duration_minutes": 5
+        },
+        "labels": {
+          "category": "errors",
+          "component": "worker"
+        },
+        "annotations": {
+          "summary": "Worker error spike detected",
+          "description": "Worker errors at {{value}}/min, threshold is 100/min",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/worker-errors"
+        },
+        "notification_channels": ["slack_alerts"]
+      }
+    ],
+    "security_alerts": [
+      {
+        "id": "authentication_failure_spike",
+        "name": "Authentication Failure Spike",
+        "priority": "P0_CRITICAL",
+        "description": "Unusual spike in authentication failures - potential attack",
+        "condition": {
+          "metric": "authentication_failures",
+          "operator": "gt",
+          "threshold": 50,
+          "duration_minutes": 5
+        },
+        "labels": {
+          "category": "security",
+          "component": "auth"
+        },
+        "annotations": {
+          "summary": "Authentication failure spike detected",
+          "description": "{{value}} auth failures in 5 minutes, threshold is 50",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/auth-attack"
+        },
+        "notification_channels": ["pagerduty_critical", "sms_oncall", "slack_alerts"]
+      },
+      {
+        "id": "rate_limit_violations_high",
+        "name": "Rate Limit Violations High",
+        "priority": "P1_HIGH",
+        "description": "High number of rate limit violations",
+        "condition": {
+          "metric": "rate_limit_violations",
+          "operator": "gt",
+          "threshold": 100,
+          "duration_minutes": 5
+        },
+        "labels": {
+          "category": "security",
+          "component": "rate_limiting"
+        },
+        "annotations": {
+          "summary": "High rate limit violations on {{endpoint}}",
+          "description": "{{value}} violations in 5 minutes, threshold is 100",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/rate-limit-violations"
+        },
+        "notification_channels": ["slack_alerts"]
+      },
+      {
+        "id": "jwt_validation_failures",
+        "name": "JWT Validation Failures",
+        "priority": "P0_CRITICAL",
+        "description": "JWT validation failures detected - potential security issue",
+        "condition": {
+          "metric": "jwt_validation_errors",
+          "operator": "gt",
+          "threshold": 10,
+          "duration_minutes": 5
+        },
+        "labels": {
+          "category": "security",
+          "component": "auth"
+        },
+        "annotations": {
+          "summary": "JWT validation failures detected",
+          "description": "{{value}} JWT validation failures, threshold is 10",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/jwt-failures"
+        },
+        "notification_channels": ["pagerduty_critical", "slack_alerts"]
+      },
+      {
+        "id": "suspicious_activity_detected",
+        "name": "Suspicious Activity Detected",
+        "priority": "P1_HIGH",
+        "description": "Suspicious activity patterns detected",
+        "condition": {
+          "metric": "suspicious_activity",
+          "operator": "gt",
+          "threshold": 5,
+          "duration_minutes": 5
+        },
+        "labels": {
+          "category": "security",
+          "component": "monitoring"
+        },
+        "annotations": {
+          "summary": "Suspicious activity: {{activity_type}}",
+          "description": "{{value}} suspicious activities detected",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/suspicious-activity"
+        },
+        "notification_channels": ["slack_alerts", "email_ops"]
+      },
+      {
+        "id": "waf_blocks_spike",
+        "name": "WAF Blocks Spike",
+        "priority": "P2_MEDIUM",
+        "description": "WAF is blocking unusual amount of traffic",
+        "condition": {
+          "metric": "waf_blocks",
+          "operator": "gt",
+          "threshold": 200,
+          "duration_minutes": 10
+        },
+        "labels": {
+          "category": "security",
+          "component": "waf"
+        },
+        "annotations": {
+          "summary": "WAF blocking spike detected",
+          "description": "{{value}} blocks in 10 minutes, threshold is 200",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/waf-spike"
+        },
+        "notification_channels": ["slack_alerts"]
+      }
+    ],
+    "business_metrics": [
+      {
+        "id": "ai_agent_cost_budget_exceeded",
+        "name": "AI Agent Cost Budget Exceeded",
+        "priority": "P0_CRITICAL",
+        "description": "AI agent costs have exceeded daily budget",
+        "condition": {
+          "metric": "ai_agent_cost",
+          "aggregation": "sum",
+          "operator": "gt",
+          "threshold": 12000,
+          "time_window": "24h"
+        },
+        "labels": {
+          "category": "cost",
+          "component": "ai_agents"
+        },
+        "annotations": {
+          "summary": "AI agent cost budget exceeded",
+          "description": "Daily cost is ${{value_dollars}}, budget is $120",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/cost-overrun"
+        },
+        "notification_channels": ["pagerduty_critical", "email_ops"]
+      },
+      {
+        "id": "ai_agent_cost_approaching_budget",
+        "name": "AI Agent Cost Approaching Budget",
+        "priority": "P2_MEDIUM",
+        "description": "AI agent costs approaching daily budget",
+        "condition": {
+          "metric": "ai_agent_cost",
+          "aggregation": "sum",
+          "operator": "gt",
+          "threshold": 8000,
+          "time_window": "24h"
+        },
+        "labels": {
+          "category": "cost",
+          "component": "ai_agents"
+        },
+        "annotations": {
+          "summary": "AI agent cost at 80% of budget",
+          "description": "Daily cost is ${{value_dollars}}, budget is $120",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/cost-warning"
+        },
+        "notification_channels": ["slack_alerts"]
+      },
+      {
+        "id": "active_users_drop",
+        "name": "Active Users Drop",
+        "priority": "P1_HIGH",
+        "description": "Significant drop in active users",
+        "condition": {
+          "metric": "active_users",
+          "operator": "change_percent",
+          "threshold": -30,
+          "duration_minutes": 15
+        },
+        "labels": {
+          "category": "business",
+          "component": "users"
+        },
+        "annotations": {
+          "summary": "Active users dropped by {{change_percent}}%",
+          "description": "Current: {{current_value}}, Previous: {{previous_value}}",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/user-drop"
+        },
+        "notification_channels": ["slack_alerts"]
+      }
+    ],
+    "infrastructure_resources": [
+      {
+        "id": "d1_connection_pool_exhausted",
+        "name": "D1 Connection Pool Exhausted",
+        "priority": "P1_HIGH",
+        "description": "D1 database connection pool is near exhaustion",
+        "condition": {
+          "metric": "d1_connection_pool_usage",
+          "operator": "gt",
+          "threshold": 90,
+          "duration_minutes": 5
+        },
+        "labels": {
+          "category": "resources",
+          "component": "database"
+        },
+        "annotations": {
+          "summary": "D1 connection pool at {{value}}%",
+          "description": "Connection pool usage critical on {{database_name}}",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/connection-pool"
+        },
+        "notification_channels": ["slack_alerts"]
+      },
+      {
+        "id": "kv_storage_high",
+        "name": "KV Storage Usage High",
+        "priority": "P2_MEDIUM",
+        "description": "KV namespace storage usage is high",
+        "condition": {
+          "metric": "kv_storage_usage",
+          "operator": "gt",
+          "threshold": 85,
+          "duration_minutes": 30
+        },
+        "labels": {
+          "category": "resources",
+          "component": "storage"
+        },
+        "annotations": {
+          "summary": "KV storage at {{value}}% on {{namespace}}",
+          "description": "Consider cleanup or expansion",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/kv-storage"
+        },
+        "notification_channels": ["slack_alerts"]
+      },
+      {
+        "id": "worker_memory_high",
+        "name": "Worker Memory Usage High",
+        "priority": "P2_MEDIUM",
+        "description": "Worker memory usage is approaching limits",
+        "condition": {
+          "metric": "worker_memory_usage",
+          "operator": "gt",
+          "threshold": 100,
+          "duration_minutes": 10
+        },
+        "labels": {
+          "category": "resources",
+          "component": "worker"
+        },
+        "annotations": {
+          "summary": "High memory usage on {{worker_name}}",
+          "description": "Memory at {{value}}MB, threshold is 100MB",
+          "runbook_url": "https://docs.coreflow360.com/runbooks/memory-pressure"
+        },
+        "notification_channels": ["slack_alerts"]
+      }
+    ]
+  },
+  "anomaly_detection": {
+    "enabled": true,
+    "ml_models": [
+      {
+        "id": "traffic_anomaly",
+        "name": "Traffic Pattern Anomaly Detection",
+        "metric": "api_request_rate",
+        "algorithm": "isolation_forest",
+        "sensitivity": 0.7,
+        "training_window_days": 30,
+        "detection_window_minutes": 15,
+        "alert_priority": "P1_HIGH",
+        "notification_channels": ["slack_alerts"]
+      },
+      {
+        "id": "error_rate_anomaly",
+        "name": "Error Rate Anomaly Detection",
+        "metric": "api_error_rate",
+        "algorithm": "prophet",
+        "sensitivity": 0.8,
+        "training_window_days": 14,
+        "detection_window_minutes": 10,
+        "alert_priority": "P1_HIGH",
+        "notification_channels": ["slack_alerts", "email_ops"]
+      },
+      {
+        "id": "cost_anomaly",
+        "name": "Cost Anomaly Detection",
+        "metric": "ai_agent_cost",
+        "algorithm": "arima",
+        "sensitivity": 0.75,
+        "training_window_days": 30,
+        "detection_window_hours": 6,
+        "alert_priority": "P2_MEDIUM",
+        "notification_channels": ["slack_alerts"]
+      }
+    ]
+  },
+  "suppression_rules": {
+    "maintenance_window": {
+      "enabled": true,
+      "suppress_all": false,
+      "suppress_priorities": ["P2_MEDIUM", "P3_LOW"],
+      "schedule": []
+    },
+    "flapping_prevention": {
+      "enabled": true,
+      "min_interval_minutes": 5,
+      "max_alerts_per_hour": 10
+    },
+    "rate_limiting": {
+      "enabled": true,
+      "max_alerts_per_rule_per_hour": 5,
+      "grouping_window_minutes": 15
+    }
+  },
+  "auto_resolution": {
+    "enabled": true,
+    "rules": [
+      {
+        "alert_id_pattern": ".*_high$",
+        "resolve_after_minutes": 15,
+        "require_metric_below_threshold": true
+      },
+      {
+        "alert_id_pattern": ".*_spike$",
+        "resolve_after_minutes": 10,
+        "require_metric_below_threshold": true
+      }
+    ]
+  }
+}

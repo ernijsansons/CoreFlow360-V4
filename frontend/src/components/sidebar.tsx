@@ -3,7 +3,6 @@ import { Link, useLocation } from '@tanstack/react-router'
 import {
   LayoutDashboard,
   Users,
-  Building2,
   Phone,
   Mail,
   Calendar,
@@ -12,6 +11,18 @@ import {
   Settings,
   ChevronLeft,
   ChevronDown,
+  Bot,
+  MessageSquare,
+  FileText,
+  Database,
+  Landmark,
+  RefreshCw,
+  AlertCircle,
+  FileSpreadsheet,
+  Lock,
+  Sparkles,
+  GitMerge,
+  Download,
 } from 'lucide-react'
 import { useUIStore } from '@/stores'
 import { useEntityPermissions } from '@/hooks'
@@ -24,7 +35,7 @@ const sidebarItems: SidebarItem[] = [
     id: 'dashboard',
     label: 'Dashboard',
     icon: LayoutDashboard,
-    href: '/',
+    href: '/dashboard',
   },
   {
     id: 'crm',
@@ -54,6 +65,27 @@ const sidebarItems: SidebarItem[] = [
         label: 'Deals',
         href: '/crm/deals',
         permissions: ['crm:deals:view'],
+      },
+      {
+        id: 'crm-data-quality',
+        label: 'Data Quality',
+        href: '/crm/data-quality',
+        permissions: ['crm:view'],
+        icon: Sparkles,
+      },
+      {
+        id: 'crm-integrations',
+        label: 'Integrations',
+        href: '/crm/integrations-dashboard',
+        permissions: ['crm:view'],
+        icon: GitMerge,
+      },
+      {
+        id: 'crm-migration',
+        label: 'Migration',
+        href: '/crm/migration',
+        permissions: ['crm:view'],
+        icon: Database,
       },
     ],
   },
@@ -101,6 +133,69 @@ const sidebarItems: SidebarItem[] = [
         href: '/finance/expenses',
         permissions: ['finance:expenses:view'],
       },
+      {
+        id: 'finance-banking',
+        label: 'Bank Matching',
+        href: '/finance/banking',
+        permissions: ['finance:view'],
+        icon: Landmark,
+      },
+      {
+        id: 'finance-reconciliation',
+        label: 'Reconciliation',
+        href: '/finance/reconciliation',
+        permissions: ['finance:view'],
+        icon: RefreshCw,
+      },
+      {
+        id: 'finance-documents',
+        label: 'Documents',
+        href: '/finance/documents',
+        permissions: ['finance:view'],
+        icon: FileText,
+      },
+      {
+        id: 'finance-reports',
+        label: 'Reports',
+        href: '/finance/reports',
+        permissions: ['finance:view'],
+        icon: FileSpreadsheet,
+      },
+      {
+        id: 'finance-periods',
+        label: 'Periods',
+        href: '/finance/periods',
+        permissions: ['finance:view'],
+        icon: Lock,
+      },
+      {
+        id: 'finance-anomalies',
+        label: 'Anomalies',
+        href: '/finance/anomalies',
+        permissions: ['finance:view'],
+        icon: AlertCircle,
+      },
+    ],
+  },
+  {
+    id: 'ai',
+    label: 'AI Tools',
+    icon: Bot,
+    children: [
+      {
+        id: 'ai-agents',
+        label: 'Agent Dashboard',
+        href: '/agents/dashboard',
+        permissions: ['ai:view'],
+        icon: Bot,
+      },
+      {
+        id: 'ai-chat',
+        label: 'AI Chat',
+        href: '/chat',
+        permissions: ['ai:view'],
+        icon: MessageSquare,
+      },
     ],
   },
   {
@@ -109,6 +204,20 @@ const sidebarItems: SidebarItem[] = [
     icon: BarChart3,
     href: '/analytics',
     permissions: ['analytics:view'],
+  },
+  {
+    id: 'data',
+    label: 'Data',
+    icon: Database,
+    children: [
+      {
+        id: 'data-export',
+        label: 'Export',
+        href: '/data/export',
+        permissions: ['data:view'],
+        icon: Download,
+      },
+    ],
   },
   {
     id: 'settings',
@@ -123,7 +232,7 @@ export function Sidebar() {
   const { sidebarOpen, setSidebarOpen } = useUIStore()
   const { hasPermission } = useEntityPermissions()
   const location = useLocation()
-  const [expandedItems, setExpandedItems] = React.useState<string[]>(['crm', 'finance'])
+  const [expandedItems, setExpandedItems] = React.useState<string[]>(['crm', 'finance', 'ai'])
 
   const toggleExpanded = (itemId: string) => {
     setExpandedItems(prev =>
@@ -169,8 +278,10 @@ export function Sidebar() {
               isActive && "bg-accent text-accent-foreground",
               level > 0 && "ml-4"
             )}
+            aria-expanded={isExpanded}
+            aria-label={`${item.label} menu`}
           >
-            {item.icon && <item.icon className="mr-3 h-4 w-4" />}
+            {item.icon && <item.icon className="mr-3 h-4 w-4" aria-hidden="true" />}
             {sidebarOpen && (
               <>
                 <span className="flex-1 text-left">{item.label}</span>
@@ -203,8 +314,10 @@ export function Sidebar() {
           isActive && "bg-accent text-accent-foreground",
           level > 0 && "ml-4"
         )}
+        aria-current={isActive ? 'page' : undefined}
+        aria-label={item.label}
       >
-        {item.icon && <item.icon className="mr-3 h-4 w-4" />}
+        {item.icon && <item.icon className="mr-3 h-4 w-4" aria-hidden="true" />}
         {sidebarOpen && (
           <>
             <span className="flex-1">{item.label}</span>
@@ -231,12 +344,16 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <aside
+        id="main-sidebar"
         className={cn(
           "fixed top-16 left-0 z-50 h-[calc(100vh-4rem)] bg-background border-r transition-all duration-200 ease-in-out",
           sidebarOpen ? "w-64" : "w-16",
           "lg:translate-x-0",
           !sidebarOpen && "-translate-x-full lg:translate-x-0"
         )}
+        role="navigation"
+        aria-label="Main navigation"
+        aria-hidden={!sidebarOpen ? "true" : "false"}
       >
         <div className="flex flex-col h-full">
           {/* Sidebar content */}
@@ -253,12 +370,14 @@ export function Sidebar() {
               size="icon"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="w-full justify-center"
+              aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
             >
               <ChevronLeft
                 className={cn(
                   "h-4 w-4 transition-transform",
                   !sidebarOpen && "rotate-180"
                 )}
+                aria-hidden="true"
               />
             </Button>
           </div>

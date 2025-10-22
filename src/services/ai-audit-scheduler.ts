@@ -532,21 +532,24 @@ export class AIAuditScheduler {
     switch (schedule.frequency) {
       case 'hourly':
         return new Date(now.getTime() + 60 * 60 * 1000);
-      case 'daily':
+      case 'daily': {
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(2, 0, 0, 0); // 2 AM
         return tomorrow;
-      case 'weekly':
+      }
+      case 'weekly': {
         const nextWeek = new Date(now);
         nextWeek.setDate(nextWeek.getDate() + (7 - nextWeek.getDay()));
         nextWeek.setHours(2, 0, 0, 0);
         return nextWeek;
-      case 'monthly':
+      }
+      case 'monthly': {
         const nextMonth = new Date(now);
         nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
         nextMonth.setHours(2, 0, 0, 0);
         return nextMonth;
+      }
       case 'custom':
         if (schedule.customCron) {
           // Simplified cron parsing - in real implementation would use a proper cron library
@@ -569,9 +572,10 @@ export class AIAuditScheduler {
     };
   }
 
-  private async executeComprehensiveAudit(context: any, config: any): Promise<any> {
+  private async executeComprehensiveAudit(context: any, _config: any): Promise<any> {
     const auditor = new QuantumAIAuditor(context);
     const result = await auditor.auditAISystems();
+    void result;
     return await generateAISystemsReport(context);
   }
 
@@ -594,19 +598,19 @@ export class AIAuditScheduler {
     });
   }
 
-  private async executeSafetyAudit(context: any, config: any): Promise<any> {
+  private async executeSafetyAudit(context: any, _config: any): Promise<any> {
     const { AISafetyValidator } = await import('../ai-systems/ai-safety-validator');
     const validator = new AISafetyValidator(context);
     return await validator.analyze();
   }
 
-  private async executeBiasAudit(context: any, config: any): Promise<any> {
+  private async executeBiasAudit(context: any, _config: any): Promise<any> {
     const { AIBiasDetector } = await import('../ai-systems/ai-bias-detector');
     const detector = new AIBiasDetector(context);
     return await detector.detect();
   }
 
-  private async executeOptimizationAudit(context: any, config: any): Promise<any> {
+  private async executeOptimizationAudit(_context: any, _config: any): Promise<any> {
     // This would generate optimization strategies
     return {
       strategiesGenerated: Math.floor(Math.random() * 10) + 5,

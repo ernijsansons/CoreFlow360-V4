@@ -1,5 +1,8 @@
 import type { Env } from '../types/env';
-import { sanitizeUserInput, createSecureAIPrompt } from '../security/ai-prompt-sanitizer';
+import { sanitizeUserInput, createSecureAIPrompt } from '../security/ai-prompt-sanitizer';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-call-summarizer" });
+
+
 
 // Define interfaces locally as they are not exported from crm.ts
 interface Call {
@@ -147,12 +150,12 @@ export class CallSummarizer {
 
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Failed to generate call summary:', errorMessage);
+      logger.error('Failed to generate call summary:', errorMessage);
       throw new Error('Call summary generation failed');
     }
   }
 
-  private async analyzeCallWithAI(prompt: string): Promise<ConversationAnalysis> {
+  private async analyzeCallWithAI(_prompt: string): Promise<ConversationAnalysis> {
     // Mock AI analysis - would use real AI service in production
     return {
       id: `analysis_${Date.now()}`,
@@ -341,23 +344,23 @@ export class CallSummarizer {
 
   async generateQuickSummary(call: Call): Promise<string> {
     try {
-      const sanitizedTranscript = call.transcript.segments
-        .map((s: any) => `${s.speaker}: ${s.text}`)
-        .join('\n')
-        .substring(0, 1000); // Limit for quick summary
+      // const _sanitizedTranscript = call.transcript.segments
+      //   .map((s: any) => `${s.speaker}: ${s.text}`)
+      //   .join('\n')
+      //   .substring(0, 1000); // Limit for quick summary
 
-      const prompt = createSecureAIPrompt(`
-        Provide a brief 2-3 sentence summary of this call:
-        
-        ${sanitizedTranscript}
-      `, );
+      // const _prompt = createSecureAIPrompt(`
+      //   Provide a brief 2-3 sentence summary of this call:
+      //   
+      //   ${sanitizedTranscript}
+      // `, );
 
       // Mock quick summary - would use real AI in production
       return `Call with ${call.participants.length} participants discussing ${call.duration} minutes. Key topics included pricing and features. Next steps: schedule demo.`;
       
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Failed to generate quick summary:', errorMessage);
+      logger.error('Failed to generate quick summary:', errorMessage);
       return 'Summary generation failed';
     }
   }
@@ -378,7 +381,7 @@ export class CallSummarizer {
       }));
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Failed to generate action items:', errorMessage);
+      logger.error('Failed to generate action items:', errorMessage);
       return [];
     }
   }
@@ -409,7 +412,7 @@ Best regards,
       return email.trim();
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Failed to generate follow-up email:', errorMessage);
+      logger.error('Failed to generate follow-up email:', errorMessage);
       return 'Follow-up email generation failed';
     }
   }

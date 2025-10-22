@@ -29,15 +29,12 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  DollarSign,
   FileText,
   Send,
   Download,
   MoreHorizontal,
   Search,
-  Filter,
   Plus,
-  Calendar,
   AlertCircle,
   CheckCircle,
   Clock,
@@ -46,17 +43,13 @@ import {
   Printer,
   RefreshCw,
   Loader2,
-  TrendingUp,
-  TrendingDown,
   CreditCard,
   Receipt
 } from 'lucide-react'
 import {
   useInvoices,
-  useUpdateInvoice,
   useSendInvoice,
   useVoidInvoice,
-  useRecordPayment,
   useBulkSendInvoices,
   useExportInvoices,
   useFinancialMetrics
@@ -77,7 +70,7 @@ interface Invoice {
   tax: number
   total: number
   currency: string
-  items: any[]
+  items: Array<{ description: string; quantity: number; price: number }>
   paymentStatus: 'pending' | 'partial' | 'paid'
   amountPaid: number
   balance: number
@@ -90,8 +83,6 @@ export function InvoicesTableEnhanced() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [statusFilter, setStatusFilter] = React.useState('all')
   const [selectedInvoices, setSelectedInvoices] = React.useState<string[]>([])
-  const [showPaymentModal, setShowPaymentModal] = React.useState(false)
-  const [selectedInvoice, setSelectedInvoice] = React.useState<Invoice | null>(null)
   const { toast } = useToast()
 
   // Fetch invoices using React Query
@@ -99,7 +90,6 @@ export function InvoicesTableEnhanced() {
     data: invoicesResponse,
     isLoading,
     isError,
-    error,
     refetch,
     isFetching
   } = useInvoices({
@@ -111,10 +101,8 @@ export function InvoicesTableEnhanced() {
   const { data: metricsResponse } = useFinancialMetrics()
 
   // Mutations
-  const updateInvoice = useUpdateInvoice()
   const sendInvoice = useSendInvoice()
   const voidInvoice = useVoidInvoice()
-  const recordPayment = useRecordPayment()
   const bulkSendInvoices = useBulkSendInvoices()
   const exportInvoices = useExportInvoices()
 

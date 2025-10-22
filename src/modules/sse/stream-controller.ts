@@ -3,8 +3,7 @@
  * Handles AI response streaming with backpressure and error recovery
  */
 
-import {
-  SSEStreamConfig,
+import { SSEStreamConfig,
   SSEEvent,
   TokenEvent,
   ChunkEvent,
@@ -13,11 +12,9 @@ import {
   ErrorEvent,
   HeartbeatEvent,
   StreamState,
-  BackpressureConfig,
-  StreamMetrics
-} from './types';
+  StreamMetrics } from './types';
 import { Logger } from '../../shared/logger';
-import { SecurityError } from '../../shared/security-utils';
+
 
 export class SSEStreamController {
   private readonly config: SSEStreamConfig;

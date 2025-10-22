@@ -1,12 +1,16 @@
 /**
  * Data Export Engine
  * Comprehensive export system supporting PDF, Excel, PowerPoint, and more
+ * GRUG: Remove external dependencies - use Cloudflare native capabilities
  */
 
 import { DurableObject } from 'cloudflare:workers'
-import jsPDF from 'jspdf'
-import * as XLSX from 'xlsx'
-import { ChartJSNodeCanvas } from 'chartjs-node-canvas'
+import type { Env } from '../types/env'
+
+// GRUG: External libs not available in Workers - use native APIs or lazy load
+// import jsPDF from 'jspdf'
+// import * as XLSX from 'xlsx'
+// import { ChartJSNodeCanvas } from 'chartjs-node-canvas'
 
 export interface ExportRequest {
   id: string
@@ -75,11 +79,11 @@ export interface ExportProgress {
   error?: string
 }
 
-export class ExportEngine extends DurableObject {
+export class ExportEngine extends DurableObject<Env> {
   private storage: DurableObjectStorage
-  private env: any
+  private env: Env
 
-  constructor(ctx: DurableObjectState, env: any) {
+  constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env)
     this.storage = ctx.storage
     this.env = env
@@ -570,22 +574,22 @@ export class ExportEngine extends DurableObject {
   }
 
   // Additional helper methods for specific rendering tasks...
-  private createTableSheet(widget: ExportWidget): any {
+  private createTableSheet(_widget: ExportWidget): any {
     // Implementation for table sheet creation
     return {}
   }
 
-  private createChartDataSheet(widget: ExportWidget): any {
+  private createChartDataSheet(_widget: ExportWidget): any {
     // Implementation for chart data sheet creation
     return {}
   }
 
-  private createKPISheet(widget: ExportWidget): any {
+  private createKPISheet(_widget: ExportWidget): any {
     // Implementation for KPI sheet creation
     return {}
   }
 
-  private async renderTableToPDF(doc: any, widget: ExportWidget, x: number, y: number, width: number): Promise<number> {
+  private async renderTableToPDF(doc: any, widget: ExportWidget, x: number, y: number, _width: number): Promise<number> {
     // Implementation for PDF table rendering
     return y + 50
   }
@@ -595,26 +599,26 @@ export class ExportEngine extends DurableObject {
     return y + 30
   }
 
-  private async addTableToSlide(slide: any, widget: ExportWidget): Promise<void> {
+  private async addTableToSlide(_slide: any, _widget: ExportWidget): Promise<void> {
     // Implementation for PowerPoint table
   }
 
-  private async addKPIToSlide(slide: any, widget: ExportWidget): Promise<void> {
+  private async addKPIToSlide(_slide: any, _widget: ExportWidget): Promise<void> {
     // Implementation for PowerPoint KPI
   }
 
-  private async renderDashboardToPNG(request: ExportRequest): Promise<Buffer> {
+  private async renderDashboardToPNG(_request: ExportRequest): Promise<Buffer> {
     // Implementation for composite PNG rendering
     return Buffer.alloc(0)
   }
 
-  private async renderToSVG(request: ExportRequest): Promise<string> {
+  private async renderToSVG(_request: ExportRequest): Promise<string> {
     // Implementation for SVG generation
     return '<svg></svg>'
   }
 
   // WebSocket endpoint for progress updates
-  async websocket(request: Request): Promise<Response> {
+  async websocket(_request: Request): Promise<Response> {
     const webSocketPair = new WebSocketPair()
     const [client, server] = Object.values(webSocketPair)
 
@@ -647,4 +651,4 @@ export class ExportEngine extends DurableObject {
   }
 }
 
-export { ExportEngine }
+// GRUG: Remove duplicate export - already exported in class declaration

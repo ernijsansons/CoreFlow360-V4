@@ -76,7 +76,11 @@ export class DistributedTracing {
   }
 
   toBaggageHeader(context: TraceContext): string {
-    const pairs = Object.entries(context.baggage).map(([key, value]) => 
+    // GRUG: Check baggage exists before using
+    if (!context.baggage || Object.keys(context.baggage).length === 0) {
+      return '';
+    }
+    const pairs = Object.entries(context.baggage).map(([key, value]) =>
       `${key}=${encodeURIComponent(value)}`
     );
     return pairs.join(',');
@@ -196,13 +200,24 @@ export class DistributedTracing {
     const endTime = new Date();
     
     // Get trace from database
+    // GRUG: Type database result properly
+    interface TraceRow {
+      id: string;
+      business_id: string;
+      start_time: string;
+      end_time?: string;
+      duration?: number;
+      status: string;
+      attributes: string;
+    }
+
     const result = await this.db.prepare(`
       SELECT * FROM traces WHERE id = ?
-    `).bind(traceId).first();
+    `).bind(traceId).first() as TraceRow | null;
 
     if (!result) return;
 
-    const startTime = new Date(result.start_time as string);
+    const startTime = new Date(result.start_time);
     const duration = endTime.getTime() - startTime.getTime();
 
     // Update trace
@@ -214,9 +229,33 @@ export class DistributedTracing {
   }
 
   async getTrace(traceId: string): Promise<Trace | null> {
+    // GRUG: Type database rows properly
+    interface TraceRow {
+      id: string;
+      business_id: string;
+      start_time: string;
+      end_time?: string;
+      duration?: number;
+      status: string;
+      attributes: string;
+    }
+
+    interface SpanRow {
+      id: string;
+      trace_id: string;
+      parent_span_id?: string;
+      name: string;
+      start_time: string;
+      end_time?: string;
+      duration?: number;
+      status: string;
+      attributes: string;
+      events: string;
+    }
+
     const result = await this.db.prepare(`
       SELECT * FROM traces WHERE id = ?
-    `).bind(traceId).first();
+    `).bind(traceId).first() as TraceRow | null;
 
     if (!result) return null;
 
@@ -225,34 +264,34 @@ export class DistributedTracing {
       SELECT * FROM spans WHERE trace_id = ? ORDER BY start_time
     `).bind(traceId).all();
 
-    const spans = spansResult.results.map((row: any) => ({
-      spanId: row.id as string,
-      traceId: row.trace_id as string,
-      parentSpanId: row.parent_span_id as string,
+    const spans = (spansResult.results as SpanRow[]).map((row) => ({
+      spanId: row.id,
+      traceId: row.trace_id,
+      parentSpanId: row.parent_span_id,
       serviceName: 'coreflow360',
-      operationName: row.name as string,
-      startTime: new Date(row.start_time as string),
-      endTime: row.end_time ? new Date(row.end_time as string) : undefined,
-      durationMs: row.duration as number,
+      operationName: row.name,
+      startTime: new Date(row.start_time),
+      endTime: row.end_time ? new Date(row.end_time) : undefined,
+      durationMs: row.duration,
       status: row.status as 'ok' | 'error' | 'timeout',
       statusMessage: undefined,
       spanKind: 'internal' as const,
-      tags: JSON.parse(row.attributes as string),
-      logs: JSON.parse(row.events as string)
+      tags: JSON.parse(row.attributes),
+      logs: JSON.parse(row.events)
     }));
 
     return {
-      traceId: result.id as string,
-      businessId: result.business_id as string,
+      traceId: result.id,
+      businessId: result.business_id,
       userId: undefined,
       serviceName: 'coreflow360',
       operationName: 'trace',
-      startTime: new Date(result.start_time as string),
-      endTime: result.end_time ? new Date(result.end_time as string) : undefined,
-      durationMs: result.duration as number,
+      startTime: new Date(result.start_time),
+      endTime: result.end_time ? new Date(result.end_time) : undefined,
+      durationMs: result.duration,
       status: result.status as 'ok' | 'error' | 'timeout',
       spans,
-      tags: JSON.parse(result.attributes as string)
+      tags: JSON.parse(result.attributes)
     };
   }
 
@@ -410,7 +449,7 @@ export class DistributedTracing {
         SUM(CASE WHEN status = 'error' THEN 1 ELSE 0 END) as error_count
       FROM traces 
       WHERE business_id = ? AND start_time >= ? AND start_time <= ?
-    `).bind(businessId, timeRange.start, timeRange.end).first();
+    `).bind(businessId, timeRange.start, timeRange.end).first() as any;
 
     const durations = await this.db.prepare(`
       SELECT duration FROM traces 
@@ -423,9 +462,9 @@ export class DistributedTracing {
     const p99Index = Math.floor(durationsArray.length * 0.99);
 
     return {
-      totalTraces: result.total_traces as number,
-      averageDuration: (result.avg_duration as number) || 0,
-      errorRate: (result.total_traces as number) > 0 ? (result.error_count as number) / (result.total_traces as number) : 0,
+      totalTraces: (result as any).total_traces as number,
+      averageDuration: ((result as any).avg_duration as number) || 0,
+      errorRate: ((result as any).total_traces as number) > 0 ? ((result as any).error_count as number) / ((result as any).total_traces as number) : 0,
       p95Duration: (durationsArray[p95Index] as number) || 0,
       p99Duration: (durationsArray[p99Index] as number) || 0
     };
@@ -435,7 +474,7 @@ export class DistributedTracing {
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     try {
       // Test database connection
-      await this.db.prepare('SELECT 1').first();
+      await this.db.prepare('SELECT 1').first() as any;
       
       return {
         status: 'healthy',

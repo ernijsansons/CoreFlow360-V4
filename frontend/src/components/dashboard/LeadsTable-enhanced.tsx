@@ -30,13 +30,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   User,
-  Mail,
-  Phone,
   Building2,
-  Calendar,
   MoreHorizontal,
   Search,
-  Filter,
   UserPlus,
   Star,
   Edit,
@@ -45,11 +41,10 @@ import {
   Loader2,
   AlertCircle,
   Download,
-  Upload,
   Users,
   RefreshCw
 } from 'lucide-react'
-import { useLeads, useUpdateLead, useDeleteLead, useBulkUpdateLeads, useBulkDeleteLeads, useCreateLead } from '@/hooks/api/use-crm'
+import { useLeads, useUpdateLead, useDeleteLead, useBulkDeleteLeads } from '@/hooks/api/use-crm'
 import { useToast } from '@/hooks/use-toast'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -73,7 +68,6 @@ export function LeadsTableEnhanced() {
   const [searchQuery, setSearchQuery] = React.useState('')
   const [statusFilter, setStatusFilter] = React.useState('all')
   const [selectedLeads, setSelectedLeads] = React.useState<string[]>([])
-  const [showCreateDialog, setShowCreateDialog] = React.useState(false)
   const { toast } = useToast()
 
   // Fetch leads using React Query
@@ -81,7 +75,6 @@ export function LeadsTableEnhanced() {
     data: leadsResponse,
     isLoading,
     isError,
-    error,
     refetch,
     isFetching
   } = useLeads({
@@ -92,8 +85,6 @@ export function LeadsTableEnhanced() {
   // Mutations
   const updateLead = useUpdateLead()
   const deleteLead = useDeleteLead()
-  const createLead = useCreateLead()
-  const bulkUpdateLeads = useBulkUpdateLeads()
   const bulkDeleteLeads = useBulkDeleteLeads()
 
   // Use API data or fallback to mock data
@@ -157,7 +148,7 @@ export function LeadsTableEnhanced() {
         description: 'Lead status has been updated successfully.',
         variant: 'success',
       })
-    } catch (error) {
+    } catch {
       toast({
         title: 'Update failed',
         description: 'Failed to update lead status. Please try again.',
@@ -171,7 +162,7 @@ export function LeadsTableEnhanced() {
       try {
         await deleteLead.mutateAsync(leadId)
         setSelectedLeads(prev => prev.filter(id => id !== leadId))
-      } catch (error) {
+      } catch {
         toast({
           title: 'Delete failed',
           description: 'Failed to delete lead. Please try again.',
@@ -226,7 +217,7 @@ export function LeadsTableEnhanced() {
           })
           break
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Action failed',
         description: `Failed to perform ${action}. Please try again.`,
@@ -255,9 +246,9 @@ export function LeadsTableEnhanced() {
     const colors = {
       new: 'bg-blue-100 text-blue-800',
       contacted: 'bg-yellow-100 text-yellow-800',
-      qualified: 'bg-purple-100 text-purple-800',
+      qualified: 'bg-brand-accent-100 text-brand-accent-800',
       proposal: 'bg-orange-100 text-orange-800',
-      negotiation: 'bg-indigo-100 text-indigo-800',
+      negotiation: 'bg-brand-primary-100 text-brand-primary-800',
       won: 'bg-green-100 text-green-800',
       lost: 'bg-red-100 text-red-800',
     }

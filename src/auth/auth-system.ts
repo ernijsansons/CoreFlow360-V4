@@ -1,5 +1,11 @@
 // Comprehensive Authentication System for CoreFlow360 V4
 import { jwtVerify, SignJWT } from 'jose';
+import { PasswordSecurity,
+  ApiKeySecurity,
+  InputSanitizer } from '../security/security-utilities';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "auth-auth-system" });
+
+
 
 // Cloudflare types
 declare global {
@@ -56,8 +62,10 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
-  businessId: string;
+  businessId?: string;
   companyName?: string;
+  phone?: string;
+  acceptTerms: boolean;
 }
 
 export interface ApiKey {
@@ -162,11 +170,12 @@ export class AuthSystem {
         return { success: false, error: 'Invalid email format' };
       }
 
-      if (request.password.length < 8) {
-        return { success: false, error: 'Password must be at least 8 characters' };
+      // Enhanced password validation per OWASP standards
+      if (!InputSanitizer.isStrongPassword(request.password)) {
+        return { success: false, error: 'Password must be at least 12 characters and contain uppercase, lowercase, numbers, and special characters' };
       }
 
-      // Check if user already exists
+      // Check if user already exists (parameterized query to prevent SQL injection)
       const existingUser = await this.db.prepare('SELECT id FROM users WHERE email = ?')
         .bind(request.email).first();
 
@@ -230,7 +239,7 @@ export class AuthSystem {
       return { success: true, user };
 
     } catch (error: any) {
-      console.error('Registration error:', error);
+      logger.error('Registration error:', error);
       return { success: false, error: 'Registration failed' };
     }
   }
@@ -244,7 +253,7 @@ export class AuthSystem {
   }> {
     try {
       // Find user
-      const userRow = await this.db.prepare('SELECT * FROM users WHERE email = ? AND is_active = 1')
+      const userRow = await this.db.prepare("SELECT * FROM users WHERE email = ? AND status = 'active'")
         .bind(request.email).first() as any;
 
       if (!userRow) {
@@ -265,11 +274,11 @@ export class AuthSystem {
       const user: User = {
         id: userRow.id,
         email: userRow.email,
-        name: userRow.name,
+        name: userRow.display_name || `${userRow.first_name} ${userRow.last_name}`,
         businessId: userRow.business_id,
-        roles: JSON.parse(userRow.roles),
-        permissions: JSON.parse(userRow.permissions),
-        isActive: userRow.is_active === 1,
+        roles: [userRow.role],
+        permissions: userRow.permissions ? JSON.parse(userRow.permissions) : [],
+        isActive: userRow.status === 'active',
         createdAt: userRow.created_at,
         updatedAt: userRow.updated_at,
         lastLoginAt: userRow.last_login_at,
@@ -300,7 +309,7 @@ export class AuthSystem {
       return { success: true, token, user };
 
     } catch (error: any) {
-      console.error('Login error:', error);
+      logger.error('Login error:', error);
       return { success: false, error: 'Login failed' };
     }
   }
@@ -344,7 +353,7 @@ export class AuthSystem {
       return { valid: true, user };
 
     } catch (error: any) {
-      console.error('Token verification error:', error);
+      logger.error('Token verification error:', error);
       return { valid: false, error: 'Invalid token' };
     }
   }
@@ -382,7 +391,7 @@ export class AuthSystem {
       return { success: true, apiKey: rawKey };
 
     } catch (error: any) {
-      console.error('API key generation error:', error);
+      logger.error('API key generation error:', error);
       return { success: false, error: 'Failed to generate API key' };
     }
   }
@@ -427,7 +436,7 @@ export class AuthSystem {
       return { valid: true, user, permissions: apiPermissions };
 
     } catch (error: any) {
-      console.error('API key verification error:', error);
+      logger.error('API key verification error:', error);
       return { valid: false, error: 'API key verification failed' };
     }
   }
@@ -450,34 +459,25 @@ export class AuthSystem {
       return { success: true };
 
     } catch (error: any) {
-      console.error('Logout error:', error);
+      logger.error('Logout error:', error);
       return { success: false, error: 'Logout failed' };
     }
   }
 
   // Private helper methods
   private async hashPassword(password: string): Promise<string> {
-    // In a real implementation, use bcrypt or similar
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password + 'salt');
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    // Using PBKDF2 with 100,000 iterations as per OWASP recommendations
+    return await PasswordSecurity.hashPassword(password);
   }
 
   private async verifyPassword(password: string, hash: string): Promise<boolean> {
-    const passwordHash = await this.hashPassword(password);
-    return passwordHash === hash;
+    // Using constant-time comparison to prevent timing attacks
+    return await PasswordSecurity.verifyPassword(password, hash);
   }
 
   private async hashApiKey(apiKey: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(apiKey);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+    // Using PBKDF2 for API key hashing
+    return await ApiKeySecurity.hashApiKey(apiKey);
   }
 
   private async generateToken(user: User): Promise<string> {
@@ -538,7 +538,7 @@ export class AuthSystem {
   }
 
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    // Using enhanced email validation
+    return InputSanitizer.isValidEmail(email);
   }
 }

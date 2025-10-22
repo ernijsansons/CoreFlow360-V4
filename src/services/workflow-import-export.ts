@@ -6,9 +6,12 @@
 
 import type { Env } from '../types/env';
 import { getAIClient } from './secure-ai-client';
-import { validateInput } from '../utils/validation-schemas';
-import { z } from 'zod';
-import * as yaml from 'yaml';
+
+
+import * as yaml from 'yaml';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "services-workflow-import-export" });
+
+
 
 // =====================================================
 // TYPES AND INTERFACES
@@ -140,10 +143,10 @@ class WorkflowImportExportService {
 
       // Validate the workflow
       const validationResults = request.importOptions?.validateOnImport
-        ? await this.validateImportedWorkflow(internalWorkflow)
+        ? this.validateWorkflow(internalWorkflow)
         : null;
 
-      if (validationResults?.errors.length > 0) {
+      if (validationResults?.errors && validationResults.errors.length > 0) {
         return {
           success: false,
           warnings: validationResults.warnings,
@@ -293,11 +296,22 @@ class WorkflowImportExportService {
     // Basic BPMN parsing - in production would use a proper BPMN parser
     const bpmnElements = this.extractBPMNElements(content);
     return {
-      processes: bpmnElements.processes,
-      tasks: bpmnElements.tasks,
-      gateways: bpmnElements.gateways,
-      events: bpmnElements.events,
-      flows: bpmnElements.flows
+      processes: bpmnElements.processes || [],
+      tasks: bpmnElements.tasks || [],
+      gateways: bpmnElements.gateways || [],
+      events: bpmnElements.events || [],
+      flows: bpmnElements.flows || []
+    };
+  }
+
+  private extractBPMNElements(_content: string): any {
+    // Simple XML-like parsing for BPMN - production would use proper BPMN parser
+    return {
+      processes: [],
+      tasks: [],
+      gateways: [],
+      events: [],
+      flows: []
     };
   }
 
@@ -471,7 +485,7 @@ class WorkflowImportExportService {
     return yaml.stringify(exportData);
   }
 
-  private exportToBPMN(workflow: any, options?: ExportOptions): string {
+  private exportToBPMN(workflow: any, _options?: ExportOptions): string {
     const bpmnTemplate = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
                   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
@@ -486,6 +500,21 @@ class WorkflowImportExportService {
 </bpmn:definitions>`;
 
     return bpmnTemplate;
+  }
+
+  private generateBPMNElements(workflow: any): string {
+    // Generate BPMN task elements from workflow nodes
+    let elements = '';
+    const nodes = workflow.nodes || [];
+
+    for (const node of nodes) {
+      elements += `
+    <bpmn:task id="${node.id}" name="${node.label || node.id}">
+      <bpmn:documentation>${node.description || ''}</bpmn:documentation>
+    </bpmn:task>`;
+    }
+
+    return elements;
   }
 
   private generateBPMNDiagram(workflow: any): string {
@@ -505,7 +534,7 @@ class WorkflowImportExportService {
 
     // Add edges as BPMN edges
     const edges = JSON.parse(workflow.edges as string);
-    edges.forEach((edge: any, index: number) => {
+    edges.forEach((edge: any, _index: number) => {
       diagramElements += `
     <bpmndi:BPMNEdge id="Edge_${edge.id}" bpmnElement="${edge.id}">
       <di:waypoint x="150" y="140" />
@@ -572,7 +601,7 @@ class WorkflowImportExportService {
     return paths;
   }
 
-  private generateOpenAPISchemas(workflow: any): any {
+  private generateOpenAPISchemas(_workflow: any): any {
     const schemas: any = {};
     
     // Generate schemas for workflow data structures
@@ -631,9 +660,9 @@ class WorkflowImportExportService {
   private convertToMakeModules(workflow: any): any[] {
     const nodes = JSON.parse(workflow.nodes as string);
     const edges = JSON.parse(workflow.edges as string);
-    
+
     return nodes.map((node: any, index: number) => {
-      const module = {
+      const module: any = {
         id: index + 1,
         type: node.type,
         name: node.name || `Module ${index + 1}`,
@@ -689,7 +718,7 @@ class WorkflowImportExportService {
   private async saveTemplate(template: any): Promise<void> {
     // Save template to database or file system
     // This is a placeholder implementation
-    console.log('Saving template:', template.name);
+    logger.info('Saving template:', template.name);
   }
 
   private async loadTemplate(templateId: string): Promise<any> {
@@ -706,7 +735,7 @@ class WorkflowImportExportService {
   private async updateTemplateUsage(templateId: string): Promise<void> {
     // Update template usage statistics
     // This is a placeholder implementation
-    console.log('Updating usage for template:', templateId);
+    logger.info('Updating usage for template:', templateId);
   }
 
   private async resolveMergeConflicts(sourceWorkflow: any, targetWorkflow: any): Promise<any> {
@@ -736,7 +765,7 @@ class WorkflowImportExportService {
   private async updateWorkflowFromMerge(workflowId: string, mergedWorkflow: any, userId: string): Promise<void> {
     // Update the workflow with merged changes
     // This is a placeholder implementation
-    console.log('Updating workflow from merge:', workflowId, 'by user:', userId);
+    logger.info('Updating workflow from merge:', workflowId, 'by user:', userId);
   }
 
   private compareNodes(nodes1: string, nodes2: string): any {
@@ -839,7 +868,7 @@ class WorkflowImportExportService {
     return mermaidContent;
   }
 
-  private exportToOpenAPI(workflow: any, options?: ExportOptions): string {
+  private exportToOpenAPI(workflow: any, _options?: ExportOptions): string {
     // Convert workflow to OpenAPI specification
     const openAPISpec = {
       openapi: '3.0.0',
@@ -869,7 +898,7 @@ class WorkflowImportExportService {
     return JSON.stringify(openAPISpec, null, 2);
   }
 
-  private exportToZapier(workflow: any, options?: ExportOptions): string {
+  private exportToZapier(workflow: any, _options?: ExportOptions): string {
     const zapierFormat = {
       title: workflow.name,
       description: workflow.description,
@@ -881,7 +910,7 @@ class WorkflowImportExportService {
     return JSON.stringify(zapierFormat, null, 2);
   }
 
-  private exportToMake(workflow: any, options?: ExportOptions): string {
+  private exportToMake(workflow: any, _options?: ExportOptions): string {
     const makeFormat = {
       scenario: {
         name: workflow.name,
@@ -899,7 +928,7 @@ class WorkflowImportExportService {
     return JSON.stringify(makeFormat, null, 2);
   }
 
-  private async exportToDocumentation(workflow: any, options?: ExportOptions): Promise<string> {
+  private async exportToDocumentation(workflow: any, _options?: ExportOptions): Promise<string> {
     const docPrompt = `
       Generate comprehensive documentation for this workflow:
 
@@ -1094,6 +1123,7 @@ class WorkflowImportExportService {
 
   private async loadWorkflowForExport(workflowId: string): Promise<any> {
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
 
     const workflow = await db.prepare(`
       SELECT w.*,
@@ -1119,7 +1149,12 @@ class WorkflowImportExportService {
       LEFT JOIN workflow_edges e ON w.id = e.workflow_id
       WHERE w.id = ? AND w.business_id = ?
       GROUP BY w.id
-    `).bind(workflowId, this.businessId).first();
+    `).bind(workflowId, this.businessId).first<{
+      id: string;
+      nodes: string;
+      edges: string;
+      [key: string]: any;
+    }>();
 
     if (!workflow) {
       throw new Error('Workflow not found');
@@ -1127,13 +1162,14 @@ class WorkflowImportExportService {
 
     return {
       ...workflow,
-      nodes: JSON.parse(workflow.nodes as string),
-      edges: JSON.parse(workflow.edges as string)
+      nodes: JSON.parse(workflow.nodes || '[]'),
+      edges: JSON.parse(workflow.edges || '[]')
     };
   }
 
   private async saveImportedWorkflow(workflow: any, request: ImportRequest): Promise<string> {
     const db = this.env.DB_CRM;
+    if (!db) throw new Error('Database not available');
 
     const workflowId = workflow.id || `wf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -1197,6 +1233,21 @@ class WorkflowImportExportService {
     }
 
     return workflowId;
+  }
+
+  private validateWorkflow(workflow: any): { warnings: string[]; errors: string[] } {
+    const warnings: string[] = [];
+    const errors: string[] = [];
+
+    if (!workflow.name) {
+      errors.push('Workflow name is required');
+    }
+
+    if (!workflow.nodes || workflow.nodes.length === 0) {
+      errors.push('Workflow must have at least one node');
+    }
+
+    return { warnings, errors };
   }
 
   private generateExportFilename(workflow: any, format: string): string {

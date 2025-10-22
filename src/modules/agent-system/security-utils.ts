@@ -425,7 +425,7 @@ export function securityScan(text: string): {
   const xss = detectXss(text);
   
   const risks = [promptInjection.severity, sqlInjection.severity, xss.severity];
-  const riskLevels = { low: 1, medium: 2, high: 3, critical: 4 };
+  const riskLevels: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
   const maxRisk = Math.max(...risks.map((risk: any) => riskLevels[risk]));
   
   let overallRisk: 'low' | 'medium' | 'high' | 'critical' = 'low';

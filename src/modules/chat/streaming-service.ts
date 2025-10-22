@@ -5,7 +5,9 @@
 
 import { z } from 'zod'
 import type { Env } from '@/types/env'
-import type { ChatMessage, StreamChunk } from '@/types/chat'
+import type { StreamChunk } from '@/types/chat'
+// TODO: Implement chat message when needed
+// import type { ChatMessage } from '@/types/chat'
 import { AppError } from '@/shared/errors/app-error'
 import { AuditLogger } from '@/shared/services/audit-logger'
 import { CORSUtils } from '../../utils/cors-utils'
@@ -62,7 +64,7 @@ class ChatStreamingService {
         };
 
         // CRITICAL: Secure CORS headers with origin validation
-        CORSUtils.setCORSHeaders(headers, origin, {
+        CORSUtils.setCORSHeaders(headers, origin || null, {
           environment: this.env.ENVIRONMENT,
           allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Business-ID']
         });
@@ -106,18 +108,23 @@ class ChatStreamingService {
       // Prepare AI request
       const aiRequest = await this.prepareAIRequest(userMessage, context)
 
+      // Check if AI binding is available
+      if (!this.env.AI) {
+        throw new AppError('AI service not configured', 503, 'AI_UNAVAILABLE')
+      }
+
       // Stream from Cloudflare Workers AI
       const aiResponse = await this.env.AI.run('@cf/meta/llama-2-7b-chat-int8', {
         messages: aiRequest.messages,
         stream: true,
         max_tokens: 2048,
         temperature: 0.7
-      })
+      }) as { body?: ReadableStream }
 
       // Process streaming chunks
       const reader = aiResponse.body?.getReader()
       if (!reader) {
-        throw new AppError('Failed to create AI stream reader', 'STREAM_ERROR')
+        throw new AppError('Failed to create AI stream reader', 500, 'STREAM_ERROR')
       }
 
       let accumulatedContent = ''
@@ -303,22 +310,22 @@ ${JSON.stringify(context.relevantData, null, 2)}`
    */
   private async executeFunctionCall(
     functionName: string,
-    arguments: any,
+    args: any,
     context?: any
   ): Promise<string> {
     try {
       switch (functionName) {
         case 'search_invoices':
-          return await this.searchInvoices(arguments, context)
+          return await this.searchInvoices(args, context)
 
         case 'get_business_metrics':
-          return await this.getBusinessMetrics(arguments, context)
+          return await this.getBusinessMetrics(args, context)
 
         case 'search_customers':
-          return await this.searchCustomers(arguments, context)
+          return await this.searchCustomers(args, context)
 
         case 'get_inventory_status':
-          return await this.getInventoryStatus(arguments, context)
+          return await this.getInventoryStatus(args, context)
 
         default:
           return `Function "${functionName}" is not available.`
@@ -331,7 +338,7 @@ ${JSON.stringify(context.relevantData, null, 2)}`
   /**
    * Search invoices function
    */
-  private async searchInvoices(args: any, context?: any): Promise<string> {
+  private async searchInvoices(_args: any, _context?: any): Promise<string> {
     // Implementation would integrate with invoice service
     return `Found ${Math.floor(Math.random() * 50)} invoices matching your criteria.`
   }
@@ -339,7 +346,7 @@ ${JSON.stringify(context.relevantData, null, 2)}`
   /**
    * Get business metrics function
    */
-  private async getBusinessMetrics(args: any, context?: any): Promise<string> {
+  private async getBusinessMetrics(_args: any, _context?: any): Promise<string> {
     const metrics = {
       totalRevenue: Math.floor(Math.random() * 1000000),
       totalInvoices: Math.floor(Math.random() * 500),
@@ -358,14 +365,14 @@ ${JSON.stringify(context.relevantData, null, 2)}`
   /**
    * Search customers function
    */
-  private async searchCustomers(args: any, context?: any): Promise<string> {
+  private async searchCustomers(_args: any, _context?: any): Promise<string> {
     return `Found ${Math.floor(Math.random() * 100)} customers matching your search.`
   }
 
   /**
    * Get inventory status function
    */
-  private async getInventoryStatus(args: any, context?: any): Promise<string> {
+  private async getInventoryStatus(_args: any, _context?: any): Promise<string> {
     return `Current inventory status: ${Math.floor(Math.random()
   * 1000)} items in stock across ${Math.floor(Math.random() * 10)} locations.`
   }
@@ -409,7 +416,7 @@ ${JSON.stringify(context.relevantData, null, 2)}`
   async handleStreamConnection(request: Request, origin?: string | null): Promise<Response> {
     // Validate request
     if (request.method !== 'GET') {
-      throw new AppError('Method not allowed', 'METHOD_NOT_ALLOWED', 405)
+      throw new AppError('Method not allowed', 405, 'METHOD_NOT_ALLOWED')
     }
 
     const url = new URL(request.url)
@@ -417,7 +424,7 @@ ${JSON.stringify(context.relevantData, null, 2)}`
     const messageId = url.searchParams.get('messageId')
 
     if (!conversationId || !messageId) {
-      throw new AppError('Missing required parameters', 'BAD_REQUEST', 400)
+      throw new AppError('Missing required parameters', 400, 'BAD_REQUEST')
     }
 
     // Create keep-alive stream for connection
@@ -448,7 +455,7 @@ ${JSON.stringify(context.relevantData, null, 2)}`
         };
 
         // CRITICAL: Secure CORS headers with origin validation
-        CORSUtils.setCORSHeaders(headers, origin, {
+        CORSUtils.setCORSHeaders(headers, origin || null, {
           environment: this.env.ENVIRONMENT,
           allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Business-ID']
         });

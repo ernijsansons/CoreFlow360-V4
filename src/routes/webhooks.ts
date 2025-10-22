@@ -9,15 +9,16 @@ let webhookReceiver: WebhookReceiver;
 
 webhooks.use('*', async (c, next) => {
   if (!webhookIntegration) {
+    const env = c.env as any;
     webhookIntegration = new WebhookIntegration(
       {
-        secret: c.env.WEBHOOK_SECRET,
+        secret: env.WEBHOOK_SECRET,
         endpoints: {
-          agents: c.env.AGENT_SYSTEM_URL + '/webhooks/coreflow',
-          coreflow: c.env.COREFLOW_API_URL + '/webhooks/agents'
+          agents: env.AGENT_SYSTEM_URL + '/webhooks/coreflow',
+          coreflow: env.COREFLOW_API_URL + '/webhooks/agents'
         }
       },
-      c.env
+      env
     );
 
     webhookReceiver = new WebhookReceiver(webhookIntegration);

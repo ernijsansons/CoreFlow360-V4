@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * Advanced lazy loading utilities for CoreFlow360 V4
  * Optimized component loading with suspense and error boundaries
@@ -142,7 +143,7 @@ export interface LazyLoadOptions {
 }
 
 // Enhanced lazy component creator with retry and error handling
-export function createLazyComponent<T = {}>(
+export function createLazyComponent<T = Record<string, never>>(
   importFn: () => Promise<{ default: ComponentType<T> }>,
   options: LazyLoadOptions = {}
 ): LazyExoticComponent<ComponentType<T>> {
@@ -370,7 +371,7 @@ export function LazySection({
 export class ResourcePreloader {
   private static preloadedResources = new Set<string>()
 
-  static preloadComponent(importFn: () => Promise<any>): void {
+  static preloadComponent(importFn: () => Promise<unknown>): void {
     const moduleId = importFn.toString()
     if (this.preloadedResources.has(moduleId)) return
 

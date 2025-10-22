@@ -1,16 +1,13 @@
 // CoreFlow360 V4 - Real-time Observability Dashboard
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  LineChart, Line, AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  ScatterChart, Scatter, Heatmap
 } from 'recharts';
-import * as d3 from 'd3';
 
 interface DashboardProps {
   businessId: string;
   timeRange: string;
-  refreshInterval: number;
 }
 
 interface MetricData {
@@ -19,7 +16,7 @@ interface MetricData {
   value: number;
   trend?: 'increasing' | 'decreasing' | 'stable';
   anomalyScore?: number;
-  predictions?: any;
+  predictions?: Record<string, unknown>;
 }
 
 interface Alert {
@@ -34,12 +31,11 @@ interface Alert {
 export const ObservabilityDashboard: React.FC<DashboardProps> = ({
   businessId,
   timeRange,
-  refreshInterval
 }) => {
   const [metrics, setMetrics] = useState<MetricData[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [serviceHealth, setServiceHealth] = useState<any[]>([]);
-  const [costSummary, setCostSummary] = useState<any>(null);
+  const [serviceHealth, setServiceHealth] = useState<Array<Record<string, unknown>>>([]);
+  const [costSummary, setCostSummary] = useState<Record<string, unknown> | null>(null);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,11 +43,10 @@ export const ObservabilityDashboard: React.FC<DashboardProps> = ({
   const [selectedMetrics, setSelectedMetrics] = useState(['latency', 'errors', 'cost', 'traffic']);
   const [searchQuery, setSearchQuery] = useState('');
   const [customQuery, setCustomQuery] = useState('');
-  const [queryResults, setQueryResults] = useState<any>(null);
+  const [queryResults, setQueryResults] = useState<Record<string, unknown> | null>(null);
   const [connectionAttempts, setConnectionAttempts] = useState(0);
 
   const wsRef = useRef<WebSocket | null>(null);
-  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   // Establish WebSocket connection
   useEffect(() => {
@@ -107,9 +102,9 @@ export const ObservabilityDashboard: React.FC<DashboardProps> = ({
         wsRef.current.close();
       }
     };
-  }, [businessId, selectedMetrics]);
+  }, [businessId, selectedMetrics, connectionAttempts]);
 
-  const handleStreamMessage = (data: any) => {
+  const handleStreamMessage = (data: Record<string, unknown>) => {
     switch (data.type) {
       case 'initial':
         setMetrics(data.data.metrics || []);
@@ -161,7 +156,7 @@ export const ObservabilityDashboard: React.FC<DashboardProps> = ({
         anomalyScore: metric.anomalyScore || 0
       });
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, Array<{ timestamp: number; value: number; trend?: string; anomalyScore: number }>>);
 
     // Sort by timestamp and limit to time range
     const timeRangeMs = getTimeRangeMs(selectedTimeRange);
@@ -422,7 +417,7 @@ export const ObservabilityDashboard: React.FC<DashboardProps> = ({
                   <span>Total Cost:</span>
                   <span className="font-bold">${costSummary.totalCost?.toFixed(2)}</span>
                 </div>
-                {costSummary.providers?.map((provider: any, index: number) => (
+                {Array.isArray(costSummary.providers) && costSummary.providers.map((provider: { ai_provider: string; total_cost_dollars: number }, index: number) => (
                   <div key={index} className="flex justify-between text-sm">
                     <span>{provider.ai_provider}:</span>
                     <span>${provider.total_cost_dollars?.toFixed(2)}</span>
@@ -468,9 +463,9 @@ export const ObservabilityDashboard: React.FC<DashboardProps> = ({
                   </tr>
                 </thead>
                 <tbody>
-                  {queryResults.slice(0, 100).map((row: any, index: number) => (
+                  {Array.isArray(queryResults) && queryResults.slice(0, 100).map((row: Record<string, unknown>, index: number) => (
                     <tr key={index} className="border-t">
-                      {Object.values(row).map((value: any, cellIndex: number) => (
+                      {Object.values(row).map((value: unknown, cellIndex: number) => (
                         <td key={cellIndex} className="px-3 py-2 text-sm">
                           {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                         </td>
@@ -490,7 +485,7 @@ export const ObservabilityDashboard: React.FC<DashboardProps> = ({
 // Chart Panel Component
 interface ChartPanelProps {
   title: string;
-  data: any[];
+  data: Array<{ timestamp: number; value: number; anomalyScore?: number }>;
   color: string;
   unit: string;
   type: 'line' | 'area' | 'bar';
@@ -501,7 +496,6 @@ const ChartPanel: React.FC<ChartPanelProps> = ({
   title,
   data,
   color,
-  unit,
   type,
   showAnomalies
 }) => {
@@ -509,9 +503,6 @@ const ChartPanel: React.FC<ChartPanelProps> = ({
     return new Date(timestamp).toLocaleTimeString();
   };
 
-  const formatTooltip = (value: any, name: string) => {
-    return [`${value}${unit}`, name];
-  };
 
   const renderChart = () => {
     const chartProps = {
@@ -556,8 +547,8 @@ const ChartPanel: React.FC<ChartPanelProps> = ({
               stroke={color}
               strokeWidth={2}
               dot={showAnomalies ? {
-                fill: (entry: any) => entry.anomalyScore > 0.5 ? '#ff0000' : color,
-                strokeWidth: (entry: any) => entry.anomalyScore > 0.5 ? 3 : 1
+                fill: (entry: { anomalyScore?: number }) => (entry.anomalyScore || 0) > 0.5 ? '#ff0000' : color,
+                strokeWidth: (entry: { anomalyScore?: number }) => (entry.anomalyScore || 0) > 0.5 ? 3 : 1
               } : false}
             />
           </LineChart>
@@ -621,7 +612,12 @@ const AlertCard: React.FC<AlertCardProps> = ({ alert, onAcknowledge }) => {
 
 // Service Health Card Component
 interface ServiceHealthCardProps {
-  service: any;
+  service: {
+    service_name: string;
+    error_rate: number;
+    avg_latency: number;
+    requests_per_second: number;
+  };
 }
 
 const ServiceHealthCard: React.FC<ServiceHealthCardProps> = ({ service }) => {

@@ -62,6 +62,11 @@ class ChatFileService {
       // Validate file content
       await this.validateFileContent(fileBuffer, validatedFile.type)
 
+      // Check if CHAT_FILES_BUCKET is available
+      if (!this.env.CHAT_FILES_BUCKET) {
+        throw new AppError('File storage not configured', 503, 'STORAGE_UNAVAILABLE')
+      }
+
       // Upload to R2
       const uploadResult = await this.env.CHAT_FILES_BUCKET.put(fileKey, fileBuffer, {
         httpMetadata: {
@@ -78,7 +83,7 @@ class ChatFileService {
       })
 
       if (!uploadResult) {
-        throw new AppError('Failed to upload file to storage', 'UPLOAD_FAILED')
+        throw new AppError('Failed to upload file to storage', 500, 'UPLOAD_FAILED')
       }
 
       // Generate URLs
@@ -140,9 +145,10 @@ class ChatFileService {
 
       throw new AppError(
         'Failed to upload file',
-        'UPLOAD_FAILED',
         500,
-        error instanceof Error ? error.message : undefined
+        'UPLOAD_FAILED',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -165,9 +171,10 @@ class ChatFileService {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve file metadata',
-        'DATABASE_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'DATABASE_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -188,9 +195,10 @@ class ChatFileService {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve conversation files',
-        'DATABASE_ERROR',
         500,
-        error instanceof Error ? error.message : undefined
+        'DATABASE_ERROR',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -203,12 +211,12 @@ class ChatFileService {
       // Get file metadata
       const metadata = await this.getFileMetadata(fileId)
       if (!metadata) {
-        throw new AppError('File not found', 'FILE_NOT_FOUND', 404)
+        throw new AppError('File not found', 404, 'FILE_NOT_FOUND')
       }
 
       // Check permissions (only uploader can delete)
       if (metadata.uploadedBy !== userId) {
-        throw new AppError('Insufficient permissions', 'FORBIDDEN', 403)
+        throw new AppError('Insufficient permissions', 403, 'FORBIDDEN')
       }
 
       // Generate file key from metadata
@@ -217,12 +225,14 @@ class ChatFileService {
       const fileKey = `chat-files/${metadata.conversationId}/${timestamp}-${fileId}-${sanitizedName}`
 
       // Delete from R2
-      await this.env.CHAT_FILES_BUCKET.delete(fileKey)
+      if (this.env.CHAT_FILES_BUCKET) {
+        await this.env.CHAT_FILES_BUCKET.delete(fileKey)
 
-      // Delete thumbnail if exists
-      if (metadata.thumbnailUrl) {
-        const thumbnailKey = `thumbnails/${fileId}.webp`
-        await this.env.CHAT_FILES_BUCKET.delete(thumbnailKey)
+        // Delete thumbnail if exists
+        if (metadata.thumbnailUrl) {
+          const thumbnailKey = `thumbnails/${fileId}.webp`
+          await this.env.CHAT_FILES_BUCKET.delete(thumbnailKey)
+        }
       }
 
       // Delete from database
@@ -248,9 +258,10 @@ class ChatFileService {
 
       throw new AppError(
         'Failed to delete file',
-        'DELETE_FAILED',
         500,
-        error instanceof Error ? error.message : undefined
+        'DELETE_FAILED',
+        true,
+        error instanceof Error ? { originalError: error.message } : undefined
       )
     }
   }
@@ -261,7 +272,7 @@ class ChatFileService {
   async generateDownloadUrl(fileId: string, expirationMinutes: number = 60): Promise<string> {
     const metadata = await this.getFileMetadata(fileId)
     if (!metadata) {
-      throw new AppError('File not found', 'FILE_NOT_FOUND', 404)
+      throw new AppError('File not found', 404, 'FILE_NOT_FOUND')
     }
 
     // Generate signed URL for secure download
@@ -300,7 +311,7 @@ class ChatFileService {
   private async generateThumbnail(
     originalKey: string,
     imageBuffer: ArrayBuffer,
-    mimeType: string
+    _mimeType: string
   ): Promise<string> {
     try {
       // Use Cloudflare Images for thumbnail generation
@@ -310,11 +321,13 @@ class ChatFileService {
       // This is a placeholder - implement actual thumbnail generation
       const thumbnailBuffer = imageBuffer // Would be processed thumbnail
 
-      await this.env.CHAT_FILES_BUCKET.put(thumbnailKey, thumbnailBuffer, {
-        httpMetadata: {
-          contentType: 'image/webp'
-        }
-      })
+      if (this.env.CHAT_FILES_BUCKET) {
+        await this.env.CHAT_FILES_BUCKET.put(thumbnailKey, thumbnailBuffer, {
+          httpMetadata: {
+            contentType: 'image/webp'
+          }
+        })
+      }
 
       return `${this.env.CHAT_FILES_BASE_URL}/${thumbnailKey}`
 
@@ -329,7 +342,7 @@ class ChatFileService {
   private async validateFileContent(buffer: ArrayBuffer, expectedType: string): Promise<void> {
     // Basic file validation
     if (buffer.byteLength === 0) {
-      throw new AppError('File is empty', 'INVALID_FILE')
+      throw new AppError('File is empty', 400, 'INVALID_FILE')
     }
 
     // Check magic numbers for common file types
@@ -352,7 +365,7 @@ class ChatFileService {
       )
 
       if (!isValid) {
-        throw new AppError('File content does not match declared type', 'INVALID_FILE_TYPE')
+        throw new AppError('File content does not match declared type', 400, 'INVALID_FILE_TYPE')
       }
     }
   }
@@ -386,7 +399,7 @@ class ChatFileService {
 
       return buffer
     } catch (error: any) {
-      throw new AppError('Invalid base64 data', 'INVALID_FILE_DATA')
+      throw new AppError('Invalid base64 data', 400, 'INVALID_FILE_DATA')
     }
   }
 

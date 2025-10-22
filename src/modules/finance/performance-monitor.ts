@@ -284,7 +284,7 @@ export class PerformanceMonitor {
    */
   monitor(
     operationName: string,
-    thresholds?: PerformanceThresholds
+    _thresholds?: PerformanceThresholds
   ) {
     return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
       const method = descriptor.value;
@@ -453,6 +453,7 @@ export class MetricsCollector {
 
     // Duration metrics
     for (const [operationName, metrics] of this.monitor.metrics) {
+    void metrics;
       const stats = this.monitor.getPerformanceStats(operationName);
       if (stats) {
         lines.push(`# HELP finance_operation_duration_ms Duration of financial operations in milliseconds`);

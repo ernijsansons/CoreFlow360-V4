@@ -92,7 +92,7 @@ export interface NotificationAction {
   action?: () => void
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T
   success: boolean
   message?: string
@@ -111,16 +111,16 @@ export interface PaginationParams {
   sort?: string
   order?: 'asc' | 'desc'
   search?: string
-  filters?: Record<string, any>
+  filters?: Record<string, unknown>
 }
 
-export interface TableColumn<T = any> {
+export interface TableColumn<T = unknown> {
   key: keyof T | string
   label: string
   sortable?: boolean
   width?: string
   align?: 'left' | 'center' | 'right'
-  render?: (value: any, row: T) => React.ReactNode
+  render?: (value: unknown, row: T) => React.ReactNode
 }
 
 export interface FormField {
@@ -130,7 +130,7 @@ export interface FormField {
   required?: boolean
   placeholder?: string
   options?: { label: string; value: string }[]
-  validation?: any
+  validation?: Record<string, unknown>
 }
 
 export type FormFieldType =
@@ -185,7 +185,7 @@ export interface Theme {
   borderRadius: Record<string, string>
 }
 
-export interface CacheItem<T = any> {
+export interface CacheItem<T = unknown> {
   data: T
   timestamp: number
   ttl: number
@@ -195,7 +195,7 @@ export interface SyncQueueItem {
   id: string
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
   url: string
-  data?: any
+  data?: Record<string, unknown>
   headers?: Record<string, string>
   timestamp: number
   retries: number

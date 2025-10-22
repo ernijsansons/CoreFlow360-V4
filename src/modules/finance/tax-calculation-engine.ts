@@ -289,7 +289,7 @@ export class TaxCalculationEngine {
         validBusinessId,
         address.country,
         address.state || ''
-      ).first();
+      ).first() as any;
 
       if (!result) {
         return null;
@@ -350,7 +350,7 @@ export class TaxCalculationEngine {
         FROM products p
         LEFT JOIN product_categories pc ON p.category_id = pc.id
         WHERE p.id = ? AND p.business_id = ? AND p.is_active = 1
-      `).bind(productId, validBusinessId).first();
+      `).bind(productId, validBusinessId).first() as any;
 
       if (!productResult) {
         // If product not found, return all tax rates (default behavior)
@@ -477,7 +477,7 @@ export class TaxCalculationEngine {
       const result = await this.db.prepare(`
         SELECT * FROM tax_rates
         WHERE id = ? AND business_id = ?
-      `).bind(taxRateId, validBusinessId).first();
+      `).bind(taxRateId, validBusinessId).first() as any;
 
       if (!result) {
         return null;
@@ -626,7 +626,7 @@ export class TaxCalculationEngine {
       SELECT default_tax_rate_id, tax_calculation_method, tax_rounding_method
       FROM finance_config
       WHERE business_id = ?
-    `).bind(businessId).first();
+    `).bind(businessId).first() as any;
 
     return {
       defaultTaxRateId: result?.default_tax_rate_id as string || undefined,

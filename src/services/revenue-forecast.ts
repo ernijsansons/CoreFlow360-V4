@@ -486,7 +486,7 @@ export class RevenueForecast {
     // Calculate conversion rates
     const byStage: Record<string, number> = {};
     for (const stage of historicalDeals.results) {
-      byStage[stage.stage as string] = (stage.won as number) / (stage.total as number);
+      byStage[(stage as any).stage as string] = ((stage as any).won as number) / ((stage as any).total as number);
     }
 
     // Get overall conversion
@@ -496,7 +496,7 @@ export class RevenueForecast {
         COUNT(CASE WHEN status = 'closed_won' THEN 1 END) as won
       FROM opportunities
       WHERE close_date >= datetime('now', '-1 year')
-    `).first();
+    `).first() as any;
 
     const overall = (overallResult?.won as number || 0) / (overallResult?.total as number || 1);
 
@@ -908,8 +908,8 @@ export class RevenueForecast {
 
   private calculateConfidence(
     pipeline: PipelineAnalysis,
-    historicalRates: HistoricalConversion,
-    assumptions: Assumption[]
+    _historicalRates: HistoricalConversion,
+    _assumptions: Assumption[]
   ): ConfidenceAnalysis {
     const factors: ConfidenceFactor[] = [];
 
@@ -1066,7 +1066,9 @@ export class RevenueForecast {
   private createFunnel(pipeline: PipelineAnalysis): FunnelChart {
     const stages: FunnelStage[] = [];
     let remainingCount = pipeline.dealCount;
+    void remainingCount;
     let remainingValue = pipeline.totalValue;
+    void remainingValue;
 
     for (const stage of pipeline.stages) {
       stages.push({
@@ -1085,7 +1087,7 @@ export class RevenueForecast {
     return { stages, conversionRates };
   }
 
-  private createHeatmap(pipeline: PipelineAnalysis): HeatmapData {
+  private createHeatmap(_pipeline: PipelineAnalysis): HeatmapData {
     const data: HeatmapCell[] = [];
 
     // Create heatmap of stage vs time
@@ -1109,7 +1111,7 @@ export class RevenueForecast {
     };
   }
 
-  private createTrends(pipeline: PipelineAnalysis): TrendChart[] {
+  private createTrends(_pipeline: PipelineAnalysis): TrendChart[] {
     return [
       {
         name: 'Pipeline Value',
@@ -1335,7 +1337,7 @@ export class RevenueForecast {
     return 0.25;
   }
 
-  private getSeasonalFactors(period: 'month' | 'quarter' | 'year'): SeasonalFactor[] {
+  private getSeasonalFactors(_period: 'month' | 'quarter' | 'year'): SeasonalFactor[] {
     const month = new Date().getMonth();
     const factors: SeasonalFactor[] = [];
 

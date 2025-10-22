@@ -38,6 +38,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
     const interval = setInterval(refreshAgentStatus, 30000); // Refresh every 30 seconds
 
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initializeAgentSystem = async () => {
@@ -53,7 +54,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
       const statusData = await statusResponse.json();
 
       // Map capabilities to agent format
-      const agentList = capabilities.map((cap: any) => ({
+      const agentList = capabilities.map((cap: { id: string; name: string; type: Agent['type']; capabilities: string[] }) => ({
         id: cap.id,
         name: cap.name,
         type: cap.type,
@@ -147,7 +148,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-primary-600"></div>
       </div>
     );
   }
@@ -212,7 +213,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
                 onClick={() => setActiveTab(tab)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm capitalize ${
                   activeTab === tab
-                    ? 'border-indigo-500 text-indigo-600'
+                    ? 'border-brand-primary-500 text-brand-primary-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
@@ -294,7 +295,7 @@ export const AgentDashboard: React.FC<AgentDashboardProps> = ({
                             <div className="flex items-center space-x-2">
                               <div className="w-24 bg-gray-200 rounded-full h-2">
                                 <div
-                                  className="bg-indigo-600 h-2 rounded-full"
+                                  className="bg-brand-primary-600 h-2 rounded-full"
                                   style={{ width: `${(count / agents.length) * 100}%` }}
                                 ></div>
                               </div>

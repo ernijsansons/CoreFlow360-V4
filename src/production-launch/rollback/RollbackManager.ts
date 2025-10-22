@@ -1,4 +1,7 @@
-import { RollbackPlan, RollbackCondition, RollbackStep } from '../types/index';
+import { RollbackPlan, RollbackStep } from '../types/index';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "production-launch-rollback-RollbackManager" });
+
+
 
 export // TODO: Consider splitting RollbackManager into smaller, focused classes
 class RollbackManager {
@@ -107,7 +110,7 @@ class RollbackManager {
     }
   }
 
-  async initiateEmergencyRollback(reason: string): Promise<void> {
+  async initiateEmergencyRollback(_reason: string): Promise<void> {
     
     // For emergency rollback, execute critical steps only
     const emergencySteps = this.rollbackPlan?.steps.filter((step: any) => step.rollbackRequired) || [];
@@ -139,6 +142,7 @@ class RollbackManager {
       await this.simulateCommand(step.command, step.estimatedTime);
       
       const actualTime = (Date.now() - startTime) / 1000;
+      void actualTime;
       
       // Verification step
       if (!emergency) {
@@ -166,6 +170,7 @@ class RollbackManager {
     if (!this.rollbackPlan) return;
     
     for (const communication of this.rollbackPlan.communicationPlan) {
+    void communication;
       await this.delay(200); // Simulate notification sending
     }
     
@@ -205,7 +210,7 @@ class RollbackManager {
     const ready = issues.length === 0;
     
     if (issues.length > 0) {
-      issues.forEach((issue: any) => console.log(`   - ${issue}`));
+      issues.forEach((issue: any) => logger.info(`   - ${issue}`));
     }
     
     return { ready, issues };

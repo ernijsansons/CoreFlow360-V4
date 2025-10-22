@@ -47,7 +47,7 @@ export class LeadRepository implements ILeadRepository {
 
       // Build query (delegated to query builder)
       const validatedFields = this.validator.sanitizeFields(Object.keys(lead), 'leads');
-      const { query, params } = this.queryBuilder
+      this.queryBuilder
         .reset()
         .select(['*'])
         .build();
@@ -95,7 +95,7 @@ export class LeadRepository implements ILeadRepository {
       }
 
       // Build query for lead with related data
-      const { query, params } = this.queryBuilder
+      const { query } = this.queryBuilder
         .reset()
         .select([
           'l.*',
@@ -273,7 +273,7 @@ export class LeadRepository implements ILeadRepository {
     const startTime = performance.now();
 
     try {
-      const { query, params } = this.queryBuilder
+      this.queryBuilder
         .reset()
         .build();
 

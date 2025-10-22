@@ -1,72 +1,14 @@
 // Enhanced Cloudflare Worker with Database and AI Integration
 import { AuthSystem } from './auth/auth-system';
 
-// Cloudflare Worker types
-declare global {
-  interface D1Database {
-    prepare(query: string): D1PreparedStatement;
-  }
-  interface D1PreparedStatement {
-    bind(...values: any[]): D1PreparedStatement;
-    first<T = unknown>(): Promise<T | null>;
-    run(): Promise<D1Result>;
-    all<T = unknown>(): Promise<D1Result<T>>;
-  }
-  // D1Result interface is already defined in @cloudflare/workers-types
-  interface KVNamespace {
-    get(key: string): Promise<string | null>;
-    put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
-  }
-  interface R2Bucket {
-    get(key: string): Promise<R2Object | null>;
-    put(key: string, value: ReadableStream | ArrayBuffer | string): Promise<R2Object>;
-  }
-  interface R2Object {
-    body: ReadableStream;
-  }
-  // DurableObjectState interface is already defined in @cloudflare/workers-types
-  interface DurableObjectNamespace {
-    idFromName(name: string): DurableObjectId;
-    get(id: DurableObjectId): DurableObject;
-  }
-  interface DurableObjectId {}
-  interface DurableObject {
-    fetch(request: Request): Promise<Response>;
-  }
-  interface ExecutionContext {
-    waitUntil(promise: Promise<any>): void;
-  }
-}
+// Use canonical Env type
+import type { Env } from './types/env';import { Logger } from "./shared/logger";
+const logger = new Logger({ component: "indexenhanced" });
 
-export interface Env {
-  // Database bindings
-  DB?: D1Database;
-  DB_MAIN?: D1Database;
-  DB_ANALYTICS?: D1Database;
 
-  // KV Storage
-  KV_CACHE?: KVNamespace;
-  KV_SESSION?: KVNamespace;
-  KV_AUTH?: KVNamespace;
-  KV_RATE_LIMIT_METRICS?: KVNamespace;
 
-  // R2 Storage
-  R2_DOCUMENTS?: R2Bucket;
-  R2_BACKUPS?: R2Bucket;
-
-  // AI & Services
-  AI?: any;
-  RATE_LIMITER_DO?: DurableObjectNamespace;
-
-  // Environment variables
-  JWT_SECRET?: string;
-  ANTHROPIC_API_KEY?: string;
-  OPENAI_API_KEY?: string;
-  EMAIL_API_KEY?: string;
-  API_BASE_URL?: string;
-  ENVIRONMENT?: string;
-  ALLOWED_ORIGINS?: string;
-}
+// Re-export canonical type
+export type { Env } from './types/env';
 
 // Enhanced Durable Object for Rate Limiting
 export class AdvancedRateLimiterDO {
@@ -232,7 +174,7 @@ class DatabaseManager {
 class AIService {
   constructor(private env: Env) {}
 
-  async processWithAI(prompt: string, context?: any): Promise<any> {
+  async processWithAI(prompt: string, _context?: any): Promise<any> {
     if (!this.env.ANTHROPIC_API_KEY) {
       throw new Error('AI service not configured');
     }
@@ -252,7 +194,7 @@ class AIService {
     return result.response;
   }
 
-  async analyzeBusinessContext(data: any): Promise<any> {
+  async analyzeBusinessContext(_data: any): Promise<any> {
     return {
       insights: ['Market trend analysis', 'Customer behavior patterns'],
       recommendations: ['Focus on digital transformation', 'Improve customer engagement'],
@@ -263,7 +205,7 @@ class AIService {
 
 // Enhanced route handlers with database integration
 const createRouteHandlers = (env: Env, dbManager: DatabaseManager, aiService: AIService, authSystem: AuthSystem) => ({
-  '/health': async (request: Request) => {
+  '/health': async (_request: Request) => {
     const dbStatus = env.DB ? 'connected' : 'not_configured';
     const aiStatus = env.ANTHROPIC_API_KEY ? 'configured' : 'not_configured';
 
@@ -281,7 +223,7 @@ const createRouteHandlers = (env: Env, dbManager: DatabaseManager, aiService: AI
     });
   },
 
-  '/api/status': async (request: Request) => {
+  '/api/status': async (_request: Request) => {
     const stats = env.DB ? await dbManager.getApiStats(10) : [];
 
     return new Response(JSON.stringify({
@@ -778,7 +720,7 @@ const createRouteHandlers = (env: Env, dbManager: DatabaseManager, aiService: AI
     }
   },
 
-  '/api/cache/stats': async (request: Request) => {
+  '/api/cache/stats': async (_request: Request) => {
     if (!env.KV_CACHE) {
       return new Response(JSON.stringify({ error: 'Cache not configured' }), {
         status: 503,
@@ -916,7 +858,7 @@ export default {
       });
 
     } catch (error: any) {
-      console.error('Worker error:', error);
+      logger.error('Worker error:', error);
 
       const responseTime = Date.now() - startTime;
       return new Response(JSON.stringify({

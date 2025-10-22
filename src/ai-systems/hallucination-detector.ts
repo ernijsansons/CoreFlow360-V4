@@ -6,8 +6,6 @@
 import { Logger } from '../shared/logger';
 import type { Context } from 'hono';
 
-const logger = new Logger({ component: 'hallucination-detector' });
-
 export interface HallucinationInstance {
   id: string;
   timestamp: Date;
@@ -268,7 +266,7 @@ export class HallucinationDetector {
 
   private async checkFactualClaim(
     claim: string,
-    sources: string[]
+    _sources: string[]
   ): Promise<FactCheckResult> {
     // Simulate fact-checking against knowledge base and external sources
     const cleanClaim = this.normalizeClaim(claim);
@@ -301,7 +299,7 @@ export class HallucinationDetector {
       .trim();
   }
 
-  private checkAgainstKnowledgeBase(claim: string): {
+  private checkAgainstKnowledgeBase(_claim: string): {
     isFactual: boolean;
     confidence: number;
     sources: string[];
@@ -321,14 +319,15 @@ export class HallucinationDetector {
     };
   }
 
-  private async simulateExternalFactCheck(claim: string): Promise<{
+  private async simulateExternalFactCheck(_claim: string): Promise<{
     isFactual: boolean;
     confidence: number;
     sources: string[];
     evidence: string;
   }> {
     // Simulate external fact-checking API call
-    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate API delay
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, 100)); // Simulate API delay
 
     const confidence = Math.random() * 0.4 + 0.6; // 60-100% confidence
     const isFactual = confidence > 0.75 && Math.random() > 0.15; // 85% accuracy rate
@@ -681,7 +680,7 @@ export class HallucinationDetector {
   private async validateGrounding(
     input: string,
     output: string,
-    config: HallucinationDetectionConfig
+    _config: HallucinationDetectionConfig
   ): Promise<GroundingValidation> {
     const groundingSources: string[] = [];
     const missingGrounding: string[] = [];
@@ -819,7 +818,7 @@ export class HallucinationDetector {
     return 'Low';
   }
 
-  private generatePreventionStrategy(patternKey: string, instances: HallucinationInstance[]): string {
+  private generatePreventionStrategy(patternKey: string, _instances: HallucinationInstance[]): string {
     const strategies = new Map([
       ['factual_', 'Implement fact-checking and source verification'],
       ['logical_', 'Add logical consistency validation'],

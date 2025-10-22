@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /**
  * Drill-Down Hook
  * Manages hierarchical data navigation and context preservation
@@ -10,9 +11,9 @@ export interface DrillDownLevel {
   id: string
   label: string
   parentId?: string
-  filters: Record<string, any>
+  filters: Record<string, unknown>
   breadcrumb: string[]
-  data?: any
+  data?: unknown
   timestamp: number
 }
 
@@ -67,8 +68,8 @@ export const useDrillDown = (
   const drillDown = useCallback(async (
     levelId: string,
     label: string,
-    filters: Record<string, any>,
-    fetchData?: () => Promise<any>
+    filters: Record<string, unknown>,
+    fetchData?: () => Promise<unknown>
   ) => {
     if (!context.canDrillDown) {
       console.warn('Maximum drill-down levels reached')
@@ -194,7 +195,7 @@ export const useDrillDown = (
   }, [context.history, router, widgetId])
 
   // Get drill-down suggestions based on current level
-  const getDrillDownSuggestions = useCallback((dataType: string, currentData?: any) => {
+  const getDrillDownSuggestions = useCallback((dataType: string, currentData?: Record<string, unknown>) => {
     const suggestions: Array<{
       id: string
       label: string

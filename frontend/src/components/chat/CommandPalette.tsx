@@ -13,11 +13,7 @@ import {
   Package,
   DollarSign,
   BarChart3,
-  Settings,
   Calculator,
-  Download,
-  Send,
-  Clock,
   ArrowRight,
   Zap,
   Brain
@@ -355,7 +351,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       </div>
 
                       {/* Commands */}
-                      {commands.map((command, commandIndex) => {
+                      {commands.map((command) => {
                         const globalIndex = filteredCommands.indexOf(command)
                         const isSelected = globalIndex === selectedIndex
 

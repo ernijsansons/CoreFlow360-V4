@@ -7,6 +7,8 @@ import type { Context, Next } from 'hono';
 import type { Env } from '../types/env';
 import { z } from 'zod';
 
+/* eslint-disable no-console */
+
 // =====================================================
 // ERROR TYPES AND INTERFACES
 // =====================================================

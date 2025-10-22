@@ -3,7 +3,7 @@
  * AI-powered proactive suggestions and quick actions
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Lightbulb,
@@ -12,18 +12,12 @@ import {
   Target,
   Zap,
   Clock,
-  DollarSign,
-  Users,
-  Package,
-  FileText,
-  BarChart3,
   ChevronRight,
   X
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
 import { useSmartSuggestions } from '@/hooks/useSmartSuggestions'
 import { useChatStore } from '@/stores/chatStore'
 import type { SmartSuggestion, SuggestionType } from '@/types/chat'
@@ -31,7 +25,7 @@ import type { SmartSuggestion, SuggestionType } from '@/types/chat'
 export interface SmartSuggestionsProps {
   userId: string
   businessId: string
-  currentContext?: any
+  currentContext?: Record<string, unknown>
   className?: string
   onSuggestionSelect?: (suggestion: SmartSuggestion) => void
 }
@@ -46,9 +40,9 @@ const suggestionIcons: Record<SuggestionType, React.ComponentType<{ className?: 
 }
 
 const suggestionColors: Record<SuggestionType, string> = {
-  insight: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700',
+  insight: 'bg-brand-primary-50 dark:bg-brand-primary-900/20 border-brand-primary-200 dark:border-brand-primary-700',
   action: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700',
-  optimization: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700',
+  optimization: 'bg-brand-accent-50 dark:bg-brand-accent-900/20 border-brand-accent-200 dark:border-brand-accent-700',
   alert: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700',
   opportunity: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700',
   reminder: 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-700'
@@ -91,9 +85,9 @@ const SuggestionCard: React.FC<{
       <div className="flex items-start space-x-3 mb-3">
         <div className={cn(
           "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
-          suggestion.type === 'insight' && "bg-blue-100 dark:bg-blue-800",
+          suggestion.type === 'insight' && "bg-brand-primary-100 dark:bg-brand-primary-800",
           suggestion.type === 'action' && "bg-green-100 dark:bg-green-800",
-          suggestion.type === 'optimization' && "bg-purple-100 dark:bg-purple-800",
+          suggestion.type === 'optimization' && "bg-brand-accent-100 dark:bg-brand-accent-800",
           suggestion.type === 'alert' && "bg-red-100 dark:bg-red-800",
           suggestion.type === 'opportunity' && "bg-yellow-100 dark:bg-yellow-800",
           suggestion.type === 'reminder' && "bg-gray-100 dark:bg-gray-800"
@@ -235,7 +229,7 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
     })
 
     return Object.entries(counts)
-      .filter(([_, count]) => count > 0)
+      .filter(([, count]) => count > 0)
       .map(([type, count]) => ({ type: type as SuggestionType, count }))
   }, [filteredSuggestions])
 

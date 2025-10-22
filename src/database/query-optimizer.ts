@@ -110,7 +110,7 @@ export class QueryOptimizer {
   /**
    * Get cached result
    */
-  private getResult(table: string, id: string): any {
+  private getResult(_table: string, _id: string): any {
     // In production, this would check actual cache
     return null;
   }

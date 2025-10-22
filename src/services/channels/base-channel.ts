@@ -42,6 +42,8 @@ export abstract class BaseChannel implements IChannel {
   protected async trackMessage(message: ChannelMessage): Promise<void> {
     // Store message in database
     const db = this.env.DB_CRM;
+    if (!db) return;
+
     await db.prepare(`
       INSERT INTO channel_messages (
         id, campaign_id, business_id, lead_id, contact_id,
@@ -71,6 +73,8 @@ export abstract class BaseChannel implements IChannel {
     additionalData?: Partial<ChannelMessage>
   ): Promise<void> {
     const db = this.env.DB_CRM;
+    if (!db) return;
+
     const updates = [`status = ?`, `updated_at = ?`];
     const values = [status, new Date().toISOString()];
 
@@ -167,8 +171,11 @@ export abstract class BaseChannel implements IChannel {
     const key = `rate_limit:${this.type}:${identifier}`;
     const limit = await this.getRateLimit();
 
-    // Use KV store for rate limiting
-    const current = await this.env.KV.get(key);
+    // Use KV store for rate limiting - use KV_CACHE as fallback
+    const kv = this.env.KV_RATE_LIMIT_METRICS || this.env.KV_CACHE;
+    if (!kv) return true; // Allow if KV not available
+
+    const current = await kv.get(key);
     const count = current ? parseInt(current) : 0;
 
     if (count >= limit) {
@@ -176,16 +183,17 @@ export abstract class BaseChannel implements IChannel {
     }
 
     // Increment counter with TTL of 1 hour
-    await this.env.KV.put(key, String(count + 1), { expirationTtl: 3600 });
+    await kv.put(key, String(count + 1), { expirationTtl: 3600 });
     return true;
   }
 
   protected abstract getRateLimit(): Promise<number>;
 
   protected async logChannelError(error: Error, context: any): Promise<void> {
-
     // Store error in database for monitoring
     const db = this.env.DB_CRM;
+    if (!db) return;
+
     await db.prepare(`
       INSERT INTO channel_errors (
         channel, error_message, error_context, created_at

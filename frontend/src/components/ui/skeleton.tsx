@@ -1,6 +1,5 @@
 import * as React from "react"
 import { motion } from "framer-motion"
-import { loadingAnimations } from "@/lib/animations"
 import { cn } from "@/lib/utils"
 
 export interface SkeletonProps {

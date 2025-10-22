@@ -1,11 +1,7 @@
 import type { Env } from '../../types/env';
-import type {
-  Integration,
-  IntegrationConfig,
+import type { Integration,
   SyncResult,
-  SyncError,
-  IntegrationType
-} from '../../types/integration';
+  SyncError } from '../../types/integration';
 
 export abstract class BaseIntegration {
   protected env: Env;

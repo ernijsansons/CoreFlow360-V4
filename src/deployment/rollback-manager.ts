@@ -3,7 +3,7 @@
  * Advanced rollback management with intelligent decision making and automated recovery
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 
@@ -1066,7 +1066,7 @@ class RollbackManager {
     startTime: number,
     execution: ExecutionResult,
     reason: RollbackReason,
-    snapshot: SystemSnapshot
+    _snapshot: SystemSnapshot
   ): Promise<RollbackMetrics> {
     const totalDuration = Date.now() - startTime;
     const downtime = execution.phases.reduce((sum, phase) => {
@@ -1112,6 +1112,7 @@ class RollbackManager {
       result,
       analysis: result.analysis
     };
+    void report;
 
     // Send to incident management system
     // Implementation would vary based on specific systems
@@ -1184,7 +1185,7 @@ class RollbackManager {
 
 // Supporting classes
 class StrategySelector {
-  async selectStrategy(reason: RollbackReason, context: any): Promise<RollbackStrategy> {
+  async selectStrategy(_reason: RollbackReason, _context: any): Promise<RollbackStrategy> {
     // AI-powered strategy selection based on reason and context
     return {
       type: 'INSTANT',
@@ -1228,24 +1229,24 @@ class StrategySelector {
 }
 
 class ExecutionEngine {
-  async execute(action: RollbackAction): Promise<{ output: string }> {
+  async execute(_action: RollbackAction): Promise<{ output: string }> {
     // Execute the actual rollback action
     return { output: 'Action executed successfully' };
   }
 }
 
 class RollbackValidator {
-  async validatePreconditions(strategy: RollbackStrategy, snapshot: SystemSnapshot):
+  async validatePreconditions(_strategy: RollbackStrategy, _snapshot: SystemSnapshot):
   Promise<{ valid: boolean; issues: string[] }> {
     return { valid: true, issues: [] };
   }
 
-  async validatePostConditions(strategy: RollbackStrategy, execution: ExecutionResult):
+  async validatePostConditions(_strategy: RollbackStrategy, _execution: ExecutionResult):
   Promise<{ valid: boolean; issues: string[] }> {
     return { valid: true, issues: [] };
   }
 
-  async validatePhasePrerequisites(phase: RollbackPhase, previousResults: PhaseResult[]): Promise<void> {
+  async validatePhasePrerequisites(_phase: RollbackPhase, _previousResults: PhaseResult[]): Promise<void> {
     // Validate phase prerequisites
   }
 
@@ -1265,17 +1266,17 @@ class RollbackMonitor {
     return { id: correlationId, plan };
   }
 
-  async stopMonitoring(session: any): Promise<void> {
+  async stopMonitoring(_session: any): Promise<void> {
     // Stop monitoring session
   }
 
-  async checkAlerts(session: any): Promise<any[]> {
+  async checkAlerts(_session: any): Promise<any[]> {
     return [];
   }
 }
 
 class RollbackAnalyzer {
-  async analyzeRollback(context: any): Promise<PostRollbackAnalysis> {
+  async analyzeRollback(_context: any): Promise<PostRollbackAnalysis> {
     return {
       rootCause: {
         primaryCause: 'Performance degradation',
@@ -1296,7 +1297,7 @@ class RollbackAnalyzer {
     };
   }
 
-  async analyzeFailure(error: Error, reason: RollbackReason): Promise<PostRollbackAnalysis> {
+  async analyzeFailure(error: Error, _reason: RollbackReason): Promise<PostRollbackAnalysis> {
     return {
       rootCause: {
         primaryCause: error.message,
@@ -1320,7 +1321,7 @@ class RollbackAnalyzer {
 
 // TODO: Consider splitting RecoveryManager into smaller, focused classes
 class RecoveryManager {
-  async initiateRecovery(context: any): Promise<RecoveryResult> {
+  async initiateRecovery(_context: any): Promise<RecoveryResult> {
     return {
       initiated: true,
       steps: [],

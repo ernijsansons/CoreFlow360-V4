@@ -5,8 +5,7 @@ import type {
   Payment,
   PaymentMethod,
   Account,
-  JournalEntry,
-  Report
+  JournalEntry
 } from '../types'
 
 export interface CreateInvoiceRequest {
@@ -259,7 +258,7 @@ class FinanceService {
   }
 
   // Financial Reports
-  async getTrialBalance(params: FinancialReportParams): Promise<ApiResponse<any>> {
+  async getTrialBalance(params: FinancialReportParams): Promise<ApiResponse<Record<string, unknown>>> {
     const query = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -273,7 +272,7 @@ class FinanceService {
     return apiClient.get(`/api/finance/reports/trial-balance?${query}`)
   }
 
-  async getIncomeStatement(params: FinancialReportParams): Promise<ApiResponse<any>> {
+  async getIncomeStatement(params: FinancialReportParams): Promise<ApiResponse<Record<string, unknown>>> {
     const query = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -287,7 +286,7 @@ class FinanceService {
     return apiClient.get(`/api/finance/reports/income-statement?${query}`)
   }
 
-  async getBalanceSheet(params: FinancialReportParams): Promise<ApiResponse<any>> {
+  async getBalanceSheet(params: FinancialReportParams): Promise<ApiResponse<Record<string, unknown>>> {
     const query = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -301,7 +300,7 @@ class FinanceService {
     return apiClient.get(`/api/finance/reports/balance-sheet?${query}`)
   }
 
-  async getCashFlow(params: FinancialReportParams): Promise<ApiResponse<any>> {
+  async getCashFlow(params: FinancialReportParams): Promise<ApiResponse<Record<string, unknown>>> {
     const query = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -319,7 +318,7 @@ class FinanceService {
     type: 'receivable' | 'payable'
     asOfDate?: string
     groupBy?: 'customer' | 'vendor'
-  }): Promise<ApiResponse<any>> {
+  }): Promise<ApiResponse<Record<string, unknown>>> {
     const query = new URLSearchParams()
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) query.append(key, String(value))
@@ -328,7 +327,7 @@ class FinanceService {
   }
 
   // Tax Management
-  async getTaxRates(): Promise<ApiResponse<any[]>> {
+  async getTaxRates(): Promise<ApiResponse<Array<Record<string, unknown>>>> {
     return apiClient.get('/api/finance/tax-rates')
   }
 
@@ -337,11 +336,11 @@ class FinanceService {
     rate: number
     description?: string
     isDefault?: boolean
-  }): Promise<ApiResponse<any>> {
+  }): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.post('/api/finance/tax-rates', data)
   }
 
-  async updateTaxRate(id: string, data: any): Promise<ApiResponse<any>> {
+  async updateTaxRate(id: string, data: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.patch(`/api/finance/tax-rates/${id}`, data)
   }
 
@@ -350,7 +349,7 @@ class FinanceService {
     year?: number
     departmentId?: string
     projectId?: string
-  }): Promise<ApiResponse<any[]>> {
+  }): Promise<ApiResponse<Array<Record<string, unknown>>>> {
     const query = new URLSearchParams()
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -370,20 +369,20 @@ class FinanceService {
       amount: number
       period: 'monthly' | 'quarterly' | 'annual'
     }[]
-  }): Promise<ApiResponse<any>> {
+  }): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.post('/api/finance/budgets', data)
   }
 
-  async updateBudget(id: string, data: any): Promise<ApiResponse<any>> {
+  async updateBudget(id: string, data: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.patch(`/api/finance/budgets/${id}`, data)
   }
 
-  async getBudgetVariance(id: string): Promise<ApiResponse<any>> {
+  async getBudgetVariance(id: string): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.get(`/api/finance/budgets/${id}/variance`)
   }
 
   // Reconciliation
-  async getBankReconciliations(accountId: string): Promise<ApiResponse<any[]>> {
+  async getBankReconciliations(accountId: string): Promise<ApiResponse<Array<Record<string, unknown>>>> {
     return apiClient.get(`/api/finance/reconciliations/bank/${accountId}`)
   }
 
@@ -391,7 +390,7 @@ class FinanceService {
     accountId: string
     statementDate: string
     endingBalance: number
-  }): Promise<ApiResponse<any>> {
+  }): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.post('/api/finance/reconciliations/start', data)
   }
 
@@ -399,15 +398,32 @@ class FinanceService {
     reconciliationId: string,
     transactionId: string,
     match: boolean
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.post(
       `/api/finance/reconciliations/${reconciliationId}/transactions/${transactionId}`,
       { match }
     )
   }
 
-  async completeReconciliation(id: string): Promise<ApiResponse<any>> {
+  async completeReconciliation(id: string): Promise<ApiResponse<Record<string, unknown>>> {
     return apiClient.post(`/api/finance/reconciliations/${id}/complete`)
+  }
+
+  // Period Management
+  async getPeriods(): Promise<ApiResponse<Array<Record<string, unknown>>>> {
+    return apiClient.get('/api/finance/periods')
+  }
+
+  async closePeriod(id: string): Promise<ApiResponse<{ message: string }>> {
+    return apiClient.post(`/api/finance/periods/${id}/close`)
+  }
+
+  async getCurrentPeriod(): Promise<ApiResponse<Record<string, unknown>>> {
+    return apiClient.get('/api/finance/periods/current')
+  }
+
+  async reopenPeriod(id: string): Promise<ApiResponse<Record<string, unknown>>> {
+    return apiClient.post(`/api/finance/periods/${id}/reopen`)
   }
 }
 

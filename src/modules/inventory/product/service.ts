@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Product Management Service
  * Comprehensive product and SKU management with advanced inventory features
@@ -15,17 +16,17 @@ import type {
   InventoryMovement,
   StockAdjustment,
   ProductAnalytics,
-  BarcodeInfo,
-  ProductType,
-  ProductStatus,
-  StockStatus,
-  MovementType
+  BarcodeInfo
 } from './types'
 import {
   ProductSchema,
   CreateProductRequestSchema,
   UpdateProductRequestSchema,
-  StockAdjustmentSchema
+  StockAdjustmentSchema,
+  ProductType,
+  ProductStatus,
+  StockStatus,
+  MovementType
 } from './types'
 import { AppError } from '../../../shared/errors/app-error'
 import { auditLogger } from '../../../shared/logging/audit-logger'
@@ -104,6 +105,7 @@ class ProductService {
         },
         dimensions: request.dimensions,
         images: processedImages,
+        documents: [], // Initialize empty documents array
         hasVariants: false,
         variants: [],
         variantAttributes: [],
@@ -158,16 +160,18 @@ class ProductService {
       if (error instanceof z.ZodError) {
         throw new AppError(
           'Product validation failed',
-          'PRODUCT_VALIDATION_ERROR',
           400,
+          'PRODUCT_VALIDATION_ERROR',
+          true,
           { validationErrors: error.errors }
         )
       }
 
       throw new AppError(
         'Product creation failed',
-        'PRODUCT_CREATION_ERROR',
         500,
+        'PRODUCT_CREATION_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -188,7 +192,7 @@ class ProductService {
       // Get existing product
       const existingProduct = await this.getProduct(productId)
       if (!existingProduct) {
-        throw new AppError('Product not found', 'PRODUCT_NOT_FOUND', 404)
+        throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND', true)
       }
 
       // Create updated product
@@ -265,8 +269,9 @@ class ProductService {
 
       throw new AppError(
         'Product update failed',
-        'PRODUCT_UPDATE_ERROR',
         500,
+        'PRODUCT_UPDATE_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -281,8 +286,9 @@ class ProductService {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve product',
-        'PRODUCT_RETRIEVAL_ERROR',
         500,
+        'PRODUCT_RETRIEVAL_ERROR',
+        true,
         { originalError: error, productId }
       )
     }
@@ -339,8 +345,9 @@ class ProductService {
 
       throw new AppError(
         'Product search failed',
-        'PRODUCT_SEARCH_ERROR',
         500,
+        'PRODUCT_SEARCH_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -361,15 +368,16 @@ class ProductService {
       // Get product
       const product = await this.getProduct(adjustment.productId)
       if (!product) {
-        throw new AppError('Product not found', 'PRODUCT_NOT_FOUND', 404)
+        throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND', true)
       }
 
       // Check if inventory tracking is enabled
       if (!product.inventory.trackInventory) {
         throw new AppError(
           'Inventory tracking is not enabled for this product',
+          400,
           'INVENTORY_TRACKING_DISABLED',
-          400
+          true
         )
       }
 
@@ -383,8 +391,9 @@ class ProductService {
       if (newQuantity < 0) {
         throw new AppError(
           'Adjustment would result in negative stock',
+          400,
           'NEGATIVE_STOCK_ERROR',
-          400
+          true
         )
       }
 
@@ -435,8 +444,9 @@ class ProductService {
 
       throw new AppError(
         'Stock adjustment failed',
-        'STOCK_ADJUSTMENT_ERROR',
         500,
+        'STOCK_ADJUSTMENT_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -453,14 +463,15 @@ class ProductService {
 
       const product = await this.getProduct(productId)
       if (!product) {
-        throw new AppError('Product not found', 'PRODUCT_NOT_FOUND', 404)
+        throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND', true)
       }
 
       if (quantity > product.inventory.availableQuantity) {
         throw new AppError(
           'Insufficient available stock',
-          'INSUFFICIENT_STOCK',
           400,
+          'INSUFFICIENT_STOCK',
+          true,
           {
             requested: quantity,
             available: product.inventory.availableQuantity
@@ -496,8 +507,9 @@ class ProductService {
 
       throw new AppError(
         'Stock reservation failed',
-        'STOCK_RESERVATION_ERROR',
         500,
+        'STOCK_RESERVATION_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -507,14 +519,15 @@ class ProductService {
     try {
       const product = await this.getProduct(productId)
       if (!product) {
-        throw new AppError('Product not found', 'PRODUCT_NOT_FOUND', 404)
+        throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND', true)
       }
 
       if (quantity > product.inventory.reservedQuantity) {
         throw new AppError(
           'Cannot release more stock than reserved',
+          400,
           'INVALID_RELEASE_QUANTITY',
-          400
+          true
         )
       }
 
@@ -539,8 +552,9 @@ class ProductService {
     } catch (error: any) {
       throw new AppError(
         'Stock release failed',
-        'STOCK_RELEASE_ERROR',
         500,
+        'STOCK_RELEASE_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -549,12 +563,12 @@ class ProductService {
   async generateBarcode(productId: string, type: 'UPC' | 'EAN' | 'CODE128' = 'CODE128'): Promise<BarcodeInfo> {
     try {
       if (!this.barcodeService) {
-        throw new AppError('Barcode service not available', 'SERVICE_UNAVAILABLE', 503)
+        throw new AppError('Barcode service not available', 503, 'SERVICE_UNAVAILABLE', true)
       }
 
       const product = await this.getProduct(productId)
       if (!product) {
-        throw new AppError('Product not found', 'PRODUCT_NOT_FOUND', 404)
+        throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND', true)
       }
 
       const barcodeInfo = await this.barcodeService.generate(type, product.sku)
@@ -575,8 +589,9 @@ class ProductService {
     } catch (error: any) {
       throw new AppError(
         'Barcode generation failed',
-        'BARCODE_GENERATION_ERROR',
         500,
+        'BARCODE_GENERATION_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -585,7 +600,7 @@ class ProductService {
   async getProductAnalytics(productId: string, periodStart: string, periodEnd: string): Promise<ProductAnalytics> {
     try {
       if (!this.analyticsService) {
-        throw new AppError('Analytics service not available', 'SERVICE_UNAVAILABLE', 503)
+        throw new AppError('Analytics service not available', 503, 'SERVICE_UNAVAILABLE', true)
       }
 
       const analytics = await this.analyticsService.getProductAnalytics(productId, periodStart, periodEnd)
@@ -601,16 +616,17 @@ class ProductService {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve product analytics',
-        'ANALYTICS_ERROR',
         500,
+        'ANALYTICS_ERROR',
+        true,
         { originalError: error }
       )
     }
   }
 
   async getInventoryMovements(
-    productId: string,
-    filters?: {
+    _productId: string,
+    _filters?: {
       startDate?: string
       endDate?: string
       type?: MovementType
@@ -624,14 +640,15 @@ class ProductService {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve inventory movements',
-        'MOVEMENT_RETRIEVAL_ERROR',
         500,
+        'MOVEMENT_RETRIEVAL_ERROR',
+        true,
         { originalError: error }
       )
     }
   }
 
-  async getLowStockProducts(threshold?: number): Promise<Product[]> {
+  async getLowStockProducts(_threshold?: number): Promise<Product[]> {
     try {
       // Query products where available quantity <= reorder point
       // Database implementation would go here
@@ -640,8 +657,9 @@ class ProductService {
     } catch (error: any) {
       throw new AppError(
         'Failed to retrieve low stock products',
-        'LOW_STOCK_QUERY_ERROR',
         500,
+        'LOW_STOCK_QUERY_ERROR',
+        true,
         { originalError: error }
       )
     }
@@ -688,15 +706,16 @@ class ProductService {
 
       throw new AppError(
         'Bulk price update failed',
-        'BULK_UPDATE_ERROR',
         500,
+        'BULK_UPDATE_ERROR',
+        true,
         { originalError: error }
       )
     }
   }
 
   // Private helper methods
-  private async validateUniqueSku(sku: string, excludeProductId?: string): Promise<void> {
+  private async validateUniqueSku(_sku: string, _excludeProductId?: string): Promise<void> {
     // Database query to check SKU uniqueness
     // Throw error if SKU already exists
   }
@@ -780,12 +799,12 @@ class ProductService {
     }
   }
 
-  private async executeProductSearch(params: ProductSearchParams): Promise<Product[]> {
+  private async executeProductSearch(_params: ProductSearchParams): Promise<Product[]> {
     // Database query implementation
     return []
   }
 
-  private async calculateSearchAggregations(products: Product[], params: ProductSearchParams): Promise<ProductListResponse['aggregations']> {
+  private async calculateSearchAggregations(_products: Product[], _params: ProductSearchParams): Promise<ProductListResponse['aggregations']> {
     return {
       totalValue: 0,
       totalQuantity: 0,

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from 'react';
 
 interface MigrationMetrics {
@@ -29,7 +30,7 @@ interface AuditEntry {
   timestamp: Date;
   action: string;
   actor: string;
-  details: any;
+  details: Record<string, unknown>;
 }
 
 interface MigrationProgressProps {

@@ -9,14 +9,12 @@ import RGL, { WidthProvider, Layout, Layouts } from 'react-grid-layout'
 import {
   Maximize2,
   Minimize2,
-  Move,
   Lock,
   Unlock,
   Settings,
   X,
   RotateCcw,
   Save,
-  Grid3X3,
   Eye,
   EyeOff
 } from 'lucide-react'
@@ -69,12 +67,10 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
 
   const {
     layouts,
-    updateLayout,
     updateLayouts,
     saveLayout,
     resetLayout,
     canUndo,
-    canRedo,
     undo,
     redo,
     isLoading
@@ -84,7 +80,6 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
     updateWidget,
     removeWidget,
     isEditMode,
-    setEditMode
   } = useDashboardStore()
 
   // Handle layout changes
@@ -117,6 +112,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
     if (snappedItem !== newItem) {
       updateLayout(currentBreakpoint, snappedItem)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBreakpoint, updateLayout])
 
   // Handle widget resize
@@ -126,12 +122,13 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
     if (constrainedItem !== newItem) {
       updateLayout(currentBreakpoint, constrainedItem)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBreakpoint, updateLayout])
 
   // Magnetic snapping logic
   const applyMagneticSnapping = (item: Layout, layout: Layout[]): Layout => {
     const otherItems = layout.filter(i => i.i !== item.i)
-    let snappedItem = { ...item }
+    const snappedItem = { ...item }
 
     // Snap to grid lines
     const gridX = Math.round(item.x / 2) * 2
@@ -178,7 +175,7 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
     if (!widget) return item
 
     const constraints = widget.constraints || {}
-    let constrainedItem = { ...item }
+    const constrainedItem = { ...item }
 
     if (constraints.minW && item.w < constraints.minW) {
       constrainedItem.w = constraints.minW

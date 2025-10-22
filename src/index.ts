@@ -7,17 +7,23 @@
 
 import { Router } from 'itty-router';
 import { CloudflareIntegration } from './cloudflare/CloudflareIntegration';
-import { SmartCaching } from './cloudflare/performance/SmartCaching';
+
 import { createDatabase, Database } from './database/db';
 import { createAIService, AIService } from './ai/ai-service';
 import { createWebSocketService, WebSocketService } from './realtime/websocket-service';
 import { createQueueHandler, QueueHandler } from './jobs/queue-handler';
-import { addSecurityHeaders, rateLimitByIP, validateJWT,
-  detectSuspiciousActivity, logSecurityEvent, getCorsHeaders } from './middleware/security';
+import { addSecurityHeaders,
+  rateLimitByIP,
+  getCorsHeaders } from './middleware/security';
 import { createAnalyticsDashboard, AnalyticsDashboard } from './analytics/dashboard';
 import { SupernovaIntegration } from './supernova/supernova-integration';
 import { MemoryOptimizer } from './monitoring/memory-optimizer';
 import { handleAPIRequest } from './routes'; // Import our Hono API routes
+
+// AGENT SYSTEM IMPORTS
+import { AgentOrchestrator } from './modules/agents/orchestrator';
+import { CapabilityManager } from './modules/agents/capability-manager';
+import { AuditService } from './modules/audit/audit.service';
 
 // SECURITY IMPORTS
 import { EnvironmentValidator } from './shared/environment-validator';
@@ -25,18 +31,10 @@ import { TokenBlacklist } from './modules/auth/token-blacklist';
 import { JWTSecretRotation } from './modules/auth/jwt-secret-rotation';
 import { EnterpriseRateLimiter } from './security/enterprise-rate-limiter';
 import { RateLimitMonitor } from './security/rate-limit-monitor';
-import type { Ai } from '@cloudflare/ai';
-import type {
-  D1Database,
-  KVNamespace,
-  R2Bucket,
-  AnalyticsEngineDataset,
-  DurableObjectNamespace,
-  ExecutionContext,
-  MessageBatch,
-  Message,
-  Queue
-} from './cloudflare/types/cloudflare';
+import { Logger } from './shared/logger';
+
+import type { ExecutionContext,
+  MessageBatch } from './cloudflare/types/cloudflare';
 import type { Env } from './types/env';
 
 // Global instances - initialized once per Worker with performance optimization
@@ -49,6 +47,9 @@ let analytics: AnalyticsDashboard | null = null;
 let supernova: SupernovaIntegration | null = null;
 let memoryOptimizer: MemoryOptimizer | null = null;
 
+// AGENT SYSTEM: Global agent orchestrator
+let agentOrchestrator: AgentOrchestrator | null = null;
+
 // SECURITY: Global security service instances
 let tokenBlacklist: TokenBlacklist | null = null;
 let jwtRotation: JWTSecretRotation | null = null;
@@ -59,23 +60,26 @@ let rateLimitMonitor: RateLimitMonitor | null = null;
 let initializationComplete = false;
 let initializationTime: number | null = null;
 
+// Logger instance
+const logger = new Logger({ component: 'WorkerIndex' });
+
 // Router instance
 const router = Router();
 
 // Optimized service initialization with CRITICAL SECURITY VALIDATION
-async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void> {
+async function initializeServices(env: Env, _ctx: ExecutionContext): Promise<void> {
   if (initializationComplete) return;
 
   const startTime = performance.now();
 
   // CRITICAL SECURITY: Validate environment before any other initialization
   try {
-    console.log('🔒 Validating environment security configuration...');
+    logger.info('🔒 Validating environment security configuration...');
     EnvironmentValidator.validate(env);
-    console.log('✅ Environment validation passed - JWT Authentication Bypass vulnerability mitigated');
+    logger.info('✅ Environment validation passed - JWT Authentication Bypass vulnerability mitigated');
   } catch (error: any) {
-    console.error('🚨 CRITICAL SECURITY ERROR: Environment validation failed');
-    console.error(error);
+    logger.error('🚨 CRITICAL SECURITY ERROR: Environment validation failed');
+    logger.error(error);
     throw new Error('Application startup blocked due to security configuration errors');
   }
   
@@ -113,7 +117,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       Promise.resolve().then(async () => {
         if (env.KV_AUTH) {
           tokenBlacklist = new TokenBlacklist(env);
-          console.log('🛡️ Token blacklist system initialized');
+          logger.info('🛡️ Token blacklist system initialized');
         }
         return tokenBlacklist;
       }),
@@ -122,7 +126,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       Promise.resolve().then(async () => {
         if (env.KV_AUTH) {
           jwtRotation = new JWTSecretRotation(env);
-          console.log('🔄 JWT secret rotation system initialized');
+          logger.info('🔄 JWT secret rotation system initialized');
         }
         return jwtRotation;
       }),
@@ -130,7 +134,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       // SECURITY: Initialize enterprise rate limiting
       Promise.resolve().then(async () => {
         enterpriseRateLimiter = new EnterpriseRateLimiter(env);
-        console.log('🛡️ Enterprise rate limiting system initialized');
+        logger.info('🛡️ Enterprise rate limiting system initialized');
         return enterpriseRateLimiter;
       }),
 
@@ -138,7 +142,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       Promise.resolve().then(async () => {
         if (env.KV_RATE_LIMIT_METRICS && env.DB_MAIN) {
           rateLimitMonitor = new RateLimitMonitor(env);
-          console.log('📊 Rate limiting monitoring system initialized');
+          logger.info('📊 Rate limiting monitoring system initialized');
         }
         return rateLimitMonitor;
       })
@@ -150,12 +154,31 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
     // Check if core services initialized successfully
     const failedCore = coreResults.filter((result: any) => result.status === 'rejected');
     if (failedCore.length > 0) {
-      console.warn('Some core services failed to initialize:', failedCore);
+      logger.warn('Some core services failed to initialize:', failedCore);
     }
     
     // Phase 2: Initialize dependent services in parallel (depend on core services)
     const dependentServicesPromises = [];
-    
+
+    // Initialize Agent Orchestrator (depends on DB and KV)
+    if (db && env.KV_CACHE) {
+      dependentServicesPromises.push(
+        Promise.resolve().then(async () => {
+          const capabilityManager = new CapabilityManager() as any;
+          const auditService = new AuditService(env.DB_MAIN) as any;
+          agentOrchestrator = new AgentOrchestrator(
+            env.KV_CACHE as any,
+            env.DB_MAIN,
+            capabilityManager,
+            auditService
+          );
+          logger.info('🤖 Agent Orchestrator initialized');
+          return agentOrchestrator;
+        })
+          .catch((error: any) => { logger.warn('Agent Orchestrator failed:', error); return null; })
+      );
+    }
+
     // Only initialize if dependencies are available
     if ((env as any).REALTIME) {
       dependentServicesPromises.push(
@@ -163,27 +186,27 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
           ws = await createWebSocketService((env as any).REALTIME, 'default');
           return ws;
         })
-          .catch((error: any) => { console.warn('WebSocket service failed:', error); return null; })
+          .catch((error: any) => { logger.warn('WebSocket service failed:', error); return null; })
       );
     }
-    
+
     if (env.TASK_QUEUE || env.EMAIL_QUEUE || env.WEBHOOK_QUEUE) {
       dependentServicesPromises.push(
         Promise.resolve().then(async () => {
           queue = await createQueueHandler();
           return queue;
         })
-          .catch((error: any) => { console.warn('Queue handler failed:', error); return null; })
+          .catch((error: any) => { logger.warn('Queue handler failed:', error); return null; })
       );
     }
-    
+
     if (env.ANALYTICS) {
       dependentServicesPromises.push(
         Promise.resolve().then(async () => {
           analytics = await createAnalyticsDashboard(env.ANALYTICS as any, (env as any).PERFORMANCE_ANALYTICS, db!, ai!);
           return analytics;
         })
-          .catch((error: any) => { console.warn('Analytics dashboard failed:', error); return null; })
+          .catch((error: any) => { logger.warn('Analytics dashboard failed:', error); return null; })
       );
     }
     
@@ -217,10 +240,11 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
     
     const successRate = (successfulServices / totalServices) * 100;
     
-    console.log(`✅ Service initialization completed in ${initializationTime.toFixed(2)}ms (${successRate.toFixed(1)}% success rate)`);
-    console.log(`   Core: ${cf ? '✓' : '✗'} CF, ${db ? '✓' : '✗'} DB, ${ai ? '✓' : '✗'} AI`);
-    console.log(`   Security: ${tokenBlacklist ? '✓' : '✗'} Blacklist, ${jwtRotation ? '✓' : '✗'} JWT Rotation, ${enterpriseRateLimiter ? '✓' : '✗'} RateLimit, ${rateLimitMonitor ? '✓' : '✗'} Monitor`);
-    console.log(`   Extended: ${ws ? '✓' : '✗'} WS, ${queue ? '✓' : '✗'} Queue, ${analytics ? '✓' : '✗'} Analytics`);
+    logger.info(`✅ Service initialization completed in ${initializationTime.toFixed(2)}ms (${successRate.toFixed(1)}% success rate)`);
+    logger.info(`   Core: ${cf ? '✓' : '✗'} CF, ${db ? '✓' : '✗'} DB, ${ai ? '✓' : '✗'} AI`);
+    logger.info(`   Agents: ${agentOrchestrator ? '✓' : '✗'} Orchestrator`);
+    logger.info(`   Security: ${tokenBlacklist ? '✓' : '✗'} Blacklist, ${jwtRotation ? '✓' : '✗'} JWT Rotation, ${enterpriseRateLimiter ? '✓' : '✗'} RateLimit, ${rateLimitMonitor ? '✓' : '✗'} Monitor`);
+    logger.info(`   Extended: ${ws ? '✓' : '✗'} WS, ${queue ? '✓' : '✗'} Queue, ${analytics ? '✓' : '✗'} Analytics`);
     
     // Track detailed initialization performance
     if (analytics) {
@@ -234,7 +258,7 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
   } catch (error: any) {
     const failureTime = performance.now() - startTime;
     initializationComplete = false;
-    console.error(`❌ Critical service initialization failure after ${failureTime.toFixed(2)}ms:`, error);
+    logger.error(`❌ Critical service initialization failure after ${failureTime.toFixed(2)}ms:`, error);
     
     // Track initialization failure with context
     if (analytics) {
@@ -250,19 +274,20 @@ async function initializeServices(env: Env, ctx: ExecutionContext): Promise<void
       throw new Error(`Critical services failed: DB=${!!db}, CF=${!!cf}`);
     }
     
-    console.warn('Continuing with partial initialization...');
+    logger.warn('Continuing with partial initialization...');
     initializationComplete = true;
   }
 }
 
 // Health check endpoint
-router.get('/health', async (request: Request, env: Env) => {
+router.get('/health', async (_request: Request, _env: Env) => {
   const health = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     services: {
       database: db ? 'connected' : 'disconnected',
       ai: ai ? 'ready' : 'not ready',
+      agents: agentOrchestrator ? 'ready' : 'not ready',
       websocket: ws ? 'ready' : 'not ready',
       queue: queue ? 'ready' : 'not ready',
       analytics: analytics ? 'ready' : 'not ready',
@@ -276,7 +301,7 @@ router.get('/health', async (request: Request, env: Env) => {
 });
 
 // API routes
-router.get('/api/status', async (request: Request, env: Env) => {
+router.get('/api/status', async (_request: Request, _env: Env) => {
   if (!db) return new Response('Database not initialized', { status: 500 });
   
   const status = await (db as any).getStatus();
@@ -286,7 +311,7 @@ router.get('/api/status', async (request: Request, env: Env) => {
 });
 
 // SUPERNOVA status endpoint
-router.get('/api/supernova/status', async (request: Request, env: Env) => {
+router.get('/api/supernova/status', async (_request: Request, _env: Env) => {
   if (!supernova) return new Response('SUPERNOVA not initialized', { status: 500 });
   
   const status = await (supernova as any).getStatus();
@@ -296,7 +321,7 @@ router.get('/api/supernova/status', async (request: Request, env: Env) => {
 });
 
 // SUPERNOVA integration endpoint
-router.post('/api/supernova/integrate', async (request: Request, env: Env) => {
+router.post('/api/supernova/integrate', async (_request: Request, _env: Env) => {
   if (!supernova) return new Response('SUPERNOVA not initialized', { status: 500 });
   
   try {
@@ -313,7 +338,7 @@ router.post('/api/supernova/integrate', async (request: Request, env: Env) => {
 });
 
 // SUPERNOVA report endpoint
-router.get('/api/supernova/report', async (request: Request, env: any) => {
+router.get('/api/supernova/report', async (_request: Request, _env: any) => {
   if (!supernova) return new Response('SUPERNOVA not initialized', { status: 500 });
 
     const report = await (supernova as any).generateReport();
@@ -394,11 +419,11 @@ const requestProcessor = {
       
       // Log slow requests
       if (responseTime > 200) {
-        console.warn(`⚠️ Slow request: ${method} ${pathname} - ${responseTime.toFixed(2)}ms (${status})`);
+        logger.warn(`⚠️ Slow request: ${method} ${pathname} - ${responseTime.toFixed(2)}ms (${status})`);
       }
     } catch (error: any) {
       // Don't block on tracking failures
-      console.debug('Performance tracking failed:', error);
+      logger.debug('Performance tracking failed:', error);
     }
   },
 
@@ -412,7 +437,7 @@ const requestProcessor = {
         });
       }
     } catch (trackingError) {
-      console.debug('Error tracking failed:', trackingError);
+      logger.debug('Error tracking failed:', trackingError);
     }
   },
 
@@ -501,7 +526,7 @@ export default {
               default: return undefined;
             }
           },
-          header: (name: string, value: string) => {
+          header: (_name: string, _value: string) => {
             // This will be applied to the response later
           },
           json: (data: any, status?: number) => {
@@ -511,12 +536,14 @@ export default {
             });
           }
         };
+        void middlewareContext;
 
         // Check rate limiting
         try {
           let rateLimitPassed = false;
-          const rateLimitResponse = await rateLimitByIP(request, env.KV_RATE_LIMIT_METRICS || env.RATE_LIMITER);
-          
+          void rateLimitPassed;
+          const rateLimitResponse = await rateLimitByIP(request, env.KV_RATE_LIMIT_METRICS || env.RATE_LIMITER_DO as any);
+
           // If rate limit exceeded, return error response
           if (!rateLimitResponse.allowed) {
             return new Response(JSON.stringify({
@@ -528,7 +555,7 @@ export default {
             });
           }
         } catch (rateLimitError) {
-          console.warn('Rate limiting error, proceeding with request:', rateLimitError);
+          logger.warn('Rate limiting error, proceeding with request:', rateLimitError);
         }
       }
 
@@ -561,7 +588,7 @@ export default {
       const responseTime = performance.now() - requestStart;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
-      console.error(`❌ Request error [${method} ${url.pathname}] (${responseTime.toFixed(2)}ms):`, errorMessage);
+      logger.error(`❌ Request error [${method} ${url.pathname}] (${responseTime.toFixed(2)}ms):`, errorMessage);
       
       // Non-blocking error tracking
       ctx.waitUntil(requestProcessor.trackRequestError(method, url.pathname, responseTime, errorMessage));
@@ -584,21 +611,21 @@ export default {
   },
 
   // Queue consumer
-  async queue(batch: MessageBatch, env: Env, ctx: ExecutionContext): Promise<void> {
+  async queue(batch: MessageBatch, _env: Env, _ctx: ExecutionContext): Promise<void> {
     if (!queue) {
-      console.error('Queue handler not initialized');
+      logger.error('Queue handler not initialized');
       return;
     }
     
     try {
       await (queue as any).processBatch(batch);
     } catch (error: any) {
-      console.error('Queue processing error:', error);
+      logger.error('Queue processing error:', error);
     }
   },
 
   // WebSocket handler
-  async webSocket(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async webSocket(request: Request, _env: Env, _ctx: ExecutionContext): Promise<Response> {
     if (!ws) {
       return new Response('WebSocket service not initialized', { status: 500 });
     }
@@ -606,7 +633,7 @@ export default {
     try {
       return await (ws as any).handleRequest(request);
     } catch (error: any) {
-      console.error('WebSocket error:', error);
+      logger.error('WebSocket error:', error);
       return new Response('WebSocket error', { status: 500 });
     }
   }

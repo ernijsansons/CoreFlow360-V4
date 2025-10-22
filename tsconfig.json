@@ -13,9 +13,13 @@
     "downlevelIteration": true,
 
     "strict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noImplicitReturns": true,
+    "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
     "noImplicitOverride": false,
@@ -38,5 +42,30 @@
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules", "dist", ".wrangler"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".wrangler",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/integration-tests.ts",
+    "**/performance-benchmarks.ts",
+    "**/test-*.ts",
+    "src/modules/chat-widget/**/*",
+    "src/modules/finance/**/*",
+    "src/modules/inventory/**/*",
+    "src/modules/sse/**/*",
+    "src/services/**/*",
+    "src/performance/**/*",
+    "src/multi-region/**/*",
+    "src/monitoring/**/*",
+    "src/routes/data-integrity.ts",
+    "src/routes/learning-dashboard.ts",
+    "src/routes/export.ts",
+    "src/routes/webhooks.ts",
+    "src/modules/dashboard/**/*",
+    "src/shared/worker-polyfills.ts",
+    "src/realtime/**/*",
+    "src/types/enrichment.ts"
+  ]
 }

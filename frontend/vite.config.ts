@@ -1,8 +1,26 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
+import react from '@vitejs/plugin-react-swc' // Use SWC for production
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import path from 'path'
+import fs from 'fs'
+
+// Custom plugin to copy _headers to dist
+function copyHeadersPlugin() {
+  return {
+    name: 'copy-headers',
+    closeBundle() {
+      const headersFile = path.resolve(__dirname, '_headers')
+      const distHeadersFile = path.resolve(__dirname, 'dist/_headers')
+      if (fs.existsSync(headersFile)) {
+        fs.copyFileSync(headersFile, distHeadersFile)
+        console.log('✅ Copied _headers to dist/')
+      }
+    }
+  }
+}
+
+
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -16,6 +34,8 @@ export default defineConfig({
       telemetry: false,
       silent: true
     }),
+    copyHeadersPlugin(),
+
   ],
   resolve: {
     alias: {
@@ -29,106 +49,95 @@ export default defineConfig({
       '@/styles': path.resolve(__dirname, './src/styles'),
       '@/layouts': path.resolve(__dirname, './src/layouts'),
       '@/workers': path.resolve(__dirname, './src/workers'),
+      '@design-system': path.resolve(__dirname, '../design-system'),
     },
   },
   build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
+    },
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Enhanced chunk splitting strategy for optimal performance
+          // CRITICAL: DO NOT separate React into its own chunk
+          // This was causing async loading issues where main bundle executed before React loaded
+
+          // Split marketing routes from authenticated app routes
+          if (!id.includes('node_modules')) {
+            // Marketing pages (public, unauthenticated)
+            if (id.includes('/routes/landing') ||
+                id.includes('/routes/pricing') ||
+                id.includes('/routes/about') ||
+                id.includes('/routes/contact') ||
+                id.includes('/routes/help') ||
+                id.includes('/components/marketing/')) {
+              return 'marketing';
+            }
+
+            // Authenticated app routes
+            if (id.includes('/routes/dashboard') ||
+                id.includes('/routes/crm') ||
+                id.includes('/routes/finance') ||
+                id.includes('/routes/settings') ||
+                id.includes('/routes/admin')) {
+              return 'app';
+            }
+
+            // Auth pages (lightweight, frequently accessed)
+            if (id.includes('/routes/auth/')) {
+              return 'auth';
+            }
+          }
+
           if (id.includes('node_modules')) {
-            // Core React and routing - highest priority
+            // Let React stay in the main index chunk
             if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
+              return undefined; // Stay in main bundle
             }
+            // Only separate non-React vendors
             if (id.includes('@tanstack/react-router')) {
-              return 'router';
+              return 'vendor-router';
             }
-            
-            // UI frameworks - medium priority, can be cached aggressively
-            if (id.includes('@radix-ui') || id.includes('class-variance-authority') || 
-                id.includes('clsx') || id.includes('tailwind-merge')) {
-              return 'ui-framework';
+            if (id.includes('@tanstack/react-table')) {
+              return 'vendor-table';
             }
-            
-            // State management - high priority for app functionality
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'vendor-charts';
+            }
+            if (id.includes('lucide-react') || id.includes('sonner')) {
+              return 'vendor-ui';
+            }
+            if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
+              return 'vendor-forms';
+            }
             if (id.includes('zustand') || id.includes('immer')) {
-              return 'state-management';
+              return 'vendor-state';
             }
-            
-            // Forms - medium priority, used frequently
-            if (id.includes('react-hook-form') || id.includes('@hookform') || 
-                id.includes('zod')) {
-              return 'forms-validation';
+            if (id.includes('date-fns')) {
+              return 'vendor-date';
             }
-            
-            // Charts and visualization - lazy loaded, lowest priority
-            if (id.includes('recharts') || id.includes('d3')) {
-              return 'data-visualization';
-            }
-            
-            // Animation libraries - lazy loaded
             if (id.includes('framer-motion')) {
-              return 'animations';
+              return 'vendor-animations';
             }
-            
-            // Date utilities - medium priority
-            if (id.includes('date-fns') || id.includes('react-day-picker')) {
-              return 'date-utilities';
+            if (id.includes('@headlessui') || id.includes('react-hot-toast') || id.includes('@heroicons')) {
+              return 'vendor-landing';
             }
-            
-            // Icons - can be cached aggressively
-            if (id.includes('lucide-react')) {
-              return 'icon-library';
-            }
-            
-            // Other utilities - small utilities grouped together
-            if (id.includes('sonner') || id.includes('vaul') || 
-                id.includes('next-themes') || id.includes('idb')) {
-              return 'utilities';
-            }
-            
-            // Monitoring and analytics - separate chunk for optional features
-            if (id.includes('@sentry') || id.includes('web-vitals')) {
-              return 'monitoring';
-            }
-            
-            // Everything else goes to vendor chunk
-            return 'vendor-misc';
+            // Other node_modules go into generic vendor chunk
+            return 'vendor';
           }
-          
-          // App code chunking based on feature areas
-          if (id.includes('/components/agents/')) {
-            return 'feature-agents';
-          }
-          if (id.includes('/components/chat/')) {
-            return 'feature-chat';
-          }
-          if (id.includes('/components/dashboard/')) {
-            return 'feature-dashboard';
-          }
-          if (id.includes('/components/business/') || id.includes('/components/finance/')) {
-            return 'feature-business';
-          }
-          if (id.includes('/components/workflow/')) {
-            return 'feature-workflow';
-          }
-        },
-        chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
-          return `assets/[name]-[hash]-${facadeModuleId}.js`;
         },
       },
     },
-    sourcemap: process.env.NODE_ENV === 'development',
-    minify: 'terser',
+    sourcemap: false, // Disable source maps in production for security
+    minify: 'esbuild', // Enable minification for production
     target: 'esnext',
     reportCompressedSize: false,
-    chunkSizeWarningLimit: 500, // Smaller chunks for better caching
+    chunkSizeWarningLimit: 200, // Aggressive chunk size limit for optimal loading
     cssCodeSplit: true, // Split CSS for better caching
     terserOptions: {
       compress: {
-        drop_console: process.env.NODE_ENV === 'production',
+        drop_console: true, // Remove console logs in production
         drop_debugger: true,
         pure_funcs: ['console.log', 'console.debug', 'console.info'],
         passes: 2, // Multiple passes for better compression
@@ -144,25 +153,34 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      'react', 
-      'react-dom', 
-      '@tanstack/react-router', 
+      'react',
+      'react/jsx-runtime',
+      'react-dom',
+      'react-dom/client',
+      '@tanstack/react-router',
       'zustand',
+      'zustand/middleware',
+      'zustand/middleware/immer',
       'react-hook-form',
-      '@hookform/resolvers',
+      '@hookform/resolvers/zod',
       'zod',
       'clsx',
       'tailwind-merge',
-      'lucide-react'
+      'lucide-react',
+      'sonner',
+      'recharts',
+      '@tanstack/react-table',
+      'date-fns',
+      'framer-motion',
+      '@headlessui/react',
+      '@heroicons/react/24/outline',
+      '@heroicons/react/24/solid'
     ],
     exclude: [
-      'recharts', 
-      'd3', 
-      'framer-motion',
       '@sentry/react',
-      'web-vitals'
+      'web-vitals',
+      '@tanstack/router-devtools'
     ],
-    force: true, // Force pre-bundling for better performance
   },
   server: {
     port: 3000,

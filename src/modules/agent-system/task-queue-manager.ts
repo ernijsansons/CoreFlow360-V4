@@ -5,9 +5,11 @@
 
 import type { KVNamespace, D1Database } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
-import { AgentTask, TaskPriority, BusinessContext } from './types';
+import { AgentTask } from './types';
 import { generateSecureToken, sanitizeBusinessId } from './security-utils';
 import { AuditLogger, AuditEventType } from './audit-logger';
+
+export type TaskPriority = 'low' | 'normal' | 'high' | 'critical';
 
 export interface QueuedTask {
   id: string;
@@ -126,7 +128,7 @@ class TaskQueueManager {
         const deferralTime = this.backpressureStrategy.getDeferralTime(this.metrics);
 
         await this.auditLogger.log(
-          AuditEventType.TASK_REJECTED,
+          AuditEventType.TASK_FAILED,
           'medium',
           safeBusinessId,
           task.context.userId,
@@ -167,7 +169,7 @@ class TaskQueueManager {
       const queuedTask: QueuedTask = {
         id: queueId,
         task,
-        priority: task.priority,
+        priority: task.priority || 'normal',
         businessId: safeBusinessId,
         userId: task.context.userId,
         enqueuedAt: Date.now(),
@@ -395,10 +397,10 @@ class TaskQueueManager {
    * Get priority score
    */
   private getPriorityScore(priority: TaskPriority): number {
-    const scores = {
+    const scores: Record<TaskPriority, number> = {
       critical: 1000,
       high: 100,
-      medium: 10,
+      normal: 10,
       low: 1
     };
     return scores[priority] || 1;
@@ -407,7 +409,7 @@ class TaskQueueManager {
   /**
    * Execute task (placeholder - actual execution handled by orchestrator)
    */
-  private async executeTask(task: AgentTask): Promise<void> {
+  private async executeTask(_task: AgentTask): Promise<void> {
     // This would call the orchestrator's executeTask method
     // For now, simulate with a delay
     await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
@@ -666,11 +668,11 @@ class AdaptiveBackpressureStrategy implements BackpressureStrategy {
     const utilization = metrics.queueDepth / this.config.maxQueueDepth;
 
     // Graduated acceptance based on priority and utilization
-    if (task.priority === 'high') {
-      return utilization < 0.95;
-    } else if (task.priority === 'medium') {
+    const priority = task.priority || 'normal';
+    if (priority === 'normal') {
       return utilization < 0.8;
     } else {
+      // priority === 'low'
       return utilization < 0.6;
     }
   }

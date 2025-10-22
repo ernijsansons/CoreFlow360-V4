@@ -1,6 +1,8 @@
+/* eslint-disable react-refresh/only-export-components */
 import * as React from 'react'
-import { useEntityStore } from '@/stores'
+import { useEntityStore, useAuthStore } from '@/stores'
 import type { Entity } from '@/types'
+import apiClient from '@/lib/api/client'
 
 interface EntityContextType {
   entity: Entity | null
@@ -32,18 +34,13 @@ export function EntityProvider({ children }: EntityProviderProps) {
     try {
       setError(null)
 
-      const response = await fetch(`/api/entities/${currentEntity.id}`, {
-        headers: {
-          'Authorization': `Bearer ${useAuthStore.getState().token}`,
-        },
-      })
+      const response = await apiClient.get<Entity>(`/api/entities/${currentEntity.id}`)
 
-      if (!response.ok) {
-        throw new Error('Failed to refresh entity')
+      if (!response.success || !response.data) {
+        throw new Error(response.error?.message || 'Failed to refresh entity')
       }
 
-      const { data: entity } = await response.json()
-      useEntityStore.getState().setCurrentEntity(entity)
+      useEntityStore.getState().setCurrentEntity(response.data)
     } catch (error) {
       console.error('Failed to refresh entity:', error)
       setError(error instanceof Error ? error.message : 'Failed to refresh entity')

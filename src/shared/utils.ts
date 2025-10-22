@@ -1,5 +1,5 @@
 import { ApiResponse } from './types';
-import { ERROR_CODES, HTTP_STATUS } from './constants';
+import { HTTP_STATUS } from './constants';
 
 export function createApiResponse<T>(
   data?: T,

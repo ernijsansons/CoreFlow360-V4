@@ -3,7 +3,7 @@
  * AI-powered deployment system with zero-downtime progressive rollouts
  */
 
-import { z } from 'zod';
+
 import { Logger } from '../shared/logger';
 import { CorrelationId } from '../shared/correlation-id';
 
@@ -244,7 +244,7 @@ export class DeploymentOrchestrator {
   /**
    * Main deployment orchestration method
    */
-  async deploy(version: Version, options: DeploymentOptions = {}): Promise<DeploymentResult> {
+  async deploy(version: Version, _options: DeploymentOptions = {}): Promise<DeploymentResult> {
     const correlationId = CorrelationId.generate();
     const startTime = Date.now();
 
@@ -855,7 +855,7 @@ export class DeploymentOrchestrator {
     return results;
   }
 
-  private async validateBusinessMetrics(correlationId: string): Promise<BusinessValidationResult> {
+  private async validateBusinessMetrics(_correlationId: string): Promise<BusinessValidationResult> {
     // Simplified business metrics validation
     return {
       passed: true,
@@ -888,7 +888,7 @@ export class DeploymentOrchestrator {
     this.logger.info('Warming up environment', { environment: environment.name });
   }
 
-  private async performHealthCheck(environment: Environment): Promise<EnvironmentHealth> {
+  private async performHealthCheck(_environment: Environment): Promise<EnvironmentHealth> {
     // Perform comprehensive health check
     return {
       overall: 'healthy',
@@ -925,7 +925,7 @@ export class DeploymentOrchestrator {
     this.logger.error('Triggering disaster recovery', { correlationId });
   }
 
-  private async analyzeDeployment(options: any): Promise<DeploymentAnalysis> {
+  private async analyzeDeployment(_options: any): Promise<DeploymentAnalysis> {
     return {
       healthy: true,
       confidence: 0.95,
@@ -950,7 +950,7 @@ export class DeploymentOrchestrator {
     };
   }
 
-  private async generateFailureAnalysis(error: any): Promise<DeploymentAnalysis> {
+  private async generateFailureAnalysis(_error: any): Promise<DeploymentAnalysis> {
     return {
       healthy: false,
       confidence: 0,
@@ -1006,17 +1006,17 @@ export class DeploymentOrchestrator {
 // Supporting classes and interfaces
 // TODO: Consider splitting TrafficManager into smaller, focused classes
 class TrafficManager {
-  async shift(config: TrafficConfig): Promise<void> {
+  async shift(_config: TrafficConfig): Promise<void> {
     // Implementation would use Cloudflare Load Balancer API
   }
 
-  async emergencySwitch(config: EmergencyConfig): Promise<void> {
+  async emergencySwitch(_config: EmergencyConfig): Promise<void> {
     // Emergency traffic switching
   }
 }
 
 class DeploymentAI {
-  async selectStrategy(context: any): Promise<Strategy> {
+  async selectStrategy(_context: any): Promise<Strategy> {
     // AI-powered strategy selection
     return {
       type: 'canary',
@@ -1036,7 +1036,7 @@ class DeploymentAI {
     };
   }
 
-  async analyzeStage(metrics: any, options: any): Promise<any> {
+  async analyzeStage(_metrics: any, _options: any): Promise<any> {
     return {
       confidence: 0.9,
       anomalies: [],
@@ -1044,11 +1044,11 @@ class DeploymentAI {
     };
   }
 
-  async optimizeNextStage(stage: Stage, analysis: any, options: any): Promise<Stage | null> {
+  async optimizeNextStage(_stage: Stage, _analysis: any, _options: any): Promise<Stage | null> {
     return null; // No optimization needed
   }
 
-  async makeDecision(analysis: DeploymentAnalysis, context: any): Promise<DeploymentDecision> {
+  async makeDecision(analysis: DeploymentAnalysis, _context: any): Promise<DeploymentDecision> {
     return {
       promote: analysis.healthy && analysis.confidence > 0.8,
       confidence: analysis.confidence,
@@ -1066,33 +1066,33 @@ class DeploymentAI {
 }
 
 class DeploymentValidator {
-  async validateSchemaCompatibility(version: Version): Promise<ValidationResult> {
+  async validateSchemaCompatibility(_version: Version): Promise<ValidationResult> {
     return { rule: 'schema_compatibility', status: 'pass', value: 1, threshold: 1 };
   }
 
-  async validateAPICompatibility(version: Version): Promise<ValidationResult> {
+  async validateAPICompatibility(_version: Version): Promise<ValidationResult> {
     return { rule: 'api_compatibility', status: 'pass', value: 1, threshold: 1 };
   }
 
-  async validatePerformanceBaseline(version: Version): Promise<ValidationResult> {
+  async validatePerformanceBaseline(_version: Version): Promise<ValidationResult> {
     return { rule: 'performance_baseline', status: 'pass', value: 1, threshold: 1 };
   }
 
-  async validateSecurity(version: Version): Promise<ValidationResult> {
+  async validateSecurity(_version: Version): Promise<ValidationResult> {
     return { rule: 'security_scan', status: 'pass', value: 1, threshold: 1 };
   }
 
-  async validateFeatureFlags(version: Version): Promise<ValidationResult> {
+  async validateFeatureFlags(_version: Version): Promise<ValidationResult> {
     return { rule: 'feature_flags', status: 'pass', value: 1, threshold: 1 };
   }
 
-  async validateDependencies(version: Version): Promise<ValidationResult> {
+  async validateDependencies(_version: Version): Promise<ValidationResult> {
     return { rule: 'dependencies', status: 'pass', value: 1, threshold: 1 };
   }
 }
 
 class DeploymentMonitor {
-  async collectMetrics(duration: string, options: any): Promise<any> {
+  async collectMetrics(_duration: string, _options: any): Promise<any> {
     return {
       latency: { current: 100, baseline: 110 },
       errorRate: { current: 0.001, baseline: 0.002 },

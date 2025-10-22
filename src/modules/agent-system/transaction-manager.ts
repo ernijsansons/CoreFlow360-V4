@@ -384,7 +384,7 @@ class TransactionManager {
    */
   private async executeCustomOperation(
     operation: TransactionOperation,
-    businessId: string
+    _businessId: string
   ): Promise<void> {
     if (!operation.table) return;
 
@@ -662,7 +662,7 @@ class TransactionManager {
   private async reinsertDeletedRecord(
     type: TransactionOperation['type'],
     deletedData: Record<string, any>,
-    businessId: string
+    _businessId: string
   ): Promise<void> {
     const table = this.getTableName(type);
 

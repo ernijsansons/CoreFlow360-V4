@@ -346,6 +346,7 @@ export interface Lead {
   ai_predicted_value?: number;
   ai_close_probability?: number; // 0-1
   ai_estimated_close_date?: string;
+  ai_intent_summary?: string;
   assigned_to?: string;
   assigned_type: AssignedType;
   created_at: string;
@@ -355,9 +356,27 @@ export interface Lead {
   first_name?: string;
   last_name?: string;
   email?: string;
+  phone?: string;
   contact_title?: string;
+  title?: string;
   company_name?: string;
   company_domain?: string;
+  industry?: string;
+
+  // Enrichment data for AI-powered lead intelligence
+  enrichment_data?: {
+    company_info?: any;
+    contact_info?: any;
+    social_profiles?: any;
+  };
+  seniority_level?: string;
+  previous_interactions?: Array<{
+    type: string;
+    date: string;
+    notes?: string;
+  }>;
+  company_size?: string;
+  industry_detail?: string;
 }
 
 export interface Conversation {
@@ -747,7 +766,7 @@ export interface WebhookPayload {
 export interface QualificationCriteria {
   question: string;
   required: boolean;
-  extractor: (text: string) => QualificationAnswer;
+  extractor: (text: string) => Promise<QualificationAnswer | null>;
   weight?: number; // For scoring, defaults to 1
 }
 
@@ -1469,6 +1488,79 @@ export interface CRMDatabase {
   };
 }
 
+// Continuous Learning Engine Types
+export interface Interaction {
+  id: string;
+  leadId: string;
+  type: string;
+  channel: ChannelType;
+  strategy: string;
+  variant?: string;
+  content: string;
+  context: Record<string, any>;
+  timing: string;
+  timestamp: string;
+}
+
+export interface OutcomeData {
+  success: boolean;
+  result: string;
+  responseTime?: number;
+  sentiment?: string;
+  qualityScore?: number;
+  notes?: string;
+  timestamp: string;
+  value?: number;
+}
+
+export interface PromptVariant {
+  id: string;
+  strategyId: string;
+  content: string;
+  variables?: Record<string, any>;
+  tone?: string;
+  effectiveness?: number;
+  successRate?: number;
+  sampleSize?: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface LearningMetrics {
+  totalInteractions: number;
+  successfulInteractions: number;
+  successRate: number;
+  activeExperiments: number;
+  completedExperiments: number;
+  patternsDiscovered: number;
+  strategiesOptimized: number;
+  lastLearningUpdate: Date;
+}
+
+export interface ExperimentResult {
+  id: string;
+  strategyId: string;
+  variants: PromptVariant[];
+  startDate: Date;
+  endDate?: Date;
+  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  results: Array<{
+    variantId: string;
+    outcome: OutcomeData;
+    timestamp: Date;
+  }>;
+  winner: string | null;
+}
+
+export interface StrategyUpdate {
+  strategyId: string;
+  type: 'increase_usage' | 'decrease_usage' | 'modify_content' | 'adjust_timing' | 'change_channel';
+  reason: string;
+  confidence: number;
+  recommendation?: string;
+  suggestedParameters?: Record<string, any>;
+}
+
 // Missing types that are being imported by other services
 export interface Playbook {
   id: string;
@@ -1514,27 +1606,70 @@ export interface CustomerSegment {
   description?: string;
   criteria: Record<string, any>;
   lead_count: number;
+  leadCount?: number; // Alias for compatibility
   performance_metrics: {
     conversion_rate: number;
     avg_deal_size: number;
     sales_cycle_days: number;
   };
+  // Additional properties for learning engine
+  characteristics?: Record<string, any>;
+  performance?: {
+    conversionRate: number;
+    averageDealSize: number;
+    salesCycle: number;
+    winRate: number;
+  };
+  strategies?: string[];
+  patterns?: string[];
+  interactionCount?: number;
+  successRate?: number;
   created_at: string;
   updated_at: string;
+  createdAt?: string; // Alias for compatibility
+  updatedAt?: string; // Alias for compatibility
 }
 
 export interface Pattern {
   id: string;
-  business_id: string;
-  name: string;
+  business_id?: string;
+  name?: string;
   description?: string;
-  pattern_type: string;
-  type?: string;
-  data: Record<string, any>;
-  confidence_score: number;
-  frequency: number;
-  last_seen: string;
-  created_at: string;
+  pattern_type?: string;
+  type: 'timing' | 'content' | 'channel' | 'sequence' | 'objection_handling' | 'closing' | 'interaction';
+  data?: Record<string, any>;
+  confidence_score?: number;
+  confidence?: number;
+  frequency?: number;
+  successRate?: number; // For learning engine compatibility
+  last_seen?: string;
+  created_at?: string;
+  discovered?: string;
+  lastValidated?: string;
+  metadata?: any; // For storing interaction details
+  conditions?: {
+    segment?: string;
+    stage?: string;
+    channel?: string;
+    context?: Record<string, any>;
+  };
+  actions?: {
+    content: string;
+    timing: string;
+    followUp: string[];
+  };
+  performance?: {
+    winRate: number;
+    responseRate: number;
+    dealVelocity: number;
+    revenueImpact: number;
+  };
+  evidence?: {
+    dealIds: string[];
+    interactionIds: string[];
+    samples: string[];
+  };
+  applicability?: string[];
 }
 
 export interface Feedback {
@@ -1559,8 +1694,10 @@ export interface Strategy {
   name: string;
   description?: string;
   strategy_type: string;
+  type?: string; // Alias for strategy_type
   parameters: Record<string, any>;
   effectiveness_score: number;
+  effectiveness?: number; // Alias for effectiveness_score
   is_active: boolean;
   created_at: string;
   updated_at: string;

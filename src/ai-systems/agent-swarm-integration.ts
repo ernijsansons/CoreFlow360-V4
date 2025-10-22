@@ -8,7 +8,6 @@ import { Logger } from '../shared/logger';
 import { EdgeAIOrchestrator } from './edge-ai-orchestrator';
 import { AgentOrchestrationFramework } from './agent-orchestration-framework';
 import { AgentCoordinationSystem } from './agent-coordination-system';
-import { verificationQualitySystem } from './verification-quality-system';
 import { AgentSwarmDemo } from './agent-swarm-demo';
 
 export interface AgentSwarmConfig {
@@ -181,7 +180,7 @@ export class AgentSwarmIntegration {
   // Request management
   private activeRequests: Map<string, SwarmRequest> = new Map();
   private requestQueue: SwarmRequest[] = [];
-  private streamingConnections: Map<string, Function[]> = new Map();
+  private streamingConnections: Map<string, Array<(...args: any[]) => any>> = new Map();
 
   // Performance tracking
   private performanceMetrics: {
@@ -344,7 +343,8 @@ export class AgentSwarmIntegration {
       });
 
       return response;
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Swarm request failed', { requestId: request.id, error });
 
       const response: SwarmResponse = {
@@ -361,13 +361,13 @@ export class AgentSwarmIntegration {
           timeElapsed: Date.now() - startTime,
           timeRemaining: 0
         },
-        error: error.message
+        error: errorMessage
       };
 
       this.sendUpdate(request.id, {
         timestamp: Date.now(),
         type: 'completion',
-        message: `Swarm execution failed: ${error.message}`,
+        message: `Swarm execution failed: ${errorMessage}`,
         severity: 'error'
       });
 
@@ -466,7 +466,8 @@ export class AgentSwarmIntegration {
     this.logger.info('Executing dry run', { requestId: request.id });
 
     // Simulate planning phase
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // eslint-disable-next-line no-undef
+    await new Promise(resolve => (setTimeout as any)(resolve, 2000));
 
     const estimatedTasks = this.estimateTasksFromQuery(request.query);
     const estimatedAgents = this.estimateRequiredAgents(request.query);
@@ -538,7 +539,7 @@ export class AgentSwarmIntegration {
   /**
    * Process coordination results into swarm results
    */
-  private async processCoordinationResults(coordinationResult: any, request: SwarmRequest): Promise<SwarmResults> {
+  private async processCoordinationResults(coordinationResult: any, _request: SwarmRequest): Promise<SwarmResults> {
     const deliverables: Deliverable[] = [];
 
     // Process agent contributions into deliverables
@@ -733,7 +734,8 @@ export class AgentSwarmIntegration {
   }
 
   private startSystemMonitoring(): void {
-    setInterval(() => {
+    // eslint-disable-next-line no-undef
+    (setInterval as any)(() => {
       this.performHealthCheck();
     }, 30000); // Every 30 seconds
   }

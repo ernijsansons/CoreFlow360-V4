@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas" width="144" height="144" style="border: 1px solid #ccc;"></canvas>
+    <br>
+    <button onclick="downloadIcon()">Download Icon</button>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Create gradient background
+        const gradient = ctx.createLinearGradient(0, 0, 144, 144);
+        gradient.addColorStop(0, '#667eea');
+        gradient.addColorStop(1, '#764ba2');
+        
+        // Fill background
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 144, 144);
+        
+        // Add rounded corners
+        ctx.globalCompositeOperation = 'destination-in';
+        ctx.beginPath();
+        ctx.roundRect(0, 0, 144, 144, 24);
+        ctx.fill();
+        
+        // Reset composite operation
+        ctx.globalCompositeOperation = 'source-over';
+        
+        // Add white circle
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(72, 72, 30, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Add "CF" text
+        ctx.fillStyle = '#667eea';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('CF', 72, 72);
+        
+        function downloadIcon() {
+            const link = document.createElement('a');
+            link.download = 'icon-144x144.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+    </script>
+</body>
+</html>

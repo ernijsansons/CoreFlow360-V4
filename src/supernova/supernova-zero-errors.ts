@@ -5,7 +5,8 @@
 
 import { Logger } from '../shared/logger';
 import * as fs from 'fs/promises';
-import * as path from 'path';
+// TODO: Use path when implementing file operations
+// import * as path from 'path';
 import { execSync } from 'child_process';
 
 const logger = new Logger({ component: 'supernova-zero-errors' });

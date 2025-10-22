@@ -1,4 +1,7 @@
-import { Env } from '../types/env';
+import { Env } from '../types/env';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "security-rate-limit-monitor" });
+
+
 
 export interface RateLimitMetrics {
   identifier: string;
@@ -111,7 +114,7 @@ export class RateLimitMonitor {
     }
   }
 
-  private async getPreviousWindowMetrics(identifier: string): Promise<RateLimitMetrics | null> {
+  private async getPreviousWindowMetrics(_identifier: string): Promise<RateLimitMetrics | null> {
     // This would need to store historical data
     // For now, return null
     return null;
@@ -134,7 +137,7 @@ export class RateLimitMonitor {
 
   private async sendNotification(alert: RateLimitAlert): Promise<void> {
     // Implement notification logic (email, webhook, etc.)
-    console.error('Rate limit alert:', alert);
+    logger.error('Rate limit alert:', alert);
   }
 
   async getRecentAlerts(hours: number = 1): Promise<RateLimitAlert[]> {

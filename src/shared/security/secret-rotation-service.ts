@@ -11,7 +11,10 @@
  */
 
 import { JWTSecretManager } from './jwt-secret-manager';
-import { SecurityError } from '../errors/app-error';
+import { SecurityError } from '../errors/app-error';import { Logger } from "../logger";
+const logger = new Logger({ component: "shared-security-secret-rotation-service" });
+
+
 
 export interface SecretVersion {
   version: number;
@@ -67,7 +70,7 @@ export class SecretRotationService {
         if (validation.isValid) {
           return currentSecret;
         } else {
-          console.error('Stored JWT secret failed validation:', validation.errors);
+          logger.error('Stored JWT secret failed validation:', validation.errors);
         }
       }
 
@@ -86,7 +89,7 @@ export class SecretRotationService {
         'No valid JWT secret found. This is a critical security issue that prevents authentication.'
       );
     } catch (error) {
-      console.error('Failed to get current JWT secret:', error);
+      logger.error('Failed to get current JWT secret:', error);
       throw new SecurityError('JWT secret retrieval failed');
     }
   }
@@ -108,7 +111,7 @@ export class SecretRotationService {
 
       return hoursSinceRotation >= this.config.rotationIntervalHours;
     } catch (error) {
-      console.error('Failed to check rotation status:', error);
+      logger.error('Failed to check rotation status:', error);
       return false;
     }
   }
@@ -147,7 +150,7 @@ export class SecretRotationService {
       await this.updateRotationLog(newVersion);
 
       // Log successful rotation
-      console.log(`✅ JWT secret rotation completed successfully. New version: ${newVersion}`);
+      logger.info(`✅ JWT secret rotation completed successfully. New version: ${newVersion}`);
 
       return {
         success: true,
@@ -156,8 +159,8 @@ export class SecretRotationService {
         oldVersionsRevoked: revokedVersions
       };
     } catch (error) {
-      console.error('JWT secret rotation failed:', error);
-      throw new SecurityError(`Secret rotation failed: ${error.message}`);
+      logger.error('JWT secret rotation failed:', error);
+      throw new SecurityError(`Secret rotation failed: ${(error as any).message}`);
     }
   }
 
@@ -169,7 +172,7 @@ export class SecretRotationService {
       throw new SecurityError('Emergency rotation is disabled');
     }
 
-    console.warn(`🚨 Emergency JWT secret rotation initiated: ${reason}`);
+    logger.warn(`🚨 Emergency JWT secret rotation initiated: ${reason}`);
 
     try {
       // Force immediate rotation
@@ -181,15 +184,15 @@ export class SecretRotationService {
       // Log emergency rotation
       await this.logEmergencyRotation(reason, result.newVersion);
 
-      console.warn(`🚨 Emergency rotation completed. All old secrets revoked.`);
+      logger.warn(`🚨 Emergency rotation completed. All old secrets revoked.`);
 
       return {
         ...result,
         message: `Emergency rotation completed due to: ${reason}`
       };
     } catch (error) {
-      console.error('Emergency rotation failed:', error);
-      throw new SecurityError(`Emergency rotation failed: ${error.message}`);
+      logger.error('Emergency rotation failed:', error);
+      throw new SecurityError(`Emergency rotation failed: ${(error as any).message}`);
     }
   }
 
@@ -220,7 +223,7 @@ export class SecretRotationService {
 
       return { isValid: false, version: -1 };
     } catch (error) {
-      console.error('Secret validation failed:', error);
+      logger.error('Secret validation failed:', error);
       return { isValid: false, version: -1 };
     }
   }
@@ -276,7 +279,7 @@ export class SecretRotationService {
         currentVersion: -1,
         lastRotation: null,
         nextRotationDue: new Date().toISOString(),
-        issues: [`Failed to get rotation health: ${error.message}`]
+        issues: [`Failed to get rotation health: ${(error as any).message}`]
       };
     }
   }
@@ -313,7 +316,7 @@ export class SecretRotationService {
 
       return secretData.secret;
     } catch (error) {
-      console.error(`Failed to get secret version ${version}:`, error);
+      logger.error(`Failed to get secret version ${version}:`, error);
       return null;
     }
   }
@@ -352,7 +355,7 @@ export class SecretRotationService {
         }
       }
     } catch (error) {
-      console.error('Failed to cleanup old versions:', error);
+      logger.error('Failed to cleanup old versions:', error);
     }
 
     return revokedVersions;
@@ -377,7 +380,7 @@ export class SecretRotationService {
         }
       }
     } catch (error) {
-      console.error('Failed to revoke all old versions:', error);
+      logger.error('Failed to revoke all old versions:', error);
     }
   }
 
@@ -396,7 +399,7 @@ export class SecretRotationService {
         return JSON.parse(logJson);
       }
     } catch (error) {
-      console.error('Failed to get rotation log:', error);
+      logger.error('Failed to get rotation log:', error);
     }
 
     return {
@@ -423,7 +426,7 @@ export class SecretRotationService {
 
       await this.kv.put(SecretRotationService.ROTATION_LOG_KEY, JSON.stringify(updatedLog));
     } catch (error) {
-      console.error('Failed to update rotation log:', error);
+      logger.error('Failed to update rotation log:', error);
     }
   }
 
@@ -452,7 +455,7 @@ export class SecretRotationService {
 
       await this.kv.put(emergencyLogKey, JSON.stringify(emergencyLog));
     } catch (error) {
-      console.error('Failed to log emergency rotation:', error);
+      logger.error('Failed to log emergency rotation:', error);
     }
   }
 }

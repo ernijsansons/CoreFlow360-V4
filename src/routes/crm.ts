@@ -4,12 +4,7 @@ import { zValidator } from '@hono/zod-validator';
 import { CRMService } from '../services/crm-service';
 import { CRMMigrationManager } from '../database/crm-migration-manager';
 import type { Env } from '../types/env';
-import type {
-  LeadFilters,
-  ContactFilters,
-  ConversationFilters,
-  PaginationOptions
-} from '../types/crm';
+// import type { PaginationOptions } from '../types/crm';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -64,23 +59,25 @@ const CreateAITaskSchema = z.object({
   metadata: z.record(z.any()).optional()
 });
 
-const LeadFiltersSchema = z.object({
-  status: z.enum(['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']).optional(),
-  source: z.string().optional(),
-  assigned_to: z.string().optional(),
-  created_after: z.string().optional(),
-  created_before: z.string().optional(),
-  score_min: z.number().optional(),
-  score_max: z.number().optional()
-});
+// TODO: Use LeadFiltersSchema when implementing filtering
+// const _LeadFiltersSchema = z.object({
+//   status: z.enum(['new', 'contacted', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost']).optional(),
+//   source: z.string().optional(),
+//   assigned_to: z.string().optional(),
+//   created_after: z.string().optional(),
+//   created_before: z.string().optional(),
+//   score_min: z.number().optional(),
+//   score_max: z.number().optional()
+// });
 
-const ContactFiltersSchema = z.object({
-  company_id: z.string().optional(),
-  department: z.string().optional(),
-  seniority_level: z.string().optional(),
-  created_after: z.string().optional(),
-  created_before: z.string().optional()
-});
+// TODO: Use ContactFiltersSchema when implementing filtering
+// const _ContactFiltersSchema = z.object({
+//   company_id: z.string().optional(),
+//   department: z.string().optional(),
+//   seniority_level: z.string().optional(),
+//   created_after: z.string().optional(),
+//   created_before: z.string().optional()
+// });
 
 const ConversationFiltersSchema = z.object({
   lead_id: z.string().optional(),
@@ -112,9 +109,14 @@ app.post('/companies', zValidator('json', CreateCompanySchema), async (c: any) =
 
 app.get('/companies', async (c: any) => {
   try {
-    const crmService = new CRMService(c.env);
-    const companies = await crmService.getCompanies();
-    return c.json({ success: true, data: companies });
+    // const _crmService = new CRMService(c.env);
+    const businessId = c.get('businessId');
+    // Fetch all companies for the business
+    const result = await c.env.DB_CRM
+      .prepare('SELECT * FROM companies WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC')
+      .bind(businessId)
+      .all();
+    return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
@@ -164,19 +166,26 @@ app.post('/contacts', zValidator('json', CreateContactSchema), async (c: any) =>
   try {
     const crmService = new CRMService(c.env);
     const contact = await crmService.createContact(c.get('validatedData'));
-    return c.json({ success: true, data: contact });
+    return c.json({ success: true, data: contact }, 201);
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 400);
   }
 });
 
-app.get('/contacts', zValidator('query', ContactFiltersSchema.merge(PaginationSchema)), async (c: any) => {
+app.get('/contacts', async (c: any) => {
   try {
-    const crmService = new CRMService(c.env);
-    const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
-    const pagination: PaginationOptions = { page, limit, sort_by, sort_order };
-    const contacts = await crmService.getContacts(filters, pagination);
-    return c.json({ success: true, data: contacts });
+    const businessId = c.req.query('businessId') || 'business-founder-001';
+    const page = parseInt(c.req.query('page') || '1');
+    const limit = parseInt(c.req.query('limit') || '50');
+
+    const db = c.env.DB_MAIN || c.env.DB;
+
+    // Simple query to fetch all contacts
+    const result = await db
+      .prepare('SELECT * FROM crm_contacts WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?')
+      .bind(businessId, limit, (page - 1) * limit)
+      .all();
+    return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
@@ -232,13 +241,20 @@ app.post('/leads', zValidator('json', CreateLeadSchema), async (c: any) => {
   }
 });
 
-app.get('/leads', zValidator('query', LeadFiltersSchema.merge(PaginationSchema)), async (c: any) => {
+app.get('/leads', async (c: any) => {
   try {
-    const crmService = new CRMService(c.env);
-    const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
-    const pagination: PaginationOptions = { page, limit, sort_by, sort_order };
-    const leads = await crmService.getLeads(filters, pagination);
-    return c.json({ success: true, data: leads });
+    const businessId = c.req.query('businessId') || 'business-founder-001';
+    const page = parseInt(c.req.query('page') || '1');
+    const limit = parseInt(c.req.query('limit') || '50');
+
+    const db = c.env.DB_MAIN || c.env.DB;
+
+    // Simple query to fetch all leads
+    const result = await db
+      .prepare('SELECT * FROM crm_leads WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?')
+      .bind(businessId, limit, (page - 1) * limit)
+      .all();
+    return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
@@ -296,11 +312,16 @@ app.post('/conversations', zValidator('json', CreateConversationSchema), async (
 
 app.get('/conversations', zValidator('query', ConversationFiltersSchema.merge(PaginationSchema)), async (c: any) => {
   try {
-    const crmService = new CRMService(c.env);
-    const { page, limit, sort_by, sort_order, ...filters } = c.get('validatedData');
-    const pagination: PaginationOptions = { page, limit, sort_by, sort_order };
-    const conversations = await crmService.getConversations(filters, pagination);
-    return c.json({ success: true, data: conversations });
+    const businessId = c.get('businessId');
+    const { page, limit } = c.get('validatedData');
+    // const _pagination: PaginationOptions = { page, limit, sortBy: sort_by, sortOrder: sort_order };
+
+    // Simple query to fetch all conversations
+    const result = await c.env.DB_CRM
+      .prepare('SELECT * FROM conversations WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?')
+      .bind(businessId, limit || 50, ((page || 1) - 1) * (limit || 50))
+      .all();
+    return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
@@ -332,9 +353,13 @@ app.post('/ai-tasks', zValidator('json', CreateAITaskSchema), async (c: any) => 
 
 app.get('/ai-tasks', async (c: any) => {
   try {
-    const crmService = new CRMService(c.env);
-    const tasks = await crmService.getAITasks();
-    return c.json({ success: true, data: tasks });
+    const businessId = c.get('businessId');
+    // Simple query to fetch all AI tasks
+    const result = await c.env.DB_CRM
+      .prepare('SELECT * FROM ai_tasks WHERE business_id = ? AND deleted_at IS NULL ORDER BY created_at DESC')
+      .bind(businessId)
+      .all();
+    return c.json({ success: true, data: result.results || [] });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
   }
@@ -401,7 +426,7 @@ app.get('/metrics/ai-tasks', async (c: any) => {
 app.post('/migrate', async (c: any) => {
   try {
     const migrationManager = new CRMMigrationManager(c.env);
-    const result = await migrationManager.runMigrations();
+    const result = await migrationManager.executeCRMMigrations();
     return c.json({ success: true, data: result });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);
@@ -411,7 +436,7 @@ app.post('/migrate', async (c: any) => {
 app.get('/migrate/status', async (c: any) => {
   try {
     const migrationManager = new CRMMigrationManager(c.env);
-    const status = await migrationManager.getMigrationStatus();
+    const status = await migrationManager.getCRMMigrationStatus();
     return c.json({ success: true, data: status });
   } catch (error: any) {
     return c.json({ success: false, error: error.message }, 500);

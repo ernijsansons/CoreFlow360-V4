@@ -26,7 +26,6 @@ import {
   ArrowUp,
   Mail,
   Bell,
-  Calendar,
   Shield
 } from 'lucide-react';
 
@@ -88,7 +87,7 @@ interface ApprovalCriteria {
 interface DataValidation {
   field: string;
   validationType: 'required' | 'min_value' | 'max_value' | 'format' | 'custom';
-  value?: any;
+  value?: unknown;
   message?: string;
 }
 
@@ -103,7 +102,7 @@ interface ApprovalThreshold {
 interface ApprovalCondition {
   field: string;
   operator: 'equals' | 'contains' | 'greater_than' | 'exists';
-  value: any;
+  value: unknown;
   action: 'require_additional' | 'skip_approval' | 'auto_approve' | 'auto_reject';
   additionalApprovers?: string[];
 }
@@ -168,7 +167,7 @@ export const ApprovalNode = memo(({ data, selected }: NodeProps<ApprovalNodeData
     return Math.min((received / required) * 100, 100);
   };
 
-  const handleConfigChange = (field: string, value: any) => {
+  const handleConfigChange = (field: string, value: unknown) => {
     const newData = { ...localData, [field]: value };
     setLocalData(newData);
   };
@@ -225,7 +224,7 @@ export const ApprovalNode = memo(({ data, selected }: NodeProps<ApprovalNodeData
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-lg bg-brand-accent-500 flex items-center justify-center text-white">
               <UserCheck className="w-4 h-4" />
             </div>
             <div>

@@ -12,19 +12,18 @@ import rehypeKatex from 'rehype-katex'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeRaw from 'rehype-raw'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { Copy, Check, Download, ExternalLink } from 'lucide-react'
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { Copy, Check, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import type { MessageType } from '@/types/chat'
+import type { InvoiceData, MetricData } from '@/types/chat'
 import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/github.css'
 
 export interface MessageRendererProps {
   content: string
   isStreaming?: boolean
-  messageType: MessageType
   className?: string
 }
 
@@ -157,7 +156,7 @@ const HeadingRenderer: React.FC<{ level: number; children: React.ReactNode }> = 
 }
 
 // Custom components for business-specific content
-const InvoiceRenderer: React.FC<{ data: any }> = ({ data }) => (
+const InvoiceRenderer: React.FC<{ data: InvoiceData }> = ({ data }) => (
   <div className="my-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
     <div className="flex items-center justify-between mb-2">
       <h4 className="font-semibold text-gray-900 dark:text-white">
@@ -182,12 +181,12 @@ const InvoiceRenderer: React.FC<{ data: any }> = ({ data }) => (
   </div>
 )
 
-const MetricRenderer: React.FC<{ data: any }> = ({ data }) => (
+const MetricRenderer: React.FC<{ data: MetricData }> = ({ data }) => (
   <div className="my-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-    {data.metrics.map((metric: any, index: number) => (
+    {data.metrics.map((metric, index: number) => (
       <div
         key={index}
-        className="p-3 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg"
+        className="p-3 bg-gradient-to-br from-brand-primary-50 to-brand-accent-50 dark:from-brand-primary-900/20 dark:to-brand-accent-900/20 rounded-lg"
       >
         <div className="text-2xl font-bold text-gray-900 dark:text-white">
           {metric.value}
@@ -223,7 +222,6 @@ const parseCustomComponents = (content: string) => {
 export const MessageRenderer: React.FC<MessageRendererProps> = ({
   content,
   isStreaming = false,
-  messageType,
   className
 }) => {
   const processedContent = useMemo(() => {
@@ -240,22 +238,22 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
     table: TableRenderer,
     a: LinkRenderer,
     blockquote: BlockquoteRenderer,
-    ul: ({ children }: any) => <ListRenderer>{children}</ListRenderer>,
-    ol: ({ children }: any) => <ListRenderer ordered>{children}</ListRenderer>,
-    h1: ({ children }: any) => <HeadingRenderer level={1}>{children}</HeadingRenderer>,
-    h2: ({ children }: any) => <HeadingRenderer level={2}>{children}</HeadingRenderer>,
-    h3: ({ children }: any) => <HeadingRenderer level={3}>{children}</HeadingRenderer>,
-    h4: ({ children }: any) => <HeadingRenderer level={4}>{children}</HeadingRenderer>,
-    h5: ({ children }: any) => <HeadingRenderer level={5}>{children}</HeadingRenderer>,
-    h6: ({ children }: any) => <HeadingRenderer level={6}>{children}</HeadingRenderer>,
-    p: ({ children }: any) => (
+    ul: ({ children }: { children?: React.ReactNode }) => <ListRenderer>{children}</ListRenderer>,
+    ol: ({ children }: { children?: React.ReactNode }) => <ListRenderer ordered>{children}</ListRenderer>,
+    h1: ({ children }: { children?: React.ReactNode }) => <HeadingRenderer level={1}>{children}</HeadingRenderer>,
+    h2: ({ children }: { children?: React.ReactNode }) => <HeadingRenderer level={2}>{children}</HeadingRenderer>,
+    h3: ({ children }: { children?: React.ReactNode }) => <HeadingRenderer level={3}>{children}</HeadingRenderer>,
+    h4: ({ children }: { children?: React.ReactNode }) => <HeadingRenderer level={4}>{children}</HeadingRenderer>,
+    h5: ({ children }: { children?: React.ReactNode }) => <HeadingRenderer level={5}>{children}</HeadingRenderer>,
+    h6: ({ children }: { children?: React.ReactNode }) => <HeadingRenderer level={6}>{children}</HeadingRenderer>,
+    p: ({ children }: { children?: React.ReactNode }) => (
       <p className="mb-4 text-gray-900 dark:text-gray-100 leading-relaxed">
         {children}
         {isStreaming && <StreamingCursor />}
       </p>
     ),
     // Custom components
-    div: ({ children, 'data-component': component, 'data-props': props, ...rest }: any) => {
+    div: ({ children, 'data-component': component, 'data-props': props, ...rest }: { children?: React.ReactNode; 'data-component'?: string; 'data-props'?: string; [key: string]: unknown }) => {
       if (component && props) {
         const parsedProps = JSON.parse(props)
         switch (component) {

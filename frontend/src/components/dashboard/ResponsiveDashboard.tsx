@@ -3,7 +3,7 @@
  * Adaptive dashboard that switches between desktop and mobile layouts
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useResponsive } from '@/hooks/useResponsive'
 import { DashboardGrid } from './DashboardGrid'
@@ -14,8 +14,8 @@ export interface ResponsiveDashboardProps {
   dashboard: Dashboard
   widgets: Widget[]
   onWidgetUpdate?: (widget: Widget) => void
-  onLayoutChange?: (layout: any) => void
-  onFilterChange?: (filters: Record<string, any>) => void
+  onLayoutChange?: (layout: unknown) => void
+  onFilterChange?: (filters: Record<string, unknown>) => void
   className?: string
 }
 
@@ -31,13 +31,11 @@ export const ResponsiveDashboard: React.FC<ResponsiveDashboardProps> = ({
     viewport,
     isMobile,
     isTablet,
-    isDesktop,
     getAdaptiveLayout,
-    getOptimalWidgetSize,
-    touchHelpers
+    getOptimalWidgetSize
   } = useResponsive()
 
-  const [currentLayout, setCurrentLayout] = useState<any[]>([])
+  const [, setCurrentLayout] = useState<unknown[]>([])
   const [forceDesktopMode, setForceDesktopMode] = useState(false)
 
   // Determine which layout to use
@@ -77,10 +75,10 @@ export const ResponsiveDashboard: React.FC<ResponsiveDashboardProps> = ({
         static: widget.locked
       }
     })
-  }, [widgets, shouldUseMobileLayout, getAdaptiveLayout, getOptimalWidgetSize, isDesktop])
+  }, [widgets, shouldUseMobileLayout, getAdaptiveLayout, getOptimalWidgetSize])
 
   // Handle layout changes
-  const handleLayoutChange = (layout: any[]) => {
+  const handleLayoutChange = (layout: unknown[]) => {
     setCurrentLayout(layout)
     onLayoutChange?.(layout)
   }

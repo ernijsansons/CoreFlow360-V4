@@ -1,5 +1,8 @@
 import { EventEmitter } from 'events';
-import crypto from 'crypto';
+import crypto from 'crypto';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "services-integration-webhook-integration" });
+
+
 
 export interface WebhookEvent {
   id: string;
@@ -94,7 +97,7 @@ export class WebhookIntegration extends EventEmitter {
       try {
         await this.deliverEvent(event);
       } catch (error: any) {
-        console.error('Failed to deliver webhook event:', error);
+        logger.error('Failed to deliver webhook event:', error);
         this.handleDeliveryFailure(event, error);
       }
     }
@@ -107,7 +110,7 @@ export class WebhookIntegration extends EventEmitter {
     const activeSubscriptions = subscriptions.filter((sub: any) => sub.active);
 
     if (activeSubscriptions.length === 0) {
-      console.log(`No active subscriptions for event: ${event.event}`);
+      logger.info(`No active subscriptions for event: ${event.event}`);
       return;
     }
 
@@ -151,10 +154,10 @@ export class WebhookIntegration extends EventEmitter {
       subscription.lastTriggered = new Date();
       subscription.failureCount = 0;
 
-      console.log(`Webhook delivered successfully to ${subscription.url}`);
+      logger.info(`Webhook delivered successfully to ${subscription.url}`);
 
     } catch (error: any) {
-      console.error(`Failed to deliver webhook to ${subscription.url}:`, error);
+      logger.error(`Failed to deliver webhook to ${subscription.url}:`, error);
       throw error;
     }
   }
@@ -171,7 +174,7 @@ export class WebhookIntegration extends EventEmitter {
         }
       }, this.config.retryDelay * event.retryCount);
     } else {
-      console.error(`Webhook event ${event.id} failed after ${this.config.maxRetries} retries`);
+      logger.error(`Webhook event ${event.id} failed after ${this.config.maxRetries} retries`);
       this.emit('delivery_failed', event, error);
     }
   }
@@ -193,7 +196,7 @@ export class WebhookIntegration extends EventEmitter {
 
     this.subscriptions.get(event)!.push(subscription);
 
-    console.log(`Webhook subscription created for event: ${event} -> ${url}`);
+    logger.info(`Webhook subscription created for event: ${event} -> ${url}`);
     return subscription.id;
   }
 
@@ -202,7 +205,7 @@ export class WebhookIntegration extends EventEmitter {
       const index = subscriptions.findIndex(sub => sub.id === subscriptionId);
       if (index !== -1) {
         subscriptions.splice(index, 1);
-        console.log(`Webhook subscription ${subscriptionId} removed for event: ${event}`);
+        logger.info(`Webhook subscription ${subscriptionId} removed for event: ${event}`);
         return true;
       }
     }
@@ -214,7 +217,7 @@ export class WebhookIntegration extends EventEmitter {
       const subscription = subscriptions.find(sub => sub.id === subscriptionId);
       if (subscription) {
         Object.assign(subscription, updates);
-        console.log(`Webhook subscription ${subscriptionId} updated for event: ${event}`);
+        logger.info(`Webhook subscription ${subscriptionId} updated for event: ${event}`);
         return true;
       }
     }
@@ -266,7 +269,7 @@ export class WebhookIntegration extends EventEmitter {
     try {
       // Verify signature
       if (!this.verifySignature(payload, signature)) {
-        console.error('Invalid webhook signature');
+        logger.error('Invalid webhook signature');
         return false;
       }
 
@@ -276,7 +279,7 @@ export class WebhookIntegration extends EventEmitter {
 
       // Validate event structure
       if (!event || !data.id || !data.timestamp) {
-        console.error('Invalid webhook event structure');
+        logger.error('Invalid webhook event structure');
         return false;
       }
 
@@ -293,13 +296,13 @@ export class WebhookIntegration extends EventEmitter {
       return true;
 
     } catch (error: any) {
-      console.error('Failed to handle incoming webhook:', error);
+      logger.error('Failed to handle incoming webhook:', error);
       return false;
     }
   }
 
   private async processIncomingEvent(event: WebhookEvent): Promise<void> {
-    console.log(`Processing incoming webhook event: ${event.event} from ${event.source}`);
+    logger.info(`Processing incoming webhook event: ${event.event} from ${event.source}`);
 
     // Emit local event for processing
     this.emit('incoming_event', event);
@@ -319,27 +322,27 @@ export class WebhookIntegration extends EventEmitter {
         await this.handleLeadUpdated(event);
         break;
       default:
-        console.log(`Unhandled webhook event: ${event.event}`);
+        logger.info(`Unhandled webhook event: ${event.event}`);
     }
   }
 
   private async handleAgentStatusChange(event: WebhookEvent): Promise<void> {
-    console.log(`Agent status changed: ${event.data.agentId} -> ${event.data.status}`);
+    logger.info(`Agent status changed: ${event.data.agentId} -> ${event.data.status}`);
     // Handle agent status change logic
   }
 
   private async handleAgentTaskCompleted(event: WebhookEvent): Promise<void> {
-    console.log(`Agent task completed: ${event.data.taskId} by ${event.data.agentId}`);
+    logger.info(`Agent task completed: ${event.data.taskId} by ${event.data.agentId}`);
     // Handle task completion logic
   }
 
   private async handleLeadCreated(event: WebhookEvent): Promise<void> {
-    console.log(`Lead created: ${event.data.leadId}`);
+    logger.info(`Lead created: ${event.data.leadId}`);
     // Handle lead creation logic
   }
 
   private async handleLeadUpdated(event: WebhookEvent): Promise<void> {
-    console.log(`Lead updated: ${event.data.leadId}`);
+    logger.info(`Lead updated: ${event.data.leadId}`);
     // Handle lead update logic
   }
 
@@ -363,7 +366,7 @@ export class WebhookIntegration extends EventEmitter {
     };
   }
 
-  async getEventStats(period: { start: Date; end: Date }): Promise<{
+  async getEventStats(_period: { start: Date; end: Date }): Promise<{
     totalEvents: number;
     eventsByType: Record<string, number>;
     eventsBySource: Record<string, number>;
@@ -391,7 +394,7 @@ export class WebhookIntegration extends EventEmitter {
   // Configuration Management
   updateConfig(updates: Partial<WebhookConfig>): void {
     this.config = { ...this.config, ...updates };
-    console.log('Webhook configuration updated');
+    logger.info('Webhook configuration updated');
   }
 
   getConfig(): WebhookConfig {
@@ -403,7 +406,7 @@ export class WebhookIntegration extends EventEmitter {
     try {
       // Process remaining events in queue
       if (this.eventQueue.length > 0) {
-        console.log(`Processing ${this.eventQueue.length} remaining events before cleanup`);
+        logger.info(`Processing ${this.eventQueue.length} remaining events before cleanup`);
         await this.processQueue();
       }
 
@@ -411,9 +414,9 @@ export class WebhookIntegration extends EventEmitter {
       this.subscriptions.clear();
       this.eventQueue = [];
 
-      console.log('Webhook integration cleanup completed');
+      logger.info('Webhook integration cleanup completed');
     } catch (error: any) {
-      console.error('Webhook integration cleanup failed:', error);
+      logger.error('Webhook integration cleanup failed:', error);
     }
   }
 }

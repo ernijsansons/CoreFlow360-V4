@@ -293,7 +293,7 @@ export class ABACService {
    */
   async introspectCapabilities(
     subject: Subject,
-    resourceType?: string
+    _resourceType?: string
   ): Promise<{
     allowed: Capability[];
     denied: Capability[];

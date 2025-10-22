@@ -1,14 +1,11 @@
-import type {
-  Meeting,
+import type { Meeting,
   Lead,
   Conversation,
   CalendarSlot,
   MeetingType,
   MeetingBookingRequest,
   MeetingAttendee,
-  AttendeeRole,
-  MeetingTemplate
-} from '../types/crm';
+  MeetingTemplate } from '../types/crm';
 import type { Env } from '../types/env';
 import { CalendarService, CalendarEventRequest } from './calendar-service';
 import { ScheduleNegotiator } from './schedule-negotiator';
@@ -417,17 +414,17 @@ export class MeetingBooker {
   }
 
   // Helper methods that would interact with database
-  private async getLeadById(leadId: string): Promise<Lead> {
+  private async getLeadById(_leadId: string): Promise<Lead> {
     // Implementation would fetch from database
     return {} as Lead;
   }
 
-  private async getMeetingById(meetingId: string): Promise<Meeting | null> {
+  private async getMeetingById(_meetingId: string): Promise<Meeting | null> {
     // Implementation would fetch from database
     return null;
   }
 
-  private async getAssignedRep(lead: Lead): Promise<any> {
+  private async getAssignedRep(_lead: Lead): Promise<any> {
     // Implementation would fetch assigned sales rep from database
     return {
       id: 'rep_1',
@@ -443,12 +440,12 @@ export class MeetingBooker {
     return salesRep ? { calendar_provider: 'google' } : null;
   }
 
-  private async getMeetingTemplate(businessId: string, meetingType: MeetingType): Promise<MeetingTemplate | null> {
+  private async getMeetingTemplate(_businessId: string, _meetingType: MeetingType): Promise<MeetingTemplate | null> {
     // Implementation would fetch meeting template from database
     return null;
   }
 
-  private async getBusinessHours(businessId: string): Promise<{ start:
+  private async getBusinessHours(_businessId: string): Promise<{ start:
   string; end: string; days: number[] } | undefined> {
     // Implementation would fetch business hours from database
     return {
@@ -458,7 +455,7 @@ export class MeetingBooker {
     };
   }
 
-  private async saveMeeting(meeting: Meeting): Promise<void> {
+  private async saveMeeting(_meeting: Meeting): Promise<void> {
     // Implementation would save to database
   }
 

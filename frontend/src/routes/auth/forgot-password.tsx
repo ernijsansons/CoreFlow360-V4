@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -13,7 +13,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
 
 // Validation schema
 const forgotPasswordSchema = z.object({
@@ -27,7 +26,6 @@ export const Route = createFileRoute('/auth/forgot-password')({
 })
 
 function ForgotPasswordPage() {
-  const navigate = useNavigate()
   const [isLoading, setIsLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [success, setSuccess] = React.useState(false)

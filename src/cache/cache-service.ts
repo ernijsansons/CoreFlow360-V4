@@ -1,4 +1,7 @@
-import type { KVNamespace } from '@cloudflare/workers-types';
+import type { KVNamespace } from '@cloudflare/workers-types';import { Logger } from "../shared/logger";
+const logger = new Logger({ component: "cache-cache-service" });
+
+
 
 export class CacheService {
   private performanceMetrics = {
@@ -67,7 +70,7 @@ export class CacheService {
       this.trackCacheMiss(performance.now() - startTime);
       return null;
     } catch (error) {
-      console.error('Cache get error:', error);
+      logger.error('Cache get error:', error);
       this.trackCacheMiss(performance.now() - startTime);
       return null;
     }
@@ -90,7 +93,7 @@ export class CacheService {
         await this.cacheApi.put(key, response);
       }
     } catch (error) {
-      console.warn('Failed to promote to L1 cache:', error);
+      logger.warn('Failed to promote to L1 cache:', error);
     }
   }
 
@@ -174,7 +177,7 @@ export class CacheService {
         await this.cacheApi.put(key, response);
       }
     } catch (error) {
-      console.error('Cache set error:', error);
+      logger.error('Cache set error:', error);
       throw error;
     }
   }
@@ -262,13 +265,13 @@ export class CacheService {
     // Log failed invalidations
     const failures = results.filter(result => result.status === 'rejected');
     if (failures.length > 0) {
-      console.warn('Some cache invalidations failed:', failures);
+      logger.warn('Some cache invalidations failed:', failures);
     }
 
     // Performance tracking
     const duration = performance.now() - startTime;
     if (duration > 100) {
-      console.warn(`Slow cache invalidation: ${pattern} took ${duration}ms`);
+      logger.warn(`Slow cache invalidation: ${pattern} took ${duration}ms`);
     }
   }
 
@@ -292,7 +295,7 @@ export class CacheService {
 
       await Promise.allSettled(operations);
     } catch (error) {
-      console.error('Tag-based invalidation failed:', error);
+      logger.error('Tag-based invalidation failed:', error);
     }
   }
 
@@ -365,7 +368,7 @@ export class CacheService {
         
       await Promise.allSettled(deletions);
     } catch (error: any) {
-      console.error('Cache API invalidation failed:', error);
+      logger.error('Cache API invalidation failed:', error);
     }
   }
 
@@ -374,7 +377,7 @@ export class CacheService {
       const cache = await caches.open('default');
       await cache.delete(key);
     } catch (error: any) {
-      console.error(`Cache API key deletion failed for ${key}:`, error);
+      logger.error(`Cache API key deletion failed for ${key}:`, error);
     }
   }
 
@@ -516,7 +519,7 @@ export class CacheService {
         });
       }
     } catch (error) {
-      console.warn(`Failed to warm up cache key ${key}:`, error);
+      logger.warn(`Failed to warm up cache key ${key}:`, error);
     }
   }
 
@@ -536,7 +539,7 @@ export class CacheService {
     }
 
     if (cleaned > 0) {
-      console.log(`Cleaned ${cleaned} expired priority cache entries`);
+      logger.info(`Cleaned ${cleaned} expired priority cache entries`);
     }
   }
 
@@ -546,7 +549,7 @@ export class CacheService {
   private async logPerformanceMetrics(): Promise<void> {
     const stats = await this.getStats();
 
-    console.log('Cache Performance Metrics:', {
+    logger.info('Cache Performance Metrics:', {
       hitRate: Math.round(stats.hitRate * 100) / 100,
       l1HitRate: Math.round(stats.l1HitRate * 100) / 100,
       avgResponseTime: Math.round(stats.avgResponseTime * 100) / 100,

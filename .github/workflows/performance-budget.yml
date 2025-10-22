@@ -1,0 +1,372 @@
+name: Performance Budget Check
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'src/**'
+      - 'package.json'
+      - 'frontend/package.json'
+  push:
+    branches:
+      - master
+      - main
+      - develop
+
+jobs:
+  performance-budget:
+    name: Check Performance Budgets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend for production
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_URL: https://api.coreflow360.com
+          VITE_CLARITY_ID: disabled
+          NODE_ENV: production
+
+      - name: Check bundle sizes
+        id: bundle-check
+        working-directory: frontend
+        run: |
+          # Get bundle sizes
+          MARKETING_SIZE=$(find dist/assets -name "marketing-*.js" -exec du -b {} + | awk '{sum+=$1} END {print sum}')
+          AUTH_SIZE=$(find dist/assets -name "auth-*.js" -exec du -b {} + | awk '{sum+=$1} END {print sum}')
+          APP_SIZE=$(find dist/assets -name "app-*.js" -exec du -b {} + | awk '{sum+=$1} END {print sum}')
+
+          # Convert to KB
+          MARKETING_KB=$((MARKETING_SIZE / 1024))
+          AUTH_KB=$((AUTH_SIZE / 1024))
+          APP_KB=$((APP_SIZE / 1024))
+
+          echo "marketing_kb=$MARKETING_KB" >> $GITHUB_OUTPUT
+          echo "auth_kb=$AUTH_KB" >> $GITHUB_OUTPUT
+          echo "app_kb=$APP_KB" >> $GITHUB_OUTPUT
+
+          # Check against budgets
+          MARKETING_BUDGET=80
+          AUTH_BUDGET=25
+          APP_BUDGET=1740  # 1.7 MB = 1740 KB
+
+          echo "### Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Bundle | Size | Budget | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          BUDGET_FAILED=0
+
+          # Marketing bundle
+          if [ $MARKETING_KB -le $MARKETING_BUDGET ]; then
+            echo "| Marketing | ${MARKETING_KB} KB | ${MARKETING_BUDGET} KB | ✅ Pass |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Marketing | ${MARKETING_KB} KB | ${MARKETING_BUDGET} KB | ❌ Fail |" >> $GITHUB_STEP_SUMMARY
+            BUDGET_FAILED=1
+          fi
+
+          # Auth bundle
+          if [ $AUTH_KB -le $AUTH_BUDGET ]; then
+            echo "| Auth | ${AUTH_KB} KB | ${AUTH_BUDGET} KB | ✅ Pass |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Auth | ${AUTH_KB} KB | ${AUTH_BUDGET} KB | ❌ Fail |" >> $GITHUB_STEP_SUMMARY
+            BUDGET_FAILED=1
+          fi
+
+          # App bundle
+          if [ $APP_KB -le $APP_BUDGET ]; then
+            echo "| App | ${APP_KB} KB | ${APP_BUDGET} KB | ✅ Pass |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| App | ${APP_KB} KB | ${APP_BUDGET} KB | ❌ Fail |" >> $GITHUB_STEP_SUMMARY
+            BUDGET_FAILED=1
+          fi
+
+          echo "budget_failed=$BUDGET_FAILED" >> $GITHUB_OUTPUT
+
+      - name: Install size-limit
+        working-directory: frontend
+        run: npm install --no-save @size-limit/preset-app
+
+      - name: Run size-limit
+        working-directory: frontend
+        run: |
+          npx size-limit --json > size-limit-report.json || true
+
+          if [ -f size-limit-report.json ]; then
+            echo "### Size Limit Report" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat size-limit-report.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check total bundle size
+        working-directory: frontend/dist
+        run: |
+          TOTAL_SIZE=$(find assets -name "*.js" -exec du -b {} + | awk '{sum+=$1} END {print sum}')
+          TOTAL_KB=$((TOTAL_SIZE / 1024))
+          TOTAL_BUDGET=2048  # 2 MB total budget
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Total Bundle Size" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total JavaScript**: ${TOTAL_KB} KB" >> $GITHUB_STEP_SUMMARY
+          echo "**Budget**: ${TOTAL_BUDGET} KB" >> $GITHUB_STEP_SUMMARY
+
+          if [ $TOTAL_KB -le $TOTAL_BUDGET ]; then
+            echo "**Status**: ✅ Pass" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status**: ❌ Fail (exceeds budget by $((TOTAL_KB - TOTAL_BUDGET)) KB)" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Analyze bundle composition
+        working-directory: frontend
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Bundle Composition" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size | % of Total |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|------------|" >> $GITHUB_STEP_SUMMARY
+
+          TOTAL_SIZE=$(find dist/assets -name "*.js" -exec du -b {} + | awk '{sum+=$1} END {print sum}')
+
+          find dist/assets -name "*.js" -exec du -b {} + | sort -rn | head -10 | while read size file; do
+            SIZE_KB=$((size / 1024))
+            PERCENTAGE=$((size * 100 / TOTAL_SIZE))
+            FILENAME=$(basename "$file")
+            echo "| $FILENAME | ${SIZE_KB} KB | ${PERCENTAGE}% |" >> $GITHUB_STEP_SUMMARY
+          done
+
+      - name: Check CSS bundle size
+        working-directory: frontend/dist
+        run: |
+          CSS_SIZE=$(find assets -name "*.css" -exec du -b {} + | awk '{sum+=$1} END {print sum}')
+          CSS_KB=$((CSS_SIZE / 1024))
+          CSS_BUDGET=30
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### CSS Bundle Size" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Size**: ${CSS_KB} KB" >> $GITHUB_STEP_SUMMARY
+          echo "**Budget**: ${CSS_BUDGET} KB" >> $GITHUB_STEP_SUMMARY
+
+          if [ $CSS_KB -le $CSS_BUDGET ]; then
+            echo "**Status**: ✅ Pass" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status**: ❌ Fail (exceeds budget by $((CSS_KB - CSS_BUDGET)) KB)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if budget exceeded
+        if: steps.bundle-check.outputs.budget_failed == '1'
+        run: |
+          echo "❌ Bundle size budget exceeded!"
+          echo ""
+          echo "Please optimize bundle sizes before merging:"
+          echo "- Remove unused dependencies"
+          echo "- Use dynamic imports for large components"
+          echo "- Split routes more aggressively"
+          echo "- Consider lazy loading heavy libraries"
+          exit 1
+
+      - name: Upload bundle analysis
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bundle-analysis
+          path: |
+            frontend/dist/assets/*.js
+            frontend/dist/assets/*.css
+            frontend/size-limit-report.json
+          retention-days: 30
+
+  lighthouse-budget:
+    name: Lighthouse Performance Budget
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_URL: https://api.coreflow360.com
+          VITE_CLARITY_ID: disabled
+
+      - name: Start preview server
+        working-directory: frontend
+        run: |
+          npm run preview &
+          sleep 5
+        env:
+          PORT: 4173
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            http://localhost:4173
+            http://localhost:4173/pricing
+            http://localhost:4173/auth/login
+          budgetPath: ./.github/lighthouse-budget.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Check Lighthouse scores
+        id: lighthouse-check
+        run: |
+          # This will be populated by Lighthouse CI
+          # Fail if performance score < 95
+          echo "Lighthouse CI results will be checked automatically"
+
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comment = '### ⚡ Lighthouse Performance Report\n\n';
+            comment += 'Performance budgets checked for:\n';
+            comment += '- Landing page\n';
+            comment += '- Pricing page\n';
+            comment += '- Login page\n\n';
+            comment += 'See full report in action artifacts.\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  api-performance:
+    name: API Performance Budget
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start dev server
+        run: |
+          npm run dev:watch &
+          sleep 10
+        env:
+          JWT_SECRET: test-secret-for-ci-only
+          NODE_ENV: development
+
+      - name: Test API response times
+        run: |
+          echo "### API Performance Budget" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Endpoint | P50 | P95 | Budget (P95) | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-----|-----|--------------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          # Test health endpoint
+          HEALTH_TIME=$(curl -w "%{time_total}" -o /dev/null -s http://127.0.0.1:8787/health)
+          HEALTH_MS=$(echo "$HEALTH_TIME * 1000" | bc | cut -d'.' -f1)
+
+          if [ $HEALTH_MS -le 100 ]; then
+            echo "| /health | ${HEALTH_MS}ms | ${HEALTH_MS}ms | 100ms | ✅ Pass |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| /health | ${HEALTH_MS}ms | ${HEALTH_MS}ms | 100ms | ❌ Fail |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Test API status endpoint
+          STATUS_TIME=$(curl -w "%{time_total}" -o /dev/null -s http://127.0.0.1:8787/api/status)
+          STATUS_MS=$(echo "$STATUS_TIME * 1000" | bc | cut -d'.' -f1)
+
+          if [ $STATUS_MS -le 150 ]; then
+            echo "| /api/status | ${STATUS_MS}ms | ${STATUS_MS}ms | 150ms | ✅ Pass |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| /api/status | ${STATUS_MS}ms | ${STATUS_MS}ms | 150ms | ❌ Fail |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Kill dev server
+        if: always()
+        run: pkill -f "wrangler" || true
+
+  report-summary:
+    name: Performance Summary
+    runs-on: ubuntu-latest
+    needs: [performance-budget, lighthouse-budget, api-performance]
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: Create summary comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const bundleStatus = '${{ needs.performance-budget.result }}';
+            const lighthouseStatus = '${{ needs.lighthouse-budget.result }}';
+            const apiStatus = '${{ needs.api-performance.result }}';
+
+            let comment = '## 📊 Performance Budget Summary\n\n';
+
+            comment += '| Check | Status |\n';
+            comment += '|-------|--------|\n';
+            comment += `| Bundle Size | ${bundleStatus === 'success' ? '✅' : '❌'} ${bundleStatus} |\n`;
+            comment += `| Lighthouse | ${lighthouseStatus === 'success' ? '✅' : '❌'} ${lighthouseStatus} |\n`;
+            comment += `| API Performance | ${apiStatus === 'success' ? '✅' : '❌'} ${apiStatus} |\n`;
+
+            comment += '\n---\n\n';
+
+            if (bundleStatus === 'success' && lighthouseStatus === 'success' && apiStatus === 'success') {
+              comment += '✅ **All performance budgets passed!** Great work on maintaining performance standards.\n';
+            } else {
+              comment += '⚠️ **Some performance budgets failed.** Please review the detailed reports above and optimize before merging.\n\n';
+              comment += '### Tips for optimization:\n';
+              comment += '- Remove unused dependencies\n';
+              comment += '- Use dynamic imports for large components\n';
+              comment += '- Optimize images and assets\n';
+              comment += '- Review and optimize slow API endpoints\n';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

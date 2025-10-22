@@ -188,7 +188,7 @@ export class AuthMiddleware {
     }
   }
 
-  async revokeToken(token: string, env: Env): Promise<boolean> {
+  async revokeToken(token: string, _env: Env): Promise<boolean> {
     try {
       // In a real implementation, you would add the token to a blacklist
       // For now, we'll just log the revocation
@@ -538,7 +538,7 @@ export class AuthMiddleware {
     return true;
   }
 
-  private async getUser(userId: string, env: Env): Promise<User | null> {
+  private async getUser(userId: string, _env: Env): Promise<User | null> {
     // Check cache first
     const cached = this.userCache.get(userId);
     if (cached && cached.expiresAt > Date.now()) {
@@ -574,7 +574,7 @@ export class AuthMiddleware {
     }
   }
 
-  private async generateToken(user: User, env: Env): Promise<string> {
+  private async generateToken(user: User, _env: Env): Promise<string> {
     try {
       // In a real implementation, you would use a JWT library
       // For now, we'll return a mock token
@@ -599,7 +599,7 @@ export class AuthMiddleware {
     }
   }
 
-  private async updateLastLogin(userId: string, env: Env): Promise<void> {
+  private async updateLastLogin(userId: string, _env: Env): Promise<void> {
     try {
       // In a real implementation, you would update the database
       this.logger.info('Last login updated', { userId });
@@ -741,7 +741,7 @@ export class AuthMiddleware {
 }
 
 // Export convenience functions for backward compatibility
-export function authenticate(options?: { requireMFA?: boolean }) {
+export function authenticate(_options?: { requireMFA?: boolean }) {
   return async (c: Context, next: () => Promise<void>) => {
     const authMiddleware = new AuthMiddleware(c);
     return authMiddleware.authMiddleware(c, next);

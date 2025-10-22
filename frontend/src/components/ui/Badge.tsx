@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /**
  * Badge Component
  * Flexible badge component for status indicators and labels

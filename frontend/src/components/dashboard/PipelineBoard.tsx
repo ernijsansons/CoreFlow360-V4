@@ -10,15 +10,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  DollarSign,
   User,
   Calendar,
   MoreVertical,
   Plus,
-  MoveRight,
-  AlertCircle,
-  CheckCircle2,
-  Clock,
   TrendingUp
 } from 'lucide-react'
 
@@ -144,7 +139,7 @@ export function PipelineBoard() {
     {
       id: 'negotiation',
       name: 'Negotiation',
-      color: 'bg-purple-500',
+      color: 'bg-brand-accent-500',
       value: 185000,
       deals: [
         {

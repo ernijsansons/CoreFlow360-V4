@@ -5,15 +5,12 @@
 
 import type { D1Database } from '@cloudflare/workers-types';
 import { Logger } from '../../shared/logger';
-import {
-  ChartAccount,
+import { ChartAccount,
   AccountType,
   AccountCategory,
-  AuditAction,
-  ValidationRule
-} from './types';
+  AuditAction } from './types';
 import { FinanceAuditLogger } from './audit-logger';
-import { generateAccountCode, validateBusinessId, validateAccountCode } from './utils';
+import { validateBusinessId, validateAccountCode } from './utils';
 
 export // TODO: Consider splitting ChartOfAccountsManager into smaller, focused classes
 class ChartOfAccountsManager {
@@ -330,7 +327,7 @@ class ChartOfAccountsManager {
     const result = await this.db.prepare(`
       SELECT * FROM chart_of_accounts
       WHERE id = ? AND business_id = ?
-    `).bind(accountId, validBusinessId).first();
+    `).bind(accountId, validBusinessId).first() as any;
 
     if (!result) {
       return null;
@@ -352,7 +349,7 @@ class ChartOfAccountsManager {
     const result = await this.db.prepare(`
       SELECT * FROM chart_of_accounts
       WHERE code = ? AND business_id = ?
-    `).bind(validCode, validBusinessId).first();
+    `).bind(validCode, validBusinessId).first() as any;
 
     if (!result) {
       return null;
@@ -495,7 +492,7 @@ class ChartOfAccountsManager {
       SELECT COUNT(*) as count
       FROM ledger_transactions
       WHERE account_id = ? AND business_id = ?
-    `).bind(accountId, businessId).first();
+    `).bind(accountId, businessId).first() as any;
 
     return (result?.count as number) > 0;
   }

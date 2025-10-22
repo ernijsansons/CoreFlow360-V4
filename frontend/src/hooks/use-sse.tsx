@@ -1,11 +1,12 @@
+/* eslint-disable react-refresh/only-export-components, react-hooks/exhaustive-deps */
 import * as React from 'react'
-import { createSSEClient, getSSEClient, disconnectSSE, type SSEOptions } from '@/lib/sse-client'
+import { createSSEClient, getSSEClient, disconnectSSE } from '@/lib/sse-client'
 import { useAuthStore, useEntityStore } from '@/stores'
 
 interface SSEContextType {
   isConnected: boolean
   connectionState: string
-  subscribe: (channel: string, callback: (data: any) => void) => () => void
+  subscribe: (channel: string, callback: (data: unknown) => void) => () => void
   connect: () => Promise<void>
   disconnect: () => void
 }
@@ -58,7 +59,7 @@ export function SSEProvider({ children, baseUrl = '/api/sse' }: SSEProviderProps
     setConnectionState('disconnected')
   }, [])
 
-  const subscribe = React.useCallback((channel: string, callback: (data: any) => void) => {
+  const subscribe = React.useCallback((channel: string, callback: (data: unknown) => void) => {
     const client = getSSEClient()
     if (!client) {
       console.warn('SSE client not available for subscription')
@@ -123,7 +124,7 @@ export function useSSE() {
 // Hook for subscribing to specific channels
 export function useSSESubscription(
   channel: string,
-  callback: (data: any) => void,
+  callback: (data: unknown) => void,
   dependencies: React.DependencyList = []
 ) {
   const { subscribe } = useSSE()

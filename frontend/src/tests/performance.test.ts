@@ -155,7 +155,6 @@ test.describe('Core Web Vitals', () => {
   })
 
   test('should meet TTFB threshold @performance', async ({ page }) => {
-    const startTime = Date.now()
     await page.goto('/')
 
     const metrics = await getWebVitals(page)
@@ -215,9 +214,10 @@ test.describe('Memory Performance', () => {
 
     // Get initial memory usage
     const initialMemory = await page.evaluate(() => {
-      return (performance as any).memory ? {
-        usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
-        totalJSHeapSize: (performance as any).memory.totalJSHeapSize
+      const perf = performance as unknown as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }
+      return perf.memory ? {
+        usedJSHeapSize: perf.memory.usedJSHeapSize,
+        totalJSHeapSize: perf.memory.totalJSHeapSize
       } : null
     })
 
@@ -227,19 +227,20 @@ test.describe('Memory Performance', () => {
     }
 
     // Navigate through different routes
-    await page.click('a[href=\"/dashboard\"]')
+    await page.click('a[href="/dashboard"]')
     await page.waitForLoadState('networkidle')
 
-    await page.click('a[href=\"/reports\"]')
+    await page.click('a[href="/reports"]')
     await page.waitForLoadState('networkidle')
 
-    await page.click('a[href=\"/\"]')
+    await page.click('a[href="/"]')
     await page.waitForLoadState('networkidle')
 
     // Force garbage collection if possible
     await page.evaluate(() => {
-      if ((window as any).gc) {
-        (window as any).gc()
+      const win = window as unknown as { gc?: () => void }
+      if (win.gc) {
+        win.gc()
       }
     })
 
@@ -248,9 +249,10 @@ test.describe('Memory Performance', () => {
 
     // Get final memory usage
     const finalMemory = await page.evaluate(() => {
+      const perf = performance as unknown as { memory: { usedJSHeapSize: number; totalJSHeapSize: number } }
       return {
-        usedJSHeapSize: (performance as any).memory.usedJSHeapSize,
-        totalJSHeapSize: (performance as any).memory.totalJSHeapSize
+        usedJSHeapSize: perf.memory.usedJSHeapSize,
+        totalJSHeapSize: perf.memory.totalJSHeapSize
       }
     })
 
@@ -276,7 +278,7 @@ test.describe('Rendering Performance', () => {
       return new Promise((resolve) => {
         // Wait for main content to be visible
         const observer = new MutationObserver(() => {
-          const mainContent = document.querySelector('[data-testid=\"main-content\"]')
+          const mainContent = document.querySelector('[data-testid="main-content"]')
           if (mainContent) {
             observer.disconnect()
             resolve(performance.now() - startTime)
@@ -367,7 +369,7 @@ test.describe('Network Performance', () => {
       try {
         const response = await fetch('/api/dashboard')
         return response.status
-      } catch (error) {
+      } catch {
         return 'offline'
       }
     })
@@ -420,7 +422,17 @@ async function runPerformanceAudit(page: Page) {
   }
 }
 
-function calculatePerformanceScore(webVitals: any, resources: any): number {
+interface ResourceMetrics {
+  totalResources: number
+  totalSize: number
+  totalDuration: number
+  jsSize: number
+  cssSize: number
+  imageSize: number
+  slowResources: string[]
+}
+
+function calculatePerformanceScore(webVitals: Record<string, number>, resources: ResourceMetrics): number {
   let score = 100
 
   // Deduct points for poor Core Web Vitals

@@ -4,11 +4,15 @@
  */
 
 import type { AnalyticsEngineDataset } from '../types/cloudflare';
+import type { Env } from '../../types/env';import { Logger } from "../../shared/logger";
+const logger = new Logger({ component: "cloudflare-monitoring-CloudflareObservability" });
+
+
 
 export class CloudflareObservability {
   private env: Env;
-  private analytics: AnalyticsEngineDataset;
-  private performanceAnalytics: AnalyticsEngineDataset;
+  private analytics?: AnalyticsEngineDataset;
+  private performanceAnalytics?: AnalyticsEngineDataset;
 
   constructor(env: Env) {
     this.env = env;
@@ -37,20 +41,22 @@ export class CloudflareObservability {
    */
   async trackMetric(metric: ObservabilityMetric): Promise<void> {
     try {
-      await this.analytics.writeDataPoint({
-        blobs: [
-          metric.name,
-          metric.category,
-          metric.environment || this.env.ENVIRONMENT,
-          metric.service || 'coreflow360'
-        ],
-        doubles: [
-          Date.now(),
-          metric.value,
-          metric.threshold || 0
-        ],
-        indexes: [metric.name, metric.category]
-      });
+      if (this.analytics) {
+        await this.analytics.writeDataPoint({
+          blobs: [
+            metric.name,
+            metric.category,
+            metric.environment || this.env.ENVIRONMENT,
+            metric.service || 'coreflow360'
+          ],
+          doubles: [
+            Date.now(),
+            metric.value,
+            metric.threshold || 0
+          ],
+          indexes: [metric.name, metric.category]
+        });
+      }
 
       // Check for alerts
       if (metric.threshold && metric.value > metric.threshold) {
@@ -72,21 +78,23 @@ export class CloudflareObservability {
    */
   async trackPerformance(performance: PerformanceMetric): Promise<void> {
     try {
-      await this.performanceAnalytics.writeDataPoint({
-        blobs: [
-          performance.operation,
-          performance.category || 'general',
-          this.env.ENVIRONMENT,
-          performance.status || 'success'
-        ],
-        doubles: [
-          Date.now(),
-          performance.duration,
-          performance.memoryUsed || 0,
-          performance.cpuTime || 0
-        ],
-        indexes: [performance.operation]
-      });
+      if (this.performanceAnalytics) {
+        await this.performanceAnalytics.writeDataPoint({
+          blobs: [
+            performance.operation,
+            performance.category || 'general',
+            this.env.ENVIRONMENT,
+            performance.status || 'success'
+          ],
+          doubles: [
+            Date.now(),
+            performance.duration,
+            performance.memoryUsed || 0,
+            performance.cpuTime || 0
+          ],
+          indexes: [performance.operation]
+        });
+      }
 
       // Track performance anomalies
       if (performance.duration > (performance.expectedDuration || 5000)) {
@@ -120,20 +128,22 @@ export class CloudflareObservability {
       };
 
       // Store in analytics for querying
-      await this.analytics.writeDataPoint({
-        blobs: [
-          'log_event',
-          event.level,
-          event.category,
-          this.env.ENVIRONMENT
-        ],
-        doubles: [
-          Date.now(),
-          this.getLevelSeverity(event.level),
-          0
-        ],
-        indexes: ['log_event', event.level]
-      });
+      if (this.analytics) {
+        await this.analytics.writeDataPoint({
+          blobs: [
+            'log_event',
+            event.level,
+            event.category,
+            this.env.ENVIRONMENT
+          ],
+          doubles: [
+            Date.now(),
+            this.getLevelSeverity(event.level),
+            0
+          ],
+          indexes: ['log_event', event.level]
+        });
+      }
 
       // Output to console with structured format
       this.outputStructuredLog(logEntry);
@@ -158,20 +168,22 @@ export class CloudflareObservability {
    */
   async trackUserInteraction(interaction: UserInteraction): Promise<void> {
     try {
-      await this.analytics.writeDataPoint({
-        blobs: [
-          'user_interaction',
-          interaction.action,
-          interaction.component || 'unknown',
-          interaction.userId || 'anonymous'
-        ],
-        doubles: [
-          Date.now(),
-          interaction.duration || 0,
-          interaction.success ? 1 : 0
-        ],
-        indexes: ['user_interaction', interaction.action]
-      });
+      if (this.analytics) {
+        await this.analytics.writeDataPoint({
+          blobs: [
+            'user_interaction',
+            interaction.action,
+            interaction.component || 'unknown',
+            interaction.userId || 'anonymous'
+          ],
+          doubles: [
+            Date.now(),
+            interaction.duration || 0,
+            interaction.success ? 1 : 0
+          ],
+          indexes: ['user_interaction', interaction.action]
+        });
+      }
 
     } catch (error: any) {
     }
@@ -182,20 +194,22 @@ export class CloudflareObservability {
    */
   async trackBusinessMetric(metric: BusinessMetric): Promise<void> {
     try {
-      await this.analytics.writeDataPoint({
-        blobs: [
-          'business_metric',
-          metric.type,
-          metric.category,
-          metric.businessId || 'system'
-        ],
-        doubles: [
-          Date.now(),
-          metric.value,
-          metric.target || 0
-        ],
-        indexes: ['business_metric', metric.type]
-      });
+      if (this.analytics) {
+        await this.analytics.writeDataPoint({
+          blobs: [
+            'business_metric',
+            metric.type,
+            metric.category,
+            metric.businessId || 'system'
+          ],
+          doubles: [
+            Date.now(),
+            metric.value,
+            metric.target || 0
+          ],
+          indexes: ['business_metric', metric.type]
+        });
+      }
 
       // Track KPI achievements
       if (metric.target && metric.value >= metric.target) {
@@ -353,10 +367,10 @@ export class CloudflareObservability {
 
     switch (logEntry.level) {
       case 'DEBUG':
-        console.debug(output);
+        logger.debug(output);
         break;
       case 'INFO':
-        console.info(output);
+        logger.info(output);
         break;
       case 'WARNING':
         break;
@@ -388,12 +402,7 @@ export class CloudflareObservability {
   }
 }
 
-// Type definitions
-interface Env {
-  ENVIRONMENT: string;
-  ANALYTICS: AnalyticsEngineDataset;
-  PERFORMANCE_ANALYTICS: AnalyticsEngineDataset;
-}
+// Type definitions - Env imported from canonical source
 
 interface ObservabilityMetric {
   name: string;

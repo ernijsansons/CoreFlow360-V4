@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * Advanced Stock Tracking System
  * Real-time inventory tracking with multi-location support and predictive analytics

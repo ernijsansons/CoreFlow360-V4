@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Select,
@@ -16,7 +15,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  Upload,
   FileText,
   Database,
   Globe,
@@ -27,8 +25,7 @@ import {
   FileSpreadsheet,
   Code,
   Settings,
-  Play,
-  X
+  Play
 } from 'lucide-react'
 
 interface ImportStep {
@@ -41,7 +38,6 @@ export function ImportWizard() {
   const [currentStep, setCurrentStep] = React.useState(1)
   const [importType, setImportType] = React.useState('file')
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null)
-  const [mapping, setMapping] = React.useState<Record<string, string>>({})
   const [isImporting, setIsImporting] = React.useState(false)
   const [importProgress, setImportProgress] = React.useState(0)
 

@@ -92,9 +92,11 @@ export class SMSChannel extends BaseChannel {
 
   async getStatus(messageId: string): Promise<MessageStatus> {
     const db = this.env.DB_CRM;
+    if (!db) return 'failed';
+
     const result = await db.prepare(
       'SELECT status FROM channel_messages WHERE id = ?'
-    ).bind(messageId).first();
+    ).bind(messageId).first<{ status: MessageStatus }>();
 
     return result?.status || 'failed';
   }
@@ -115,8 +117,9 @@ export class SMSChannel extends BaseChannel {
   }
 
   async getQuotaStatus(): Promise<{ used: number; limit: number; remaining: number }> {
+    const kv = this.env.KV_CACHE || this.env.KV_RATE_LIMIT_METRICS;
     const dayKey = `quota:sms:day:${new Date().toISOString().split('T')[0]}`;
-    const used = await this.env.KV.get(dayKey) || '0';
+    const used = (kv ? await kv.get(dayKey) : null) || '0';
     const dailyUsed = parseInt(used);
     const limit = 500; // Daily SMS limit
 
@@ -127,7 +130,7 @@ export class SMSChannel extends BaseChannel {
     };
   }
 
-  async formatContent(content: ChannelContent, recipient: Lead | Contact): Promise<string> {
+  async formatContent(content: ChannelContent, _recipient: Lead | Contact): Promise<string> {
     let message = content.body;
 
     // Remove HTML if present
@@ -191,11 +194,14 @@ export class SMSChannel extends BaseChannel {
     }
 
     // Update quota
-    const dayKey = `quota:sms:day:${new Date().toISOString().split('T')[0]}`;
-    const current = await this.env.KV.get(dayKey) || '0';
-    await this.env.KV.put(dayKey, String(parseInt(current) + 1), {
-      expirationTtl: 86400 // 24 hours
-    });
+    const kv = this.env.KV_CACHE || this.env.KV_RATE_LIMIT_METRICS;
+    if (kv) {
+      const dayKey = `quota:sms:day:${new Date().toISOString().split('T')[0]}`;
+      const current = await kv.get(dayKey) || '0';
+      await kv.put(dayKey, String(parseInt(current) + 1), {
+        expirationTtl: 86400 // 24 hours
+      });
+    }
   }
 
   private async sendViaTwilio(phoneNumber: string, message: string): Promise<void> {
@@ -229,7 +235,7 @@ export class SMSChannel extends BaseChannel {
     const response = await fetch('https://rest.messagebird.com/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `AccessKey ${this.env.MESSAGEBIRD_ACCESS_KEY}`,
+        'Authorization': `AccessKey ${(this.env as any).MESSAGEBIRD_ACCESS_KEY || this.env.SMS_API_KEY}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

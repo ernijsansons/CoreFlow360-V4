@@ -32,7 +32,7 @@ export interface Column<T> {
   filterable?: boolean
   width?: string | number
   align?: 'left' | 'center' | 'right'
-  render?: (value: any, row: T) => React.ReactNode
+  render?: (value: unknown, row: T) => React.ReactNode
   className?: string
 }
 
@@ -64,7 +64,7 @@ export interface DataGridProps<T> {
   compact?: boolean
 }
 
-export function DataGrid<T extends Record<string, any>>({
+export function DataGrid<T extends Record<string, unknown>>({
   data,
   columns,
   loading = false,
@@ -113,9 +113,9 @@ export function DataGrid<T extends Record<string, any>>({
     onSearch?.(value)
   }
 
-  const getValue = (row: T, key: string): any => {
+  const getValue = (row: T, key: string): unknown => {
     const keys = key.split('.')
-    return keys.reduce((obj, k) => obj?.[k], row as any)
+    return keys.reduce((obj, k) => (obj as Record<string, unknown>)?.[k], row as Record<string, unknown>)
   }
 
   const renderSortIcon = (column: Column<T>) => {

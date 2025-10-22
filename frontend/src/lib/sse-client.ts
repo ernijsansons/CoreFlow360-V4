@@ -2,7 +2,7 @@ import { useAuthStore, useUIStore, useEntityStore } from '@/stores'
 
 export interface SSEMessage {
   type: string
-  data: any
+  data: unknown
   timestamp: string
   channel?: string
 }
@@ -23,7 +23,7 @@ export class SSEClient {
   private heartbeatInterval: number
   private heartbeatTimer: NodeJS.Timeout | null = null
   private isConnected = false
-  private listeners: Map<string, Set<(data: any) => void>> = new Map()
+  private listeners: Map<string, Set<(data: unknown) => void>> = new Map()
   private options: SSEOptions
 
   constructor(options: SSEOptions) {
@@ -89,7 +89,7 @@ export class SSEClient {
         }
 
         // Handle custom message types
-        this.eventSource.addEventListener('heartbeat', (event) => {
+        this.eventSource.addEventListener('heartbeat', () => {
           console.log('Received heartbeat')
         })
 
@@ -138,7 +138,7 @@ export class SSEClient {
     console.log('SSE connection closed')
   }
 
-  subscribe(channel: string, callback: (data: any) => void): () => void {
+  subscribe(channel: string, callback: (data: unknown) => void): () => void {
     if (!this.listeners.has(channel)) {
       this.listeners.set(channel, new Set())
     }

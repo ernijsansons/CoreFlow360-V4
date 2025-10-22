@@ -1,7 +1,7 @@
 // src/analytics/dashboard.ts
 import type { AnalyticsEngineDataset, KVNamespace } from '../cloudflare/types/cloudflare';
-import { createDatabase, Database } from '../database/db';
-import { createAIService, AIService } from '../ai/ai-service';
+import { Database } from '../database/db';
+import { AIService } from '../ai/ai-service';
 
 // Database query result types
 interface RevenueQueryResult {
@@ -128,8 +128,7 @@ export class AnalyticsDashboard {
       security,
       ai,
       realtime,
-      jobs,
-      trends
+      jobs
     ] = await Promise.allSettled([
       this.getRevenueMetrics(businessId, timeRanges),
       this.getPerformanceMetrics(businessId, timeRanges),
@@ -137,8 +136,7 @@ export class AnalyticsDashboard {
       this.getSecurityMetrics(businessId, timeRanges),
       this.getAIMetrics(businessId, timeRanges),
       this.getRealtimeMetrics(businessId, timeRanges),
-      this.getJobMetrics(businessId, timeRanges),
-      this.getTrendAnalysis(businessId, period)
+      this.getJobMetrics(businessId, timeRanges)
     ]);
 
     // Generate AI insights
@@ -210,7 +208,7 @@ export class AnalyticsDashboard {
     }
   }
 
-  async getPerformanceMetrics(businessId: string, timeRanges: any): Promise<any> {
+  async getPerformanceMetrics(_businessId: string, _timeRanges: any): Promise<any> {
     try {
       // Calculate from analytics data
       const avgLatency = Math.random() * 200 + 50; // Mock data - replace with real analytics
@@ -266,7 +264,7 @@ export class AnalyticsDashboard {
     }
   }
 
-  async getSecurityMetrics(businessId: string, timeRanges: any): Promise<any> {
+  async getSecurityMetrics(_businessId: string, _timeRanges: any): Promise<any> {
     try {
       // Mock security metrics - replace with real analytics queries
       return {
@@ -303,7 +301,7 @@ export class AnalyticsDashboard {
     }
   }
 
-  async getRealtimeMetrics(businessId: string, timeRanges: any): Promise<any> {
+  async getRealtimeMetrics(_businessId: string, _timeRanges: any): Promise<any> {
     try {
       // Mock realtime metrics - in production, get from Durable Object stats
       return {
@@ -462,12 +460,12 @@ export class AnalyticsDashboard {
     return result.status === 'fulfilled' ? result.value : null;
   }
 
-  private async getRevenueForPeriod(businessId: string, period: string, previous = false): Promise<number> {
+  private async getRevenueForPeriod(businessId: string, period: string, _previous = false): Promise<number> {
     // Implementation for revenue calculation
     return Math.random() * 10000; // Mock data
   }
 
-  private async getActivityForPeriod(businessId: string, period: string, previous = false): Promise<number> {
+  private async getActivityForPeriod(businessId: string, period: string, _previous = false): Promise<number> {
     // Implementation for activity calculation
     return Math.random() * 100; // Mock data
   }
@@ -517,7 +515,7 @@ export class AnalyticsDashboard {
     return data.reverse();
   }
 
-  private async executeCustomQuery(businessId: string, query: any): Promise<any> {
+  private async executeCustomQuery(_businessId: string, _query: any): Promise<any> {
     // Execute custom analytics query
     return { result: 'custom query result' };
   }

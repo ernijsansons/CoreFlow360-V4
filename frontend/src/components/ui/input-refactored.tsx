@@ -5,8 +5,7 @@ import { cn } from "@/lib/utils"
  * Input component refactored to use design tokens
  * Uses semantic tokens for consistent styling and theming
  */
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+export type InputProps = React.InputHTMLAttributes<HTMLInputElement>
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {

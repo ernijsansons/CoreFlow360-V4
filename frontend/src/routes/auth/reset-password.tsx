@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Loader2, CheckCircle2, AlertCircle, Shield } from 'lucide-react'
+import { Loader2, AlertCircle, Shield } from 'lucide-react'
 import { AuthLayout } from '@/components/layouts/AuthLayout'
 import { Button } from '@/components/ui/button'
 import { PasswordInput } from '@/components/ui/PasswordInput'
@@ -54,7 +54,6 @@ function ResetPasswordPage() {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm<ResetPasswordForm>({
     resolver: zodResolver(resetPasswordSchema),
   })
@@ -71,7 +70,7 @@ function ResetPasswordPage() {
           setTokenValid(false)
           setError('This password reset link is invalid or has expired.')
         }
-      } catch (err) {
+      } catch {
         setTokenValid(false)
         setError('Unable to validate reset link. Please request a new one.')
       }
@@ -85,7 +84,7 @@ function ResetPasswordPage() {
     }
   }, [token])
 
-  const onSubmit = async (data: ResetPasswordForm) => {
+  const onSubmit = async () => {
     if (!tokenValid) return
 
     setIsLoading(true)
