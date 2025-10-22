@@ -18,7 +18,8 @@ import { Invoice,
   UpdateInvoiceRequest,
   Customer,
   InvoiceDiscount,
-  JournalEntryType } from './types';
+  JournalEntryType,
+  PaymentTermType } from './types';
 import { validateBusinessId, generateInvoiceNumber, roundToCurrency } from './utils';
 
 export // TODO: Consider splitting InvoiceManager into smaller, focused classes
@@ -690,6 +691,35 @@ class InvoiceManager {
    * Map database row to Invoice
    */
   private mapToInvoice(row: any): Invoice {
+    if (!row) {
+      throw new Error('Invalid invoice row');
+    }
+
+    if ('invoiceNumber' in row && 'customerId' in row && !('invoice_number' in row)) {
+      const normalizedTerms = normalizePaymentTerms((row as any).terms);
+      const normalized = {
+        ...row,
+        approvalRequired: Boolean((row as any).approvalRequired ?? (row as any).approval_required ?? false),
+        approvalStatus: (row as any).approvalStatus ?? (row as any).approval_status ?? undefined,
+        lines: (row as any).lines ?? [],
+        taxLines: (row as any).taxLines ?? undefined,
+        discounts: (row as any).discounts ?? undefined,
+        approvals: (row as any).approvals ?? undefined,
+        metadata: (row as any).metadata ?? undefined,
+        terms: normalizedTerms ?? {}
+      } as Invoice;
+      return normalized;
+    }
+
+    const statusValue = typeof row.status === 'string' ? row.status.toUpperCase() : row.status;
+    const approvalStatusValue = typeof row.approval_status === 'string'
+      ? row.approval_status.toUpperCase()
+      : row.approval_status;
+    const approvalRequiredRaw = row.approval_required ?? row.approvalRequired ?? 0;
+    const approvalRequired = typeof approvalRequiredRaw === 'string'
+      ? approvalRequiredRaw === '1' || approvalRequiredRaw.toLowerCase() === 'true'
+      : Boolean(approvalRequiredRaw);
+
     return {
       id: row.id,
       invoiceNumber: row.invoice_number,
@@ -708,8 +738,8 @@ class InvoiceManager {
       discountTotal: row.discount_total,
       total: row.total,
       balanceDue: row.balance_due,
-      status: row.status as InvoiceStatus,
-      terms: safeParseJson(row.terms) ?? {},
+      status: statusValue as InvoiceStatus,
+      terms: normalizePaymentTerms(safeParseJson(row.terms)) ?? {},
       lines: safeParseJson(row.lines) ?? [],
       taxLines: safeParseJson(row.tax_lines),
       discounts: safeParseJson(row.discounts),
@@ -718,8 +748,8 @@ class InvoiceManager {
       referenceNumber: row.reference_number || undefined,
       poNumber: row.po_number || undefined,
       journalEntryId: row.journal_entry_id || undefined,
-      approvalRequired: Boolean(row.approval_required),
-      approvalStatus: row.approval_status as ApprovalStatus || undefined,
+      approvalRequired,
+      approvalStatus: approvalStatusValue as ApprovalStatus || undefined,
       approvals: safeParseJson(row.approvals),
       pdfUrl: row.pdf_url || undefined,
       sentAt: row.sent_at || undefined,
@@ -738,6 +768,18 @@ class InvoiceManager {
    * Map database row to Customer
    */
   private mapToCustomer(row: any): Customer {
+    if (!row) {
+      throw new Error('Invalid customer row');
+    }
+
+    if ('businessId' in row && !('business_id' in row)) {
+      const normalizedPaymentTerms = normalizePaymentTerms((row as any).paymentTerms);
+      return {
+        ...row,
+        paymentTerms: normalizedPaymentTerms
+      } as Customer;
+    }
+
     return {
       id: row.id,
       name: row.name,
@@ -746,7 +788,7 @@ class InvoiceManager {
       website: row.website || undefined,
       taxId: row.tax_id || undefined,
       currency: row.currency,
-      paymentTerms: safeParseJson(row.payment_terms),
+      paymentTerms: normalizePaymentTerms(safeParseJson(row.payment_terms)),
       creditLimit: row.credit_limit || undefined,
       billingAddress: safeParseJson(row.billing_address),
       shippingAddress: safeParseJson(row.shipping_address),
@@ -759,6 +801,27 @@ class InvoiceManager {
     };
   }
 }
+
+const normalizePaymentTerms = <T extends { type?: any; netDays?: number; days?: number }>(terms: T | undefined): T | undefined => {
+  if (!terms) {
+    return terms;
+  }
+
+  if (
+    terms.type === PaymentTermType.NET &&
+    (terms.netDays === undefined || terms.netDays === null) &&
+    terms.days !== undefined &&
+    terms.days !== null
+  ) {
+    return {
+      ...terms,
+      netDays: terms.days
+    };
+  }
+
+  return terms;
+};
+
 const safeParseJson = <T = unknown>(value: unknown): T | undefined => {
   if (value === null || value === undefined) {
     return undefined;

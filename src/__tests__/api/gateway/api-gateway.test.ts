@@ -1,6 +1,25 @@
 import { describe, it, expect, beforeEach, afterEach, vi, MockedFunction } from 'vitest';
 import { APIGateway, APIGatewayConfig, APIRoute, HTTPMethod, APIVersion, RateLimitType, AuthenticationMethod } from '../../../api/gateway/api-gateway';
 import { z } from 'zod';
+import { Logger } from '../../../shared/logger';
+
+const loggerInstances: any[] = [];
+
+vi.mock('../../../shared/logger', () => {
+  const instances: any[] = [];
+  const LoggerMock = vi.fn().mockImplementation(() => {
+    const instance = {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn()
+    };
+    instances.push(instance);
+    return instance;
+  });
+  (LoggerMock as any).__instances = instances;
+  return { Logger: LoggerMock };
+});
 
 // Mock performance.now for consistent testing
 const mockPerformanceNow = vi.fn();
@@ -24,6 +43,7 @@ describe('APIGateway', () => {
   let gateway: APIGateway;
   let config: APIGatewayConfig;
   let testRoute: APIRoute;
+  let mockLogger: any;
 
   beforeEach(() => {
     // Reset performance.now mock
@@ -95,6 +115,19 @@ describe('APIGateway', () => {
     };
 
     gateway = new APIGateway(config);
+    const loggerMock = Logger as any;
+    const instances = loggerMock.__instances ?? [];
+    mockLogger = instances[instances.length - 1];
+    if (!mockLogger) {
+      mockLogger = {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn()
+      };
+      instances.push(mockLogger);
+      loggerMock.__instances = instances;
+    }
   });
 
   afterEach(() => {
@@ -730,8 +763,13 @@ describe('APIGateway', () => {
       });
 
       await gateway.handleRequest(request);
-      // Slow query warning should be logged (mocked console.warn)
-      expect(console.warn).toHaveBeenCalled();
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        'Slow API response detected',
+        expect.objectContaining({
+          responseTime: 150,
+          path: '/api/v1/test'
+        })
+      );
     });
   });
 
@@ -796,6 +834,7 @@ describe('APIGateway', () => {
         ...testRoute,
         id: 'error-route',
         path: '/api/v1/error',
+        method: HTTPMethod.POST,
         validation: {
           body: z.object({
             required: z.string()
@@ -966,6 +1005,13 @@ describe('APIGateway', () => {
 
     it('should handle very large payloads', async () => {
       const largeData = 'x'.repeat(10000);
+      const largePayloadRoute: APIRoute = {
+        ...testRoute,
+        id: 'large-payload-route',
+        method: HTTPMethod.POST
+      };
+
+      gateway.addRoute(largePayloadRoute);
       const request = new Request('http://localhost/api/v1/test', {
         method: 'POST',
         body: JSON.stringify({ data: largeData })

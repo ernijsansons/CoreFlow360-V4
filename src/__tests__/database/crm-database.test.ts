@@ -113,11 +113,15 @@ describe('CRMDatabase', () => {
     mockPreparedStatement.run.mockResolvedValue({ success: true, meta: { success: true, changes: 1 } });
     mockD1Database.batch.mockResolvedValue([{ success: true }]);
 
+    delete (mockEnv as any).logger;
+    delete (mockEnv as any).transactionManager;
+
     // Create fresh instances for each test
     mockTransactionManager = new (TransactionManager as any)(mockEnv);
     mockTransactionManager.withTransaction.mockImplementation(async (fn: (db: any) => Promise<any>) => {
       return { success: true, data: await fn(mockD1Database) };
     });
+    (mockEnv as any).transactionManager = mockTransactionManager;
 
     crmDatabase = new CRMDatabase(mockEnv as Env);
 

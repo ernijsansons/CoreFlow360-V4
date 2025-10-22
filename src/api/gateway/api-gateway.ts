@@ -6,7 +6,8 @@ import { z } from 'zod';
 // TODO: Implement error handling when needed
 // import { ApplicationError as AppError } from '../../shared/error-handling';
 // import { createAuditLogger } from '../../shared/logging/audit-logger';
-import { CORSUtils } from '../../utils/cors-utils';import { Logger } from "../../shared/logger";
+import { CORSUtils } from '../../utils/cors-utils';
+import { Logger } from '../../shared/logger';
 const logger = new Logger({ component: "api-gateway-api-gateway" });
 
 
@@ -129,6 +130,7 @@ export class APIGateway {
     cacheHits: 0,
     compressionSavings: 0
   };
+  private readonly SLOW_REQUEST_THRESHOLD = 120;
 
   constructor(config: APIGatewayConfig) {
     this.config = config;
@@ -452,7 +454,15 @@ export class APIGateway {
   private async validateRequest(request: Request, validation: APIRoute['validation']): Promise<Response | null> {
     try {
       if (validation.body) {
-        const body = await request.json();
+        let body: unknown;
+        try {
+          body = await request.json();
+        } catch (error) {
+          if (error instanceof SyntaxError) {
+            throw error;
+          }
+          throw new Error('Request body parse failed');
+        }
         validation.body.parse(body);
       }
 
@@ -473,6 +483,9 @@ export class APIGateway {
 
       return null;
     } catch (error: any) {
+      if (error instanceof SyntaxError) {
+        throw error;
+      }
       return this.createErrorResponse(400, `Validation error: ${(error instanceof Error ? error.message : String(error))}`);
     }
   }
@@ -633,11 +646,12 @@ export class APIGateway {
     const cacheKey = this.generateResponseCacheKey(request);
 
     // Limit cache size
-    if (this.responseCache.size > 1000) {
+    while (this.responseCache.size >= 1000) {
       const oldestKey = this.responseCache.keys().next().value;
-      if (oldestKey) {
-        this.responseCache.delete(oldestKey);
+      if (!oldestKey) {
+        break;
       }
+      this.responseCache.delete(oldestKey);
     }
 
     this.responseCache.set(cacheKey, {
@@ -692,6 +706,10 @@ export class APIGateway {
     };
 
     logger.info('API Request', logData);
+
+    if (responseTime !== undefined && responseTime > this.SLOW_REQUEST_THRESHOLD) {
+      logger.warn('Slow API response detected', logData);
+    }
   }
 
   private createErrorResponse(status: number, message: string): Response {
@@ -824,4 +842,3 @@ export class APIGateway {
     return headerObj;
   }
 }
-

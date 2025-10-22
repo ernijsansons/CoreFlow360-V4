@@ -286,6 +286,7 @@ describe('InvoiceManager', () => {
     });
 
     it('should throw error when customer not found', async () => {
+      mockPreparedStatement.first.mockReset();
       mockPreparedStatement.first.mockResolvedValueOnce(null);
 
       await expect(
@@ -294,6 +295,7 @@ describe('InvoiceManager', () => {
     });
 
     it('should handle database errors gracefully', async () => {
+      mockPreparedStatement.first.mockReset();
       mockPreparedStatement.first.mockRejectedValue(new Error('Database error'));
 
       await expect(
@@ -302,6 +304,13 @@ describe('InvoiceManager', () => {
     });
 
     it('should generate unique invoice IDs', async () => {
+      mockPreparedStatement.first.mockReset();
+      mockPreparedStatement.first
+        .mockResolvedValueOnce(mockCustomer)
+        .mockResolvedValueOnce({ approval_threshold: 1000 })
+        .mockResolvedValueOnce(mockCustomer)
+        .mockResolvedValueOnce({ approval_threshold: 1000 });
+
       const invoice1 = await invoiceManager.createInvoice(
         mockInvoiceRequest,
         'user123',
@@ -440,6 +449,7 @@ describe('InvoiceManager', () => {
     });
 
     it('should throw error for non-existent invoice', async () => {
+      mockPreparedStatement.first.mockReset();
       mockPreparedStatement.first.mockResolvedValueOnce(null);
 
       await expect(
@@ -449,6 +459,7 @@ describe('InvoiceManager', () => {
 
     it('should prevent updates to sent invoices', async () => {
       const sentInvoice = { ...existingInvoice, status: InvoiceStatus.SENT };
+      mockPreparedStatement.first.mockReset();
       mockPreparedStatement.first.mockResolvedValueOnce(sentInvoice);
 
       await expect(
@@ -458,6 +469,7 @@ describe('InvoiceManager', () => {
 
     it('should prevent updates to paid invoices', async () => {
       const paidInvoice = { ...existingInvoice, status: InvoiceStatus.PAID };
+      mockPreparedStatement.first.mockReset();
       mockPreparedStatement.first.mockResolvedValueOnce(paidInvoice);
 
       await expect(
@@ -469,6 +481,7 @@ describe('InvoiceManager', () => {
       const newCustomer = { ...mockCustomer, id: 'customer456', name: 'New Customer' };
       const customerChangeRequest = { ...updateRequest, customerId: 'customer456' };
 
+      mockPreparedStatement.first.mockReset();
       mockPreparedStatement.first
         .mockResolvedValueOnce(existingInvoice)
         .mockResolvedValueOnce(mockCustomer) // Original customer
@@ -630,6 +643,7 @@ describe('InvoiceManager', () => {
     });
 
     it('should throw error for non-existent invoice', async () => {
+      mockPreparedStatement.first.mockReset();
       mockPreparedStatement.first.mockResolvedValueOnce(null);
 
       await expect(
@@ -639,6 +653,7 @@ describe('InvoiceManager', () => {
 
     it('should throw error for draft invoice', async () => {
       const draftInvoice = { ...invoiceToPost, status: InvoiceStatus.DRAFT };
+      mockPreparedStatement.first.mockReset();
       mockPreparedStatement.first.mockResolvedValueOnce(draftInvoice);
 
       await expect(
@@ -648,6 +663,7 @@ describe('InvoiceManager', () => {
 
     it('should throw error for already posted invoice', async () => {
       const postedInvoice = { ...invoiceToPost, journalEntryId: 'existing_entry' };
+      mockPreparedStatement.first.mockReset();
       mockPreparedStatement.first.mockResolvedValueOnce(postedInvoice);
 
       await expect(
@@ -751,16 +767,25 @@ describe('InvoiceManager', () => {
   describe('Error Handling and Edge Cases', () => {
     it('should handle invalid business ID', async () => {
       const utils = await import('../../../modules/finance/utils');
-      vi.spyOn(utils, 'validateBusinessId').mockImplementation(() => {
+      const validateSpy = vi.spyOn(utils, 'validateBusinessId').mockImplementation(() => {
         throw new Error('Invalid business ID');
       });
 
       await expect(
         invoiceManager.createInvoice(mockInvoiceRequest, 'user123', 'invalid_id')
       ).rejects.toThrow('Invalid business ID');
+
+      validateSpy.mockRestore();
     });
 
     it('should handle concurrent invoice creation', async () => {
+      mockPreparedStatement.first.mockReset();
+      for (let i = 0; i < 5; i++) {
+        mockPreparedStatement.first
+          .mockResolvedValueOnce(mockCustomer)
+          .mockResolvedValueOnce({ approval_threshold: 1000 });
+      }
+
       const promises = Array.from({ length: 5 }, () =>
         invoiceManager.createInvoice(mockInvoiceRequest, 'user123', 'business123')
       );
@@ -793,6 +818,11 @@ describe('InvoiceManager', () => {
     });
 
     it('should handle tax calculation failures', async () => {
+      mockPreparedStatement.first.mockReset();
+      mockPreparedStatement.first
+        .mockResolvedValueOnce(mockCustomer)
+        .mockResolvedValueOnce({ approval_threshold: 1000 });
+
       vi.spyOn(invoiceManager as any, 'taxEngine', 'get').mockReturnValue({
         calculateInvoiceTaxes: vi.fn().mockRejectedValue(new Error('Tax calculation failed'))
       });
@@ -803,6 +833,11 @@ describe('InvoiceManager', () => {
     });
 
     it('should handle currency conversion errors', async () => {
+      mockPreparedStatement.first.mockReset();
+      mockPreparedStatement.first
+        .mockResolvedValueOnce(mockCustomer)
+        .mockResolvedValueOnce({ approval_threshold: 1000 });
+
       mockCurrencyManager.getExchangeRate.mockRejectedValue(
         new Error('Exchange rate unavailable')
       );
@@ -815,6 +850,11 @@ describe('InvoiceManager', () => {
     });
 
     it('should handle database transaction failures', async () => {
+      mockPreparedStatement.first.mockReset();
+      mockPreparedStatement.first
+        .mockResolvedValueOnce(mockCustomer)
+        .mockResolvedValueOnce({ approval_threshold: 1000 });
+
       mockPreparedStatement.run.mockRejectedValue(new Error('Transaction failed'));
 
       await expect(
