@@ -68,3 +68,4 @@ export default defineConfig([
   },
 ])
 ```
+# Test comment for pre-commit hook
