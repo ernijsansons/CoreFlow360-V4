@@ -33,6 +33,11 @@ jobs:
       - name: Run TypeScript type check
         run: npm run typecheck
 
+      - name: Check for circular dependencies
+        run: |
+          cd frontend
+          npm run check:circular:strict
+
       - name: Check formatting
         run: npx prettier --check .
 
@@ -117,6 +122,13 @@ jobs:
 
       - name: Build frontend
         run: npm run frontend:build
+
+      - name: Test production build
+        run: |
+          cd frontend
+          npm run build:safe
+          cd ..
+          node test-local-build.mjs
 
   validate-migrations:
     name: Validate Database Migrations
