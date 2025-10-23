@@ -46,6 +46,18 @@ if git diff --cached --name-only | grep -E "(dist|build|coverage)/"; then
   exit 1
 fi
 
+# Check for circular dependencies in frontend
+echo "Checking for circular dependencies..."
+cd frontend && npm run check:circular || {
+  echo ""
+  echo "❌ CIRCULAR DEPENDENCIES DETECTED!"
+  echo "This breaks production builds."
+  echo ""
+  echo "Fix with: cd frontend && npm run check:circular"
+  exit 1
+}
+cd ..
+
 # Run linting if lint-staged is available
 if command -v lint-staged >/dev/null 2>&1; then
   lint-staged
