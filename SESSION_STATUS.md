@@ -632,7 +632,7 @@ git diff 6495a5d ca1e58f -- frontend/src/hooks/use-entity-context.tsx
 - ✅ 1.1: Dependency cycle detection (madge installed)
 - ✅ 1.2: Safety scripts (added to package.json)
 - ✅ 1.3: Pre-commit hook (COMPLETE - circular dependency check added)
-- 📝 1.4: ESLint import restrictions
+- ✅ 1.4: ESLint import restrictions (COMPLETE - import/no-restricted-paths rules added)
 - 📝 1.5: Architecture documentation
 - 📝 1.6: CI/CD checks
 

@@ -223,6 +223,14 @@ test-output.txt
 # Graveyard directory (for cleanup)
 __graveyard__/
 
+# Design system node_modules (should not be committed)
+design-system/node_modules/
+
+# Large binary files
+*.exe
+*.dll
+*.node
+
 # Design system generated files
 design-system/dist/
 design-system/build/
