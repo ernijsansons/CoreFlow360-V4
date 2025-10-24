@@ -17,6 +17,7 @@ export default defineConfig({
       silent: true
     }),
   ],
+  cacheDir: 'node_modules/.vite', // Persistent cache for faster rebuilds
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -92,8 +93,23 @@ export default defineConfig({
             if (id.includes('@sentry') || id.includes('web-vitals')) {
               return 'monitoring';
             }
-            
-            // Everything else goes to vendor chunk
+
+            // Command palette - lazy loaded feature
+            if (id.includes('cmdk')) {
+              return 'command-palette';
+            }
+
+            // PWA / Service Worker - loaded on demand
+            if (id.includes('workbox')) {
+              return 'pwa-utilities';
+            }
+
+            // Dev tools - only in development, tree-shaken in production
+            if (id.includes('router-devtools') || id.includes('devtools')) {
+              return 'dev-tools';
+            }
+
+            // Everything else goes to vendor chunk (should be minimal now)
             return 'vendor-misc';
           }
           
@@ -137,6 +153,9 @@ export default defineConfig({
         properties: {
           regex: /^_private/,
         },
+      },
+      format: {
+        comments: false, // Remove all comments for smaller bundles
       },
     },
     assetsInlineLimit: 4096, // Inline small assets
