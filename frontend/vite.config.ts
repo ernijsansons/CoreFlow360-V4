@@ -124,7 +124,7 @@ export default defineConfig({
     minify: 'terser',
     target: 'esnext',
     reportCompressedSize: false,
-    chunkSizeWarningLimit: 500, // Smaller chunks for better caching
+    chunkSizeWarningLimit: 200, // Optimized chunk size for better caching and HTTP/2
     cssCodeSplit: true, // Split CSS for better caching
     terserOptions: {
       compress: {
