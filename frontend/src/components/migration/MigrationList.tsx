@@ -1,5 +1,5 @@
 import React from 'react';
-import { Migration } from './MigrationDashboard';
+import type { Migration } from './types';
 
 interface MigrationListProps {
   migrations: Migration[];

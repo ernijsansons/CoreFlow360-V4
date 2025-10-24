@@ -1,22 +1,24 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-# Check for large files
+# Check for large files in staged files only
 echo "Checking for large files..."
-LARGE_FILES=$(find . -type f -size +5M ! -path "./.git/*" ! -path "./node_modules/*" 2>/dev/null)
-
-if [ ! -z "$LARGE_FILES" ]; then
-  echo "❌ Large files detected (>5MB):"
-  echo "$LARGE_FILES"
-  echo ""
-  echo "Consider:"
-  echo "  - Using Git LFS for large binary files"
-  echo "  - Moving assets to CDN/R2"
-  echo "  - Ensuring build outputs are gitignored"
-  echo ""
-  echo "To bypass (NOT RECOMMENDED): git commit --no-verify"
-  exit 1
-fi
+for file in $(git diff --cached --name-only); do
+  if [ -f "$file" ]; then
+    size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)
+    if [ "$size" -gt 5242880 ]; then  # 5MB in bytes
+      echo "❌ Large file detected (>5MB): $file"
+      echo ""
+      echo "Consider:"
+      echo "  - Using Git LFS for large binary files"
+      echo "  - Moving assets to CDN/R2"
+      echo "  - Ensuring build outputs are gitignored"
+      echo ""
+      echo "To bypass (NOT RECOMMENDED): git commit --no-verify"
+      exit 1
+    fi
+  fi
+done
 
 # Check for common mistakes
 echo "Checking for common issues..."

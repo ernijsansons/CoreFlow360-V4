@@ -3,21 +3,7 @@ import { MigrationList } from './MigrationList';
 import { MigrationWizard } from './MigrationWizard';
 import { MigrationProgress } from './MigrationProgress';
 import { ConnectionTester } from './ConnectionTester';
-
-export interface Migration {
-  id: string;
-  name: string;
-  status: 'pending' | 'running' | 'completed' | 'failed' | 'paused';
-  progress: number;
-  phase: string;
-  startTime?: Date;
-  endTime?: Date;
-  sourceType: string;
-  targetType: string;
-  recordsProcessed: number;
-  recordsTotal: number;
-  errorCount: number;
-}
+import type { Migration } from './types';
 
 export const MigrationDashboard: React.FC = () => {
   const [migrations, setMigrations] = useState<Migration[]>([]);
