@@ -497,4 +497,77 @@ agents.post('/test', async (c: any) => {
   }
 });
 
+// === Agent Chat Endpoint ===
+agents.post('/chat', async (c: any) => {
+  try {
+    const { message, agentId } = await c.req.json();
+
+    if (!message) {
+      return c.json({
+        success: false,
+        error: 'Message is required'
+      }, 400);
+    }
+
+    return c.json({
+      success: true,
+      data: {
+        agentId: agentId || 'default',
+        response: 'This is a placeholder response. Agent chat functionality will be implemented.',
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error: any) {
+    console.error('Agent chat error:', error);
+    return c.json({
+      success: false,
+      error: error.message || 'Chat failed'
+    }, 500);
+  }
+});
+
+// === Agent Tasks Endpoint ===
+agents.get('/tasks', async (c: any) => {
+  try {
+    return c.json({
+      success: true,
+      data: {
+        tasks: [],
+        total: 0,
+        pending: 0,
+        inProgress: 0,
+        completed: 0
+      }
+    });
+  } catch (error: any) {
+    console.error('Agent tasks error:', error);
+    return c.json({
+      success: false,
+      error: error.message || 'Failed to fetch tasks'
+    }, 500);
+  }
+});
+
+agents.post('/tasks', async (c: any) => {
+  try {
+    const body = await c.req.json();
+
+    return c.json({
+      success: true,
+      data: {
+        id: `task_${Date.now()}`,
+        ...body,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      }
+    }, 201);
+  } catch (error: any) {
+    console.error('Agent create task error:', error);
+    return c.json({
+      success: false,
+      error: error.message || 'Failed to create task'
+    }, 500);
+  }
+});
+
 export default agents;

@@ -289,6 +289,47 @@ app.post('/journal-entries/:id/post', async (c: any) => {
 // FINANCIAL REPORTS ENDPOINTS
 // ============================================================================
 
+// General reports list endpoint
+app.get('/reports', async (c: any) => {
+  try {
+    return c.json({
+      success: true,
+      data: {
+        availableReports: [
+          {
+            id: 'trial-balance',
+            name: 'Trial Balance',
+            description: 'List of all accounts with debit and credit balances',
+            endpoint: '/api/finance/reports/trial-balance'
+          },
+          {
+            id: 'profit-loss',
+            name: 'Profit & Loss Statement',
+            description: 'Revenue, expenses, and net income for a period',
+            endpoint: '/api/finance/reports/profit-loss'
+          },
+          {
+            id: 'balance-sheet',
+            name: 'Balance Sheet',
+            description: 'Assets, liabilities, and equity at a point in time',
+            endpoint: '/api/finance/reports/balance-sheet'
+          },
+          {
+            id: 'cash-flow',
+            name: 'Cash Flow Statement',
+            description: 'Cash inflows and outflows by activity',
+            endpoint: '/api/finance/reports/cash-flow'
+          }
+        ],
+        total: 4
+      }
+    });
+  } catch (error: any) {
+    console.error('Finance reports error:', error);
+    return c.json({ success: true, data: { availableReports: [], total: 0 } });
+  }
+});
+
 app.get('/reports/trial-balance', zValidator('query', ReportParametersSchema), async (c: any) => {
   try {
     const managers = await initializeManagers(c.env);

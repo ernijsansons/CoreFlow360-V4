@@ -322,8 +322,9 @@ router.get('/api/supernova/report', async (request: Request, env: any) => {
   });
 });
 
-// API Routes Handler - delegates all /api/v1/* requests to Hono routes
-router.all('/api/v1/*', async (request: Request, env: Env, ctx: ExecutionContext) => {
+// API Routes Handler - delegates all /api/* requests to Hono routes
+// This handles /api/auth/*, /api/crm/*, /api/finance/*, etc.
+router.all('/api/*', async (request: Request, env: Env, ctx: ExecutionContext) => {
   return handleAPIRequest(request, env, ctx as any);
 });
 

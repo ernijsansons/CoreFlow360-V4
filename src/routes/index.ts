@@ -32,6 +32,11 @@ import aiAuditRoutes from './ai-audit';
 import aiMonitoringRoutes from './ai-monitoring';
 import observabilityRoutes from './observability';
 import rateLimitingRoutes from './rate-limiting';
+import usersRoutes from './users';
+import inventoryRoutes from './inventory';
+import dashboardRoutes from './dashboard';
+import searchRoutes from './search';
+import settingsRoutes from './settings';
 
 import type { Env } from '../types/env';
 
@@ -73,35 +78,35 @@ api.get('/health', (c) => {
   });
 });
 
-// API version prefix
-const v1 = new Hono<{ Bindings: Env }>();
-
-// Mount all route modules under v1
-v1.route('/auth', authRoutes);
-v1.route('/business', businessRoutes);
-v1.route('/crm', crmRoutes);
-v1.route('/finance', financeRoutes);
-v1.route('/invoices', invoiceRoutes);
-v1.route('/payments', paymentRoutes);
-v1.route('/agents', agentRoutes);
-v1.route('/chat', chatRoutes);
-v1.route('/webhooks', webhookRoutes);
-v1.route('/voice-agents', voiceAgentRoutes);
-v1.route('/learning', learningRoutes);
-v1.route('/learning-dashboard', learningDashboardRoutes);
-v1.route('/lead-ingestion', leadIngestionRoutes);
-v1.route('/enrichment', enrichmentRoutes);
-v1.route('/export', exportRoutes);
-v1.route('/migration', migrationRoutes);
-v1.route('/data-integrity', dataIntegrityRoutes);
-v1.route('/abac', abacRoutes);
-v1.route('/ai-audit', aiAuditRoutes);
-v1.route('/ai-monitoring', aiMonitoringRoutes);
-v1.route('/observability', observabilityRoutes);
-v1.route('/rate-limiting', rateLimitingRoutes);
-
-// Mount v1 under /api/v1
-api.route('/v1', v1);
+// Mount all route modules
+// These will be accessible at /api/* (without v1 prefix for simplicity)
+api.route('/api/auth', authRoutes);
+api.route('/api/users', usersRoutes);
+api.route('/api/business', businessRoutes);
+api.route('/api/crm', crmRoutes);
+api.route('/api/finance', financeRoutes);
+api.route('/api/invoices', invoiceRoutes);
+api.route('/api/payments', paymentRoutes);
+api.route('/api/inventory', inventoryRoutes);
+api.route('/api/agents', agentRoutes);
+api.route('/api/chat', chatRoutes);
+api.route('/api/dashboard', dashboardRoutes);
+api.route('/api/search', searchRoutes);
+api.route('/api/settings', settingsRoutes);
+api.route('/api/webhooks', webhookRoutes);
+api.route('/api/voice-agents', voiceAgentRoutes);
+api.route('/api/learning', learningRoutes);
+api.route('/api/learning-dashboard', learningDashboardRoutes);
+api.route('/api/lead-ingestion', leadIngestionRoutes);
+api.route('/api/enrichment', enrichmentRoutes);
+api.route('/api/export', exportRoutes);
+api.route('/api/migration', migrationRoutes);
+api.route('/api/data-integrity', dataIntegrityRoutes);
+api.route('/api/abac', abacRoutes);
+api.route('/api/ai-audit', aiAuditRoutes);
+api.route('/api/ai-monitoring', aiMonitoringRoutes);
+api.route('/api/observability', observabilityRoutes);
+api.route('/api/rate-limiting', rateLimitingRoutes);
 
 // Default 404 handler
 api.all('*', (c) => {

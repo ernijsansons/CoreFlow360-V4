@@ -30,7 +30,8 @@ export default defineConfig({
   // Shared settings for all the projects below
   use: {
     // Base URL to use in actions like `await page.goto('/')`
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
+    // Default to production URL to avoid localhost timeouts
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'https://8eb14753.coreflow360-frontend.pages.dev',
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -86,11 +87,13 @@ export default defineConfig({
     },
   ],
 
-  // Run your local dev server before starting the tests
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  // Disable webServer to avoid localhost dependency
+  // Tests will run against production URL by default
+  // To test locally, set PLAYWRIGHT_TEST_BASE_URL=http://localhost:3000 and start dev server
+  // webServer: {
+  //   command: 'npm run dev',
+  //   url: 'http://localhost:3000',
+  //   reuseExistingServer: !process.env.CI,
+  //   timeout: 120000,
+  // },
 })
