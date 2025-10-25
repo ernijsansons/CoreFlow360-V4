@@ -23,9 +23,9 @@ const buttonVariants = cva(
         link: "text-accent underline-offset-4 hover:underline bg-transparent",
       },
       size: {
-        default: "h-10 px-component-md py-component-sm text-sm font-medium",
-        sm: "h-9 px-component-sm py-component-xs text-sm font-medium rounded-button",
-        lg: "h-11 px-component-lg py-component-md text-base font-medium rounded-button",
+        default: "h-10 min-w-[44px] px-component-md py-component-sm text-sm font-medium",
+        sm: "h-9 min-w-[44px] px-component-sm py-component-xs text-sm font-medium rounded-button",
+        lg: "h-11 min-w-[44px] px-component-lg py-component-md text-base font-medium rounded-button",
         icon: "h-10 w-10 p-component-sm",
       },
     },
