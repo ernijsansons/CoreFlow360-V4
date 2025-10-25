@@ -4,6 +4,7 @@ pages_build_output_dir = "./dist"
 
 [vars]
 NODE_ENV = "production"
+API_URL = "https://coreflow360-v4-prod.ernijs-ansons.workers.dev"
 
 [[kv_namespaces]]
 binding = "FEATURE_FLAGS"
@@ -13,17 +14,13 @@ id = "feature-flags-kv"
 binding = "APP_CACHE"
 id = "app-cache-kv"
 
+# Pages only supports "production" and "preview" environments
 [env.production.vars]
-API_URL = "https://api.coreflow360.com"
+API_URL = "https://coreflow360-v4-prod.ernijs-ansons.workers.dev"
 SENTRY_DSN = ""
 CLOUDFLARE_ANALYTICS_TOKEN = ""
 
-[env.staging.vars]
-API_URL = "https://staging-api.coreflow360.com"
-SENTRY_DSN = ""
-CLOUDFLARE_ANALYTICS_TOKEN = ""
-
-[env.development.vars]
-API_URL = "http://localhost:8787"
+[env.preview.vars]
+API_URL = "https://coreflow360-v4-prod.ernijs-ansons.workers.dev"
 SENTRY_DSN = ""
 CLOUDFLARE_ANALYTICS_TOKEN = ""
