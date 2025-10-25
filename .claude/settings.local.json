@@ -85,7 +85,8 @@
       "Bash(for:*)",
       "Bash(do echo \"=== $file ===\")",
       "Bash(head:*)",
-      "Bash(Out-File -FilePath grug-errors.txt)"
+      "Bash(Out-File -FilePath grug-errors.txt)",
+      "Bash(npx playwright test --reporter=list)"
     ],
     "deny": [],
     "ask": []
