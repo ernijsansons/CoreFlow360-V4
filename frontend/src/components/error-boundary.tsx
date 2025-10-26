@@ -1,7 +1,7 @@
 import React, { Component, ReactNode } from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface Props {
   children: ReactNode
@@ -70,7 +70,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="max-w-2xl w-full space-y-4">
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Something went wrong</AlertTitle>
+              <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
               <AlertDescription>
                 An unexpected error occurred. The error has been logged and our team has been notified.
               </AlertDescription>

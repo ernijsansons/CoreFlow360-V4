@@ -4,6 +4,7 @@ import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 import { EntityProvider } from '@/hooks'
 import { useAuthStore, useUIStore } from '@/stores'
 import { MainLayout } from '@/layouts/main-layout'
+import { Button } from '@/components/ui/button'
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -12,19 +13,13 @@ export const Route = createRootRoute({
       <div className="text-center space-y-4">
         <h1 className="text-2xl font-bold text-destructive">Something went wrong</h1>
         <p className="text-muted-foreground">{error.message}</p>
-        <div className="space-x-2">
-          <button
-            onClick={reset}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-          >
+        <div className="flex gap-2 justify-center">
+          <Button onClick={reset} size="lg">
             Try again
-          </button>
-          <Link
-            to="/login"
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
-          >
-            Go to login
-          </Link>
+          </Button>
+          <Button asChild variant="secondary" size="lg">
+            <Link to="/login">Go to login</Link>
+          </Button>
         </div>
       </div>
     </main>
