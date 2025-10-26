@@ -66,7 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
       const { error, errorInfo } = this.state
 
       return (
-        <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="min-h-screen flex items-center justify-center p-4" data-testid="error-boundary">
           <div className="max-w-2xl w-full space-y-4">
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
