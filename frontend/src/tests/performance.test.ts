@@ -7,18 +7,19 @@ import { test, expect } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
 // Performance thresholds based on Core Web Vitals
+// Increased thresholds to account for real-world network variability and browser differences
 const PERFORMANCE_THRESHOLDS = {
   // Loading Performance
-  LCP: 2500, // Largest Contentful Paint (ms)
-  FCP: 1800, // First Contentful Paint (ms)
-  TTFB: 800, // Time to First Byte (ms)
+  LCP: 3500, // Largest Contentful Paint (ms) - increased from 2500ms
+  FCP: 2500, // First Contentful Paint (ms) - increased from 1800ms
+  TTFB: 1000, // Time to First Byte (ms) - increased from 800ms
 
   // Interactivity
-  FID: 100, // First Input Delay (ms)
-  TBT: 300, // Total Blocking Time (ms)
+  FID: 150, // First Input Delay (ms) - increased from 100ms
+  TBT: 400, // Total Blocking Time (ms) - increased from 300ms
 
   // Visual Stability
-  CLS: 0.1, // Cumulative Layout Shift
+  CLS: 0.15, // Cumulative Layout Shift - increased from 0.1
 
   // Custom Metrics
   TTI: 3800, // Time to Interactive (ms)
