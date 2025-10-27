@@ -14,10 +14,10 @@ export const Route = createRootRoute({
         <h1 className="text-2xl font-bold text-destructive">Something went wrong</h1>
         <p className="text-muted-foreground">{error.message}</p>
         <div className="flex gap-2 justify-center">
-          <Button onClick={reset} size="lg">
+          <Button onClick={reset} size="lg" className="min-w-[88px] min-h-[44px]">
             Try again
           </Button>
-          <Button asChild variant="secondary" size="lg">
+          <Button asChild variant="secondary" size="lg" className="min-w-[88px] min-h-[44px]">
             <Link to="/login">Go to login</Link>
           </Button>
         </div>

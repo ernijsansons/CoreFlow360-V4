@@ -67,10 +67,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-screen flex items-center justify-center p-4" data-testid="error-boundary">
-          <div className="max-w-2xl w-full space-y-4">
+          <main className="max-w-2xl w-full space-y-4">
+            <h1 className="text-2xl font-semibold tracking-tight mb-4">Something went wrong</h1>
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
               <AlertDescription>
                 An unexpected error occurred. The error has been logged and our team has been notified.
               </AlertDescription>
@@ -94,16 +94,16 @@ export class ErrorBoundary extends Component<Props, State> {
             )}
 
             <div className="flex gap-2">
-              <Button onClick={this.handleReset} variant="default" size="lg">
+              <Button onClick={this.handleReset} variant="default" size="lg" className="min-w-[88px] min-h-[44px]">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Try Again
               </Button>
-              <Button onClick={this.handleGoHome} variant="outline" size="lg">
+              <Button onClick={this.handleGoHome} variant="outline" size="lg" className="min-w-[88px] min-h-[44px]">
                 <Home className="mr-2 h-4 w-4" />
                 Go Home
               </Button>
             </div>
-          </div>
+          </main>
         </div>
       )
     }
