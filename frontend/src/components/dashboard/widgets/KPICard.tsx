@@ -4,7 +4,6 @@
  */
 
 import React, { useMemo } from 'react'
-import { motion } from 'framer-motion'
 import {
   TrendingUp,
   TrendingDown,
@@ -142,14 +141,13 @@ export const KPICard: React.FC<KPICardProps> = ({
   ) : null
 
   return (
-    <motion.div
+    <div
       className={cn(
         "h-full p-4 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900",
         "rounded-lg border border-gray-200 dark:border-gray-700",
         "hover:shadow-lg transition-all duration-200",
         className
       )}
-      layout
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
@@ -354,7 +352,7 @@ export const KPICard: React.FC<KPICardProps> = ({
           )}
         </div>
       )}
-    </motion.div>
+    </div>
   )
 }
 

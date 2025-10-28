@@ -1,12 +1,11 @@
-import { RouterProvider } from '@tanstack/react-router'
-import { router } from './router'
+import { AppRouter } from './router'
 import { Toaster } from 'sonner'
 import { ErrorBoundary } from '@/components/error-boundary'
 
 export default function App() {
   return (
     <ErrorBoundary>
-      <RouterProvider router={router} />
+      <AppRouter />
       <Toaster
         position="top-right"
         richColors

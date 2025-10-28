@@ -7,8 +7,8 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
+    // TanStackRouterVite(), // DISABLED - using manual routing instead
     react(),
-    TanStackRouterVite(),
     sentryVitePlugin({
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,
@@ -38,12 +38,10 @@ export default defineConfig({
         manualChunks: (id) => {
           // Enhanced chunk splitting strategy for optimal performance
           if (id.includes('node_modules')) {
-            // Core React and routing - highest priority
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
-            }
-            if (id.includes('@tanstack/react-router')) {
-              return 'router';
+            // DO NOT split React, React Router, or Framer Motion - keep in main bundle
+            // These libraries use React hooks at module level and must load with React
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('framer-motion')) {
+              return undefined; // Include in main bundle
             }
             
             // UI frameworks - medium priority, can be cached aggressively
@@ -67,12 +65,6 @@ export default defineConfig({
             if (id.includes('recharts') || id.includes('d3')) {
               return 'data-visualization';
             }
-            
-            // Animation libraries - lazy loaded
-            if (id.includes('framer-motion')) {
-              return 'animations';
-            }
-            
             // Date utilities - medium priority
             if (id.includes('date-fns') || id.includes('react-day-picker')) {
               return 'date-utilities';
@@ -109,8 +101,9 @@ export default defineConfig({
               return 'dev-tools';
             }
 
-            // Everything else goes to vendor chunk (should be minimal now)
-            return 'vendor-misc';
+            // Everything else goes to main bundle to avoid module initialization timing issues
+            // This prevents libraries using React hooks from loading before React
+            return undefined;
           }
           
           // App code chunking based on feature areas
@@ -149,11 +142,7 @@ export default defineConfig({
         pure_funcs: ['console.log', 'console.debug', 'console.info'],
         passes: 2, // Multiple passes for better compression
       },
-      mangle: {
-        properties: {
-          regex: /^_private/,
-        },
-      },
+      mangle: false, // Disable mangling to fix TanStack Router production build issue
       format: {
         comments: false, // Remove all comments for smaller bundles
       },
@@ -175,9 +164,8 @@ export default defineConfig({
       'lucide-react'
     ],
     exclude: [
-      'recharts', 
-      'd3', 
-      'framer-motion',
+      'recharts',
+      'd3',
       '@sentry/react',
       'web-vitals'
     ],
