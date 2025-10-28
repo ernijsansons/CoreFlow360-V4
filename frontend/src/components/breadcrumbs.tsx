@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ChevronRight, Home } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { Link } from 'react-router-dom'
 import { useUIStore } from '@/stores'
 import { cn } from '@/lib/utils'
 

@@ -1,4 +1,4 @@
-import { useRouteError, useNavigate } from '@tanstack/react-router'
+import { useRouteError, useNavigate } from 'react-router-dom'
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'

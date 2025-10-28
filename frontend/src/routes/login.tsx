@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from 'react-router-dom'
 import { LoginForm } from '@/modules/auth/login-form'
 import { useAuthStore } from '@/stores'
 

@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from 'react-router-dom'
 import { Dashboard } from '@/modules/dashboard'
 import { useUIStore } from '@/stores'
 

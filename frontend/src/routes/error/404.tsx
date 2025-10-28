@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouter } from 'react-router-dom'
 import { Home, ArrowLeft, Search, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

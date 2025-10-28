@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from 'react-router-dom'
 import { CRMDashboard } from '@/modules/crm'
 import { useEntityPermissions } from '@/hooks'
 import { useUIStore } from '@/stores/ui-store'

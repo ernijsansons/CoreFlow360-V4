@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createRootRoute, Link, Outlet } from '@tanstack/react-router'
+import { createRootRoute, Link, Outlet } from 'react-router-dom'
 import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 import { EntityProvider } from '@/hooks'
 import { useAuthStore, useUIStore } from '@/stores'

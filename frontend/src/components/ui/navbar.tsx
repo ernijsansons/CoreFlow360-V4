@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
 import {

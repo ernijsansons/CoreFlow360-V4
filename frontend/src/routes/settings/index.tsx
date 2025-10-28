@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createFileRoute, Link, Outlet, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, useNavigate } from 'react-router-dom'
 import {
   User,
   CreditCard,

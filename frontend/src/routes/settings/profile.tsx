@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from 'react-router-dom'
 import { MainLayout } from '@/layouts/main-layout'
 import { ProfileForm } from '@/components/settings/ProfileForm'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

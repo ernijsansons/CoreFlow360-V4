@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect } from 'react'
 import { useAuthStore } from '@/stores'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 
 interface AuthContextValue {
   isAuthenticated: boolean

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from 'react-router-dom'
 import { MainLayout } from '@/layouts/main-layout'
 import { TrafficChart } from '@/components/dashboard/TrafficChart'
 import { ConversionFunnel } from '@/components/dashboard/ConversionFunnel'
