@@ -16,32 +16,63 @@ export function Dashboard() {
   // Mock KPI data - replace with real API calls
   const kpis = [
     {
-      title: 'Total Revenue',
-      value: '$45,231.89',
-      change: '+20.1% from last month',
-      trend: 'up' as const,
-      icon: DollarSign,
+      widget: {
+        id: 'revenue',
+        title: 'Total Revenue',
+        type: 'kpi' as const,
+        position: { x: 0, y: 0, w: 1, h: 1 },
+      },
+      data: {
+        value: 45231.89,
+        trend: 20.1,
+        previousValue: 37693,
+        prefix: '$',
+        sparklineData: [30000, 32000, 35000, 38000, 42000, 45231],
+      },
     },
     {
-      title: 'Active Users',
-      value: '2,350',
-      change: '+180.1% from last month',
-      trend: 'up' as const,
-      icon: Users,
+      widget: {
+        id: 'users',
+        title: 'Active Users',
+        type: 'kpi' as const,
+        position: { x: 1, y: 0, w: 1, h: 1 },
+      },
+      data: {
+        value: 2350,
+        trend: 180.1,
+        previousValue: 840,
+        sparklineData: [800, 950, 1100, 1400, 1800, 2350],
+      },
     },
     {
-      title: 'Total Orders',
-      value: '+12,234',
-      change: '+19% from last month',
-      trend: 'up' as const,
-      icon: ShoppingCart,
+      widget: {
+        id: 'orders',
+        title: 'Total Orders',
+        type: 'kpi' as const,
+        position: { x: 2, y: 0, w: 1, h: 1 },
+      },
+      data: {
+        value: 12234,
+        trend: 19,
+        previousValue: 10280,
+        prefix: '+',
+        sparklineData: [9000, 9500, 10200, 10800, 11500, 12234],
+      },
     },
     {
-      title: 'Active Now',
-      value: '+573',
-      change: '+201 since last hour',
-      trend: 'up' as const,
-      icon: Activity,
+      widget: {
+        id: 'active',
+        title: 'Active Now',
+        type: 'kpi' as const,
+        position: { x: 3, y: 0, w: 1, h: 1 },
+      },
+      data: {
+        value: 573,
+        trend: 54,
+        previousValue: 372,
+        prefix: '+',
+        sparklineData: [300, 350, 400, 450, 520, 573],
+      },
     },
   ]
 
@@ -61,14 +92,11 @@ export function Dashboard() {
 
       {/* KPI Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {kpis.map((kpi, index) => (
+        {kpis.map((kpi) => (
           <KPICard
-            key={index}
-            title={kpi.title}
-            value={kpi.value}
-            change={kpi.change}
-            trend={kpi.trend}
-            icon={kpi.icon}
+            key={kpi.widget.id}
+            widget={kpi.widget}
+            data={kpi.data}
           />
         ))}
       </div>
