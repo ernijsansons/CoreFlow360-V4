@@ -22,11 +22,11 @@ export const Route = createFileRoute('/login')({
 
 function LoginPage() {
   return (
-    <div className="min-h-screen flex">
+    <main className="min-h-screen flex">
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-brand-600 to-brand-800 text-white p-12 flex-col justify-between">
         <div>
-          <h1 className="text-4xl font-bold mb-4">CoreFlow360</h1>
+          <h2 className="text-4xl font-bold mb-4">CoreFlow360</h2>
           <p className="text-xl text-brand-100">
             AI-Native ERP Platform for Modern Businesses
           </p>
@@ -60,7 +60,7 @@ function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-foreground">Welcome back</h2>
+            <h1 className="text-3xl font-bold text-foreground">Welcome back</h1>
             <p className="text-muted-foreground mt-2">
               Sign in to your account to continue
             </p>
@@ -81,6 +81,6 @@ function LoginPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
