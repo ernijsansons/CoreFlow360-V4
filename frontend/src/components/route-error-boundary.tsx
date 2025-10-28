@@ -45,7 +45,7 @@ export function RouteErrorBoundary() {
           <p className="text-muted-foreground">
             The page you're looking for doesn't exist or has been moved.
           </p>
-          <Button onClick={handleGoHome} className="mt-8">
+          <Button onClick={handleGoHome} className="mt-8 min-h-11 min-w-[110px]">
             <Home className="mr-2 h-4 w-4" aria-hidden="true" />
             Go Home
           </Button>
@@ -75,11 +75,11 @@ export function RouteErrorBoundary() {
         )}
 
         <div className="flex gap-2">
-          <Button onClick={handleReset} variant="default">
+          <Button onClick={handleReset} variant="default" className="min-h-11 min-w-[110px]">
             <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
             Try Again
           </Button>
-          <Button onClick={handleGoHome} variant="outline">
+          <Button onClick={handleGoHome} variant="outline" className="min-h-11 min-w-[110px]">
             <Home className="mr-2 h-4 w-4" aria-hidden="true" />
             Go Home
           </Button>
