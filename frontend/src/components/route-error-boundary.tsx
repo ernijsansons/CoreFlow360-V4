@@ -38,34 +38,36 @@ export function RouteErrorBoundary() {
 
   if (is404) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <main className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-4">
-          <div className="text-6xl font-bold text-muted-foreground">404</div>
+          <div className="text-6xl font-bold text-muted-foreground" aria-hidden="true">404</div>
           <h1 className="text-2xl font-semibold">Page Not Found</h1>
           <p className="text-muted-foreground">
             The page you're looking for doesn't exist or has been moved.
           </p>
           <Button onClick={handleGoHome} className="mt-8">
-            <Home className="mr-2 h-4 w-4" />
+            <Home className="mr-2 h-4 w-4" aria-hidden="true" />
             Go Home
           </Button>
         </div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <main className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-2xl w-full space-y-4">
+        <h1 className="text-2xl font-bold text-destructive mb-4">Something went wrong</h1>
+
         <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
+          <AlertTriangle className="h-4 w-4" aria-hidden="true" />
           <AlertTitle>Route Error</AlertTitle>
           <AlertDescription>{getErrorMessage()}</AlertDescription>
         </Alert>
 
         {isDevelopment && error instanceof Error && (
           <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-            <h3 className="font-semibold text-sm mb-2">Error Stack (Development Only)</h3>
+            <h2 className="font-semibold text-sm mb-2">Error Stack (Development Only)</h2>
             <pre className="text-xs overflow-auto">
               <code>{error.stack}</code>
             </pre>
@@ -74,15 +76,15 @@ export function RouteErrorBoundary() {
 
         <div className="flex gap-2">
           <Button onClick={handleReset} variant="default">
-            <RefreshCw className="mr-2 h-4 w-4" />
+            <RefreshCw className="mr-2 h-4 w-4" aria-hidden="true" />
             Try Again
           </Button>
           <Button onClick={handleGoHome} variant="outline">
-            <Home className="mr-2 h-4 w-4" />
+            <Home className="mr-2 h-4 w-4" aria-hidden="true" />
             Go Home
           </Button>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
