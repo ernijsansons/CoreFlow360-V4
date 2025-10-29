@@ -1,211 +1,146 @@
-# Quick Start Guide - Recovery Complete ✅
+# CoreFlow360 V4 - Quick Start Commands
 
-## ✅ PRODUCTION STABLE & OPTIMIZED
+## 🚀 New Terminal Session - Copy & Paste These
 
-**Production URL**: https://8eb14753.coreflow360-frontend.pages.dev/
-**Status**: ✅ LIVE & OPTIMIZED
-**Latest Commit**: 07a7517
-**Circular Dependencies**: 0 found (220 files scanned)
-
----
-
-## 🎉 Recovery Plan: COMPLETE
-
-### Phase 1: Safeguards ✅ COMPLETE
-All 6 safeguards implemented and active:
-1. ✅ Circular dependency detection (madge)
-2. ✅ Safety scripts (check:circular, build:safe)
-3. ✅ Pre-commit hook (optimized, ~3-5s)
-4. ✅ ESLint import restrictions
-5. ✅ Architecture documentation
-6. ✅ CI/CD integration
-
-### Phase 2: Assessment ✅ COMPLETE
-- ✅ Analyzed 20+ lost commits
-- ✅ Applied critical CSS design tokens fix
-- ✅ Completed performance optimizations
-- ✅ Documented restoration path
-
-### Performance Optimizations ✅ COMPLETE
-- ✅ Removed Google Fonts (FCP -1000ms)
-- ✅ Configured system fonts
-- ✅ Optimized bundle splitting
-
----
-
-## Quick Verification
-
-### 1. Check Production Status
-```bash
-curl -I https://8eb14753.coreflow360-frontend.pages.dev/
+### 1️⃣ Start Development Server
+```powershell
+cd "C:\Users\ernij\OneDrive\Documents\CoreFlow360 V4\frontend"
+npm run dev
 ```
-**Expected**: HTTP 200 OK ✅
+Server runs at: http://localhost:5173
 
-### 2. Verify No Circular Dependencies
-```bash
+---
+
+### 2️⃣ Run Accessibility Tests (New Terminal)
+```powershell
+cd "C:\Users\ernij\OneDrive\Documents\CoreFlow360 V4\frontend"
+npx playwright test --grep="accessibility" --reporter=list
+```
+
+---
+
+### 3️⃣ Setup Cloudflare Deployment (First Time Only)
+```powershell
+cd "C:\Users\ernij\OneDrive\Documents\CoreFlow360 V4"
+.\setup-cloudflare-deployment.ps1
+```
+
+**Or manually:**
+1. Get API Token: https://dash.cloudflare.com/profile/api-tokens
+2. Add to GitHub: https://github.com/ernijsansons/CoreFlow360-V4/settings/secrets/actions
+   - Name: `CLOUDFLARE_API_TOKEN`
+   - Value: [Your token]
+
+---
+
+### 4️⃣ Check Current Status
+```powershell
+cd "C:\Users\ernij\OneDrive\Documents\CoreFlow360 V4"
+
+# Git status
+git status
+git log --oneline -5
+
+# Test results
 cd frontend
-npm run check:circular
+npx playwright test --grep="accessibility" --reporter=list | findstr "passed failed"
 ```
-**Expected**: ✔ No circular dependency found! ✅
 
-### 3. Test Production Build
-```bash
+---
+
+## 📋 What's Already Done
+
+✅ **Error Boundary** - Semantic HTML, ARIA attributes (commit `f52f40f`)
+✅ **Login Page** - Main landmark, H1 heading (commit `e21f712`)
+✅ **Button Sizes** - 44x44px minimum (commit `5e0737f`)
+✅ **GitHub Actions** - Auto deployment on push (commit `3faf003`)
+✅ **Documentation** - Setup guides (commit `f729eac`)
+
+---
+
+## ❌ What Still Needs Fixing
+
+Priority order:
+
+1. **Color Contrast** - WCAG 2.1 AA compliance
+2. **Mobile Accessibility** - Responsive design
+3. **Keyboard Navigation** - Shift+Tab support
+4. **ARIA Attributes** - Screen reader support
+
+---
+
+## 🎯 Next Steps
+
+### Step 1: Add GitHub Secret (If not done)
+```powershell
+# Run helper script
+.\setup-cloudflare-deployment.ps1
+```
+
+### Step 2: Verify Deployment Works
+Check: https://github.com/ernijsansons/CoreFlow360-V4/actions
+
+### Step 3: Test Production
+```powershell
 cd frontend
-npm run build
+npx playwright test --grep="accessibility" --reporter=list
 ```
-**Expected**: ✓ built in ~14s ✅
+Tests run against: https://8eb14753.coreflow360-frontend.pages.dev
 
----
-
-## Key Commands
-
-### Circular Dependency Check
-```bash
+### Step 4: Fix Color Contrast
+```powershell
 cd frontend
-npm run check:circular          # Check for circular deps
-npm run check:circular:strict   # Strict mode (exits with error if found)
-npm run build:safe              # Build with circular dependency check first
-```
-
-### Pre-commit Hook Status
-The pre-commit hook runs automatically on every commit and checks:
-- Large files (>5MB)
-- Security issues (.env, secrets, node_modules)
-- Build artifacts
-- **Circular dependencies** ⚡
-- Runtime: ~3-5 seconds
-
-### Git Commands
-```bash
-git log --oneline | head -5     # See recent commits
-git status                       # Check working directory
+npx playwright test --grep="Color Contrast" --headed
+# Identify issues, fix in theme/components, commit & push
 ```
 
 ---
 
-## Recent Commits
+## 🔗 Important Links
 
-```
-07a7517 - docs: Update Phase 2 assessment - performance optimizations completed
-7ce4148 - perf: Apply performance optimizations - system fonts and bundle optimization
-8df77ab - docs: Complete Phase 2 - Lost commits restoration assessment
-752c36a - docs: Complete Phase 1 - All safeguards implemented and verified
-704b293 - fix: Resolve circular dependency and optimize pre-commit hook
-```
+- **GitHub Repo:** https://github.com/ernijsansons/CoreFlow360-V4
+- **Actions:** https://github.com/ernijsansons/CoreFlow360-V4/actions
+- **Secrets:** https://github.com/ernijsansons/CoreFlow360-V4/settings/secrets/actions
+- **Production:** https://8eb14753.coreflow360-frontend.pages.dev
+- **CF Tokens:** https://dash.cloudflare.com/profile/api-tokens
 
 ---
 
-## Documentation
+## 🛠️ Useful Commands
 
-### Core Documents
-- **RECOVERY_PLAN.md** - Complete recovery plan with Phase 1 & 2 status
-- **PHASE2_ASSESSMENT.md** - Detailed restoration analysis
-- **frontend/ARCHITECTURE.md** - Dependency flow rules
-- **PRODUCTION_BREAKAGE_ANALYSIS.md** - Root cause analysis
+```powershell
+# Development
+npm run dev              # Start dev server
+npm run build           # Production build
+npm run preview         # Test production build locally
 
-### Quick References
-- Circular dependencies: **0 found** ✅
-- Pre-commit hook: **Active** (~3-5s) ✅
-- Production build: **Working** (~14s) ✅
-- ESLint restrictions: **Active** ✅
-- CI/CD checks: **Integrated** ✅
+# Testing
+npx playwright test --ui                    # Interactive test UI
+npx playwright test --headed               # See browser
+npx playwright test --grep="Color"        # Specific test
+npx playwright show-report                # View HTML report
 
----
+# Git
+git status
+git add .
+git commit -m "fix(a11y): [description]"
+git push origin master
 
-## What Was Accomplished
-
-### ✅ Phase 1 (Safeguards)
-- Fixed circular dependency in MigrationDashboard ↔ MigrationList
-- Optimized pre-commit hook (60+s → 3-5s, 20x faster!)
-- All 6 safeguards implemented and tested
-- Zero circular dependencies in codebase
-
-### ✅ Phase 2 (Assessment & Optimization)
-- Analyzed all 20+ lost commits
-- Applied critical CSS design tokens fix (aff0c5a)
-- Removed Google Fonts for instant rendering
-- Configured optimal system fonts
-- Optimized bundle splitting strategy
-
-### ✅ Results
-- **Production**: Stable and optimized
-- **Performance**: FCP improved ~1000ms
-- **Security**: All safeguards active
-- **Quality**: 0 circular dependencies
-- **Build**: Consistent ~14s builds
-
----
-
-## Current Status
-
-✅ **Production**: Live at 07a7517
-✅ **Safeguards**: All 6 active and tested
-✅ **Performance**: Optimized (Google Fonts removed)
-✅ **Circular Deps**: 0 found (220 files)
-✅ **Documentation**: Complete
-✅ **Recovery Plan**: CLOSED - Objectives achieved
-
----
-
-## Next Steps
-
-### Recommended: Move to Feature Development
-The codebase is now:
-- ✅ Stable and protected
-- ✅ Performance optimized
-- ✅ Well documented
-- ✅ Ready for new features
-
-Focus on product roadmap instead of restoration.
-
-### Optional: Monitor Performance
-Track improvements in production:
-- First Contentful Paint (should be faster)
-- Lighthouse scores (should improve 5-10 points)
-- Bundle load times
-
----
-
-## Troubleshooting
-
-### If Circular Dependencies Detected
-```bash
-cd frontend
-npm run check:circular  # See which files have circular deps
-```
-The pre-commit hook will block commits until fixed.
-
-### If Pre-commit Hook Fails
-```bash
-# Check what failed
-git commit -v
-
-# To bypass (NOT RECOMMENDED)
-git commit --no-verify
-```
-
-### If Build Fails
-```bash
-cd frontend
-npm run build          # Check for errors
-npm run typecheck      # Check TypeScript
-npm run check:circular # Check circular deps
+# Kill processes
+taskkill /F /IM node.exe   # Kill all Node processes
 ```
 
 ---
 
-## Emergency Contacts
+## 📖 Full Documentation
 
-**Documentation**:
-- RECOVERY_PLAN.md
-- PHASE2_ASSESSMENT.md
-- PRODUCTION_BREAKAGE_ANALYSIS.md
-
-**Status**: All systems operational ✅
+- **Complete Guide:** `CONTINUE_ACCESSIBILITY_WORK.md`
+- **Deployment Setup:** `DEPLOYMENT_SETUP_COMPLETE.md`
+- **Project README:** `CLAUDE.md`
 
 ---
 
-**Last Updated**: October 24, 2025
-**Recovery Status**: COMPLETE ✅
-**Production Status**: LIVE & OPTIMIZED ✅
-**Circular Dependencies**: 0 ✅
+**Status:** Ready for deployment and continued accessibility fixes
+**Last Updated:** 2025-10-29
+
+🤖 Quick reference for fast terminal startup
